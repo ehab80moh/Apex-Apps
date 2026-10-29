@@ -1,0 +1,1722 @@
+page 58 (
+    name: طلب تعديل/إضافة بيان
+    alias: HRF-PERSONAL-ATTACHED
+    title: &APP_TEXT$REQUEST_TO_AMEND_ADD_A_STATEMENT.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region add-new-data-with-details (
+        name: Add New Data with Details
+        title: &APP_TEXT$ADD_NEW_DATA_WITH_DETAILS.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: HRF_PERSONAL_EDIT_UPLOAD
+        }
+        layout {
+            sequence: 250
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region feild (
+        name: FEILD
+        title: &APP_TEXT$FEILD.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: HRF_PERSONAL_EDIT_DETAILS
+        }
+        layout {
+            sequence: 260
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P58_ATTACHMENT_1 (
+        type: fileUpload
+        label {
+            label: &P58_LABEL20.
+            alignment: left
+        }
+        storage {
+            type: appTempFiles
+            fileTypes: image/*,application/pdf,application
+            maxFileSize: 20000
+        }
+        layout {
+            sequence: 90
+            region: @feild
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            icon: fa-braille
+            width: 30
+        }
+        source {
+            formRegion: @feild
+            column: ATTACHMENT_1
+            dataType: blob
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL20
+        }
+        comments {
+            comments: image/*,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/pdf,application/vnd.ms-excel,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/csv
+        }
+    )
+
+    pageItem P58_ATTACHMENT_2 (
+        type: fileUpload
+        label {
+            label: &P58_LABEL19.
+            alignment: left
+        }
+        storage {
+            type: appTempFiles
+            fileTypes: image/*,application/pdf,application
+            maxFileSize: 20000
+        }
+        layout {
+            sequence: 100
+            region: @feild
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+            icon: fa-braille
+            width: 30
+        }
+        source {
+            formRegion: @feild
+            column: ATTACHMENT_2
+            dataType: blob
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL19
+        }
+    )
+
+    pageItem P58_ATTACHMENT_3 (
+        type: fileUpload
+        label {
+            label: &APP_TEXT$ATTACHMENT_3_RELATING_TO_THE_REQUEST.
+            alignment: left
+        }
+        storage {
+            type: appTempFiles
+            fileTypes: application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/jpg,image/png
+            maxFileSize: 5000
+        }
+        layout {
+            sequence: 120
+            region: @feild
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            icon: fa-braille
+            width: 30
+        }
+        source {
+            formRegion: @feild
+            column: ATTACHMENT_3
+            dataType: blob
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_ATTACHMENT_4 (
+        type: fileUpload
+        label {
+            label: &APP_TEXT$ATTACHMENT_4_OF_THE_REQUEST.
+            alignment: left
+        }
+        storage {
+            type: appTempFiles
+            fileTypes: application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/jpg,image/png
+            maxFileSize: 5000
+        }
+        layout {
+            sequence: 130
+            region: @feild
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            icon: fa-braille
+            width: 30
+        }
+        source {
+            formRegion: @feild
+            column: ATTACHMENT_4
+            dataType: blob
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_COL01 (
+        type: textField
+        label {
+            label: &P58_LABEL1.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            valueRequired: true
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL01
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL1
+        }
+    )
+
+    pageItem P58_COL02 (
+        type: textField
+        label {
+            label: &P58_LABEL2.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL02
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL2
+        }
+    )
+
+    pageItem P58_COL03 (
+        type: textField
+        label {
+            label: &P58_LABEL3.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL03
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL3
+        }
+    )
+
+    pageItem P58_COL04 (
+        type: textField
+        label {
+            label: &P58_LABEL4.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL04
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL4
+        }
+    )
+
+    pageItem P58_COL05 (
+        type: textField
+        label {
+            label: &P58_LABEL5.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL05
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL5
+        }
+    )
+
+    pageItem P58_COL06 (
+        type: textField
+        label {
+            label: &P58_LABEL6.
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL06
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL6
+        }
+    )
+
+    pageItem P58_COL07 (
+        type: textField
+        label {
+            label: &P58_LABEL7.
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL07
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL7
+        }
+    )
+
+    pageItem P58_COL08 (
+        type: textField
+        label {
+            label: &P58_LABEL8.
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL08
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL8
+        }
+    )
+
+    pageItem P58_COL09 (
+        type: textField
+        label {
+            label: &P58_LABEL9.
+            alignment: left
+        }
+        layout {
+            sequence: 110
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL09
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL9
+        }
+    )
+
+    pageItem P58_COL10 (
+        type: textField
+        label {
+            label: &P58_LABEL10.
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL10
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL10
+        }
+    )
+
+    pageItem P58_COL11 (
+        type: textField
+        label {
+            label: &P58_LABEL11.
+            alignment: left
+        }
+        layout {
+            sequence: 130
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL11
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL11
+        }
+    )
+
+    pageItem P58_COL12 (
+        type: textField
+        label {
+            label: &P58_LABEL12.
+            alignment: left
+        }
+        layout {
+            sequence: 140
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL12
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL12
+        }
+    )
+
+    pageItem P58_COL13 (
+        type: textField
+        label {
+            label: &P58_LABEL13.
+            alignment: left
+        }
+        layout {
+            sequence: 150
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL13
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL13
+        }
+    )
+
+    pageItem P58_COL14 (
+        type: textField
+        label {
+            label: &P58_LABEL14.
+            alignment: left
+        }
+        layout {
+            sequence: 160
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL14
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL14
+        }
+    )
+
+    pageItem P58_COL15 (
+        type: textField
+        label {
+            label: &P58_LABEL15.
+            alignment: left
+        }
+        layout {
+            sequence: 170
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL15
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL15
+        }
+    )
+
+    pageItem P58_COL16 (
+        type: textField
+        label {
+            label: &P58_LABEL16.
+            alignment: left
+        }
+        layout {
+            sequence: 180
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL16
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL16
+        }
+    )
+
+    pageItem P58_COL17 (
+        type: textField
+        label {
+            label: &P58_LABEL17.
+            alignment: left
+        }
+        layout {
+            sequence: 190
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL17
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL17
+        }
+    )
+
+    pageItem P58_COL18 (
+        type: textField
+        label {
+            label: &P58_LABEL18.
+            alignment: left
+        }
+        layout {
+            sequence: 200
+            region: @add-new-data-with-details
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL18
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL18
+        }
+    )
+
+    pageItem P58_COL19 (
+        type: hidden
+        layout {
+            sequence: 210
+            region: @add-new-data-with-details
+            slot: regionBody
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL19
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL19
+        }
+    )
+
+    pageItem P58_COL20 (
+        type: hidden
+        layout {
+            sequence: 220
+            region: @add-new-data-with-details
+            slot: regionBody
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: COL20
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P58_LABEL20
+        }
+    )
+
+    pageItem P58_COMMENT (
+        type: textarea
+        label {
+            label: &APP_TEXT$COMMENT_NOTE.
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @feild
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @feild
+            column: COMMENT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P58_CREATED_AT (
+        type: hidden
+        layout {
+            sequence: 230
+            region: @add-new-data-with-details
+            slot: regionBody
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: CREATED_AT
+            dataType: date
+        }
+    )
+
+    pageItem P58_CREATED_BY (
+        type: hidden
+        layout {
+            sequence: 240
+            region: @add-new-data-with-details
+            slot: regionBody
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: CREATED_BY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P58_DETAIL_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @feild
+            slot: regionBody
+        }
+        source {
+            formRegion: @feild
+            column: DETAIL_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P58_DETAIL_ID_1 (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @add-new-data-with-details
+            slot: regionBody
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: DETAIL_ID
+            dataType: number
+        }
+        default {
+            type: item
+            item: P58_DETAIL_ID
+        }
+    )
+
+    pageItem P58_EMP_ID (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 30
+            region: @feild
+            slot: regionBody
+        }
+        source {
+            formRegion: @feild
+            column: EMP_ID
+            dataType: number
+        }
+        default {
+            type: expression
+            plsqlExpression: :app_user
+        }
+    )
+
+    pageItem P58_FIELD_NAME (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @feild
+            slot: regionBody
+        }
+        source {
+            formRegion: @feild
+            column: FIELD_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P58_LABEL (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        security {
+            encryptSessionState: false
+        }
+    )
+
+    pageItem P58_LABEL1 (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+    )
+
+    pageItem P58_LABEL10 (
+        type: hidden
+        layout {
+            sequence: 110
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL11 (
+        type: hidden
+        layout {
+            sequence: 120
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL12 (
+        type: hidden
+        layout {
+            sequence: 130
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL13 (
+        type: hidden
+        layout {
+            sequence: 150
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL14 (
+        type: hidden
+        layout {
+            sequence: 170
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL15 (
+        type: hidden
+        layout {
+            sequence: 190
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL16 (
+        type: hidden
+        layout {
+            sequence: 200
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL17 (
+        type: hidden
+        layout {
+            sequence: 210
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL18 (
+        type: hidden
+        layout {
+            sequence: 220
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL19 (
+        type: hidden
+        layout {
+            sequence: 230
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL2 (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+    )
+
+    pageItem P58_LABEL20 (
+        type: hidden
+        layout {
+            sequence: 240
+            slot: contentBody
+        }
+    )
+
+    pageItem P58_LABEL3 (
+        type: hidden
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+    )
+
+    pageItem P58_LABEL4 (
+        type: hidden
+        layout {
+            sequence: 50
+            slot: contentBody
+        }
+    )
+
+    pageItem P58_LABEL5 (
+        type: hidden
+        layout {
+            sequence: 60
+            slot: contentBody
+        }
+    )
+
+    pageItem P58_LABEL6 (
+        type: hidden
+        layout {
+            sequence: 70
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL7 (
+        type: hidden
+        layout {
+            sequence: 80
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL8 (
+        type: hidden
+        layout {
+            sequence: 90
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_LABEL9 (
+        type: hidden
+        layout {
+            sequence: 100
+            slot: contentBody
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P58_NEW_VALUE (
+        type: textarea
+        label {
+            label: &P58_LABEL.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @feild
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            maxLength: 400
+        }
+        source {
+            formRegion: @feild
+            column: NEW_VALUE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P58_OLD_VALUE (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @feild
+            slot: regionBody
+        }
+        source {
+            formRegion: @feild
+            column: OLD_VALUE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P58_REQUEST_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @feild
+            slot: regionBody
+        }
+        source {
+            formRegion: @feild
+            column: REQUEST_ID
+            dataType: number
+        }
+    )
+
+    pageItem P58_UPLOAD_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @add-new-data-with-details
+            slot: regionBody
+        }
+        source {
+            formRegion: @add-new-data-with-details
+            column: UPLOAD_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button button (
+        buttonName: BUTTON
+        label: &APP_TEXT$SUBMIT_THE_REQUEST.
+        layout {
+            sequence: 280
+            slot: contentBody
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconRight
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process clear-all-items (
+        name: Clear all items
+        type: clearSessionState
+        execution {
+            sequence: 10
+            point: afterFooter
+        }
+        advanced {
+            executionMappingIdentifier: 66438028578549528
+        }
+    )
+
+    process close (
+        name: CLOSE
+        type: closeDialog
+        settings {
+            itemsToReturn: P58_DETAIL_ID
+            showSuccessMessages: false
+        }
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 66438601148549534
+        }
+    )
+
+    process initialize-form-طلب-تعديل-إضافة-بيان (
+        name: Initialize form طلب تعديل/إضافة بيان
+        type: formInitialization
+        formRegion: @feild
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 97164713475326015
+        }
+    )
+
+    process initialize-form-طلب-تعديل-إضافة-بيانff (
+        name: Initialize form طلب تعديل/إضافة بيانff
+        type: formInitialization
+        formRegion: @add-new-data-with-details
+        execution {
+            sequence: 30
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 63231665506080932
+        }
+    )
+
+    process new (
+        name: New_2
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                
+                
+                
+                
+                DECLARE
+                  v_detail_id  NUMBER;
+                  v_att1       BLOB;
+                  v_att2       BLOB;
+                  v_att3       BLOB;
+                  v_att4       BLOB;
+                BEGIN
+                  IF :P58_ATTACHMENT_1 IS NOT NULL THEN
+                    BEGIN
+                      SELECT blob_content
+                      INTO   v_att1
+                      FROM   apex_application_temp_files
+                      WHERE  upper(name) = upper(:P58_ATTACHMENT_1);
+                    EXCEPTION
+                      WHEN no_data_found THEN
+                        v_att1 := NULL;  -- أو ارفع رسالة
+                    END;
+                  END IF;
+                
+                  IF :P58_ATTACHMENT_2 IS NOT NULL THEN
+                    BEGIN
+                      SELECT blob_content INTO v_att2
+                      FROM   apex_application_temp_files
+                      WHERE  upper(name) = upper(:P58_ATTACHMENT_2);
+                    EXCEPTION
+                      WHEN no_data_found THEN
+                        v_att2 := NULL;
+                    END;
+                  END IF;
+                
+                  IF :P58_ATTACHMENT_3 IS NOT NULL THEN
+                    BEGIN
+                      SELECT blob_content INTO v_att3
+                      FROM   apex_application_temp_files
+                      WHERE  upper(name) = upper(:P58_ATTACHMENT_3);
+                    EXCEPTION
+                      WHEN no_data_found THEN
+                        v_att3 := NULL;
+                    END;
+                  END IF;
+                
+                  IF :P58_ATTACHMENT_4 IS NOT NULL THEN
+                    BEGIN
+                      SELECT blob_content INTO v_att4
+                      FROM   apex_application_temp_files
+                      WHERE  upper(name) = upper(:P58_ATTACHMENT_4);
+                    EXCEPTION
+                      WHEN no_data_found THEN
+                        v_att4 := NULL;
+                    END;
+                  END IF;
+                
+                  INSERT INTO epromhq.hrf_personal_edit_details
+                        (request_id, emp_id, field_name, new_value, old_value,
+                         "COMMENT", attachment_1, attachment_2, attachment_3, attachment_4,
+                         updated_by)
+                  VALUES (:P58_REQUEST_ID, :P58_EMP_ID, :P58_FIELD_NAME,
+                          :P58_NEW_VALUE, :P58_OLD_VALUE, :P58_COMMENT,
+                          v_att1, v_att2, v_att3, v_att4,
+                          :APP_USER)
+                  RETURNING detail_id INTO v_detail_id;
+                
+                  INSERT INTO epromhq.hrf_personal_edit_upload
+                        (detail_id,
+                         col01, col02, col03, col04, col05,
+                         col06, col07, col08, col09, col10,
+                         col11, col12, col13, col14, col15,
+                         col16, col17, col18, col19, col20,
+                         created_by)
+                  VALUES (v_detail_id,
+                          :P58_COL01, :P58_COL02, :P58_COL03, :P58_COL04, :P58_COL05,
+                          :P58_COL06, :P58_COL07, :P58_COL08, :P58_COL09, :P58_COL10,
+                          :P58_COL11, :P58_COL12, :P58_COL13, :P58_COL14, :P58_COL15,
+                          :P58_COL16, :P58_COL17, :P58_COL18, :P58_COL19, :P58_COL20,
+                          :APP_USER);
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 66438205442549530
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process new-2 (
+        name: New_3
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    
+                    l_file_names APEX_T_VARCHAR2;
+                    l_file       APEX_APPLICATION_TEMP_FILES%ROWTYPE;
+                
+                    
+                    v_att1 BLOB;
+                    v_att2 BLOB;
+                    v_att3 BLOB;
+                    v_att4 BLOB;
+                
+                    
+                    v_detail_id NUMBER;
+                BEGIN
+                    IF :P58_ATTACHMENT_1 IS NOT NULL THEN
+                        l_file_names := APEX_STRING.SPLIT(:P58_ATTACHMENT_1, ':');
+                        FOR i IN 1 .. l_file_names.COUNT LOOP
+                            SELECT * INTO l_file
+                              FROM apex_application_temp_files
+                             WHERE name = l_file_names(i);
+                
+                            IF i = 1 THEN
+                               v_att1 := l_file.blob_content;
+                            END IF;
+                
+                            
+                
+                            DELETE FROM apex_application_temp_files
+                            WHERE name = l_file_names(i);
+                        END LOOP;
+                    END IF;
+                
+                    IF :P58_ATTACHMENT_2 IS NOT NULL THEN
+                        l_file_names := APEX_STRING.SPLIT(:P58_ATTACHMENT_2, ':');
+                        FOR i IN 1 .. l_file_names.COUNT LOOP
+                            SELECT * INTO l_file
+                              FROM apex_application_temp_files
+                             WHERE name = l_file_names(i);
+                
+                            IF i = 1 THEN
+                               v_att2 := l_file.blob_content;
+                            END IF;
+                
+                            DELETE FROM apex_application_temp_files
+                            WHERE name = l_file_names(i);
+                        END LOOP;
+                    END IF;
+                
+                    IF :P58_ATTACHMENT_3 IS NOT NULL THEN
+                        l_file_names := APEX_STRING.SPLIT(:P58_ATTACHMENT_3, ':');
+                        FOR i IN 1 .. l_file_names.COUNT LOOP
+                            SELECT * INTO l_file
+                              FROM apex_application_temp_files
+                             WHERE name = l_file_names(i);
+                
+                            IF i = 1 THEN
+                               v_att3 := l_file.blob_content;
+                            END IF;
+                
+                            DELETE FROM apex_application_temp_files
+                            WHERE name = l_file_names(i);
+                        END LOOP;
+                    END IF;
+                
+                    IF :P58_ATTACHMENT_4 IS NOT NULL THEN
+                        l_file_names := APEX_STRING.SPLIT(:P58_ATTACHMENT_4, ':');
+                        FOR i IN 1 .. l_file_names.COUNT LOOP
+                            SELECT * INTO l_file
+                              FROM apex_application_temp_files
+                             WHERE name = l_file_names(i);
+                
+                            IF i = 1 THEN
+                               v_att4 := l_file.blob_content;
+                            END IF;
+                
+                            DELETE FROM apex_application_temp_files
+                            WHERE name = l_file_names(i);
+                        END LOOP;
+                    END IF;
+                
+                    INSERT INTO epromhq.hrf_personal_edit_details
+                          (request_id,
+                           emp_id,
+                           field_name,
+                           new_value,
+                           old_value,
+                           "COMMENT",
+                           attachment_1,
+                           attachment_2,
+                           attachment_3,
+                           attachment_4,
+                           updated_by)
+                    VALUES (:P58_REQUEST_ID,
+                            :P58_EMP_ID,
+                            :P58_FIELD_NAME,
+                            :P58_NEW_VALUE,
+                            :P58_OLD_VALUE,
+                            :P58_COMMENT,
+                            v_att1,
+                            v_att2,
+                            v_att3,
+                            v_att4,
+                            :APP_USER)
+                    RETURNING detail_id INTO v_detail_id;
+                
+                    INSERT INTO epromhq.hrf_personal_edit_upload
+                          (detail_id,
+                           col01, col02, col03, col04, col05,
+                           col06, col07, col08, col09, col10,
+                           col11, col12, col13, col14, col15,
+                           col16, col17, col18, col19, col20,
+                           created_by)
+                    VALUES (v_detail_id,
+                            :P58_COL01, :P58_COL02, :P58_COL03, :P58_COL04, :P58_COL05,
+                            :P58_COL06, :P58_COL07, :P58_COL08, :P58_COL09, :P58_COL10,
+                            :P58_COL11, :P58_COL12, :P58_COL13, :P58_COL14, :P58_COL15,
+                            :P58_COL16, :P58_COL17, :P58_COL18, :P58_COL19, :P58_COL20,
+                            :APP_USER);
+                
+                    COMMIT;
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        ROLLBACK;
+                        RAISE;  -- يبعت الخطأ لـ APEX عشان تشوف تفاصيله
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 66438525146549533
+        }
+    )
+
+    process new-3 (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    v_existing_emp_name          CENTRAL.XXAPEX_HR_EMP_DATA.EMP_NAME%TYPE;
+                    v_existing_national_identifier CENTRAL.XXAPEX_HR_EMP_DATA.NATIONAL_IDENTIFIER%TYPE;
+                    v_existing_project           CENTRAL.XXAPEX_HR_EMP_DATA.PROJECT%TYPE;
+                    v_existing_emp_date_of_birth CENTRAL.XXAPEX_HR_EMP_DATA.EMP_DATE_OF_BIRTH%TYPE;
+                    v_existing_mar_stat          CENTRAL.XXAPEX_HR_EMP_DATA.MAR_STAT%TYPE;
+                    v_existing_emp_position_name CENTRAL.XXAPEX_HR_EMP_DATA.EMP_POSITION_NAME%TYPE;
+                    v_existing_assignments_date  CENTRAL.XXAPEX_HR_EMP_DATA.ASSIGNMENTS_DATE%TYPE;
+                    v_existing_permanent_date    CENTRAL.XXAPEX_HR_EMP_DATA.PERMANENT_DATE%TYPE;
+                    v_existing_comp_email        CENTRAL.XXAPEX_HR_EMP_DATA.COMP_EMAIL%TYPE;
+                    v_existing_pay_email         CENTRAL.XXAPEX_HR_EMP_DATA.PAY_EMAIL%TYPE;
+                    v_existing_prim_address      CENTRAL.XXAPEX_HR_EMP_DATA.PRIM_ADDRESS%TYPE;
+                    v_existing_comments          VARCHAR2(500);
+                    
+                    TYPE t_change IS RECORD (
+                        field_name  VARCHAR2(100),
+                        old_value  VARCHAR2(4000),
+                        new_value  VARCHAR2(4000),
+                        comment_txt VARCHAR2(100)
+                    );
+                    TYPE t_changes IS TABLE OF t_change;
+                    l_changes t_changes := t_changes();
+                    
+                    v_request_id NUMBER;
+                BEGIN
+                    BEGIN
+                        SELECT EMP_NAME, NATIONAL_IDENTIFIER, PROJECT, EMP_DATE_OF_BIRTH, MAR_STAT,
+                               EMP_POSITION_NAME, ASSIGNMENTS_DATE, PERMANENT_DATE, COMP_EMAIL, PAY_EMAIL, PRIM_ADDRESS
+                        INTO v_existing_emp_name, v_existing_national_identifier, v_existing_project,
+                             v_existing_emp_date_of_birth, v_existing_mar_stat, v_existing_emp_position_name,
+                             v_existing_assignments_date, v_existing_permanent_date, v_existing_comp_email,
+                             v_existing_pay_email, v_existing_prim_address
+                        FROM CENTRAL.XXAPEX_HR_EMP_DATA
+                        WHERE EMP_NUMBER = :APP_USER;
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            v_existing_emp_name := NULL;
+                            v_existing_national_identifier := NULL;
+                            v_existing_project := NULL;
+                            v_existing_emp_date_of_birth := NULL;
+                            v_existing_mar_stat := NULL;
+                            v_existing_emp_position_name := NULL;
+                            v_existing_assignments_date := NULL;
+                            v_existing_permanent_date := NULL;
+                            v_existing_comp_email := NULL;
+                            v_existing_pay_email := NULL;
+                            v_existing_prim_address := NULL;
+                    END;
+                
+                    BEGIN
+                        SELECT q.comments 
+                        INTO v_existing_comments
+                        FROM CENTRAL.XXAPEX_HR_EMP_DATA D
+                        LEFT JOIN (SELECT * FROM central.xxapex_hr_qualifications WHERE maon_or_not = 'Yes') q 
+                            ON q.employee_number = d.emp_number
+                        LEFT JOIN (SELECT * FROM central.XXAPEX_HR_EMP_ADDRESSES WHERE PRIMARY_ADD = 'Y') a
+                            ON a.employee_number = d.emp_number
+                        WHERE d.EMP_NUMBER = TO_NUMBER(:APP_USER);  
+                    EXCEPTION 
+                        WHEN NO_DATA_FOUND THEN 
+                            v_existing_comments := NULL;  
+                        WHEN OTHERS THEN 
+                            v_existing_comments := NULL;  
+                    END;
+                
+                    IF (v_existing_emp_name IS NULL AND :P58_NAME IS NOT NULL) 
+                       OR (v_existing_emp_name IS NOT NULL AND :P58_NAME IS NULL) 
+                       OR (v_existing_emp_name <> :P58_NAME) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('EMP_NAME', v_existing_emp_name, :P58_NAME, 'Name updated');
+                    END IF;
+                
+                    IF (v_existing_national_identifier IS NULL AND :P58_NATIONAL_IDENTIFIER IS NOT NULL) 
+                       OR (v_existing_national_identifier IS NOT NULL AND :P58_NATIONAL_IDENTIFIER IS NULL) 
+                       OR (v_existing_national_identifier <> :P58_NATIONAL_IDENTIFIER) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('NATIONAL_IDENTIFIER', v_existing_national_identifier, :P58_NATIONAL_IDENTIFIER, 'National ID updated');
+                    END IF;
+                
+                    IF (v_existing_project IS NULL AND :P58_PROJECT IS NOT NULL) 
+                       OR (v_existing_project IS NOT NULL AND :P58_PROJECT IS NULL) 
+                       OR (v_existing_project <> :P58_PROJECT) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('PROJECT', v_existing_project, :P58_PROJECT, 'Project updated');
+                    END IF;
+                
+                    IF (v_existing_emp_date_of_birth IS NULL AND :P58_EMP_DATE_OF_BIRTH IS NOT NULL) 
+                       OR (v_existing_emp_date_of_birth IS NOT NULL AND :P58_EMP_DATE_OF_BIRTH IS NULL) 
+                       OR (v_existing_emp_date_of_birth <> :P58_EMP_DATE_OF_BIRTH) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('EMP_DATE_OF_BIRTH', v_existing_emp_date_of_birth, :P58_EMP_DATE_OF_BIRTH, 'Date of birth updated');
+                    END IF;
+                
+                    IF (v_existing_mar_stat IS NULL AND :P58_MAR_STAT IS NOT NULL) 
+                       OR (v_existing_mar_stat IS NOT NULL AND :P58_MAR_STAT IS NULL) 
+                       OR (v_existing_mar_stat <> :P58_MAR_STAT) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('MAR_STAT', v_existing_mar_stat, :P58_MAR_STAT, 'Marital status updated');
+                    END IF;
+                
+                    IF (v_existing_emp_position_name IS NULL AND :P58_EMP_POSITION_NAME IS NOT NULL) 
+                       OR (v_existing_emp_position_name IS NOT NULL AND :P58_EMP_POSITION_NAME IS NULL) 
+                       OR (v_existing_emp_position_name <> :P58_EMP_POSITION_NAME) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('EMP_POSITION_NAME', v_existing_emp_position_name, :P58_EMP_POSITION_NAME, 'Position updated');
+                    END IF;
+                
+                    IF (v_existing_assignments_date IS NULL AND :P58_ASSIGNMENTS_DATE IS NOT NULL) 
+                       OR (v_existing_assignments_date IS NOT NULL AND :P58_ASSIGNMENTS_DATE IS NULL) 
+                       OR (v_existing_assignments_date <> :P58_ASSIGNMENTS_DATE) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('ASSIGNMENTS_DATE', v_existing_assignments_date, :P58_ASSIGNMENTS_DATE, 'Assignments date updated');
+                    END IF;
+                
+                    IF (v_existing_permanent_date IS NULL AND :P58_PERMANENT_DATE IS NOT NULL) 
+                       OR (v_existing_permanent_date IS NOT NULL AND :P58_PERMANENT_DATE IS NULL) 
+                       OR (v_existing_permanent_date <> :P58_PERMANENT_DATE) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('PERMANENT_DATE', v_existing_permanent_date, :P58_PERMANENT_DATE, 'Permanent date updated');
+                    END IF;
+                
+                    IF (v_existing_comp_email IS NULL AND :P58_COMP_EMAIL IS NOT NULL) 
+                       OR (v_existing_comp_email IS NOT NULL AND :P58_COMP_EMAIL IS NULL) 
+                       OR (v_existing_comp_email <> :P58_COMP_EMAIL) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('COMP_EMAIL', v_existing_comp_email, :P58_COMP_EMAIL, 'Company email updated');
+                    END IF;
+                
+                    IF (v_existing_pay_email IS NULL AND :P58_PAY_EMAIL IS NOT NULL) 
+                       OR (v_existing_pay_email IS NOT NULL AND :P58_PAY_EMAIL IS NULL) 
+                       OR (v_existing_pay_email <> :P58_PAY_EMAIL) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('PAY_EMAIL', v_existing_pay_email, :P58_PAY_EMAIL, 'Pay email updated');
+                    END IF;
+                
+                    IF (v_existing_prim_address IS NULL AND :P58_ADDRESS IS NOT NULL) 
+                       OR (v_existing_prim_address IS NOT NULL AND :P58_ADDRESS IS NULL) 
+                       OR (v_existing_prim_address <> :P58_ADDRESS) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('PRIM_ADDRESS', v_existing_prim_address, :P58_ADDRESS, 'Primary address updated');
+                    END IF;
+                
+                    IF (v_existing_comments IS NULL AND :P58_COMMENTS IS NOT NULL) 
+                       OR (v_existing_comments IS NOT NULL AND :P58_COMMENTS IS NULL) 
+                       OR (v_existing_comments <> :P58_COMMENTS) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('COMMENTS', NVL(v_existing_comments, 'No Previous Comment'), :P58_COMMENTS, 'Comments updated');
+                    END IF;
+                
+                    IF l_changes.COUNT > 0 THEN
+                        INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DATA ("EMP_ID", "REQUEST_TYPE", "ADD_COMMENT", "UPDATED_BY")
+                        VALUES (:APP_USER, 'Update', 'Automated change detection', :APP_USER)
+                        RETURNING "REQUEST_ID" INTO v_request_id;
+                
+                        FOR i IN 1..l_changes.COUNT LOOP
+                            INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                            ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                            VALUES (
+                                v_request_id,
+                                :APP_USER,
+                                l_changes(i).field_name,
+                                l_changes(i).old_value,
+                                l_changes(i).new_value,
+                                l_changes(i).comment_txt,
+                                :APP_USER
+                            );
+                        END LOOP;
+                
+                        COMMIT;
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 97166189962326029
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+)

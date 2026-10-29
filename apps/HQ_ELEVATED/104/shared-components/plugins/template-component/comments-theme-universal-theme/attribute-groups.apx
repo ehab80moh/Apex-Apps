@@ -1,0 +1,7 @@
+attributeGroup avatar (
+    name: Avatar
+    sequence: 20
+    advanced {
+        staticId: avatar
+    }
+)

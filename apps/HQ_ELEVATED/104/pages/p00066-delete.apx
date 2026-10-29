@@ -1,0 +1,176 @@
+page 66 (
+    name: حذف
+    alias: DELETE
+    title: &APP_TEXT$DELETE.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 100
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-ButtonRegion--stickToBottom
+                margin-top-lg
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region detele (
+        name: Detele
+        title: &APP_TEXT$DETELE.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$ARE_YOU_SURE_TO_DELETE.
+        }
+        layout {
+            sequence: 31
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: [
+                #DEFAULT#
+                t-Form--standardPadding
+            ]
+        }
+        settings {
+            outputAs: text
+            showLineBreaks: false
+        }
+    )
+
+    pageItem P66_EMP_ID (
+        type: hidden
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+    )
+
+    pageItem P66_ID (
+        type: hidden
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 61
+            region: @buttons
+            slot: previous
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button delete (
+        buttonName: Delete
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 51
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--danger
+            ]
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process close-dialog-delete (
+        name: CLOSE DIALOG DELETE
+        type: closeDialog
+        settings {
+            showSuccessMessages: false
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 27332884698852706
+        }
+        serverSideCondition {
+            whenButtonPressed: @delete
+        }
+    )
+
+    process delete-gwtpm-vrl (
+        name: delete_gwtpm_vrl_66
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DELETE FROM EPROMHQ.TRN_APPLICANTS_DATA
+                WHERE ID = :P66_ID and CREATED_BY = :P66_EMP_ID;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        successMessage {
+            successMessage: &APP_TEXT$THE_REQUEST_HAS_BEEN_DELETED.
+        }
+        error {
+            errorMessage: &APP_TEXT$AN_ERROR_OCCURRED.
+        }
+        advanced {
+            executionMappingIdentifier: 27332796294852705
+        }
+        serverSideCondition {
+            whenButtonPressed: @delete
+        }
+    )
+
+)

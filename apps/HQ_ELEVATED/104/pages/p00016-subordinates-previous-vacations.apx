@@ -1,0 +1,1359 @@
+page 16 (
+    name: " طلبات الأجازات السابقة للمرؤوسين"
+    alias: SUBORDINATES-PREVIOUS-VACATIONS
+    title: &APP_TEXT$PREVIOUS_LEAVE_REQUESTS_FOR_SUBORDINATES.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: [
+            #DEFAULT#
+            ui-dialog--stretch
+        ]
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region طلبات-الإجازات (
+        name: "طلبات الإجازات "
+        title: &APP_TEXT$LEAVE_REQUESTS.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT
+                    request_id,
+                    emp_id,
+                    leave_type,
+                    from_date,
+                    to_date,
+                    uploaded_ora,
+                    task_ids,
+                    updated_by,
+                    created_at,
+                    uploaded_tms,
+                    approved,
+                    last_working_date,
+                    return_to_work_date,
+                    cover_person,
+                    leave_contact_address,
+                    mobile,
+                    tms_id,
+                    delete_approved,
+                    delete_request_date,
+                    delete_tms,
+                    last_approval_date
+                FROM
+                    epromhq.hrf_emp_leave_request
+                    where
+                1=1
+                and (:APP_USER  in (select column_value from  table(apex_string.split(updated_by,'->')))
+                or :APP_USER||'d'  in (select column_value from  table(apex_string.split(updated_by,'->')))
+                )
+                And emp_id <>:APP_USER
+                AND EXTRACT(YEAR FROM from_date) = EXTRACT(YEAR FROM SYSDATE)
+                order by from_date desc;
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: never
+        }
+        pagination {
+            type: rowRangesXToY
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            savePublicReport: true
+        }
+        componentAdvanced {
+            maxRowsPerPageInSelector: 15
+        }
+        advanced {
+            savedReportMappingIdentifier: 24065029936087588
+        }
+
+        column APPROVED (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ORDER_STATUS.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    {case APPROVED/}
+                    {when 0/}
+                    قيد الاعتماد <span aria-hidden="true" class="fa fa-hourglass-2 fa-anim-vertical-shake fam-pause fam-is-warning"></span>
+                    {when 1/}
+                    تم الموافقة <span aria-hidden="true" class="u-success fa fa-check fa-anim- fam-Blank fam-is-success"></span> <b>
+                    {when 2/}
+                    تم رفض الطلب <span aria-hidden="true" class="fa fa-exclamation-circle-o u-danger-text "></span>
+                    {otherwise/}
+                    #APPROVED#
+                    {endcase/}
+                    ```
+            }
+            source {
+                dataType: NUMBER
+            }
+            columnFilter {
+                type: none
+            }
+            advanced {
+                endUserAlias: K
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column COVER_PERSON (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$COVER_PERSON.
+            }
+            layout {
+                sequence: 140
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: N
+            }
+        )
+
+        column CREATED_AT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$THE_DATE_THE_REQUEST_WAS_CREATED.
+                alignment: center
+            }
+            singleRowView {
+                useColumnHeading: false
+                label: &APP_TEXT$EXAMPLE_01012025.
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: I
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column DELETE_APPROVED (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$DELETE_APPROVED.
+            }
+            layout {
+                sequence: 180
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: R
+            }
+        )
+
+        column DELETE_REQUEST_DATE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$DELETE_REQUEST_DATE.
+            }
+            layout {
+                sequence: 190
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: S
+            }
+        )
+
+        column DELETE_TMS (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$DELETE_TMS.
+            }
+            layout {
+                sequence: 200
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: T
+            }
+        )
+
+        column EMP_ID (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$WORKER_S_NAME_AND_NUMBER.
+                alignment: center
+            }
+            lov {
+                lov: @employee-numbers
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            columnFilter {
+                type: defaultBasedOnColumnType
+            }
+            advanced {
+                endUserAlias: B
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column FROM_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FROM.
+                alignment: center
+            }
+            singleRowView {
+                useColumnHeading: false
+                label: &APP_TEXT$EXAMPLE_01012023.
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: D
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column LAST_APPROVAL_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 510
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: U
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column LAST_WORKING_DATE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$LAST_WORKING_DATE.
+            }
+            layout {
+                sequence: 120
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column LEAVE_CONTACT_ADDRESS (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$LEAVE_CONTACT_ADDRESS.
+            }
+            layout {
+                sequence: 150
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: O
+            }
+        )
+
+        column LEAVE_TYPE (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$LEAVE_TYPE.
+                alignment: center
+            }
+            lov {
+                lov: @copy-of-leave-types
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column MOBILE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$MOBILE.
+            }
+            layout {
+                sequence: 160
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: P
+            }
+        )
+
+        column REQUEST_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ORDER_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 500
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column RETURN_TO_WORK_DATE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$RETURN_TO_WORK_DATE.
+            }
+            layout {
+                sequence: 130
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        column TASK_IDS (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$TASK_IDS.
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column TMS_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$TMS_ID.
+            }
+            layout {
+                sequence: 170
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Q
+            }
+        )
+
+        column TO_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TO.
+                alignment: center
+            }
+            singleRowView {
+                useColumnHeading: false
+                label: &APP_TEXT$EXAMPLE_01012025.
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: E
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column UPDATED_BY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$UPDATED_BY.
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+            }
+        )
+
+        column UPLOADED_ORA (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$UPLOADED_ORA.
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column UPLOADED_TMS (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$UPLOADED_TMS.
+            }
+            layout {
+                sequence: 100
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: &APP_TEXT$LEAVE_REQUESTS.
+        }
+
+        savedReport 120448 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 15
+            }
+
+            displayColumn APPROVED (
+                sequence: 7
+            )
+
+            displayColumn CREATED_AT (
+                sequence: 6
+            )
+
+            displayColumn EMP_ID (
+                sequence: 2
+            )
+
+            displayColumn FROM_DATE (
+                sequence: 4
+            )
+
+            displayColumn LAST_APPROVAL_DATE (
+                sequence: 8
+            )
+
+            displayColumn LEAVE_TYPE (
+                sequence: 3
+            )
+
+            displayColumn REQUEST_ID (
+                sequence: 1
+            )
+
+            displayColumn TO_DATE (
+                sequence: 5
+            )
+
+            sort (
+                column: FROM_DATE
+                sort {
+                    direction: desc
+                    sequence: 1
+                }
+            )
+
+        )
+
+    )
+
+    region طلبات-الإجازات-2 (
+        name: "طلبات الإجازات "
+        title: &APP_TEXT$LEAVE_REQUESTS.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH fya AS (
+                    SELECT h.request_id, 'FYA' AS role_type
+                      FROM epromhq.hrf_emp_leave_request h
+                     WHERE h.emp_id <> :APP_USER
+                       AND EXTRACT(YEAR FROM h.from_date) = EXTRACT(YEAR FROM SYSDATE)
+                       AND (:P16_EMP_ID IS NULL OR h.emp_id = :P16_EMP_ID)
+                       AND ('->' || h.updated_by || '->' LIKE '%->' || :APP_USER || '->%'
+                         OR '->' || h.updated_by || '->' LIKE '%->' || :APP_USER || 'd->%')
+                ),
+                fyi_log AS (
+                    SELECT l.request_id, 'FYI' AS role_type
+                      FROM central.apr_log l
+                     WHERE l.request_type_id = 59
+                       AND l.approver_type = 'FYI'
+                       AND (l.approver = :APP_USER OR ':' || l.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                ),
+                fyi_cust AS (
+                    SELECT h.request_id, 'FYI' AS role_type
+                      FROM central.apr_approval_results_cust_f f
+                      JOIN epromhq.hrf_emp_leave_request h
+                        ON h.emp_id = TO_NUMBER(f.emp_number)
+                     WHERE f.request_type_id = 59
+                       AND f.approve_type = 'FYI'
+                       AND (f.approver = :APP_USER OR ':' || f.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                       AND h.emp_id <> :APP_USER
+                       AND EXTRACT(YEAR FROM h.from_date) = EXTRACT(YEAR FROM SYSDATE)
+                       AND (:P16_EMP_ID IS NULL OR h.emp_id = :P16_EMP_ID)
+                ),
+                all_reqs AS (
+                    SELECT request_id, MAX(role_type) AS role_type
+                      FROM (
+                        SELECT request_id, role_type FROM fya
+                        UNION ALL
+                        SELECT request_id, role_type FROM fyi_log
+                        UNION ALL
+                        SELECT request_id, role_type FROM fyi_cust
+                      )
+                     GROUP BY request_id
+                )
+                SELECT
+                    h.request_id,
+                    h.emp_id,
+                    h.leave_type,
+                    h.from_date,
+                    h.to_date,
+                    h.uploaded_ora,
+                    h.task_ids,
+                    a.role_type,
+                    epromhq.emp_to_ul(p_emp_list => central.replace_arrows_with_colon( replace(h.UPDATED_BY,h.EMP_ID,'') ),p_show_names=>'Y') AS result,
+                    (
+                        SELECT LISTAGG(e.emp_name, '->') WITHIN GROUP (ORDER BY t.rn)
+                        FROM (
+                            SELECT TRIM(column_value) AS emp_number,
+                                   ROW_NUMBER() OVER (ORDER BY ROWNUM) AS rn
+                            FROM TABLE(apex_string.split(h.updated_by, '->'))
+                            WHERE column_value IS NOT NULL
+                        ) t
+                        JOIN central.XXAPEX_HR_EMP_DATA e ON e.emp_number = t.emp_number
+                    ) AS updated_by_names,
+                    h.created_at,
+                    h.uploaded_tms,
+                    h.approved,
+                    h.last_working_date,
+                    h.return_to_work_date,
+                    h.cover_person,
+                    h.leave_contact_address,
+                    h.mobile,
+                    h.tms_id,
+                    h.delete_approved,
+                    h.delete_request_date,
+                    h.delete_tms,
+                    h.last_approval_date
+                FROM all_reqs a
+                JOIN epromhq.hrf_emp_leave_request h ON h.request_id = a.request_id
+                WHERE (:P16_EMP_ID IS NULL OR h.emp_id = :P16_EMP_ID)
+                ORDER BY h.from_date DESC;
+                ```
+            pageItemsToSubmit: P16_EMP_ID
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P16_REQUEST_TYPE_ID
+            value: 59
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            includeActionsMenu: false
+        }
+        advanced {
+            savedReportMappingIdentifier: 102730799601640922
+        }
+
+        column APPROVED (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ORDER_STATUS.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    {case APPROVED/}
+                    {when 0/}
+                    قيد الاعتماد <span aria-hidden="true" class="fa fa-hourglass-2 fa-anim-vertical-shake fam-pause fam-is-warning"></span>
+                    {when 1/}
+                    تم الموافقة <span aria-hidden="true" class="u-success fa fa-check fa-anim- fam-Blank fam-is-success"></span> <b>
+                    {when 2/}
+                    تم رفض الطلب <span aria-hidden="true" class="fa fa-exclamation-circle-o u-danger-text "></span>
+                    {otherwise/}
+                    #APPROVED#
+                    {endcase/}
+                    ```
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: N
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column COVER_PERSON (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$COVER_PERSON.
+            }
+            layout {
+                sequence: 140
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Q
+            }
+        )
+
+        column CREATED_AT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$THE_DATE_THE_REQUEST_WAS_CREATED.
+                alignment: center
+            }
+            singleRowView {
+                useColumnHeading: false
+                label: &APP_TEXT$EXAMPLE_01012025.
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: L
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column DELETE_APPROVED (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$DELETE_APPROVED.
+            }
+            layout {
+                sequence: 180
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: U
+            }
+        )
+
+        column DELETE_REQUEST_DATE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$DELETE_REQUEST_DATE.
+            }
+            layout {
+                sequence: 190
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: V
+            }
+        )
+
+        column DELETE_TMS (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$DELETE_TMS.
+            }
+            layout {
+                sequence: 200
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: W
+            }
+        )
+
+        column EMP_ID (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$WORKER_S_NAME_AND_NUMBER.
+                alignment: center
+            }
+            lov {
+                lov: @employee-numbers
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            columnFilter {
+                type: defaultBasedOnColumnType
+            }
+            advanced {
+                endUserAlias: E
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column FROM_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FROM.
+                alignment: center
+            }
+            singleRowView {
+                useColumnHeading: false
+                label: &APP_TEXT$EXAMPLE_01012025.
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: G
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column LAST_APPROVAL_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 210
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: X
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column LAST_WORKING_DATE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$LAST_WORKING_DATE.
+            }
+            layout {
+                sequence: 120
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: O
+            }
+        )
+
+        column LEAVE_CONTACT_ADDRESS (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$LEAVE_CONTACT_ADDRESS.
+            }
+            layout {
+                sequence: 150
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: R
+            }
+        )
+
+        column LEAVE_TYPE (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$LEAVE_TYPE.
+                alignment: center
+            }
+            lov {
+                lov: @copy-of-leave-types
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column MOBILE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$MOBILE.
+            }
+            layout {
+                sequence: 160
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: S
+            }
+        )
+
+        column REQUEST_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ORDER_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: D
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column RESULT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$THE_DEPENDENTS.
+                alignment: center
+            }
+            layout {
+                sequence: 230
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression: #RESULT!RAW#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AA
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+            }
+        )
+
+        column RETURN_TO_WORK_DATE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$RETURN_TO_WORK_DATE.
+            }
+            layout {
+                sequence: 130
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: P
+            }
+        )
+
+        column ROLE_TYPE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TYPE_OF_ACCREDITATION.
+                alignment: center
+            }
+            layout {
+                sequence: 105
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    {case ROLE_TYPE/}
+                    {when FYA/}
+                    <span class="t-Badge t-Badge--success t-Badge--small">اعتماد (FYA)</span>
+                    {when FYI/}
+                    <span class="t-Badge t-Badge--info t-Badge--small">للعلم (FYI)</span>
+                    {otherwise/}
+                    #ROLE_TYPE#
+                    {endcase/}
+                    ```
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column TASK_IDS (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$TASK_IDS.
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column TMS_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$TMS_ID.
+            }
+            layout {
+                sequence: 170
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: T
+            }
+        )
+
+        column TO_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TO.
+                alignment: center
+            }
+            singleRowView {
+                useColumnHeading: false
+                label: &APP_TEXT$EXAMPLE_01012025.
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: H
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column UPDATED_BY_NAMES (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVING_THE_REQUEST.
+                alignment: center
+            }
+            layout {
+                sequence: 220
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Z
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column UPLOADED_ORA (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$UPLOADED_ORA.
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column UPLOADED_TMS (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$UPLOADED_TMS.
+            }
+            layout {
+                sequence: 100
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        savedReport 1094459 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn APPROVED (
+                sequence: 7
+            )
+
+            displayColumn CREATED_AT (
+                sequence: 8
+            )
+
+            displayColumn EMP_ID (
+                sequence: 2
+            )
+
+            displayColumn FROM_DATE (
+                sequence: 4
+            )
+
+            displayColumn LAST_APPROVAL_DATE (
+                sequence: 6
+            )
+
+            displayColumn LEAVE_TYPE (
+                sequence: 3
+            )
+
+            displayColumn REQUEST_ID (
+                sequence: 1
+            )
+
+            displayColumn RESULT (
+                sequence: 9
+            )
+
+            displayColumn ROLE_TYPE (
+                sequence: 10
+            )
+
+            displayColumn TO_DATE (
+                sequence: 5
+            )
+
+            sort (
+                column: FROM_DATE
+                sort {
+                    direction: desc
+                    sequence: 1
+                }
+            )
+
+        )
+
+    )
+
+    region فلترة-الموظفين (
+        name: فلترة الموظفين
+        title: &APP_TEXT$CHOOSE_AN_EMPLOYEE.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P16_EMP_ID (
+        type: popupLov
+        label {
+            label: &APP_TEXT$CHOOSE_AN_EMPLOYEE.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @subordinates-leave
+            displayExtraValues: false
+            nullDisplayValue: &APP_TEXT$_SELECT_EMPLOYEE_.
+        }
+        layout {
+            sequence: 10
+            region: @فلترة-الموظفين
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P16_REQUEST_TYPE_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+    )
+
+    dynamicAction on-change-emp (
+        name: on_change_emp
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: P16_EMP_ID
+        }
+
+        action refresh-report (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @طلبات-الإجازات-2
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+)

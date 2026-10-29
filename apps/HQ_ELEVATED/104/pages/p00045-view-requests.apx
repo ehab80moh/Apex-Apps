@@ -1,0 +1,1452 @@
+page 45 (
+    name: عرض الطـــلبات
+    alias: VIEW-REQUESTS
+    title: &APP_TEXT$VIEW_ORDERS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            
+            @media screen and (max-width: 768px) { 
+                .apex-rds {
+                    flex-wrap: wrap; 
+                }
+            }
+            
+            .t-BadgeList-value{
+                color: #000000 !important;
+            }
+            
+            .fc .fc-cell-shaded, .fc .fc-day-disabled {
+                background: hsl(209, 28%, 33%);
+            }
+            @media (max-width: 479px) {
+            
+            .fc-daygrid-dot-event .fc-event-title {
+                flex-grow: 1;
+                flex-shrink: 1;
+                font-weight: 700;
+                min-width: 0px;
+                overflow: hidden;
+                font-size: x-small;
+            }
+            .apex-item-multi, .apex-item-text.apex-item-popup-lov{
+                    width: 10rem;
+            
+            }
+            
+            
+            }
+            .fc-daygrid-event{
+            white-space: unset;
+            
+            
+            }
+            
+            .t-Form-fieldContainer .t-Form-fieldContainer--floatingLabel .lto102729003828640905_0 .apex-item-wrapper .apex-item-wrapper--has-initial-value .apex-item-wrapper--popup-lov .js-show-label{
+            padding-block-end( 0.2rem)
+            
+            }
+            
+            
+            .t-Region-header {
+                background-color: var(--ut-region-header-background-color,var(--ut-region-background-color,var(--ut-component-background-color)));
+                border-block-end-color: var(--ut-region-header-border-color,var(--ut-region-border-color,rgba(0,0,0,.075)));
+                border-block-end-style: solid;
+                border-block-end-width: var(--ut-region-header-border-width,var(--ut-region-border-width,1px));
+                border-top-left-radius: var(--ut-region-border-radius,var(--ut-component-border-radius));
+                border-top-right-radius: var(--ut-region-border-radius,var(--ut-component-border-radius));
+                color: var(--ut-region-header-text-color,var(--ut-region-text-color,var(--ut-component-text-default-color)));
+                display: flex;
+                font-size: var(--ut-region-header-font-size,1rem);
+                
+                line-height: var(--ut-region-header-line-height,1.5rem);
+                flex-wrap: nowrap;
+                flex-direction: row;
+                align-content: space-around;
+                justify-content: flex-end;
+                align-items: center;
+            }
+            
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region in-out (
+        name: IN & OUT
+        title: &APP_TEXT$IN_OUT.
+        type: calendar
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH first_false AS (
+                    SELECT 
+                        employeenumber,
+                        TRUNC(date_) AS date_day,
+                        MIN(date_) AS date_
+                    FROM 
+                        hq_elevated.TMS_EMP_TRANSACTIONS
+                    WHERE 
+                        employeenumber = :App_user
+                        AND type = 'false'
+                        AND EXTRACT(YEAR FROM date_) = EXTRACT(YEAR FROM SYSDATE)
+                
+                    GROUP BY 
+                        employeenumber,
+                        TRUNC(date_)
+                ),
+                last_true AS (
+                    SELECT 
+                        employeenumber,
+                        TRUNC(date_) AS date_day,
+                        MAX(date_) AS date_
+                    FROM 
+                        hq_elevated.TMS_EMP_TRANSACTIONS
+                    WHERE 
+                        employeenumber = :App_user
+                        AND type = 'true'
+                    GROUP BY 
+                        employeenumber,
+                        TRUNC(date_)
+                )
+                SELECT DISTINCT
+                    CASE 
+                        WHEN t.type = 'false' THEN 'u-color-20'
+                        WHEN t.type = 'true' THEN 'u-color-8'
+                    END AS Css_class,
+                    TO_CHAR(t.date_,'HH:MI:SS') AS formatted_date, -- Format the date and time
+                    CASE 
+                        WHEN t.type = 'false' THEN 'SIGN IN'
+                        WHEN t.type = 'true' THEN 'SIGN OUT'
+                    END AS type,
+                    t.date_ AS Date_,
+                    t.employeenumber
+                FROM 
+                    hq_elevated.TMS_EMP_TRANSACTIONS t
+                JOIN 
+                    first_false ff ON t.employeenumber = ff.employeenumber AND t.date_ = ff.date_
+                
+                UNION ALL
+                
+                SELECT DISTINCT
+                    CASE 
+                        WHEN t.type = 'false' THEN 'u-color-20'
+                        WHEN t.type = 'true' THEN 'u-color-8'
+                    END AS Css_class,
+                    TO_CHAR(t.date_, 'HH:MI:SS') AS formatted_date, -- Format the date and time
+                    CASE 
+                        WHEN t.type = 'false' THEN 'SIGN IN'
+                        WHEN t.type = 'true' THEN 'SIGN OUT'
+                    END AS type,
+                    t.date_ AS Date_,
+                    t.employeenumber
+                FROM 
+                    hq_elevated.TMS_EMP_TRANSACTIONS t
+                JOIN 
+                    last_true lt ON t.employeenumber = lt.employeenumber AND t.date_ = lt.date_
+                
+                ```
+        }
+        layout {
+            sequence: 70
+            parentRegion: @region-display-selector
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent14
+                t-Region--hiddenOverflow
+                t-Form--slimPadding
+            ]
+            icon: fa-chevron-right
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @it
+        }
+        settings {
+            displayColumn: FORMATTED_DATE
+            startDateColumn: DATE_
+            endDateColumn: DATE_
+            showTime: true
+            timeFormat: 12Hour
+            firstHour: 7
+            supplementalInfo: &TYPE.
+            multipleLineEvents: false
+            calendarViewsAndNavigation: [
+                month
+                week
+                day
+                list
+                navigation
+            ]
+            cssClass: CSS_CLASS
+        }
+        performance {
+            lazyLoading: true
+        }
+        componentAdvanced {
+            initJavaScriptFunction:
+                ```javascript-browser
+                function ( pOptions ) { 
+                
+                    pOptions.showNonCurrentDates = false;
+                
+                    return pOptions;
+                }
+                ```
+        }
+    )
+
+    region in-out-with-requests (
+        name: IN & OUT WITH REQUESTS
+        title: &APP_TEXT$IN_OUT_WITH_REQUESTS.
+        type: calendar
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                
+                WITH first_false AS (
+                    SELECT 
+                        employeenumber,
+                        TRUNC(date_) AS date_day,
+                        MIN(date_) AS date_
+                    FROM 
+                        hq_elevated.TMS_EMP_TRANSACTIONS
+                    WHERE 
+                        employeenumber = :APP_USER
+                        AND type = 'false'
+                    GROUP BY 
+                        employeenumber,
+                        TRUNC(date_)
+                ),
+                last_true AS (
+                    SELECT 
+                        employeenumber,
+                        TRUNC(date_) AS date_day,
+                        MAX(date_) AS date_
+                    FROM 
+                        hq_elevated.TMS_EMP_TRANSACTIONS
+                    WHERE 
+                        employeenumber = :APP_USER
+                        AND type = 'true'
+                    GROUP BY 
+                        employeenumber,
+                        TRUNC(date_)
+                )
+                SELECT 
+                    'apex-cal-green' AS css_class,
+                    TO_CHAR(H.REQUEST_ID) AS request_id,
+                    central.get_Emp_name(H.emp_id) AS employee_name,
+                    H.FROM_HOUR AS start_time,
+                    H.TO_HOUR AS end_time,
+                    CAST(NULL AS VARCHAR2(100)) AS request_type,
+                    'Overtime Request' || '-' || TO_CHAR(H.FROM_HOUR, 'HH:MI:SS') || '-' || TO_CHAR(H.TO_HOUR, 'HH:MI:SS') AS request_category,
+                    TO_CHAR(H.emp_id) AS emp_id
+                FROM
+                    EPROMHQ.HRF_EMP_OVERTIME_REQUEST H
+                WHERE    
+                    H.emp_id = :APP_USER
+                    AND EXTRACT(YEAR FROM H.FROM_HOUR) = EXTRACT(YEAR FROM SYSDATE)
+                    AND H.APPROVED = 1
+                    AND NVL(H.DELETE_TMS, 0) != 1
+                UNION ALL
+                SELECT 
+                    'u-color-3' AS css_class,
+                    TO_CHAR(H.REQUEST_ID) AS request_id,
+                    central.get_Emp_name(H.emp_id) AS employee_name,
+                    H.FROM_HOUR AS start_time,
+                    H.TO_HOUR AS end_time,
+                    TO_CHAR(H.PERMISSION_TYPE) AS request_type,
+                    'Permission Request' || '-' || TO_CHAR(H.PERMISSION_TYPE) || '-' || TO_CHAR(H.FROM_HOUR, 'HH:MI:SS') || '-' || TO_CHAR(H.TO_HOUR, 'HH:MI:SS') AS request_category,
+                    TO_CHAR(H.emp_id) AS emp_id
+                FROM 
+                    EPROMHQ.HRF_EMP_PERMISSION_REQUEST H  
+                WHERE  
+                    H.emp_id = :APP_USER
+                    AND EXTRACT(YEAR FROM H.FROM_HOUR) = EXTRACT(YEAR FROM SYSDATE)
+                    AND H.APPROVED = 1
+                    AND NVL(H.DELETE_TMS, 0) != 1
+                UNION ALL
+                SELECT 
+                    'apex-cal-blue' AS css_class,
+                    TO_CHAR(H.REQUEST_ID) AS request_id,
+                    central.get_Emp_name(H.emp_id) AS employee_name,
+                    H.FROM_DATE AS start_time,
+                    H.TO_DATE + 1/24 AS end_time,
+                    TO_CHAR(H.REQUEST_TYPE_ID) AS request_type,
+                    CASE 
+                        WHEN H.REQUEST_TYPE_ID = 72 THEN 
+                            CASE 
+                                WHEN H.FROM_DATE = H.TO_DATE THEN 'Mission Leave ' || ' - Date: ' || TO_CHAR(H.FROM_DATE)
+                                ELSE 'Mission Leave ' || ' - From: ' || TO_CHAR(H.FROM_DATE) || ' - To: ' || TO_CHAR(H.TO_DATE)
+                            END
+                        WHEN H.REQUEST_TYPE_ID = 121 THEN 
+                            CASE 
+                                WHEN H.FROM_DATE = H.TO_DATE THEN 'Training Mission Leave' || ' - Date: ' || TO_CHAR(H.FROM_DATE)
+                                ELSE 'Training Mission Leave' || ' - From: ' || TO_CHAR(H.FROM_DATE) || ' - To: ' || TO_CHAR(H.TO_DATE)
+                            END
+                        ELSE 'Mission Request - Other' 
+                    END AS request_category,
+                    TO_CHAR(H.emp_id) AS emp_id
+                FROM
+                    EPROMHQ.HRF_EMP_MISSION_REQUEST H
+                WHERE  
+                    H.emp_id = :APP_USER
+                    AND EXTRACT(YEAR FROM H.FROM_DATE) = EXTRACT(YEAR FROM SYSDATE)
+                    AND H.APPROVED = 1
+                    AND NVL(H.DELETE_TMS, 0) != 1
+                UNION ALL
+                SELECT 
+                    'apex-cal-black' AS css_class,
+                    TO_CHAR(H.REQUEST_ID) AS request_id,
+                    central.get_Emp_name(H.emp_id) AS employee_name,
+                    H.FROM_DATE AS start_time,
+                    H.TO_DATE + 1/24 AS end_time,
+                    H.LEAVE_TYPE AS request_type,
+                    CASE 
+                        WHEN H.LEAVE_TYPE = 'H' THEN 
+                            CASE 
+                                WHEN H.FROM_DATE = H.TO_DATE THEN 'Annual Leave ' || ': ' || H.LEAVE_TYPE || ' - Date: ' || TO_CHAR(H.FROM_DATE)
+                                ELSE 'Annual Leave ' || ': ' || H.LEAVE_TYPE || ' - From: ' || TO_CHAR(H.FROM_DATE) || ' - To: ' || TO_CHAR(H.TO_DATE)
+                            END
+                        WHEN H.LEAVE_TYPE = 'C' THEN 
+                            CASE 
+                                WHEN H.FROM_DATE = H.TO_DATE THEN 'Casual Leave ' || ': ' || H.LEAVE_TYPE || ' - Date: ' || TO_CHAR(H.FROM_DATE)
+                                ELSE 'Casual Leave ' || ': ' || H.LEAVE_TYPE || ' - From: ' || TO_CHAR(H.FROM_DATE) || ' - To: ' || TO_CHAR(H.TO_DATE)
+                            END
+                        WHEN H.LEAVE_TYPE = 'RH' THEN 
+                            CASE 
+                                WHEN H.FROM_DATE = H.TO_DATE THEN 'Rest-Hours Leave ' || ': ' || H.LEAVE_TYPE || ' - Date: ' || TO_CHAR(H.FROM_DATE)
+                                ELSE 'Rest-Hours Leave ' || ': ' || H.LEAVE_TYPE || ' - From: ' || TO_CHAR(H.FROM_DATE) || ' - To: ' || TO_CHAR(H.TO_DATE)
+                            END
+                        ELSE 'Leave Request - Other'
+                    END AS request_category,
+                    TO_CHAR(H.emp_id) AS emp_id
+                FROM
+                    EPROMHQ.HRF_EMP_LEAVE_REQUEST H 
+                WHERE 
+                    H.emp_id = :APP_USER
+                    AND NVL(H.DELETE_TMS, 0) != 1
+                    AND H.APPROVED = 1
+                UNION ALL
+                
+                SELECT DISTINCT
+                    CASE 
+                        WHEN t.type = 'false' THEN 
+                            CASE 
+                                WHEN TO_CHAR(t.date_, 'HH24:MI:SS') >= '08:15:00' THEN 'u-danger'
+                                ELSE 'u-color-20'
+                            END
+                    END AS css_class,
+                    CAST(NULL AS VARCHAR2(100)) AS request_id,
+                    central.get_Emp_name(t.employeenumber) AS employee_name,
+                    t.date_ AS start_time,
+                    t.date_ AS end_time,
+                    CAST(NULL AS VARCHAR2(100)) AS request_type,
+                    'Sign In' || ' : ' || TO_CHAR(t.date_, 'HH24:MI:SS') AS request_category,
+                    TO_CHAR(t.employeenumber) AS emp_id
+                FROM 
+                    hq_elevated.TMS_EMP_TRANSACTIONS t
+                JOIN 
+                    first_false ff ON t.employeenumber = ff.employeenumber AND t.date_ = ff.date_
+                
+                UNION ALL
+                
+                SELECT DISTINCT
+                    CASE 
+                        WHEN t.type = 'true' THEN 
+                            CASE 
+                                WHEN TO_CHAR(t.date_, 'HH24:MI:SS') >= '11:16:00' AND TO_CHAR(t.date_, 'HH24:MI:SS') <= '15:15:00' THEN 'u-danger'
+                                ELSE 'u-color-8'
+                            END
+                    END AS css_class,
+                    CAST(NULL AS VARCHAR2(100)) AS request_id,
+                    central.get_Emp_name(t.employeenumber) AS employee_name,
+                    t.date_ AS start_time,
+                    t.date_ AS end_time,
+                    CAST(NULL AS VARCHAR2(100)) AS request_type,
+                    'Sign Out' || ' : ' || TO_CHAR(t.date_, 'HH24:MI:SS') AS request_category,
+                    TO_CHAR(t.employeenumber) AS emp_id
+                FROM 
+                    hq_elevated.TMS_EMP_TRANSACTIONS t
+                JOIN 
+                    last_true lt ON t.employeenumber = lt.employeenumber AND t.date_ = lt.date_
+                
+                UNION ALL 
+                SELECT DISTINCT
+                    'u-success' AS css_class,
+                    '0' AS request_id,
+                    NAME AS employee_name,
+                    FROMDATE AS start_time,
+                    TODATE + 1/24 AS end_time,
+                    NULL AS request_type,
+                    'Public Holiday' || ' : ' || NAME AS request_category,
+                    :APP_USER AS emp_id
+                FROM 
+                    EPROMHQ.tms_holidays
+                
+                ```
+        }
+        layout {
+            sequence: 80
+            parentRegion: @region-display-selector
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent14
+                t-Region--hiddenOverflow
+                t-Form--slimPadding
+            ]
+            icon: fa-chevron-right
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @it
+        }
+        settings {
+            displayColumn: REQUEST_CATEGORY
+            startDateColumn: START_TIME
+            endDateColumn: END_TIME
+            pkColumn: REQUEST_ID
+            showTime: true
+            timeFormat: 12Hour
+            firstHour: 0
+            multipleLineEvents: false
+            calendarViewsAndNavigation: [
+                month
+                week
+                day
+                list
+                navigation
+            ]
+            cssClass: CSS_CLASS
+        }
+        performance {
+            lazyLoading: true
+        }
+        componentAdvanced {
+            initJavaScriptFunction:
+                ```javascript-browser
+                function ( pOptions ) { 
+                
+                    pOptions.showNonCurrentDates = false;
+                    return pOptions;
+                }
+                ```
+        }
+    )
+
+    region naming-conventions (
+        name: Naming Conventions
+        title: &APP_TEXT$NAMING_CONVENTIONS.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_18!RAW.
+        }
+        layout {
+            sequence: 10
+            parentRegion: @بيان-الحضور-والانصراف
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        settings {
+            expandShortcuts: true
+        }
+    )
+
+    region region-display-selector (
+        name: Region Display Selector
+        title: &APP_TEXT$REGION_DISPLAY_SELECTOR.
+        type: regionDisplaySelector
+        layout {
+            sequence: 20
+            parentRegion: @الطلبات
+            slot: regionBody
+            column: 2
+            columnSpan: 10
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+            renderComponents: belowContent
+        }
+        settings {
+            displayRegionIcons: true
+            includeShowAll: false
+            rememberSelection: false
+        }
+    )
+
+    region unified-employee-requests (
+        name: طلبات الموظف الموحدة
+        title: طلبات الموظف الموحدة
+        type: calendar
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH allowed_employees AS (
+                    SELECT TO_CHAR(:APP_USER) AS emp_id
+                    FROM dual
+                    UNION
+                    SELECT DISTINCT TO_CHAR(c.emp_number) AS emp_id
+                    FROM central.APR_APPROVAL_RESULTS_CUST_F c
+                    WHERE TO_CHAR(c.approver) = TO_CHAR(:APP_USER)
+                      AND c.emp_number IS NOT NULL
+                      AND c.request_type_id IN (59, 61, 72, 121, 76)
+                ),
+                selected_employee AS (
+                    SELECT CASE
+                               WHEN EXISTS (
+                                   SELECT 1
+                                   FROM allowed_employees a
+                                   WHERE a.emp_id = TO_CHAR(:P45_REQUEST_EMP_ID)
+                               )
+                               THEN TO_CHAR(:P45_REQUEST_EMP_ID)
+                               ELSE TO_CHAR(:APP_USER)
+                           END AS emp_id
+                    FROM dual
+                )
+                SELECT
+                    'apex-cal-green' AS css_class,
+                    h.request_id,
+                    central.get_emp_name(h.emp_id) AS employee_name,
+                    h.from_date AS start_time,
+                    h.to_date AS end_time,
+                    'LEAVE' AS request_type,
+                    CASE h.leave_type
+                        WHEN 'H' THEN 'إجازة سنوية'
+                        WHEN 'C' THEN 'إجازة عارضة'
+                        WHEN 'RH' THEN 'إجازة ساعات راحة'
+                        ELSE 'إجازة'
+                    END AS request_category,
+                    h.emp_id
+                FROM EPROMHQ.HRF_EMP_LEAVE_REQUEST h
+                CROSS JOIN selected_employee s
+                WHERE TO_CHAR(h.emp_id) = s.emp_id
+                  AND h.approved = 1
+                  AND NVL(h.delete_tms, 0) <> 1
+                  AND EXTRACT(YEAR FROM h.from_date) = NVL(TO_NUMBER(:P45_YEAR), EXTRACT(YEAR FROM SYSDATE))
+                
+                UNION ALL
+                
+                SELECT
+                    'apex-cal-yellow' AS css_class,
+                    h.request_id,
+                    central.get_emp_name(h.emp_id) AS employee_name,
+                    h.from_hour AS start_time,
+                    h.to_hour AS end_time,
+                    'PERMISSION' AS request_type,
+                    CASE h.permission_type
+                        WHEN 'PP' THEN 'إذن شخصي'
+                        WHEN 'CP' THEN 'إذن عمل'
+                        ELSE 'إذن'
+                    END AS request_category,
+                    h.emp_id
+                FROM EPROMHQ.HRF_EMP_PERMISSION_REQUEST h
+                CROSS JOIN selected_employee s
+                WHERE TO_CHAR(h.emp_id) = s.emp_id
+                  AND h.approved = 1
+                  AND NVL(h.delete_tms, 0) <> 1
+                  AND EXTRACT(YEAR FROM h.from_hour) = NVL(TO_NUMBER(:P45_YEAR), EXTRACT(YEAR FROM SYSDATE))
+                
+                UNION ALL
+                
+                SELECT
+                    'apex-cal-blue' AS css_class,
+                    h.request_id,
+                    central.get_emp_name(h.emp_id) AS employee_name,
+                    h.from_date AS start_time,
+                    h.to_date AS end_time,
+                    'MISSION' AS request_type,
+                    CASE TO_CHAR(h.request_type_id)
+                        WHEN '72' THEN 'مهمة داخلية'
+                        WHEN '121' THEN 'مهمة خارجية'
+                        ELSE 'مهمة'
+                    END AS request_category,
+                    h.emp_id
+                FROM EPROMHQ.HRF_EMP_MISSION_REQUEST h
+                CROSS JOIN selected_employee s
+                WHERE TO_CHAR(h.emp_id) = s.emp_id
+                  AND h.request_type_id IN (72, 121)
+                  AND h.approved = 1
+                  AND NVL(h.delete_tms, 0) <> 1
+                  AND EXTRACT(YEAR FROM h.from_date) = NVL(TO_NUMBER(:P45_YEAR), EXTRACT(YEAR FROM SYSDATE))
+                
+                UNION ALL
+                
+                SELECT
+                    'apex-cal-red' AS css_class,
+                    h.request_id,
+                    central.get_emp_name(h.emp_id) AS employee_name,
+                    h.from_hour AS start_time,
+                    h.to_hour AS end_time,
+                    'OVERTIME' AS request_type,
+                    'ساعات عمل إضافية' AS request_category,
+                    h.emp_id
+                FROM EPROMHQ.HRF_EMP_OVERTIME_REQUEST h
+                CROSS JOIN selected_employee s
+                WHERE TO_CHAR(h.emp_id) = s.emp_id
+                  AND h.approved = 1
+                  AND NVL(h.delete_tms, 0) <> 1
+                  AND EXTRACT(YEAR FROM h.from_hour) = NVL(TO_NUMBER(:P45_YEAR), EXTRACT(YEAR FROM SYSDATE))
+                ```
+            pageItemsToSubmit: [
+                P45_REQUEST_EMP_ID
+                P45_YEAR
+            ]
+        }
+        layout {
+            sequence: 15
+            parentRegion: @region-display-selector
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent14
+                t-Region--hiddenOverflow
+                t-Form--slimPadding
+            ]
+            icon: fa-chevron-right
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        settings {
+            displayColumn: REQUEST_CATEGORY
+            startDateColumn: START_TIME
+            endDateColumn: END_TIME
+            pkColumn: REQUEST_ID
+            showTime: true
+            timeFormat: 12Hour
+            firstHour: 0
+            supplementalInfo: EMPLOYEE_NAME
+            multipleLineEvents: false
+            showTooltip: false
+            calendarViewsAndNavigation: [
+                month
+                navigation
+                list
+            ]
+            createLink: {
+                page: 451
+                items: {
+                    P451_NEW: &APEX$NEW_START_DATE.
+                    P451_EMP_ID: &APP_USER.
+                }
+            }
+            cssClass: CSS_CLASS
+        }
+        performance {
+            lazyLoading: true
+        }
+        componentAdvanced {
+            initJavaScriptFunction:
+                ```javascript-browser
+                function ( pOptions ) {
+                    pOptions.showNonCurrentDates = false;
+                    return pOptions;
+                }
+                ```
+        }
+    )
+
+    region view-requests (
+        name: VIEW REQUESTS
+        title: &APP_TEXT$VIEW_REQUESTS.
+        type: calendar
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 
+                    t1.*, 
+                    CASE t1.REQUEST_TYPE
+                        WHEN 'Mission' THEN 'apex-cal-green'
+                        WHEN 'Leave' THEN 'apex-cal-brown'
+                        WHEN 'Overtime' THEN 'apex-cal-red'
+                        WHEN 'Permission' THEN 'apex-cal-darkblue'
+                        ELSE 'Unknown'
+                    END AS css_class,
+                    leave_req.FROM_DATE,
+                    leave_req.TO_DATE
+                FROM (
+                    SELECT 
+                        apr.*, 
+                        central.get_emp_name(COALESCE(lev.EMP_ID, mis.EMP_ID)) AS EMPLOYEE_NAME,
+                        CASE 
+                            WHEN lev.EMP_ID IS NOT NULL THEN 'Leave'
+                            WHEN mis.EMP_ID IS NOT NULL THEN 'Mission'
+                            ELSE 'Unknown'
+                        END AS REQUEST_TYPE
+                    FROM 
+                        CENTRAL.APR_LOG apr
+                    LEFT JOIN 
+                        EPROMHQ.HRF_EMP_LEAVE_REQUEST lev ON apr.REQUEST_ID = lev.REQUEST_ID
+                    LEFT JOIN 
+                        EPROMHQ.HRF_EMP_MISSION_REQUEST mis ON apr.REQUEST_ID = mis.REQUEST_ID
+                    UNION ALL
+                    SELECT 
+                        apr.*, 
+                        NULL AS EMPLOYEE_NAME,
+                        NULL AS REQUEST_TYPE
+                    FROM 
+                        CENTRAL.APR_LOG apr
+                    WHERE 
+                        apr.REQUEST_ID NOT IN (
+                            SELECT REQUEST_ID FROM EPROMHQ.HRF_EMP_LEAVE_REQUEST
+                            UNION
+                            SELECT REQUEST_ID FROM EPROMHQ.HRF_EMP_MISSION_REQUEST
+                        )
+                ) t1
+                LEFT JOIN (
+                    SELECT REQUEST_ID, FROM_DATE, TO_DATE
+                    FROM (
+                        SELECT REQUEST_ID, FROM_DATE, TO_DATE
+                        FROM EPROMHQ.HRF_EMP_LEAVE_REQUEST
+                        WHERE LEAVE_TYPE IN ('C', 'H', 'RH')
+                        UNION ALL
+                        SELECT REQUEST_ID, FROM_DATE, TO_DATE
+                        FROM EPROMHQ.HRF_EMP_MISSION_REQUEST
+                        WHERE Request_type_id IN ('72', '121')
+                        UNION ALL
+                        SELECT REQUEST_ID, NULL FROM_DATE, NULL TO_DATE
+                        FROM EPROMHQ.HRF_EMP_OVERTIME_REQUEST 
+                        UNION ALL
+                        SELECT REQUEST_ID, NULL FROM_DATE, NULL TO_DATE
+                        FROM EPROMHQ.HRF_EMP_PERMISSION_REQUEST
+                    )
+                ) leave_req ON t1.REQUEST_ID = leave_req.REQUEST_ID;
+                
+                ```
+        }
+        layout {
+            sequence: 41
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: never
+        }
+        readOnly {
+            type: always
+        }
+        settings {
+            displayColumn: EMPLOYEE_NAME
+            startDateColumn: FROM_DATE
+            endDateColumn: TO_DATE
+            pkColumn: ID
+            supplementalInfo:
+                ```html
+                &REQUEST_TYPE.
+                <!-- &P45_FROM_DATE.
+                &P45_TO_DATE.
+                &P45_PERMISSION_TIME.
+                <!-- 
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Request Types</title>
+                </head>
+                <body>
+                    <table border="1">
+                        <tr>
+                            <th>Request Type</th>
+                        </tr>
+                        // Loop through query results
+                        while ($row = mysqli_fetch_assoc($result)) {
+                            echo "<tr>";
+                            echo "<td>";
+                            // Switch statement to determine request type
+                            switch ($row['REQUEST_TYPE_ID']) {
+                                case 72:
+                                    echo "Mission";
+                                    break;
+                                case 59:
+                                    echo "Leave";
+                                    break;
+                                case 76:
+                                    echo "Overtime";
+                                    break;
+                                case 61:
+                                    echo "Permission";
+                                    break;
+                                default:
+                                    echo "Other";
+                            }
+                            echo "</td>";
+                            echo "</tr>";
+                        }
+                        ?>
+                    </table>
+                </body>
+                </html> --> -->
+                
+                ```
+            additionalCalendarViews: [
+                list
+                navigation
+            ]
+            cssClass: CSS_CLASS
+        }
+    )
+
+    region الطلبات (
+        name: الطلبات
+        title: &APP_TEXT$REQUESTS.
+        type: staticContent
+        layout {
+            sequence: 21
+            slot: body
+        }
+        appearance {
+            template: @content-block
+            templateOptions: [
+                #DEFAULT#
+                t-ContentBlock--h3
+                t-Region--removeHeader js-removeLandmark
+                t-Form--noPadding
+                t-Form--stretchInputs
+            ]
+        }
+        accessibility {
+            useLandmark: false
+        }
+    )
+
+    region بيان-الحضور-والانصراف (
+        name: بيان الحضور والانصراف
+        title: &APP_TEXT$STATEMENT_OF_ATTENDANCE_AND_DEPARTURE.
+        type: calendar
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select CSS_CLASS,
+                       REQUEST_ID,
+                       EMPLOYEE_NAME,
+                       START_TIME,
+                       END_TIME,
+                       REQUEST_TYPE,
+                       REQUEST_CATEGORY,
+                       EMP_ID,
+                       TRUNC(SYSDATE, 'MM')
+                  from CENTRAL.EMP_REQUESTS_SUMMARY s 
+                  where s.EMP_ID = nvl(:P45_EMP_ID,:app_user)
+                ```
+            pageItemsToSubmit: P45_EMP_ID
+        }
+        layout {
+            sequence: 10
+            parentRegion: @region-display-selector
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent14
+                t-Region--hiddenOverflow
+                t-Form--slimPadding
+            ]
+            icon: fa-chevron-right
+        }
+        advanced {
+            htmlDomId: CALENDAR_REGION_ID
+            regionDisplaySelector: true
+        }
+        security {
+            authorizationScheme: @it-and-others
+        }
+        settings {
+            displayColumn: REQUEST_CATEGORY
+            startDateColumn: START_TIME
+            endDateColumn: END_TIME
+            showTime: true
+            timeFormat: 12Hour
+            firstHour: 0
+            multipleLineEvents: false
+            showTooltip: false
+            calendarViewsAndNavigation: [
+                month
+                navigation
+            ]
+            createLink: {
+                page: 451
+                items: {
+                    P451_NEW: &APEX$NEW_START_DATE.
+                    P451_EMP_ID: &APP_USER.
+                }
+            }
+            cssClass: CSS_CLASS
+        }
+        performance {
+            lazyLoading: true
+        }
+        componentAdvanced {
+            initJavaScriptFunction:
+                ```javascript-browser
+                function ( pOptions ) { 
+                
+                    pOptions.showNonCurrentDates = false;
+                    return pOptions;
+                }
+                
+                ```
+        }
+    )
+
+    region عرض-الطـــلبات (
+        name: عرض الطـــلبات
+        title: &APP_TEXT$VIEW_ORDERS.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P45_EMP_ID (
+        type: popupLov
+        label {
+            label: &APP_TEXT$CHOOSE_AN_EMPLOYEE.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @approvals
+            displayExtraValues: false
+            nullDisplayValue: &APP_TEXT$_SELECT_EMPLOYEE_.
+        }
+        layout {
+            sequence: 10
+            region: @بيان-الحضور-والانصراف
+            slot: sortOrder
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        default {
+            type: expression
+            plsqlExpression: :App_user
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            authorizationScheme: @it-and-others
+        }
+    )
+
+    pageItem P45_FROM_DATE (
+        type: textField
+        label {
+            label: &APP_TEXT$FROM_DATE.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @view-requests
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            type: sqlQuerySingleValue
+            sqlQuery:
+                ```sql
+                select from_date  from epromhq.HRF_EMP_LEAVE_REQUEST r
+                where  :P45_REQUEST_ID = r.request_id;
+                ```
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P45_PERMISSION_TIME (
+        type: textField
+        label {
+            label: &APP_TEXT$PERMISSION_TIME.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @view-requests
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            formatMask: HH24:MI
+            width: 30
+        }
+        source {
+            type: sqlQuerySingleValue
+            sqlQuery:
+                ```sql
+                select TO_HOUR  from epromhq.HRF_EMP_PERMISSION_REQUEST r
+                where  :P45_REQUEST_ID = r.request_id;
+                ```
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P45_REQUEST_EMP_ID (
+        type: selectList
+        label {
+            label: اختيار الموظف للطلبات
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT DISTINCT d.emp_name, d.emp_number
+                FROM central.xxapex_hr_emp_data d
+                WHERE TO_CHAR(d.emp_number) = TO_CHAR(:APP_USER)
+                   OR EXISTS (
+                       SELECT 1
+                       FROM central.APR_APPROVAL_RESULTS_CUST_F c
+                       WHERE TO_CHAR(c.approver) = TO_CHAR(:APP_USER)
+                         AND TO_CHAR(c.emp_number) = TO_CHAR(d.emp_number)
+                         AND c.request_type_id IN (59, 61, 72, 121, 76)
+                   )
+                ORDER BY CASE
+                             WHEN TO_CHAR(d.emp_number) = TO_CHAR(:APP_USER) THEN 0
+                             ELSE 1
+                         END,
+                         d.emp_name
+                ```
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @unified-employee-requests
+            slot: sortOrder
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: expression
+            plsqlExpression: :App_user
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P45_REQUEST_ID (
+        type: textField
+        label {
+            label: &APP_TEXT$REQUESTID.
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @view-requests
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            type: sqlQuerySingleValue
+            sqlQuery:
+                ```sql
+                select request_id FROM 
+                    CENTRAL.APR_LOG apr
+                ```
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P45_TO_DATE (
+        type: textField
+        label {
+            label: &APP_TEXT$TO_DATE.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @view-requests
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            type: sqlQuerySingleValue
+            sqlQuery:
+                ```sql
+                select TO_date  from epromhq.HRF_EMP_LEAVE_REQUEST r
+                where  :P45_REQUEST_ID = r.request_id;
+                ```
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P45_YEAR (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @الطلبات
+            slot: regionBody
+        }
+        default {
+            type: expression
+            plsqlExpression: "    EXTRACT(YEAR FROM sysdate)"
+        }
+    )
+
+    button refresh (
+        buttonName: REFRESH
+        label: &APP_TEXT$REFRESH.
+        layout {
+            sequence: 30
+            region: @بيان-الحضور-والانصراف
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--padLeft
+                t-Button--padRight
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction refresh (
+        name: Refresh
+        execution {
+            sequence: 10
+            eventScope: once
+        }
+        when {
+            event: ready
+        }
+        serverSideCondition {
+            type: never
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                        central.REFRESH_EMP_REQUESTS_SUMMARY1(:APP_USER);
+                    END;
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @بيان-الحضور-والانصراف
+            }
+            execution {
+                sequence: 50
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        action native-refresh-2 (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @region-display-selector
+            }
+            execution {
+                sequence: 30
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+    )
+
+    dynamicAction refresh-emp-id (
+        name: Refresh_emp_id
+        execution {
+            sequence: 20
+        }
+        when {
+            selectionType: items
+            items: P45_EMP_ID
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                      central.REFRESH_EMP_REQUESTS_SUMMARY2(:P45_EMP_ID);
+                    END;
+                    ```
+                itemsToSubmit: P45_EMP_ID
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @region-display-selector
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-2 (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @بيان-الحضور-والانصراف
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-unified-requests-on-employee-change (
+        name: Refresh Unified Requests On Employee Change
+        execution {
+            sequence: 30
+            eventScope: once
+        }
+        when {
+            selectionType: items
+            items: P45_REQUEST_EMP_ID
+        }
+
+        action native-refresh-unified-requests (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @unified-employee-requests
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process leave-type (
+        name: LEAVE_TYPE
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    leave_type VARCHAR2(10) := '&LEAVE_TYPE.';
+                    leave_description VARCHAR2(100);
+                BEGIN
+                    IF leave_type = 'H' THEN
+                        leave_description := 'اجازة';
+                    ELSIF leave_type = 'RH' THEN
+                        leave_description := 'ساعات راحة';
+                    ELSIF leave_type = 'C' THEN
+                        leave_description := 'عارضة';
+                    ELSE
+                        leave_description := 'Unknown'; -- Or handle default case as needed
+                    END IF;
+                
+                    htp.p('<span style="font-weight: bold;">Leave Type:</span>');
+                    htp.p('<span>' || leave_description || '</span>');
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 37976274745404419
+        }
+    )
+
+    process refresh-emp-id (
+        name: Refresh_emp_id
+        type: invokeApi
+        invoke {
+            type: plsqlProcedureOrFunction
+            owner: CENTRAL
+            procedureOrFunction: REFRESH_EMP_REQUESTS_SUMMARY2
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 16819479604082402
+        }
+        security {
+            authorizationScheme: @it-and-others
+        }
+
+        parameter p_emp_id (
+            value {
+                type: item
+                item: APP_USER
+            }
+            advanced {
+                displaySequence: 10
+            }
+        )
+
+    )
+
+    process refresh-emp-id-2 (
+        name: Refresh_emp_id_1
+        type: invokeApi
+        invoke {
+            type: plsqlProcedureOrFunction
+            owner: CENTRAL
+            procedureOrFunction: REFRESH_EMP_REQUESTS_SUMMARY2
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 226812918445517216
+        }
+        serverSideCondition {
+            whenButtonPressed: @refresh
+        }
+        security {
+            authorizationScheme: @it-and-others
+        }
+
+        parameter p_emp_id (
+            value {
+                type: item
+                item: APP_USER
+            }
+            advanced {
+                displaySequence: 10
+            }
+        )
+
+    )
+
+)

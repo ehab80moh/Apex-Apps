@@ -1,0 +1,300 @@
+page 13 (
+    name: بيانات اجازات الموظف
+    alias: EMPLOYEE-VACATIONS-DATA
+    title: &APP_TEXT$EMPLOYEE_LEAVE_DATA.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: calendar
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select * from EPROMHQ.hrf_emp_leave_request
+                where emp_id= :APP_USER
+                order by request_id desc
+                ;
+                
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        settings {
+            displayColumn: LEAVE_TYPE
+            startDateColumn: FROM_DATE
+            endDateColumn: TO_DATE
+            pkColumn: REQUEST_ID
+            additionalCalendarViews: [
+                list
+                navigation
+            ]
+        }
+    )
+
+    region بيانات-الاجازات (
+        name: بيانات الاجازات
+        title: &APP_TEXT$VACATION_DATA.
+        type: calendar
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select NAME,
+                       PROJ,
+                       EMPLOYEE_NUMBER,
+                       FULL_NAME,
+                       DATE_START,
+                       DATE_END,
+                       DATE_END - DATE_START +1 NUM_DAYS ,
+                
+                      case NAme
+                           when 'Annual Leave'    then 'apex-cal-green'
+                
+                           when 'Casual Leave'  then 'apex-cal-red'
+                
+                       end as css_class
+                
+                  from CENTRAL.XXAPEX_OTL_LEAVES
+                 where  employee_number= :p13_APP_USER
+                and name in (
+                'Annual Leave','Casual Leave')
+                
+                order by date_start desc
+                ```
+            pageItemsToSubmit: P13_APP_USER
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hiddenOverflow
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        readOnly {
+            type: always
+        }
+        settings {
+            displayColumn: NAME
+            startDateColumn: DATE_START
+            endDateColumn: DATE_END
+            showTooltip: false
+            additionalCalendarViews: navigation
+            cssClass: CSS_CLASS
+        }
+    )
+
+    region رصيد-الاجازات (
+        name: رصيد الاجازات
+        title: &APP_TEXT$LEAVE_BALANCE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMPLOYEE_NUMBER,
+                       FULL_NAME,
+                       ANNUAL_CREDIT,
+                       
+                       CASUAL_CREDIT,
+                       HOURS_CREDIT,
+                       EFF_DATE,
+                       (case when to_number(to_char(sysdate,'DD'))>=25 then
+                            to_date('01-'||to_char(sysdate,'MM-YYYY'),'DD-MM-YYYY')-1
+                       else
+                            add_months(to_date('01-'||to_char(sysdate,'MM-YYYY'),'DD-MM-YYYY'),-1)-1
+                       end ) Leave_credit,
+                       annual_accrual
+                  from CENTRAL.XXAPEX_OTL_LEAVE_CREDIT
+                 where employee_number=:p13_APP_USER
+                ```
+            pageItemsToSubmit: P13_APP_USER
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: never
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$PLEASE_VISIT_THE_ENTITLEMENTS_DEPARTMENT_TO_VIEW_BALANCES.
+        }
+
+        column ANNUAL_ACCRUAL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column ANNUAL_CREDIT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REGULAR_BALANCE.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column CASUAL_CREDIT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MODEL_BALANCE.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column EFF_DATE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column HOURS_CREDIT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$HOURS_BALANCE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column LEAVE_CREDIT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$VACATION_BALANCE_TO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+    )
+
+    pageItem P13_APP_USER (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+        default {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                begin
+                if :p13_APP_USER is null then
+                return :APP_USER;
+                else
+                return :p13_app_user;
+                end if;
+                end ;
+                ```
+        }
+    )
+
+)

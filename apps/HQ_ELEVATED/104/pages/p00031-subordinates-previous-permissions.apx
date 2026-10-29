@@ -1,0 +1,643 @@
+page 31 (
+    name: طلبات الأذون السابقة للمرؤوسين
+    alias: SUBORDINATES-PREVIOUS-PERMISSIONS
+    title: &APP_TEXT$PREVIOUS_PERMISSION_REQUESTS_FOR_SUBORDINATES.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: [
+            #DEFAULT#
+            ui-dialog--stretch
+        ]
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region طلبات-الأذون-السابقة-للمرؤوسين (
+        name: طلبات الأذون السابقة للمرؤوسين
+        title: &APP_TEXT$PREVIOUS_PERMISSION_REQUESTS_FOR_SUBORDINATES.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH fya AS (
+                    SELECT p.request_id, 'FYA' AS role_type
+                      FROM epromhq.hrf_emp_permission_request p
+                     WHERE p.emp_id <> :APP_USER
+                       AND EXTRACT(YEAR FROM p.permission_date) = EXTRACT(YEAR FROM SYSDATE)
+                       AND (:P31_EMP_ID IS NULL OR p.emp_id = :P31_EMP_ID)
+                       AND ('->' || p.updated_by || '->' LIKE '%->' || :APP_USER || '->%'
+                         OR '->' || p.updated_by || '->' LIKE '%->' || :APP_USER || 'd->%')
+                ),
+                fyi_log AS (
+                    SELECT l.request_id, 'FYI' AS role_type
+                      FROM central.apr_log l
+                     WHERE l.request_type_id = 61
+                       AND l.approver_type = 'FYI'
+                       AND (l.approver = :APP_USER OR ':' || l.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                ),
+                fyi_cust AS (
+                    SELECT p.request_id, 'FYI' AS role_type
+                      FROM central.apr_approval_results_cust_f f
+                      JOIN epromhq.hrf_emp_permission_request p
+                        ON p.emp_id = TO_NUMBER(f.emp_number)
+                     WHERE f.request_type_id = 61
+                       AND f.approve_type = 'FYI'
+                       AND (f.approver = :APP_USER OR ':' || f.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                       AND p.emp_id <> :APP_USER
+                       AND EXTRACT(YEAR FROM p.permission_date) = EXTRACT(YEAR FROM SYSDATE)
+                       AND (:P31_EMP_ID IS NULL OR p.emp_id = :P31_EMP_ID)
+                ),
+                all_reqs AS (
+                    SELECT request_id, MAX(role_type) AS role_type
+                      FROM (
+                        SELECT request_id, role_type FROM fya
+                        UNION ALL
+                        SELECT request_id, role_type FROM fyi_log
+                        UNION ALL
+                        SELECT request_id, role_type FROM fyi_cust
+                      )
+                     GROUP BY request_id
+                )
+                SELECT
+                    p.emp_id,
+                    p.permission_type,
+                    p.updated_by,
+                    a.role_type,
+                    p.from_hour,
+                    p.to_hour,
+                    p.approved,
+                    p.request_id,
+                    p.reason,
+                    p.last_approval_date,
+                    p.permission_date,
+                    epromhq.emp_to_ul(p_emp_list => central.replace_arrows_with_colon( replace(p.updated_by, p.emp_id, '') ), p_show_names => 'Y') AS result
+                FROM all_reqs a
+                JOIN epromhq.hrf_emp_permission_request p ON p.request_id = a.request_id
+                WHERE (:P31_EMP_ID IS NULL OR p.emp_id = :P31_EMP_ID)
+                ORDER BY p.permission_date DESC;
+                ```
+            pageItemsToSubmit: P31_EMP_ID
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        pagination {
+            type: rowRangesXToY
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            includeActionsMenu: false
+        }
+        componentAdvanced {
+            maxRowsPerPageInSelector: 15
+        }
+        advanced {
+            savedReportMappingIdentifier: 50553113873638605
+        }
+
+        column APPROVED (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ORDER_STATUS.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    {case APPROVED/}
+                    {when 0/}
+                    قيد الاعتماد <span aria-hidden="true" class="fa fa-hourglass-2 fa-anim-vertical-shake fam-pause fam-is-warning"></span>
+                    {when 1/}
+                    تم الموافقة <span aria-hidden="true" class="u-success fa fa-check fa-anim- fam-Blank fam-is-success"></span> <b>
+                    {when 2/}
+                    تم رفض الطلب <span aria-hidden="true" class="fa fa-exclamation-circle-o u-danger-text "></span>
+                    {otherwise/}
+                    #APPROVED#
+                    {endcase/}
+                    ```
+            }
+            source {
+                dataType: NUMBER
+            }
+            columnFilter {
+                type: none
+            }
+            advanced {
+                endUserAlias: K
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column EMP_ID (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$WORKER_S_NAME_AND_NUMBER.
+                alignment: center
+            }
+            lov {
+                lov: @employee-numbers
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: STRING
+            }
+            columnFilter {
+                type: defaultBasedOnColumnType
+            }
+            advanced {
+                endUserAlias: B
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column FROM_HOUR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FROM.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: HH:MIPM
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AH
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column LAST_APPROVAL_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: Z
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column PERMISSION_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HISTORY_OF_THE_EAR.
+                alignment: center
+            }
+            layout {
+                sequence: 120
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AG
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column PERMISSION_TYPE (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$EAR_TYPE.
+                alignment: center
+            }
+            lov {
+                lov: @permission-types
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AE
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column REASON (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$THE_REASON.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            columnFilter {
+                type: none
+            }
+            advanced {
+                endUserAlias: AF
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column REQUEST_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ORDER_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column RESULT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVERS.
+            }
+            layout {
+                sequence: 130
+            }
+            columnFormatting {
+                htmlExpression: #RESULT!RAW#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AK
+            }
+        )
+
+        column ROLE_TYPE (
+            type: plainText
+            heading {
+                heading: نوع الاعتماد
+                alignment: center
+            }
+            layout {
+                sequence: 15
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    {case ROLE_TYPE/}
+                    {when FYA/}
+                    <span class="t-Badge t-Badge--success t-Badge--subtle">اعتماد (FYA)</span>
+                    {when FYI/}
+                    <span class="t-Badge t-Badge--info t-Badge--subtle">للعلم (FYI)</span>
+                    {otherwise/}
+                    #ROLE_TYPE#
+                    {endcase/}
+                    ```
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: RT
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column TO_HOUR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TO.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: HH:MIPM
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AI
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column UPDATED_BY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            columnFilter {
+                type: none
+            }
+            advanced {
+                endUserAlias: H
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        savedReport 120448 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 15
+            }
+
+            displayColumn APPROVED (
+                sequence: 9
+            )
+
+            displayColumn EMP_ID (
+                sequence: 2
+            )
+
+            displayColumn FROM_HOUR (
+                sequence: 5
+            )
+
+            displayColumn LAST_APPROVAL_DATE (
+                sequence: 10
+            )
+
+            displayColumn PERMISSION_DATE (
+                sequence: 3
+            )
+
+            displayColumn PERMISSION_TYPE (
+                sequence: 4
+            )
+
+            displayColumn REASON (
+                sequence: 7
+            )
+
+            displayColumn REQUEST_ID (
+                sequence: 1
+            )
+
+            displayColumn RESULT (
+                sequence: 11
+            )
+
+            displayColumn ROLE_TYPE (
+                sequence: 12
+            )
+
+            displayColumn TO_HOUR (
+                sequence: 6
+            )
+
+            displayColumn UPDATED_BY (
+                sequence: 8
+            )
+
+            sort (
+                column: PERMISSION_DATE
+                sort {
+                    direction: desc
+                    sequence: 1
+                }
+            )
+
+            sort (
+                column: FROM_HOUR
+                sort {
+                    direction: desc
+                    sequence: 2
+                }
+            )
+
+        )
+
+    )
+
+    region فلترة-الموظفين (
+        name: فلترة الموظفين
+        title: &APP_TEXT$CHOOSE_AN_EMPLOYEE.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P31_EMP_ID (
+        type: popupLov
+        label {
+            label: &APP_TEXT$CHOOSE_AN_EMPLOYEE.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @subordinates-permissions
+            displayExtraValues: false
+            nullDisplayValue: &APP_TEXT$_SELECT_EMPLOYEE_.
+        }
+        layout {
+            sequence: 10
+            region: @فلترة-الموظفين
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P31_REQUEST_TYPE_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+    )
+
+    dynamicAction on-change-emp (
+        name: on_change_emp
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: P31_EMP_ID
+        }
+
+        action refresh-report (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @طلبات-الأذون-السابقة-للمرؤوسين
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+)

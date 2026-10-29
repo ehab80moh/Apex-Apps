@@ -1,0 +1,99 @@
+customAttribute APP_FILES (
+    apexlangName: appFiles
+    attribute: 5
+    name: App Files
+    type: sessionStateValue
+    appearance {
+        sequence: 120
+    }
+)
+
+customAttribute DATE (
+    apexlangName: date
+    attribute: 3
+    name: Date
+    type: sessionStateValue
+    appearance {
+        sequence: 30
+    }
+)
+
+customAttribute IMAGE_HASH (
+    apexlangName: imageHash
+    attribute: 12
+    name: Image Hash
+    type: sessionStateValue
+    appearance {
+        sequence: 150
+    }
+)
+
+customAttribute INITIATOR (
+    apexlangName: initiator
+    attribute: 8
+    name: Initiator
+    type: sessionStateValue
+    appearance {
+        sequence: 80
+    }
+)
+
+customAttribute LINE1 (
+    apexlangName: line1
+    attribute: 9
+    name: Line1
+    type: sessionStateValue
+    appearance {
+        sequence: 90
+    }
+)
+
+customAttribute LINE2 (
+    apexlangName: line2
+    attribute: 10
+    name: Line2
+    type: sessionStateValue
+    appearance {
+        sequence: 100
+    }
+)
+
+customAttribute PAGE_URL (
+    apexlangName: pageUrl
+    attribute: 6
+    name: Page Url
+    type: sessionStateValue
+    appearance {
+        sequence: 130
+    }
+)
+
+customAttribute SEEN (
+    apexlangName: seen
+    attribute: 11
+    name: Seen
+    type: sessionStateValue
+    appearance {
+        sequence: 140
+    }
+)
+
+customAttribute STATUS (
+    apexlangName: status
+    attribute: 7
+    name: Status
+    type: sessionStateValue
+    appearance {
+        sequence: 70
+    }
+)
+
+customAttribute STATUS_CLASS (
+    apexlangName: statusClass
+    attribute: 4
+    name: Status Class
+    type: sessionStateValue
+    appearance {
+        sequence: 110
+    }
+)

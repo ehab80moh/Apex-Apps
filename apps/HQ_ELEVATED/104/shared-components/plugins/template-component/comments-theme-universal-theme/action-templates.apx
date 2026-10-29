@@ -1,0 +1,10 @@
+actionTemplate link (
+    name: Link
+    type: button
+    template {
+        actionTemplate: "{if !IS_DISABLED/}<a {if CSS_CLASSES/}class=\"#CSS_CLASSES#\"{endif/} href=\"#LINK_URL#\" #LINK_ATTR#>#LABEL#</a>{endif/}"
+    }
+    advanced {
+        staticId: link
+    }
+)

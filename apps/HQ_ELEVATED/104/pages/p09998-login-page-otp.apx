@@ -1,0 +1,387 @@
+page 9998 (
+    name: Login Page OTP
+    alias: LOGIN-PAGE-OTP
+    title: &APP_TEXT$LOGIN_PAGE_OTP.
+    appearance {
+        pageTemplate: @login
+        templateOptions: [
+            #DEFAULT#
+            t-LoginPage--bg1
+        ]
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    javaScript {
+        executeWhenPageLoads:
+            ```javascript-browser
+            // Function to enforce English numbers only
+            function enforceEnglishNumbers(itemName) {
+                apex.jQuery("#" + itemName).on("input", function() {
+                    var item = apex.item(itemName);
+                    var value = item.getValue();
+            
+                    // Convert Arabic numbers to English and remove any non-numeric characters
+                    var newValue = value.replace(/[٠-٩]/g, function(d) {
+                        return "٠١٢٣٤٥٦٧٨٩".indexOf(d);
+                    }).replace(/\D/g, ""); // Remove non-numeric characters
+            
+                    item.setValue(newValue);
+                });
+            }
+            
+            // Apply the function to all four fields
+            enforceEnglishNumbers("P9998_OTP");  // Added OTP field
+            ```
+    }
+    css {
+        fileUrls: #APP_FILES#test_s.min.css
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region app-name (
+        name: &APP_NAME.
+        title: &APP_NAME.
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @login
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+            cssClasses: region
+        }
+        image {
+            fileUrl: #APP_FILES#app-icon-512.png
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P9998_MSG
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    pageItem P9998_LANG (
+        type: hidden
+        layout {
+            sequence: 70
+            region: @app-name
+            slot: regionBody
+        }
+        default {
+            type: expression
+            plsqlExpression: APEX_UTIL.GET_SESSION_LANG
+        }
+    )
+
+    pageItem P9998_MSG (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ACCESSIBILITY.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @app-name
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P9998_MSG
+        }
+    )
+
+    pageItem P9998_OTP (
+        type: numberField
+        label {
+            label: &APP_TEXT$ACTIVATION_CODE.
+            alignment: left
+        }
+        settings {
+            minValue: 0
+            maxValue: 9999
+        }
+        layout {
+            sequence: 40
+            region: @app-name
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--boldDisplay
+            ]
+            icon: fa-key
+            width: 30
+        }
+        validation {
+            valueRequired: true
+            maxLength: 4
+        }
+        sessionState {
+            storage: request
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P9998_MSG
+        }
+    )
+
+    pageItem P9998_PASSWORD (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @app-name
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P9998_PERSISTENT_AUTH (
+        type: hidden
+        layout {
+            sequence: 60
+            region: @app-name
+            slot: regionBody
+        }
+        default {
+            type: static
+            staticValue: Y
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: apex_authentication.persistent_auth_enabled
+        }
+    )
+
+    pageItem P9998_USERNAME (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @app-name
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button login (
+        buttonName: LOGIN
+        label: &APP_TEXT$LOGIN.
+        layout {
+            sequence: 40
+            region: @app-name
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--success
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process check-otp (
+        name: check OTP
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                IF  Central.sms_pkg.check_otp(:P9998_USERNAME,:P9998_OTP) <>1 then
+                apex_error.add_error (
+                p_message          => 'الكود خطأ',
+                p_display_location =>  apex_error.c_inline_in_notification  
+                  );
+                      RETURN;
+                
+                End if;
+                
+                ```
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 11557068276712194
+        }
+    )
+
+    process clear-page-s-cache (
+        name: Clear Page(s) Cache
+        type: clearSessionState
+        clear {
+            type: session
+        }
+        execution {
+            sequence: 60
+        }
+        advanced {
+            executionMappingIdentifier: 11558505796712196
+        }
+    )
+
+    process log-attemp (
+        name: "Log Attemp "
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                  l_status NUMBER;
+                BEGIN
+                  IF NOT APEX_AUTHENTICATION.IS_PUBLIC_USER THEN
+                    l_status := 1;
+                  ELSE
+                    l_status := 0;
+                  END IF;
+                  
+                
+                  INSERT INTO central.LOGIN_AUTH_LOG (username, status, APP)
+                  VALUES (1, 1, '104');
+                
+                    CENTRAL.set_emp_lang (
+                    p_emp_id => :P9998_USERNAME,
+                    p_lang_code =>:P9998_LANG
+                    );
+                
+                END;
+                
+                
+                
+                
+                ```
+        }
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 11558977571712196
+        }
+    )
+
+    process login (
+        name: Login
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                apex_authentication.login(
+                    p_username => :P9998_USERNAME,
+                    p_password => :P9998_PASSWORD,
+                    p_set_persistent_auth => nvl(:P9998_PERSISTENT_AUTH, 'N') = 'Y' );
+                ```
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 11557372915712195
+        }
+    )
+
+    process throtele-failed-otp (
+        name: throtele_failed_otp
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                   L_res NUMBER;
+                BEGIN
+                   L_res := central.THROTTELE_FAILD_OTP(:P9998_USERNAME);
+                
+                   IF L_res = 1 THEN      
+                   
+                APEX_UTIL.REDIRECT_URL (APEX_PAGE.GET_URL (
+                            p_page   => 9999,
+                            p_application     =>    104
+                                   ));
+                
+                apex_error.add_error (
+                         p_message          => 'تم إغلاق الحساب مؤقتًا بعد تجاوز عدة محاولات فاشلة للدخول.' ,
+                         p_display_location => apex_error.c_inline_in_notification
+                      );
+                
+                   END IF;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 24092428125679214
+        }
+    )
+
+    branch (
+        name: Branch to Home
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 1
+            }
+        }
+    )
+
+    branch (
+        name: redirect self
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        behavior {
+            target: {
+                page: 9998
+            }
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                
+                declare
+                l_retval boolean := false;
+                begin
+                
+                 if apex_util.get_session_lang is null then
+                     :P9998_LANG := NVL(:P9998_LANG, 'ar-ae');
+                APEX_UTIL.SET_SESSION_LANG( P_LANG => nvl(:P9998_LANG,'ar-ae') );
+                      l_retval := true;
+                  end if;
+                
+                  return l_retval;
+                end;
+                ```
+        }
+    )
+
+)

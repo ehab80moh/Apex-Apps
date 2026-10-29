@@ -1,0 +1,501 @@
+page 50 (
+    name: reviwe_Upload_LEAVE_CREDIT_HR
+    alias: REVIWE-UPLOAD-LEAVE-CREDIT-HR
+    title: &APP_TEXT$REVIWEUPLOADLEAVECREDITHR.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: [
+            #DEFAULT#
+            ui-dialog--stretch
+        ]
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region errors-️-️-️-️-️-️ (
+        name: errors ☠️☠️☠️☠️☠️☠️
+        title: &APP_TEXT$ERRORS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH data AS (
+                    SELECT 
+                        C001 AS EMP_ID,
+                        C002 AS ANNUAL_ENTITELMENT,
+                        C003 AS CASUAL_ENTITELMENT,
+                        C004 AS ACCRUED_LAST_YEAR,
+                        C005 AS CUT_H_BALANCE,
+                        C006 AS ANNUAL_BALANCE,
+                        C007 AS CASUAL_BALANCE,
+                        C008 AS REST_HRS_BALANCE,
+                        C009 AS CURRENTLY_PROJECT,
+                        D001 AS DATE_UNTIL
+                    FROM 
+                        APEX_COLLECTIONS
+                    WHERE 
+                        COLLECTION_NAME = 'CREDIT_COL'
+                )
+                SELECT 
+                    EMP_ID,
+                    ANNUAL_ENTITELMENT,
+                    CASUAL_ENTITELMENT,
+                    ANNUAL_BALANCE,
+                    CASUAL_BALANCE
+                FROM 
+                    (
+                    SELECT 
+                        EMP_ID,
+                        ANNUAL_ENTITELMENT,
+                        CASUAL_ENTITELMENT,
+                        ANNUAL_BALANCE,
+                        CASUAL_BALANCE,
+                        COUNT(*) OVER (PARTITION BY EMP_ID) AS emp_count
+                    FROM 
+                        data
+                    ) s
+                WHERE 
+                    ANNUAL_ENTITELMENT IS NULL 
+                    OR CASUAL_ENTITELMENT IS NULL 
+                    OR ANNUAL_BALANCE IS NULL 
+                    OR CASUAL_BALANCE IS NULL
+                    OR emp_count > 1;
+                ```
+        }
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent10
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_ERRORS.
+        }
+
+        column ANNUAL_BALANCE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ANNUAL_BALANCE.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column ANNUAL_ENTITELMENT (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ANNUAL_ENTITELMENT.
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column CASUAL_BALANCE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CASUAL_BALANCE.
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column CASUAL_ENTITELMENT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CASUAL_ENTITELMENT.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column EMP_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMP_ID.
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+    )
+
+    region reviwe (
+        name: REVIWE
+        title: &APP_TEXT$REVIWE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT  
+                    C001                         AS EMP_ID, 
+                    C002                         AS ANNUAL_Entitelment,
+                    C003                         AS CASUAL_Entitelment, 
+                    C004                         AS ACCRUED_LAST_YEAR, 
+                    C005                         AS CUT_H_BALANCE,
+                    C006                         AS Annual_balance,
+                    C007                         AS Casual_balance,
+                    C008                         AS Rest_hour_balance,
+                    C009                       AS Currently_Project,
+                    D001   AS Until_Date
+                FROM 
+                    APEX_COLLECTIONS
+                WHERE 
+                    COLLECTION_NAME = 'CREDIT_COL';
+                ```
+        }
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        componentAdvanced {
+            sortNulls: first
+        }
+
+        column ACCRUED_LAST_YEAR (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ACCRUED_LAST_YEAR.
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column ANNUAL_BALANCE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ANNUAL_BALANCE.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column ANNUAL_ENTITELMENT (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ANNUAL_ENTITELMENT.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column CASUAL_BALANCE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CASUAL_BALANCE.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+        column CASUAL_ENTITELMENT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CASUAL_ENTITELMENT.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column CURRENTLY_PROJECT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CURRENTLY_PROJECT.
+            }
+            layout {
+                sequence: 110
+            }
+        )
+
+        column CUT_H_BALANCE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CUT_H_BALANCE.
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column EMP_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMP_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 20
+                columnAlignment: end
+            }
+        )
+
+        column REST_HOUR_BALANCE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REST_HOUR_BALANCE.
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column UNTIL_DATE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$UNTIL_DATE.
+            }
+            layout {
+                sequence: 120
+            }
+        )
+
+    )
+
+    pageItem P50_DATE_UNTIL (
+        type: datePicker
+        label {
+            label: &APP_TEXT$DATE_UNTIL.
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @reviwe
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    button submit (
+        buttonName: Submit
+        label: &APP_TEXT$SUBMIT.
+        layout {
+            sequence: 31
+            slot: contentBody
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-flask
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process close-dialog (
+        name: close dialog
+        type: closeDialog
+        execution {
+            sequence: 30
+        }
+        successMessage {
+            successMessage: &APP_TEXT$SUCCESS_PLEASE_REVIEW.
+        }
+        advanced {
+            executionMappingIdentifier: 1510128437166176
+        }
+    )
+
+    process delete-collection (
+        name: "delete collection "
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                
+                
+                BEGIN
+                    APEX_COLLECTION.DELETE_COLLECTION(
+                        p_collection_name => 'CREDIT_COL'
+                    );
+                
+                
+                    COMMIT;
+                
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        ROLLBACK;
+                
+                        DBMS_OUTPUT.PUT_LINE('Error occurred: ' || SQLERRM);
+                        RAISE;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 1509739431166176
+        }
+    )
+
+    process merge-credit (
+        name: merge credit
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                 
+                BEGIN
+                MERGE INTO CENTRAL.XXAPEX_LEAVE_CREDIT_HR t
+                USING (
+                    SELECT 
+                        C001 AS EMP_ID,
+                        C002 AS ANNUAL_ENTITELMENT,
+                        C003 AS CASUAL_ENTITELMENT,
+                        C004 AS ACCRUED_LAST_YEAR,
+                        C005 AS CUT_H_BALANCE,
+                        C006 AS ANNUAL_BALANCE,
+                        C007 AS CASUAL_BALANCE,
+                        C008 AS REST_HRS_BALANCE,
+                        C009 AS CURRENTLY_PROJECT,
+                        D001 AS DATE_UNTIL
+                    FROM 
+                        APEX_COLLECTIONS
+                    WHERE 
+                        COLLECTION_NAME = 'CREDIT_COL'
+                ) s
+                ON (t.EMP_ID = s.EMP_ID)
+                WHEN MATCHED THEN 
+                    UPDATE SET 
+                        t.ANNUAL_CREDIT = s.ANNUAL_ENTITELMENT,
+                        t.CASUAL_CREDIT = s.CASUAL_ENTITELMENT,
+                        t.ACCRUED_LAST_YEAR = s.ACCRUED_LAST_YEAR,
+                        t.CUT_H_BALANCE = s.CUT_H_BALANCE,
+                        t.ANNUAL_BALANCE = s.ANNUAL_BALANCE,
+                        t.CASUAL_BALANCE = s.CASUAL_BALANCE,
+                        t.REST_HRS_BALANCE = s.REST_HRS_BALANCE,
+                        t.CURRENTLY_PROJECT = s.CURRENTLY_PROJECT,
+                        t.DATE_UNTIL = s.DATE_UNTIL
+                WHEN NOT MATCHED THEN 
+                    INSERT (
+                        EMP_ID, 
+                        ANNUAL_CREDIT, 
+                        CASUAL_CREDIT, 
+                        ACCRUED_LAST_YEAR,
+                        CUT_H_BALANCE,
+                        ANNUAL_BALANCE, 
+                        CASUAL_BALANCE,
+                        REST_HRS_BALANCE,
+                        CURRENTLY_PROJECT,
+                        DATE_UNTIL
+                    )
+                    VALUES (
+                        s.EMP_ID,
+                        s.ANNUAL_ENTITELMENT,
+                        s.CASUAL_ENTITELMENT,
+                        s.ACCRUED_LAST_YEAR,
+                        s.CUT_H_BALANCE,
+                        s.ANNUAL_BALANCE,
+                        s.CASUAL_BALANCE,
+                        s.REST_HRS_BALANCE,
+                        s.CURRENTLY_PROJECT,
+                        s.DATE_UNTIL
+                    );
+                  
+                
+                
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        ROLLBACK;
+                        DBMS_OUTPUT.PUT_LINE('Error occurred: ' || SQLERRM);
+                        RAISE;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 1509324881166178
+        }
+    )
+
+)

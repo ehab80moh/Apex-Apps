@@ -1,0 +1,16 @@
+page 9997 (
+    name: logintok
+    alias: LOGINTOK
+    title: &APP_TEXT$LOGINTOK.
+    appearance {
+        pageTemplate: @login
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+)

@@ -1,0 +1,686 @@
+page 61 (
+    name: EMP_ALL_REQUESTS
+    alias: EMP-ALL-REQUESTS
+    title: &APP_TEXT$EMPALLREQUESTS.
+    appearance {
+        pageTemplate: @left-side-column
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        title: &APP_TEXT$BREADCRUMB.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region button-bar (
+        name: Button Bar
+        title: &APP_TEXT$BUTTON_BAR.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$DIV_IDACTIVEFACETSDIV!RAW.
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-ButtonRegion--noPadding
+                t-ButtonRegion--noUI
+            ]
+        }
+    )
+
+    region search (
+        name: Search
+        title: &APP_TEXT$SEARCH.
+        type: facetedSearch
+        source {
+            filteredRegion: @search-results
+        }
+        layout {
+            sequence: 10
+            slot: leftColumn
+            columnSpan: 4
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--hideHeader
+                t-Region--scrollBody
+            ]
+        }
+        accessibility {
+            landmarkLabel: &APP_TEXT$FILTERS.
+        }
+        settings {
+            compactNosThreshold: 10000
+            showCurrentFacets: selector
+            currentFacetsSelector: #active_facets
+            showTotalRowCount: true
+            totalRowCountLabel: &APP_TEXT$TOTAL_NUMBER_OF_ROWS.
+            displayChartForTopNValues: 10
+        }
+
+        facet P61_REQUEST_APPR (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$DEDUCTIONS_OF_CREDITS.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 40
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: APPROVED
+            }
+            default {
+                type: sqlQuerySingleValue
+                sqlQuerySingleValue: select 'APPROVAL' from dual;
+            }
+        )
+
+        facet P61_REQUEST_SUBTYPE (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$REQUEST_TYPE_DETAILS.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 30
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: REQUEST_SUBTYPE
+            }
+        )
+
+        facet P61_REQUEST_TYPE (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$REQUEST_TYPE.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 20
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            advanced {
+                showChartInitially: true
+            }
+            source {
+                databaseColumn: REQUEST_TYPE
+            }
+        )
+
+        facet P61_SEARCH (
+            type: search
+            label {
+                label: &APP_TEXT$SEARCH.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dbColumns: EMP_ID,REQUEST_TYPE,REQUEST_SUBTYPE,REASON,PERMISSION_TYPE,TASK_IDS,UPDATED_BY,COVER_PERSON,LEAVE_CONTACT_ADDRESS,MOBILE,TMS_ID,DESCRIPTION
+            }
+        )
+
+    )
+
+    region search-results (
+        name: Search Results
+        title: &APP_TEXT$SEARCH_RESULTS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select REQUEST_ID,
+                       EMP_ID,
+                       REQUEST_TYPE,
+                       REQUEST_SUBTYPE,
+                       FROM_DATE,
+                       TO_DATE,
+                       REASON,
+                       PERMISSION_TYPE,
+                       OVERTIME_DATE,
+                       FROM_HOUR,
+                       TO_HOUR,
+                       UPLOADED_ORA,
+                       TASK_IDS,
+                       UPDATED_BY,
+                       CREATED_AT,
+                       UPLOADED_TMS,
+                       CASE APPROVED
+                           WHEN 0 THEN 'قيد الاعتماد <span aria-hidden="true" class="fa fa-hourglass-2 fa-anim-vertical-shake fam-pause fam-is-warning"></span>'
+                           WHEN 1 THEN 'تم الموافقة <span aria-hidden="true" class="u-success fa fa-check fa-anim- fam-Blank fam-is-success"></span> <b>'
+                           WHEN 2 THEN 'تم رفض الطلب <span aria-hidden="true" class="fa fa-exclamation-circle-o u-danger-text"></span>'
+                           WHEN 3 THEN 'تم الإلغاء <span class="fa fa-ban" aria-hidden="true"></span>'
+                           WHEN 4 THEN 'تم الإلغاء <span class="fa fa-ban" aria-hidden="true"></span> لتأخر المعتمد'
+                           ELSE TO_CHAR(APPROVED)
+                       END AS APPROVED_html,
+                       LAST_WORKING_DATE,
+                       RETURN_TO_WORK_DATE,
+                       COVER_PERSON,
+                       LEAVE_CONTACT_ADDRESS,
+                       MOBILE,
+                       TMS_ID,
+                       DELETE_APPROVED,
+                       DELETE_REQUEST_DATE,
+                       DELETE_TMS,
+                       LAST_APPROVAL_DATE,
+                       DESCRIPTION,
+                       REQUEST_TYPE_ID,
+                        epromhq.emp_to_ul(p_emp_list => central.replace_arrows_with_colon( replace(UPDATED_BY,EMP_ID,'') ),p_show_names=>'Y') AS result
+                ,case when APPROVED= 1 then 'APPROVAL'
+                when APPROVED=0 then 'قيد الاعتماد'
+                when APPROVED=2 then 'تم الرفض'
+                when APPROVED=3 then 'CANCELLED'
+                when APPROVED=4 then 'تم الالغاء لتأخر المدير'
+                else 'لا يوجد'
+                end as APPROVED
+                from EPROMHQ.HRF_EMP_ALL_REQUESTS_V
+                where emp_id = :P61_EMPS
+                  AND TO_CHAR(FROM_DATE,'YYYY') = TO_CHAR(SYSDATE,'YYYY')   -- ✅ هنا التعديل
+                
+                order by FROM_DATE DESC
+                ```
+            pageItemsToSubmit: P61_EMPS
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 31
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 170
+            }
+        )
+
+        column APPROVED_HTML (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TYPE_OF_ACCREDITATION.
+                alignment: center
+            }
+            layout {
+                sequence: 310
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression: #APPROVED_HTML!RAW#
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COVER_PERSON (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 200
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 150
+            }
+        )
+
+        column DELETE_APPROVED (
+            reportColumnQueryId: 24
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 240
+            }
+        )
+
+        column DELETE_REQUEST_DATE (
+            reportColumnQueryId: 25
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 250
+            }
+        )
+
+        column DELETE_TMS (
+            reportColumnQueryId: 26
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 260
+            }
+        )
+
+        column DESCRIPTION (
+            reportColumnQueryId: 28
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 280
+            }
+        )
+
+        column EMP_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column FROM_DATE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FROM_HOUR (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column LAST_APPROVAL_DATE (
+            reportColumnQueryId: 27
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 270
+            }
+        )
+
+        column LAST_WORKING_DATE (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 180
+            }
+        )
+
+        column LEAVE_CONTACT_ADDRESS (
+            reportColumnQueryId: 21
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 210
+            }
+        )
+
+        column MOBILE (
+            reportColumnQueryId: 22
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 220
+            }
+        )
+
+        column OVERTIME_DATE (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column PERMISSION_TYPE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column REASON (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ORDER_DETAILS.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column REQUEST_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column REQUEST_SUBTYPE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ORDER_DETAILS.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REQUEST_TYPE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REQUEST_TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 29
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 290
+            }
+        )
+
+        column RESULT (
+            reportColumnQueryId: 30
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPROVING_THE_REQUEST.
+                alignment: center
+            }
+            layout {
+                sequence: 300
+            }
+            columnFormatting {
+                htmlExpression: #RESULT!RAW#
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column RETURN_TO_WORK_DATE (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 190
+            }
+        )
+
+        column TASK_IDS (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 130
+            }
+        )
+
+        column TMS_ID (
+            reportColumnQueryId: 23
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 230
+            }
+        )
+
+        column TO_DATE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TO_HOUR (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 110
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 140
+            }
+        )
+
+        column UPLOADED_ORA (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 120
+            }
+        )
+
+        column UPLOADED_TMS (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 160
+            }
+        )
+
+    )
+
+    pageItem P61_EMPS (
+        type: popupLov
+        label {
+            label: &APP_TEXT$EMPLOYEE.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @approvals
+            displayExtraValues: false
+            nullDisplayValue: &APP_TEXT$_SELECT_EMPLOYEE_.
+        }
+        layout {
+            sequence: 10
+            slot: body
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        default {
+            type: expression
+            plsqlExpression: :app_user
+        }
+    )
+
+    button reset (
+        buttonName: RESET
+        label: &APP_TEXT$RESET_1.
+        layout {
+            sequence: 10
+            region: @button-bar
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--noUI
+                t-Button--iconLeft
+            ]
+            icon: fa-undo
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 61
+                clearCache: 61
+                action: resetRegions
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction refrash (
+        name: Refrash
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: P61_EMPS
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @search-results
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-2 (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @search
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

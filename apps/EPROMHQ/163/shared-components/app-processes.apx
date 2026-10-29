@@ -1,0 +1,48 @@
+appProcess coming-from-portal (
+    name: coming from portal
+    type: executeCode
+    source {
+        plsqlCode:
+            ```plsql
+            declare 
+            V_Exist number := 0;
+            BEGIN
+                -- RAISE_APPLICATION_ERROR(-20111, 'hamaaaada');
+               IF :sup_APP_USER_ID IS NULL
+                  AND REGEXP_LIKE(:APP_USER, '^\d+$')
+               THEN
+                  FOR c IN (
+                     SELECT id, EMPLOYEE_NAME, EMPLOYEE_NUM, STATUS
+                       FROM SUP_APPROVAL_MEMBERS
+                      WHERE EMPLOYEE_NUM = :APP_USER
+                  )
+                  LOOP
+                  V_Exist := 1;
+                     IF c.STATUS <> 'ACTIVE' THEN
+            
+                        APEX_UTIL.REDIRECT_URL('/apex/r/epromhq/PORTAL/home?session=&SESSION.');
+            
+                     ELSE
+                        -- Save values in session state
+                        APEX_UTIL.SET_SESSION_STATE('sup_APP_USER_ID', c.id);
+                        APEX_UTIL.SET_SESSION_STATE('sup_APP_EMP_ID',  c.EMPLOYEE_NUM);
+                        APEX_UTIL.SET_SESSION_STATE('sup_APP_USERNAME', c.EMPLOYEE_NAME);
+                     END IF;
+                  END LOOP;
+            
+                  -- if no rows matched
+                  IF V_Exist = 0 THEN
+                     APEX_UTIL.REDIRECT_URL('/apex/r/epromhq/PORTAL/home?session=&SESSION.');
+                  END IF;
+            
+               END IF;
+            END;
+            ```
+    }
+    execution {
+        sequence: 1
+    }
+    serverSideCondition {
+        type: never
+    }
+)

@@ -1,0 +1,97 @@
+page 4 (
+    name: تعليمات الوحدة
+    alias: تعليمات-الوحدة
+    title: &APP_TEXT$PORTAL_PAGE_4_TITLE.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region تعليمات-الوحدة (
+        name: تعليمات الوحدة
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                DECLARE
+                    l_unit_desc   CLOB;
+                    l_html        CLOB;
+                BEGIN
+                    SELECT unit_desc
+                      INTO l_unit_desc
+                      FROM epromhq.vac_trip_units_v
+                     WHERE unit_id = :P4_UNIT_ID;
+                
+                    l_html :=
+                '
+                <div dir="rtl" style="text-align:right; font-family:''Cairo'',sans-serif; line-height:1.9; font-size:16px; background:#ffffff; border:1px solid #e5e7eb; border-radius:16px; padding:25px; box-shadow:0 4px 14px rgba(0,0,0,0.08); margin:15px 0;">
+                
+                  <div style="margin-bottom:20px;">
+                    <h2 style="margin:0; color:#2c3e50; border-bottom:2px solid #27ae60; display:inline-block; padding-bottom:6px;">
+                      تفاصيل الوحدة
+                    </h2>
+                  </div>
+                
+                  <div style="
+                      background: linear-gradient(135deg, #f8fffa, #f3fff6);
+                      border-right: 5px solid #27ae60;
+                      padding: 18px;
+                      border-radius: 12px;
+                      color: #2d3436;
+                      white-space: pre-line;
+                      font-size: 16px;
+                      box-shadow: inset 0 0 0 1px #e8f5ec;
+                  ">'
+                || apex_escape.html(nvl(l_unit_desc, 'لا توجد بيانات متاحة لهذه الوحدة'))
+                ||'</div>
+                
+                </div>
+                ';
+                
+                    RETURN l_html;
+                
+                EXCEPTION
+                    WHEN NO_DATA_FOUND THEN
+                        RETURN
+                            '<div dir="rtl" style="font-family:''Cairo'',sans-serif; text-align:right; background:#fff5f5; color:#c0392b; border:1px solid #f5c6cb; padding:20px; border-radius:12px;">
+                                لا توجد بيانات لهذه الوحدة.
+                             </div>';
+                
+                    WHEN OTHERS THEN
+                        RETURN
+                            '<div dir="rtl" style="font-family:''Cairo'',sans-serif; text-align:right; background:#fff5f5; color:#c0392b; border:1px solid #f5c6cb; padding:20px; border-radius:12px;">
+                                حدث خطأ أثناء تحميل تفاصيل الوحدة.
+                             </div>';
+                END;
+                ```
+        }
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    pageItem P4_UNIT_ID (
+        type: hidden
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+    )
+
+)

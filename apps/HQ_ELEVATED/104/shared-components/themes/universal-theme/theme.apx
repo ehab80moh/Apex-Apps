@@ -1,0 +1,150 @@
+theme universal-theme (
+    name: Universal Theme
+    themeNumber: 42
+    version: 26.1
+    style {
+        currentThemeStyle: @main-theme-for-portal
+    }
+    javaScript {
+        fileUrls: [
+            #APEX_FILES#libraries/apex/#MIN_DIRECTORY#widget.stickyWidget#MIN#.js?v=#APEX_VERSION#
+            #THEME_FILES#js/theme42#MIN#.js?v=#APEX_VERSION#
+        ]
+    }
+    css {
+        fileUrls: #THEME_FILES#css/Core#MIN#.css?v=#APEX_VERSION#
+    }
+    componentDefaults {
+        page: @standard
+        navigationBarList: @navigation-bar
+        navigationMenuListPosition: side
+        navigationMenuListTop: @top-navigation-menu
+        navigationMenuListSide: @side-navigation-menu
+        loginPage: @login
+        errorPage: @login
+        printerFriendlyPage: @standard
+        breadcrumb: @breadcrumb
+        button: @text
+        defaultLabel: @optional-floating
+        optionalLabel: @optional-floating
+        requiredLabel: @required-floating
+        list: @links-list
+        region: @standard
+        classicReport: @standard
+    }
+    regionDefaults {
+        breadcrumbs: @title-bar
+        charts: @standard
+        forms: @standard
+        lists: @standard
+        reports: @standard
+        wizards: @standard
+        interactiveReports: @interactive-report
+    }
+    dialogDefaults {
+        dialogContentRegion: @blank-with-attributes
+        dialogButtonRegion: @buttons-container
+        dialogPage: @modal-dialog
+    }
+    icons {
+        library: fontApex
+    }
+    advanced {
+        filePrefix: #APEX_FILES#themes/theme_42/26.1/
+        identifier: UNIVERSAL_THEME
+    }
+
+    style main-theme-for-portal (
+        name: Main Theme For Portal
+        themeRollerAttributes {
+            inputParameterFileUrls: #THEME_FILES#less/theme/Vita.less
+            outputCssFileUrl: #THEME_DB_FILES#22828341515870276.css
+            jsonConfig: "{\"classes\":[],\"vars\":{\"@g_Accent-BG\":\"#3f5a73\",\"@g_Form-Item-BG\":\"#f0f4f0\",\"@g_Form-Item-FG\":\"#202020\",\"@irrBg\":\"#f8fcf9\",\"@Head-Height\":\"64px\",\"@g_Nav_Style\":\"dark\",\"@g_Nav-Active-BG\":\"#444a50\",\"@g_Nav-Active-FG\":\"#dce0dc\",\"@g_NavBarMenu-BG\":\"#FFFFFF\",\"@g_NavBarMenu-FG\":\"#262626\",\"@g_Nav-BG\":\"#29333c\",\"@g_Nav-FG\":\"#f2f2f2\",\"@g_NavBarMenu-Active-BG\":\"#425a70\",\"@g_NavBarMenu-Active-FG\":\"#ffffff\",\"@g_Nav-Icon\":\"#ffffff\",\"@g_Nav-Icon-Active\":\"#02f016\",\"@g_Button-BorderRadius\":\"8px\",\"@g_Info-BG\":\"#056ac8\",\"@g_Info-FG\":\"#ffffff\",\"@g_Button-BG\":\"#e9f1e8\",\"@g_Button-Text\":\"#4a0000\",\"@l_Button-Hot-BG\":\"#3f5a73\",\"@l_Button-Hot-Text\":\"#ffffff\",\"@l_Button-Primary-BG\":\"#acc0d2\",\"@l_Button-Primary-Text\":\"#000000\",\"@l_Button-Simple-BG\":\"#ffffff\",\"@l_Button-Simple-Text\":\"#404040\",\"@g_Color-Palette-14\":\"#afbac5\",\"@g_Color-Palette-14-FG\":\"#313a44\",\"@g_Color-Palette-15\":\"#6e8598\",\"@g_Color-Palette-15-FG\":\"#ffffff\",\"@g_Color-Palette-1\":\"#309fdb\",\"@g_Color-Palette-1-FG\":\"#ffffff\",\"@g_Disabled-BG\":\"#707070\",\"@g_Disabled-FG\":\"#ffffff\",\"@g_Primary-BG\":\"#acc0d2\",\"@g_Primary-FG\":\"#000000\",\"@g_Region-Header-BG\":\"#ffffff\",\"@g_Region-Header-FG\":\"#262626\",\"@g_Region-BG\":\"#ffffff\",\"@g_Region-FG\":\"#1d1111\",\"@g_Header-BG\":\"#3f5a73\",\"@g_Header-FG\":\"#ffffff\",\"@g_Form-Label\":\"#100a0a\"},\"customCSS\":\"#R23310636467878030 .a-CardView-media, #R23310636467878030 .a-CardView-mediaWrap { overflow: visible !important; }\\n#R23310636467878030 .a-CardView-media img { border: 3px solid #0f766e !important; box-sizing: border-box !important; box-shadow: none !important; transform: scale(1) !important; transition: transform .25s ease, border-color .25s ease !important; }\\n#R23310636467878030 .a-CardView:hover .a-CardView-media img { transform: scale(1.12) !important; border-color: transparent !important; }\",\"useCustomLess\":\"N\"}"
+        }
+        advanced {
+            endUserCanPick: true
+            accessibilityTested: true
+        }
+    )
+
+    style redwood-light (
+        name: Redwood Light
+        css {
+            fileUrls: [
+                #APEX_FILES#libraries/oracle-fonts/oraclesans-apex#MIN#.css?v=#APEX_VERSION#
+                #THEME_FILES#css/Redwood#MIN#.css?v=#APEX_VERSION#
+            ]
+        }
+        themeRollerAttributes {
+            readOnly: true
+            inputParameterFileUrls: #THEME_FILES#less/theme/Redwood-Theme.less
+            outputCssFileUrl: #THEME_FILES#css/Redwood-Theme#MIN#.css?v=#APEX_VERSION#
+        }
+        advanced {
+            endUserCanPick: true
+        }
+    )
+
+    style vita (
+        name: Vita
+        themeRollerAttributes {
+            readOnly: true
+            inputParameterFileUrls: #THEME_FILES#less/theme/Vita.less
+            outputCssFileUrl: #THEME_FILES#css/Vita#MIN#.css?v=#APEX_VERSION#
+        }
+        advanced {
+            endUserCanPick: true
+            accessibilityTested: true
+        }
+    )
+
+    style vita-copy (
+        name: Vita (copy_1)
+        themeRollerAttributes {
+            inputParameterFileUrls: #THEME_FILES#less/theme/Vita.less
+            outputCssFileUrl: #THEME_DB_FILES#14327433314662042.css
+            jsonConfig: "{\"classes\":[],\"vars\":{\"@g_Accent-BG\":\"#3f5a73\",\"@g_Form-Item-BG\":\"#f0f4f0\",\"@g_Form-Item-FG\":\"#202020\",\"@irrBg\":\"#f8fcf9\",\"@Head-Height\":\"64px\",\"@g_Nav_Style\":\"dark\",\"@g_Nav-Active-BG\":\"#444a50\",\"@g_Nav-Active-FG\":\"#dce0dc\",\"@g_NavBarMenu-BG\":\"#FFFFFF\",\"@g_NavBarMenu-FG\":\"#262626\",\"@g_Nav-BG\":\"#29333c\",\"@g_Nav-FG\":\"#f2f2f2\",\"@g_NavBarMenu-Active-BG\":\"#425a70\",\"@g_NavBarMenu-Active-FG\":\"#ffffff\",\"@g_Nav-Icon\":\"#ffffff\",\"@g_Nav-Icon-Active\":\"#02f016\"},\"customCSS\":\"\",\"useCustomLess\":\"N\"}"
+        }
+        advanced {
+            endUserCanPick: true
+            accessibilityTested: true
+        }
+    )
+
+    style vita-dark (
+        name: Vita - Dark
+        themeRollerAttributes {
+            readOnly: true
+            inputParameterFileUrls: #THEME_FILES#less/theme/Vita-Dark.less
+            outputCssFileUrl: #THEME_FILES#css/Vita-Dark#MIN#.css?v=#APEX_VERSION#
+        }
+        advanced {
+            endUserCanPick: true
+        }
+    )
+
+    style vita-red (
+        name: Vita - Red
+        themeRollerAttributes {
+            readOnly: true
+            inputParameterFileUrls: #THEME_FILES#less/theme/Vita-Red.less
+            outputCssFileUrl: #THEME_FILES#css/Vita-Red#MIN#.css?v=#APEX_VERSION#
+        }
+        advanced {
+            endUserCanPick: true
+        }
+    )
+
+    style vita-slate (
+        name: Vita - Slate
+        themeRollerAttributes {
+            readOnly: true
+            inputParameterFileUrls: #THEME_FILES#less/theme/Vita-Slate.less
+            outputCssFileUrl: #THEME_FILES#css/Vita-Slate#MIN#.css?v=#APEX_VERSION#
+        }
+        advanced {
+            endUserCanPick: true
+        }
+    )
+
+)

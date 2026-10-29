@@ -1,0 +1,281 @@
+page 136 (
+    name: EMP_IDEAS_report
+    alias: EMP-IDEAS-REPORT
+    title: &APP_TEXT$EMPIDEASREPORT.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region emp-ideas-report (
+        name: EMP_IDEAS_report
+        title: &APP_TEXT$EMPIDEASREPORT.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            tableName: EMP_IDEAS
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_DATA_FOUND_1.
+            whenMoreDataFound: "&{MAX_ROW_COUNT_MESSAGE MAX_ROW_COUNT=#MAX_ROW_COUNT#}."
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 33725805159356251
+        }
+
+        column CREATED_AT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CREATED_AT.
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: SINCE
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column CREATED_BY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CREATED_BY.
+            }
+            layout {
+                sequence: 9
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column HIDE_EMP (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HIDE_EMP.
+                alignment: end
+            }
+            layout {
+                sequence: 5
+                columnAlignment: end
+            }
+            appearance {
+                formatMask: 999G999G999G999G999G999G999G999G999G990D0
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column IDEA_BODY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$IDEA_BODY.
+            }
+            layout {
+                sequence: 3
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column IDEA_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$IDEA_ID.
+            }
+            layout {
+                sequence: 0
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column IDEA_REPLY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$IDEA_REPLY.
+            }
+            layout {
+                sequence: 4
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column IDEA_STATUS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$IDEA_STATUS.
+            }
+            layout {
+                sequence: 6
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column IDEA_TITLE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$IDEA_TITLE.
+            }
+            layout {
+                sequence: 2
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column UPDATED_AT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$UPDATED_AT.
+            }
+            layout {
+                sequence: 8
+            }
+            appearance {
+                formatMask: SINCE
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column UPDATED_BY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$UPDATED_BY.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: &APP_TEXT$EMPIDEASREPORT.
+        }
+
+        savedReport 337306 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn CREATED_AT (
+                sequence: 7
+            )
+
+            displayColumn CREATED_BY (
+                sequence: 9
+            )
+
+            displayColumn HIDE_EMP (
+                sequence: 5
+            )
+
+            displayColumn IDEA_BODY (
+                sequence: 3
+            )
+
+            displayColumn IDEA_ID (
+                sequence: 1
+            )
+
+            displayColumn IDEA_REPLY (
+                sequence: 4
+            )
+
+            displayColumn IDEA_STATUS (
+                sequence: 6
+            )
+
+            displayColumn IDEA_TITLE (
+                sequence: 2
+            )
+
+            displayColumn UPDATED_AT (
+                sequence: 8
+            )
+
+            displayColumn UPDATED_BY (
+                sequence: 10
+            )
+
+        )
+
+    )
+
+)

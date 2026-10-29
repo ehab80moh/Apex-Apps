@@ -1,0 +1,2247 @@
+page 60 (
+    name: (إضافة / تعديل) شخص
+    alias: ADD-PERSON
+    title: &APP_TEXT$ADD_MODIFY_A_PERSON.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            #labobo{
+                font-size: 1.3em;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 
+                       
+                       RELATIVE_PERSON_ID,
+                       EMPLOYEE_NUMBER,
+                       EMPLOYEE_NAME,
+                       PROJECT,
+                       RELATIVE_TYPE,
+                       RELATIVE_NAME,
+                       IMAGE_ID,
+                       IMAGE,
+                       CODE,
+                       INSURED,
+                        DATE_OF_BIRTH
+                  from central.XXAPEX_HR_EMP_RELATIVES
+                  where RELATIVE_PERSON_ID = :P60_RELATIVE_PERSON_ID_1
+                ```
+            pageItemsToSubmit: P60_RELATIVE_PERSON_ID_1
+        }
+        layout {
+            sequence: 61
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: never
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    region إضافة-تعديل-شخص (
+        name: (إضافة / تعديل) شخص
+        title: &APP_TEXT$ADD_MODIFY_A_PERSON.
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 
+                    p.PERSON_ID, 
+                    p.REQUEST_ID,
+                    p.NAME,
+                    p.DATE_OF_BIRTH,
+                    p.ADD_JOB,
+                    p.RELATIVE_TYPE,
+                    p.INSURED,
+                    p.IMAGE,
+                    p.CREATED_AT,
+                    p.UPDATED_BY,
+                    p.RELATIVE_PERSON_ID,
+                    p.EMP_ID,
+                    ID_NUMBER
+                FROM 
+                    EPROMHQ.HRF_PERSONAL_ADD_PERSON p
+                ```
+        }
+        layout {
+            sequence: 41
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: never
+        }
+        config {
+            buildOption: @commented-out
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    region تفاصيل-الشخص (
+        name: تفاصيل الشخص
+        title: &APP_TEXT$PERSON_DETAILS.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: HR_EMP_DEPENDENTS
+        }
+        layout {
+            sequence: 31
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region ملحوظة (
+        name: ملحوظة
+        title: &APP_TEXT$NOTE.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$H2_H2!RAW.
+        }
+        layout {
+            sequence: 51
+            slot: contentBody
+        }
+        appearance {
+            template: @alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--warning
+            ]
+            icon: fa-warning
+        }
+        serverSideCondition {
+            type: request=Value
+            value: edit
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    region ملحوظة-2 (
+        name: ملحوظة
+        title: &APP_TEXT$NOTE.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_20.
+        }
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+        appearance {
+            template: @alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--warning
+            ]
+        }
+        serverSideCondition {
+            type: request=Value
+            value: add
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    pageItem P60_ADDRESS (
+        type: textField
+        label {
+            label: &APP_TEXT$PLACE_OF_RESIDENCE.
+            alignment: left
+        }
+        settings {
+            trimSpaces: none
+        }
+        layout {
+            sequence: 100
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 20
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_ADDRESS_1 (
+        type: textField
+        label {
+            label: &APP_TEXT$PLACE_OF_RESIDENCE.
+            alignment: left
+        }
+        settings {
+            trimSpaces: none
+        }
+        layout {
+            sequence: 120
+            region: @new
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 20
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_ADD_JOB (
+        type: textField
+        label {
+            label: &APP_TEXT$JOB.
+            alignment: left
+        }
+        settings {
+            trimSpaces: none
+        }
+        layout {
+            sequence: 140
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 20
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: ADD_JOB
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_ADD_JOB_1 (
+        type: selectList
+        label {
+            label: &APP_TEXT$JOB.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @add-job
+        }
+        layout {
+            sequence: 170
+            region: @new
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: ADD_JOB
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_ADD_JOB_1_1 (
+        type: selectList
+        label {
+            label: &APP_TEXT$QUALIFICATION.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @add-job-2
+        }
+        layout {
+            sequence: 180
+            region: @new
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: ADD_JOB
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_ADD_JOB_1_1_1 (
+        type: selectList
+        label {
+            label: &APP_TEXT$QUALIFICATION.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:حاصل على الشهادة الإبتدائية ;حاصل على الشهادة الإبتدائية ,حاصل على الشهادة الإعدادية ;حاصل على الشهادة الإعدادية ,حاصل على شهادة الثانوية العامة ;حاصل على شهادة الثانوية العامة ,حاصل على بكالوريوس/ ليسانس;حاصل على بكالوريوس/ ليسانس
+        }
+        layout {
+            sequence: 150
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: ADD_JOB
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_ADD_JOB_1_2 (
+        type: selectList
+        label {
+            label: &APP_TEXT$CLASS_OR_COMPANY.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:طالب بالصف الاول;طالب بالصف الاول,طالب بالصف الثاني;طالب بالصف الثاني,طالب بالصف الثالث;طالب بالصف الثالث,طالب بالصف الرابع;طالب بالصف الرابع,طالب بالصف الخامس;طالب بالصف الخامس,طالب بالصف السادس;طالب بالصف السادس
+        }
+        layout {
+            sequence: 190
+            region: @new
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: ADD_JOB
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_ADD_JOB_1_2_1 (
+        type: textField
+        label {
+            label: &APP_TEXT$SCHOOL_COLLEGE.
+            alignment: left
+        }
+        layout {
+            sequence: 200
+            region: @new
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: ADD_JOB
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_ADD_JOB_1_2_1_1 (
+        type: textField
+        label {
+            label: &APP_TEXT$SCHOOL_COLLEGE.
+            alignment: left
+        }
+        layout {
+            sequence: 170
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: ADD_JOB
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_ADD_JOB_1_2_2 (
+        type: selectList
+        label {
+            label: &APP_TEXT$CLASS_OR_COMPANY.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:طالب بالصف الاول;طالب بالصف الاول,طالب بالصف الثاني;طالب بالصف الثاني,طالب بالصف الثالث;طالب بالصف الثالث,طالب بالصف الرابع;طالب بالصف الرابع,طالب بالصف الخامس;طالب بالصف الخامس,طالب بالصف السادس;طالب بالصف السادس
+        }
+        layout {
+            sequence: 160
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: ADD_JOB
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_BIRTH_DATE (
+        type: datePicker
+        label {
+            label: &APP_TEXT$DATE_OF_BIRTH.
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: BIRTH_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P60_CODE (
+        type: hidden
+        layout {
+            sequence: 230
+            region: @new
+            slot: regionBody
+        }
+        source {
+            formRegion: @new
+            column: CODE
+            dataType: number
+        }
+    )
+
+    pageItem P60_CREATED_AT (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 210
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: CREATED_AT
+            dataType: date
+        }
+    )
+
+    pageItem P60_CREATED_AT_1 (
+        type: hidden
+        layout {
+            sequence: 280
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: CREATED_AT
+            dataType: date
+        }
+    )
+
+    pageItem P60_CREATED_BY (
+        type: hidden
+        layout {
+            sequence: 290
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: CREATED_BY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_DATE_OF_BIRTH (
+        type: datePicker
+        label {
+            label: &APP_TEXT$DATE_OF_BIRTH.
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 255
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: DATE_OF_BIRTH
+            dataType: date
+        }
+    )
+
+    pageItem P60_DATE_OF_BIRTH_1 (
+        type: datePicker
+        label {
+            label: &APP_TEXT$DATE_OF_BIRTH.
+            alignment: left
+        }
+        layout {
+            sequence: 160
+            region: @new
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 255
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: DATE_OF_BIRTH
+            dataType: date
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P60_DATE_OF_BIRTH_2
+        }
+    )
+
+    pageItem P60_DATE_OF_BIRTH_2 (
+        type: hidden
+        layout {
+            sequence: 240
+            region: @new
+            slot: regionBody
+        }
+        source {
+            formRegion: @new
+            column: DATE_OF_BIRTH
+            dataType: date
+        }
+    )
+
+    pageItem P60_DEP_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: DEP_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P60_EDU_LEVEL_CODE (
+        type: selectList
+        label {
+            label: &APP_TEXT$QUALIFICATION.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @edu-level-code
+        }
+        layout {
+            sequence: 130
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: EDU_LEVEL_CODE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_EMPLOYEE_NAME (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @new
+            slot: regionBody
+        }
+        source {
+            formRegion: @new
+            column: EMPLOYEE_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_EMPLOYEE_NUMBER (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @new
+            slot: regionBody
+        }
+        source {
+            formRegion: @new
+            column: EMPLOYEE_NUMBER
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_EMP_ID (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 230
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: EMP_ID
+            dataType: number
+        }
+    )
+
+    pageItem P60_EMP_ID_1 (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: EMP_ID
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :app_user
+        }
+    )
+
+    pageItem P60_END_COVERAGE_DATE (
+        type: hidden
+        layout {
+            sequence: 220
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: END_COVERAGE_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P60_FULL_NAME_AR (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: FULL_NAME_AR
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_FULL_NAME_EN (
+        type: textField
+        label {
+            label: &APP_TEXT$FULL_NAME_EN.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: FULL_NAME_EN
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_GENDER_CODE (
+        type: selectList
+        label {
+            label: &APP_TEXT$TYPE.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @gender-code
+        }
+        layout {
+            sequence: 40
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: GENDER_CODE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_HOME_PHONE (
+        type: textField
+        label {
+            label: &APP_TEXT$HOME_PHONE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 30
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: HOME_PHONE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_ID_NUMBER (
+        type: numberField
+        label {
+            label: &APP_TEXT$NATIONAL_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 110
+            region: @new
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: ID_NUMBER
+            dataType: number
+        }
+    )
+
+    pageItem P60_ID_NUMBER_2 (
+        type: numberField
+        label {
+            label: &APP_TEXT$NATIONAL_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: ID_NUMBER
+            dataType: number
+        }
+    )
+
+    pageItem P60_IMAGE (
+        type: fileUpload
+        label {
+            label: &APP_TEXT$ADD_A_PHOTO.
+            alignment: left
+        }
+        display {
+            dropzoneTitle: &APP_TEXT$ADD_A_PHOTO_IF_THE_PERSON_IS_INSURED.
+        }
+        layout {
+            sequence: 200
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--large
+            ]
+            width: 60
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: IMAGE
+            dataType: blob
+        }
+    )
+
+    pageItem P60_IMAGE_1 (
+        type: hidden
+        layout {
+            sequence: 150
+            region: @new
+            slot: regionBody
+        }
+        source {
+            formRegion: @new
+            column: IMAGE
+            dataType: blob
+        }
+    )
+
+    pageItem P60_IMAGE_ID (
+        type: hidden
+        layout {
+            sequence: 140
+            region: @new
+            slot: regionBody
+        }
+        source {
+            formRegion: @new
+            column: IMAGE_ID
+            dataType: number
+        }
+    )
+
+    pageItem P60_INSURED (
+        type: selectList
+        label {
+            label: &APP_TEXT$MEDICAL_INSURANCE.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @insured-y-n
+        }
+        layout {
+            sequence: 130
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: INSURED
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P60_INSURED_1 (
+        type: selectList
+        label {
+            label: &APP_TEXT$EPROM_MEDICAL_INSURANCE_STATUS.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:مؤمن عليه;Y,غير مؤمن عليه;N
+            nullDisplayValue: &APP_TEXT$CHOOSE_INSURANCE_STATUS.
+        }
+        layout {
+            sequence: 220
+            region: @new
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @new
+            column: INSURED
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_INSURED_1_1 (
+        type: selectList
+        label {
+            label: &APP_TEXT$EPROM_MEDICAL_INSURANCE_STATUS.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:مؤمن عليه;Y,غير مؤمن عليه;N
+            nullDisplayValue: &APP_TEXT$CHOOSE_INSURANCE_STATUS.
+        }
+        layout {
+            sequence: 190
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @new
+            column: INSURED
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_IS_BENEFICIARY (
+        type: hidden
+        layout {
+            sequence: 200
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: IS_BENEFICIARY
+            dataType: number
+        }
+    )
+
+    pageItem P60_JOB_TITLE (
+        type: textField
+        label {
+            label: &APP_TEXT$POSITION_IF_ANY.
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 150
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: JOB_TITLE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_MED_INS_COMPANY (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME_OF_MEDICAL_INSURANCE_COMPANY_OPTIONAL.
+            alignment: left
+        }
+        layout {
+            sequence: 180
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: MED_INS_COMPANY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_MED_INS_NO (
+        type: textField
+        label {
+            label: &APP_TEXT$INSURANCE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 190
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 50
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: MED_INS_NO
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_MED_INS_STATUS (
+        type: hidden
+        layout {
+            sequence: 170
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: MED_INS_STATUS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_MOBILE (
+        type: textField
+        label {
+            label: &APP_TEXT$MOBILE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 30
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_NAME (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME.
+            alignment: left
+        }
+        settings {
+            trimSpaces: none
+        }
+        layout {
+            sequence: 40
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 20
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_NATIONAL_ID (
+        type: textField
+        label {
+            label: &APP_TEXT$NATIONAL_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 20
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: NATIONAL_ID
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_NOTES (
+        type: textarea
+        label {
+            label: &APP_TEXT$NOTE.
+            alignment: left
+        }
+        layout {
+            sequence: 230
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            maxLength: 1000
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: NOTES
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_PERSON_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: PERSON_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P60_PHONE (
+        type: textField
+        label {
+            label: &APP_TEXT$MOBILE_NUMBER.
+            alignment: left
+        }
+        settings {
+            trimSpaces: none
+        }
+        layout {
+            sequence: 50
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 20
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_PHONE_1 (
+        type: textField
+        label {
+            label: &APP_TEXT$HOME_PHONE_NUMBER.
+            alignment: left
+        }
+        settings {
+            trimSpaces: none
+        }
+        layout {
+            sequence: 70
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 20
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_PHONE_1_1 (
+        type: textField
+        label {
+            label: &APP_TEXT$HOME_PHONE_NUMBER.
+            alignment: left
+        }
+        settings {
+            trimSpaces: none
+        }
+        layout {
+            sequence: 90
+            region: @new
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 20
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_PHONE_2 (
+        type: textField
+        label {
+            label: &APP_TEXT$MOBILE_NUMBER.
+            alignment: left
+        }
+        settings {
+            trimSpaces: none
+        }
+        layout {
+            sequence: 80
+            region: @new
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 20
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_PHOTO_BLOB (
+        type: imageUpload
+        label {
+            label: &APP_TEXT$SPAN_IDLABOBOHAMADASPAN!RAW.
+            alignment: left
+        }
+        display {
+            displayAs: inlineFileBrowse
+            dropzoneTitle: &APP_TEXT$ADD_THE_NECESSARY_DOCUMENT.
+        }
+        layout {
+            sequence: 240
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: PHOTO_BLOB
+            dataType: blob
+        }
+    )
+
+    pageItem P60_PHOTO_FILENAME (
+        type: hidden
+        layout {
+            sequence: 260
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: PHOTO_FILENAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_PHOTO_MIME (
+        type: hidden
+        layout {
+            sequence: 250
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: PHOTO_MIME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_PHOTO_UPD_AT (
+        type: hidden
+        layout {
+            sequence: 270
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: PHOTO_UPD_AT
+            dataType: date
+        }
+    )
+
+    pageItem P60_PROJECT (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @new
+            slot: regionBody
+        }
+        source {
+            formRegion: @new
+            column: PROJECT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_RELATION_CODE (
+        type: selectList
+        label {
+            label: &APP_TEXT$KINSHIP.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @relation-code
+        }
+        layout {
+            sequence: 30
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: RELATION_CODE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_RELATIVE_NAME (
+        type: textarea
+        label {
+            label: &APP_TEXT$NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @new
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            maxLength: 720
+        }
+        source {
+            formRegion: @new
+            column: RELATIVE_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_RELATIVE_PERSON_ID (
+        type: hidden
+        layout {
+            sequence: 320
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: RELATIVE_PERSON_ID
+            dataType: number
+        }
+    )
+
+    pageItem P60_RELATIVE_PERSON_ID_1 (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @new
+            slot: regionBody
+        }
+        source {
+            formRegion: @new
+            column: RELATIVE_PERSON_ID
+            dataType: number
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P60_RELATIVE_TYPE (
+        type: selectList
+        label {
+            label: &APP_TEXT$KINSHIP.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:الوالد;الوالد,الوالدة;الوالدة,الزوج;الزوج,أبن;ابن
+        }
+        layout {
+            sequence: 30
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: RELATIVE_TYPE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_RELATIVE_TYPE_1 (
+        type: selectList
+        label {
+            label: &APP_TEXT$KINSHIP.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:الوالد;الوالد,الوالدة;الوالدة,الزوج;الزوج,ابن;ابن
+        }
+        layout {
+            sequence: 50
+            region: @new
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @new
+            column: RELATIVE_TYPE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_REQUEST_ID (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 20
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: REQUEST_ID
+            dataType: number
+        }
+    )
+
+    pageItem P60_RESIDENCE_PLACE (
+        type: textField
+        label {
+            label: &APP_TEXT$PLACE_PLACE_OF_RESIDENCE.
+            alignment: left
+        }
+        layout {
+            sequence: 110
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: RESIDENCE_PLACE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_SCHOOL_CLASS (
+        type: textField
+        label {
+            label: &APP_TEXT$CLASS_OR_COMPANY.
+            alignment: left
+        }
+        layout {
+            sequence: 150
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 100
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: SCHOOL_CLASS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_SCHOOL_OR_COMPANY (
+        type: textField
+        label {
+            label: &APP_TEXT$SCHOOL_COLLEGE_REGION.
+            alignment: left
+        }
+        layout {
+            sequence: 140
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: SCHOOL_OR_COMPANY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_SOCIAL_INS_STATUS (
+        type: selectList
+        label {
+            label: &APP_TEXT$SOCIAL_INSURANCE_STATUS.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @social-ins-status
+        }
+        layout {
+            sequence: 160
+            region: @تفاصيل-الشخص
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: SOCIAL_INS_STATUS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P60_START_COVERAGE_DATE (
+        type: hidden
+        layout {
+            sequence: 210
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: START_COVERAGE_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P60_S_INSURED (
+        type: selectList
+        label {
+            label: &APP_TEXT$SOCIAL_INSURANCE_STATUS.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:مؤمن عليه اجتماعياً;Y,غير مؤمن عليه اجتماعياً;N
+        }
+        layout {
+            sequence: 210
+            region: @new
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P60_S_INSURED_1 (
+        type: selectList
+        label {
+            label: &APP_TEXT$SOCIAL_INSURANCE_STATUS.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @s-insured-med
+        }
+        layout {
+            sequence: 180
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P60_UPDATED_AT (
+        type: hidden
+        layout {
+            sequence: 300
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: UPDATED_AT
+            dataType: date
+        }
+    )
+
+    pageItem P60_UPDATED_BY (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 220
+            region: @إضافة-تعديل-شخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @إضافة-تعديل-شخص
+            column: UPDATED_BY
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :app_user
+        }
+    )
+
+    pageItem P60_UPDATED_BY_1 (
+        type: hidden
+        layout {
+            sequence: 310
+            region: @تفاصيل-الشخص
+            slot: regionBody
+        }
+        source {
+            formRegion: @تفاصيل-الشخص
+            column: UPDATED_BY
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$CONSTRUCTION.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P60_PERSON_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P60_PERSON_ID
+        }
+    )
+
+    button go-to-page (
+        buttonName: go_to_page
+        label: &APP_TEXT$GO_TO_THE_IMAGE_UPLOAD_PAGE.
+        layout {
+            sequence: 10
+            region: @ملحوظة
+            slot: belowBox
+            horizontalAlignment: left
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 112
+                page: 2
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        advanced {
+            htmlDomId: go_to_page2
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$SAVE_CHANGES.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P60_PERSON_ID
+        }
+    )
+
+    dynamicAction set-p60-lable-by-relation (
+        name: Set P60_LABLE by Relation
+        execution {
+            sequence: 20
+            eventScope: dynamic
+        }
+        when {
+            selectionType: items
+            items: P60_RELATION_CODE
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    (function setLabelByRelation(){
+                      // اقرأ القيمة ونظّفها
+                      var v = ($v('P60_RELATION_CODE') || '').trim().toUpperCase();
+                    
+                      // خريطة القيم
+                      var map = {
+                        'SON'   : 'اضافه شهاده ميلاد',
+                            'DAUGHT'   : 'اضافه شهاده ميلاد',
+                        'SPOUSE': 'اضافه قسيمة الزواج',
+                        'FATHER': 'اضافه البطاقه الشخصية',
+                        'MOTHER': 'اضافه البطاقه الشخصية'
+                      };
+                    
+                      // قيمة افتراضية لو مفيش تطابق
+                      var text = map[v] || '';
+                    
+                      $("#labobo").html(text);
+                    
+                      // (اختياري) لمساعدتك في التشخيص
+                    //   console.log('RELATION_CODE=', v, ' → LABLE=', text);
+                    })();
+                    
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    validation phone-number-valid (
+        name: Phone Number vALID
+        execution {
+            sequence: 22
+        }
+        validation {
+            type: itemMatchesRegexp
+            item: P60_MOBILE
+            regexp: "^01\\d{9}$"
+        }
+        error {
+            errorMessage: &APP_TEXT$ERROR_MESSAGE.
+        }
+        serverSideCondition {
+            whenButtonPressed: @save
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 90187944086074980
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process fill (
+        name: FILL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                
+                  
+                
+                
+                DECLARE
+                    l_rel_id  VARCHAR2(50) := :P60_RELATIVE_PERSON_ID;
+                BEGIN
+                  :P60_EMP_ID_1 := :APP_USER;
+                
+                  IF l_rel_id IS NULL THEN
+                    :P60_FULL_NAME_AR    := NULL;
+                    :P60_MED_INS_STATUS  := NULL;
+                    :P60_BIRTH_DATE      := NULL;
+                    RETURN;
+                  END IF;
+                
+                  SELECT r.RELATIVE_NAME,
+                         r.INSURED,
+                         r.DATE_OF_BIRTH
+                  INTO   :P60_FULL_NAME_AR,
+                         :P60_MED_INS_STATUS,
+                         :P60_BIRTH_DATE
+                  FROM   central.XXAPEX_HR_EMP_RELATIVES r
+                  WHERE  r.RELATIVE_PERSON_ID = l_rel_id;
+                
+                EXCEPTION
+                  WHEN NO_DATA_FOUND THEN
+                    :P60_FULL_NAME_AR    := NULL;
+                    :P60_MED_INS_STATUS  := NULL;
+                    :P60_BIRTH_DATE      := NULL;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 137371657087152826
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P60_LABLE := null;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 138565896592873014
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process process-form-add-person (
+        name: Process form ADD_PERSON
+        type: formAutoRowProcessing
+        formRegion: @تفاصيل-الشخص
+        lockRow {
+            lockRow: false
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 90187520907074979
+        }
+    )
+
+)

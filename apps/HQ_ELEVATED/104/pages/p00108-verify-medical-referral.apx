@@ -1,0 +1,457 @@
+page 108 (
+    name: &APP_TEXT$MEDICAL_REFERRAL_VERIFY_TITLE.
+    alias: VERIFY-MEDICAL-REFERRAL
+    title: &APP_TEXT$MEDICAL_REFERRAL_VERIFY_TITLE.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+        warnOnUnsavedChanges: false
+    }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            function p108ClientContext() {
+              const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+              const network = connection ? {
+                effectiveType: connection.effectiveType || null,
+                downlink: connection.downlink || null,
+                rtt: connection.rtt || null,
+                saveData: connection.saveData === true
+              } : null;
+              return JSON.stringify({
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+                screen: { width: window.screen.width, height: window.screen.height },
+                viewport: { width: window.innerWidth, height: window.innerHeight },
+                pixelRatio: window.devicePixelRatio || 1,
+                platform: navigator.platform || null,
+                maxTouchPoints: navigator.maxTouchPoints || 0,
+                language: navigator.language || null,
+                network: network
+              });
+            }
+            
+            function p108VisitorId() {
+              const key = 'medical-referral-visitor-id';
+              let visitorId = window.sessionStorage.getItem(key);
+              if (!visitorId) {
+                visitorId = window.crypto && window.crypto.randomUUID ?
+                  window.crypto.randomUUID() : String(Date.now()) + '-' + String(Math.random()).slice(2);
+                window.sessionStorage.setItem(key, visitorId);
+              }
+              return visitorId;
+            }
+            
+            function p108CaptureClientContext() {
+              apex.server.process(
+                'CAPTURE_PUBLIC_CONTEXT',
+                {
+                  x01: p108ClientContext(),
+                  x02: p108VisitorId()
+                },
+                { dataType: 'json' }
+              ).done(function() {
+                apex.submit({ request: 'VERIFY_CONTEXT', showWait: true });
+              }).fail(function() {
+                apex.message.showErrors([{
+                  type: 'error',
+                  location: 'page',
+                  message: apex.lang.getMessage('P107_ACTION_ERROR'),
+                  unsafe: false
+                }]);
+              });
+            }
+            ```
+        executeWhenPageLoads:
+            ```javascript-browser
+            if (apex.item('P108_CONTEXT_READY').getValue() !== 'Y') {
+              p108CaptureClientContext();
+            }
+            ```
+    }
+    htmlHeader {
+        htmlHeader: <meta name="robots" content="noindex, nofollow, noarchive">
+    }
+    security {
+        authentication: public
+        formAutoComplete: false
+        browserCache: false
+    }
+    advanced {
+        enableDuplicatePageSubmissions: false
+    }
+
+    region public-referral-verification (
+        name: &APP_TEXT$MEDICAL_REFERRAL_VERIFY_TITLE.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$MEDICAL_REFERRAL_VERIFY_HELP.
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+            icon: fa-shield-check
+        }
+    )
+
+    region verification-actions (
+        name: &APP_TEXT$MEDICAL_REFERRAL_ACTIONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P108_AVAILABLE_FROM (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_AVAILABLE_FROM.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @public-referral-verification
+            slot: regionBody
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P108_BENEFICIARY_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_BENEFICIARY.
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @public-referral-verification
+            slot: regionBody
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P108_CONTEXT_READY (
+        type: hidden
+        layout {
+            sequence: 40
+            slot: body
+        }
+    )
+
+    pageItem P108_DEVICE_JSON (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: body
+        }
+    )
+
+    pageItem P108_FILE_NAME (
+        type: hidden
+        layout {
+            sequence: 60
+            slot: body
+        }
+    )
+
+    pageItem P108_LETTER_DATE (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_LETTER_DATE.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @public-referral-verification
+            slot: regionBody
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P108_LIVE_STATUS (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_STATUS.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @public-referral-verification
+            slot: regionBody
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P108_PROVIDER_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_PROVIDER.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @public-referral-verification
+            slot: regionBody
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P108_REFERAL_ID (
+        type: hidden
+        layout {
+            sequence: 50
+            slot: body
+        }
+    )
+
+    pageItem P108_SPECIALITY_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_SPECIALITY.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @public-referral-verification
+            slot: regionBody
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P108_TOKEN (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+    )
+
+    pageItem P108_VALID_TO (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_VALID_TO.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @public-referral-verification
+            slot: regionBody
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P108_VISITOR_ID (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: body
+        }
+    )
+
+    button download-public-document (
+        buttonName: DOWNLOAD
+        label: &APP_TEXT$MEDICAL_REFERRAL_DOWNLOAD.
+        layout {
+            sequence: 10
+            region: @verification-actions
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+            icon: fa-download
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 108
+                items: {
+                    P108_TOKEN: &P108_TOKEN.
+                }
+                request: DOWNLOAD
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P108_LIVE_STATUS = 'VALID'
+        }
+    )
+
+    process capture-public-client-context (
+        name: CAPTURE_PUBLIC_CONTEXT
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_safe_device_json CLOB;
+                    l_safe_visitor_id  VARCHAR2(128);
+                BEGIN
+                    med.md_referal_wf_pkg.sanitize_public_context(
+                        p_device_json => apex_application.g_x01,
+                        p_visitor_id => apex_application.g_x02,
+                        p_safe_device_json => l_safe_device_json,
+                        p_safe_visitor_id => l_safe_visitor_id
+                    );
+                
+                    apex_collection.create_or_truncate_collection(
+                        p_collection_name => 'P108_PUBLIC_CONTEXT'
+                    );
+                    apex_collection.add_member(
+                        p_collection_name => 'P108_PUBLIC_CONTEXT',
+                        p_c001 => l_safe_device_json,
+                        p_c002 => l_safe_visitor_id
+                    );
+                    sys.htp.p('{"success":true}');
+                END;
+                ```
+        }
+        execution {
+            sequence: 1
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 52401768410262022
+        }
+    )
+
+    process download-public-medical-referral-document (
+        name: Download public medical referral document
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    med.md_referal_wf_pkg.download_public_document(
+                        p_token => :P108_TOKEN,
+                        p_device_json => :P108_DEVICE_JSON,
+                        p_visitor_id => :P108_VISITOR_ID
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 30
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 52402079003262022
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: DOWNLOAD
+        }
+    )
+
+    process load-public-client-context (
+        name: Load public client context
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    :P108_CONTEXT_READY := 'N';
+                    IF apex_collection.collection_exists('P108_PUBLIC_CONTEXT') THEN
+                        BEGIN
+                            SELECT c001, c002
+                              INTO :P108_DEVICE_JSON, :P108_VISITOR_ID
+                              FROM apex_collections
+                             WHERE collection_name = 'P108_PUBLIC_CONTEXT'
+                               AND seq_id = 1;
+                            :P108_CONTEXT_READY := 'Y';
+                        EXCEPTION
+                            WHEN NO_DATA_FOUND THEN
+                                NULL;
+                        END;
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 52401876437262022
+        }
+    )
+
+    process resolve-public-medical-referral-token (
+        name: Resolve public medical referral token
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    med.md_referal_wf_pkg.resolve_public_token(
+                        p_token => :P108_TOKEN,
+                        p_device_json => :P108_DEVICE_JSON,
+                        p_visitor_id => :P108_VISITOR_ID,
+                        p_referal_id => :P108_REFERAL_ID,
+                        p_beneficiary_name => :P108_BENEFICIARY_NAME,
+                        p_provider_name => :P108_PROVIDER_NAME,
+                        p_speciality_name => :P108_SPECIALITY_NAME,
+                        p_letter_date => :P108_LETTER_DATE,
+                        p_available_from => :P108_AVAILABLE_FROM,
+                        p_valid_to => :P108_VALID_TO,
+                        p_live_status => :P108_LIVE_STATUS,
+                        p_file_name => :P108_FILE_NAME
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 52401999618262022
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P108_CONTEXT_READY = 'Y'
+        }
+    )
+
+)

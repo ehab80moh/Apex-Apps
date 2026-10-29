@@ -1,0 +1,47 @@
+page 95 (
+    name: Training Management
+    alias: TRAINING-MANAGEMENT
+    title: &APP_TEXT$TRAINING_MANAGEMENT.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @training-management-access
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region training-management (
+        name: Training Management
+        title: &APP_TEXT$TRAINING_MANAGEMENT.
+        type: list
+        source {
+            list: @training-management
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            listTemplate: @cards
+            templateOptions: [
+                #DEFAULT#
+                u-colors
+                t-Cards--featured force-fa-lg
+                t-Cards--displayIcons
+                t-Cards--stacked
+                t-Cards--hideBody
+                t-Cards--animColorFill
+            ]
+        }
+    )
+
+)

@@ -1,0 +1,1300 @@
+page 87 (
+    name: مسابقة إيبروم تبتكر
+    alias: EPROM-INNOVATES
+    title: &APP_TEXT$PORTAL_PAGE_87_TITLE.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: [
+            #DEFAULT#
+            ui-dialog--stretch
+        ]
+        cssClasses: sug-idea-page
+    }
+    dialog {
+        width: 500
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .sug-idea-page .t-Dialog-body{background:#f6f8fb}
+            .sug-idea-page .t-Region{border:0;border-radius:8px;box-shadow:0 8px 24px rgba(15,23,42,.08)}
+            .sug-idea-page .t-Form-labelContainer label{font-weight:700}
+            .sug-idea-page .sug-section-note{padding:12px 16px;border-radius:8px;background:#eef6ff;color:#1f456e;border-inline-start:4px solid #2f80ed}
+            .sug-idea-page .apex-item-display-only{font-weight:700;color:#243447}
+            .sug-idea-page textarea{min-height:118px}
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: Buttons
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region idea-submission (
+        name: Idea Submission
+        title: نموذج تقديم الفكرة
+        type: form
+        source {
+            location: localDatabase
+            tableName: SUG_IDEA_SUBMISSIONS
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noBorder
+                t-Form--large
+                t-Form--stretchInputs
+            ]
+        }
+        edit {
+            enabled: true
+            allowedOperations: add
+        }
+    )
+
+    region previous-submissions (
+        name: طلباتي السابقة
+        title: طلباتي السابقة
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select idea_title,
+                       decode(participation_type, 'INDIVIDUAL', 'فردي', 'GROUP', 'جماعي', participation_type) as participation_type_display,
+                       created_at
+                  from hq_elevated.sug_idea_submissions
+                 where created_by = :APP_USER
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 5
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent1
+                t-Region--noBorder
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+
+        column CREATED_AT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: تاريخ التقديم
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+            appearance {
+                formatMask: YYYY-MM-DD HH24:MI
+            }
+        )
+
+        column IDEA_TITLE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: عنوان الفكرة
+                alignment: center
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column PARTICIPATION_TYPE_DISPLAY (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+    )
+
+    pageItem P87_ADDED_VALUE (
+        type: textField
+        label {
+            label: القيمة المضافة المتوقعة
+            alignment: left
+        }
+        layout {
+            sequence: 160
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 100
+        }
+        validation {
+            valueRequired: true
+            maxLength: 1000
+        }
+        source {
+            formRegion: @idea-submission
+            column: ADDED_VALUE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P87_APPLICATION_DOMAIN (
+        type: selectList
+        label {
+            label: مجال التطبيق
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:فني / تشغيلي;TECHNICAL,مالي;FINANCIAL,إداري;ADMIN,سلامة وصحة مهنية;HSE,تكنولوجيا معلومات;IT,أخرى;OTHER
+            nullDisplayValue: اختر المجال
+        }
+        layout {
+            sequence: 110
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 3
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @idea-submission
+            column: APPLICATION_DOMAIN
+            dataType: varchar2
+        }
+    )
+
+    pageItem P87_APPLICATION_DOMAIN_OTHER (
+        type: textField
+        label {
+            label: مجال آخر
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 3
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 80
+        }
+        validation {
+            maxLength: 300
+        }
+        source {
+            formRegion: @idea-submission
+            column: APPLICATION_DOMAIN_OTHER
+            dataType: varchar2
+        }
+    )
+
+    pageItem P87_CREATED_AT (
+        type: hidden
+        layout {
+            sequence: 280
+            region: @idea-submission
+            slot: regionBody
+        }
+        source {
+            formRegion: @idea-submission
+            column: CREATED_AT
+            dataType: date
+        }
+        default {
+            type: expression
+            plsqlExpression: sysdate
+        }
+    )
+
+    pageItem P87_CREATED_BY (
+        type: hidden
+        layout {
+            sequence: 270
+            region: @idea-submission
+            slot: regionBody
+        }
+        source {
+            formRegion: @idea-submission
+            column: CREATED_BY
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    pageItem P87_DECLARE_COMPANY_RIGHTS (
+        type: switch
+        label {
+            label: أوافق على حق الشركة في تبني الفكرة وتنفيذها مع حفظ النسب المعنوي
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            onValue: Y
+            onLabel: نعم
+            offValue: N
+            offLabel: لا
+        }
+        layout {
+            sequence: 250
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 3
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @idea-submission
+            column: DECLARE_COMPANY_RIGHTS
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: N
+        }
+    )
+
+    pageItem P87_DECLARE_CONFIDENTIALITY (
+        type: switch
+        label {
+            label: أتعهد بالحفاظ على سرية الفكرة وعدم مشاركتها خارج شركة إيبروم
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            onValue: Y
+            onLabel: نعم
+            offValue: N
+            offLabel: لا
+        }
+        layout {
+            sequence: 240
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 3
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @idea-submission
+            column: DECLARE_CONFIDENTIALITY
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: N
+        }
+    )
+
+    pageItem P87_DECLARE_CORRECT_INFO (
+        type: switch
+        label {
+            label: جميع المعلومات المقدمة صحيحة ودقيقة
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            onValue: Y
+            onLabel: نعم
+            offValue: N
+            offLabel: لا
+        }
+        layout {
+            sequence: 230
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 3
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @idea-submission
+            column: DECLARE_CORRECT_INFO
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: N
+        }
+    )
+
+    pageItem P87_DECLARE_OWN_WORK (
+        type: switch
+        label {
+            label: هذه الفكرة من نتاج عملي أو بحثي الشخصي
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            onValue: Y
+            onLabel: نعم
+            offValue: N
+            offLabel: لا
+        }
+        layout {
+            sequence: 220
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            columnSpan: 3
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @idea-submission
+            column: DECLARE_OWN_WORK
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: N
+        }
+    )
+
+    pageItem P87_DEPARTMENT_NAME (
+        type: displayOnly
+        label {
+            label: الإدارة / القسم
+            alignment: left
+        }
+        settings {
+            showLineBreaks: false
+        }
+        layout {
+            sequence: 80
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @idea-submission
+            column: DEPARTMENT_NAME
+            dataType: varchar2
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue: SELECT gdept FROM central.xxapex_hr_emp_data WHERE to_char(employee_number) = :APP_USER FETCH FIRST 1 ROW ONLY
+        }
+    )
+
+    pageItem P87_EMAIL_ADDRESS (
+        type: displayOnly
+        label {
+            label: البريد الإلكتروني
+            alignment: left
+        }
+        settings {
+            showLineBreaks: false
+        }
+        layout {
+            sequence: 50
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @idea-submission
+            column: EMAIL_ADDRESS
+            dataType: varchar2
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue: SELECT email FROM central.xxapex_hr_emp_data WHERE to_char(employee_number) = :APP_USER FETCH FIRST 1 ROW ONLY
+        }
+    )
+
+    pageItem P87_EMP_NAME (
+        type: displayOnly
+        label {
+            label: اسم الموظف
+            alignment: left
+        }
+        settings {
+            showLineBreaks: false
+        }
+        layout {
+            sequence: 30
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @idea-submission
+            column: EMP_NAME
+            dataType: varchar2
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue: SELECT full_name FROM central.xxapex_hr_emp_data WHERE to_char(employee_number) = :APP_USER FETCH FIRST 1 ROW ONLY
+        }
+    )
+
+    pageItem P87_EMP_NUMBER (
+        type: displayOnly
+        label {
+            label: الرقم الوظيفي
+            alignment: left
+        }
+        settings {
+            showLineBreaks: false
+        }
+        layout {
+            sequence: 20
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            columnSpan: 2
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @idea-submission
+            column: EMP_NUMBER
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    pageItem P87_EXPECTED_RETURN (
+        type: textarea
+        label {
+            label: العائد المتوقع من الاستثمار في الفكرة
+            alignment: left
+        }
+        settings {
+            autoHeight: true
+        }
+        layout {
+            sequence: 140
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 100
+            height: 4
+        }
+        validation {
+            valueRequired: true
+            maxLength: 4000
+        }
+        source {
+            formRegion: @idea-submission
+            column: EXPECTED_RETURN
+            dataType: varchar2
+        }
+        help {
+            inlineHelpText: مثال: توفير مالي، زيادة إنتاجية، توفير وقت، رفع مستوى السلامة، مع أرقام تقديرية إن أمكن.
+        }
+    )
+
+    pageItem P87_HAS_RISKS (
+        type: radioGroup
+        label {
+            label: هل توجد مخاطر أو تحديات للتنفيذ؟
+            alignment: left
+        }
+        settings {
+            noOfCols: 2
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:يوجد;Y,لا يوجد;N
+            displayNullValue: false
+        }
+        layout {
+            sequence: 180
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            columnSpan: 4
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--radioButtonGroup
+            ]
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @idea-submission
+            column: HAS_RISKS
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: N
+        }
+    )
+
+    pageItem P87_IDEA_DESCRIPTION (
+        type: textarea
+        label {
+            label: وصف الفكرة ومقدار التجديد
+            alignment: left
+        }
+        settings {
+            autoHeight: true
+        }
+        layout {
+            sequence: 130
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 100
+            height: 4
+        }
+        validation {
+            valueRequired: true
+            maxLength: 4000
+        }
+        source {
+            formRegion: @idea-submission
+            column: IDEA_DESCRIPTION
+            dataType: varchar2
+        }
+        help {
+            inlineHelpText: اشرح الفكرة بإيجاز في حدود 250 كلمة، وما الجديد مقارنة بالوضع الحالي.
+        }
+    )
+
+    pageItem P87_IDEA_TITLE (
+        type: textField
+        label {
+            label: عنوان الفكرة
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 80
+        }
+        validation {
+            valueRequired: true
+            maxLength: 300
+        }
+        source {
+            formRegion: @idea-submission
+            column: IDEA_TITLE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P87_JOB_TITLE (
+        type: displayOnly
+        label {
+            label: المسمى الوظيفي
+            alignment: left
+        }
+        settings {
+            showLineBreaks: false
+        }
+        layout {
+            sequence: 60
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            columnSpan: 4
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @idea-submission
+            column: JOB_TITLE
+            dataType: varchar2
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue: SELECT current_position FROM central.xxapex_hr_emp_data WHERE to_char(employee_number) = :APP_USER FETCH FIRST 1 ROW ONLY
+        }
+    )
+
+    pageItem P87_MOBILE_NUMBER (
+        type: displayOnly
+        label {
+            label: رقم الهاتف للتواصل
+            alignment: left
+        }
+        settings {
+            showLineBreaks: false
+        }
+        layout {
+            sequence: 40
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @idea-submission
+            column: MOBILE_NUMBER
+            dataType: varchar2
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue: SELECT mobile FROM central.xxapex_hr_emp_data WHERE to_char(employee_number) = :APP_USER FETCH FIRST 1 ROW ONLY
+        }
+    )
+
+    pageItem P87_PARTICIPATION_TYPE (
+        type: selectList
+        label {
+            label: نوع التقديم
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:فردي;INDIVIDUAL,فريق عمل;GROUP
+            displayExtraValues: false
+            nullDisplayValue: اختر نوع التقديم
+        }
+        layout {
+            sequence: 90
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @idea-submission
+            column: PARTICIPATION_TYPE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P87_PROBLEM_STATEMENT (
+        type: textField
+        label {
+            label: المشكلة أو التحدي الذي تعالجه
+            alignment: left
+        }
+        layout {
+            sequence: 150
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 100
+        }
+        validation {
+            valueRequired: true
+            maxLength: 1000
+        }
+        source {
+            formRegion: @idea-submission
+            column: PROBLEM_STATEMENT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P87_PROJECT_NAME (
+        type: displayOnly
+        label {
+            label: المشروع
+            alignment: left
+        }
+        settings {
+            showLineBreaks: false
+        }
+        layout {
+            sequence: 70
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @idea-submission
+            column: PROJECT_NAME
+            dataType: varchar2
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue: SELECT project FROM central.xxapex_hr_emp_data WHERE to_char(employee_number) = :APP_USER FETCH FIRST 1 ROW ONLY
+        }
+    )
+
+    pageItem P87_RISK_DETAILS (
+        type: textField
+        label {
+            label: دراسة مخاطر التنفيذ
+            alignment: left
+        }
+        layout {
+            sequence: 190
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 8
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 80
+        }
+        validation {
+            maxLength: 2000
+        }
+        source {
+            formRegion: @idea-submission
+            column: RISK_DETAILS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P87_START_REQUIREMENTS (
+        type: textField
+        label {
+            label: المتطلبات الأساسية للبدء في تنفيذ الفكرة
+            alignment: left
+        }
+        layout {
+            sequence: 200
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 100
+        }
+        validation {
+            valueRequired: true
+            maxLength: 2000
+        }
+        source {
+            formRegion: @idea-submission
+            column: START_REQUIREMENTS
+            dataType: varchar2
+        }
+        help {
+            inlineHelpText: معدات، برامج، موافقات، تعاون بين إدارات، أو ميزانية تقديرية.
+        }
+    )
+
+    pageItem P87_STATUS (
+        type: hidden
+        layout {
+            sequence: 260
+            region: @idea-submission
+            slot: regionBody
+        }
+        source {
+            formRegion: @idea-submission
+            column: STATUS
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: SUBMITTED
+        }
+    )
+
+    pageItem P87_STRATEGY_ALIGNMENT (
+        type: textField
+        label {
+            label: مدى توافق الفكرة مع استراتيجية الشركة وقطاع البترول
+            alignment: left
+        }
+        layout {
+            sequence: 210
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 100
+        }
+        validation {
+            valueRequired: true
+            maxLength: 2000
+        }
+        source {
+            formRegion: @idea-submission
+            column: STRATEGY_ALIGNMENT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P87_SUBMISSION_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @idea-submission
+            slot: regionBody
+        }
+        source {
+            formRegion: @idea-submission
+            column: SUBMISSION_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P87_TEAM_MEMBERS (
+        type: textarea
+        label {
+            label: أعضاء الفريق
+            alignment: left
+        }
+        layout {
+            sequence: 95
+            region: @idea-submission
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-floating
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @idea-submission
+            column: TEAM_MEMBERS
+            dataType: varchar2
+        }
+        help {
+            inlineHelpText: يرجى كتابة أسماء وأرقام أعضاء الفريق
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: إلغاء
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: إرسال الفكرة
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--success
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P87_SUBMISSION_ID
+        }
+    )
+
+    button download-contest-pdf (
+        buttonName: DOWNLOAD_CONTEST_PDF
+        label: تحميل كتيب تفاصيل المسابقة (PDF)
+        layout {
+            sequence: 5
+            region: @idea-submission
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--primary
+                t-Button--simple
+                t-Button--iconLeft
+            ]
+            icon: fa-file-pdf-o
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 87
+                request: DOWNLOAD_CONTEST_PDF
+                anchor: :&SESSION.::&DEBUG.:::
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction toggle-conditional-fields (
+        name: Toggle Conditional Fields
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: [
+                P87_APPLICATION_DOMAIN
+                P87_HAS_RISKS
+                P87_PARTICIPATION_TYPE
+            ]
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    (function () {
+                      apex.item("P87_APPLICATION_DOMAIN_OTHER").node.closest(".t-Form-fieldContainer").style.display =
+                        $v("P87_APPLICATION_DOMAIN") === "OTHER" ? "" : "none";
+                      apex.item("P87_RISK_DETAILS").node.closest(".t-Form-fieldContainer").style.display =
+                        $v("P87_HAS_RISKS") === "Y" ? "" : "none";
+                      apex.item("P87_TEAM_MEMBERS").node.closest(".t-Form-fieldContainer").style.display =
+                        $v("P87_PARTICIPATION_TYPE") === "GROUP" ? "" : "none";
+                    })();
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    validation require-declarations (
+        name: Require declarations
+        execution {
+            sequence: 40
+        }
+        validation {
+            plsqlExpression: :P87_DECLARE_OWN_WORK = 'Y' AND :P87_DECLARE_CORRECT_INFO = 'Y' AND :P87_DECLARE_CONFIDENTIALITY = 'Y' AND :P87_DECLARE_COMPANY_RIGHTS = 'Y'
+        }
+        error {
+            errorMessage: يجب الموافقة على جميع الإقرارات قبل إرسال الفكرة.
+        }
+    )
+
+    validation require-other-domain (
+        name: Require other domain
+        execution {
+            sequence: 20
+        }
+        validation {
+            plsqlExpression: :P87_APPLICATION_DOMAIN <> 'OTHER' OR TRIM(:P87_APPLICATION_DOMAIN_OTHER) IS NOT NULL
+        }
+        error {
+            errorMessage: يرجى كتابة مجال التطبيق الآخر.
+        }
+    )
+
+    validation require-risk-details (
+        name: Require risk details
+        execution {
+            sequence: 30
+        }
+        validation {
+            plsqlExpression: :P87_HAS_RISKS <> 'Y' OR TRIM(:P87_RISK_DETAILS) IS NOT NULL
+        }
+        error {
+            errorMessage: يرجى توضيح مخاطر التنفيذ.
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 31938170104569299
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE
+        }
+    )
+
+    process download-contest-file (
+        name: Download Contest File
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                   l_mime_type   VARCHAR2(255);
+                   l_blob        BLOB;
+                   l_file_name   VARCHAR2(2000);
+                BEGIN
+                   SELECT mime_type, file_data, file_name
+                     INTO l_mime_type, l_blob, l_file_name
+                     FROM hq_elevated.attachment
+                    WHERE file_name = 'EPROM_INOOVATION_CONTEST.pdf'
+                    ORDER BY created_on DESC
+                    FETCH FIRST 1 ROW ONLY;
+                
+                   owa_util.mime_header(l_mime_type, FALSE);
+                   htp.p('Content-length: ' || DBMS_LOB.getlength(l_blob));
+                   htp.p('Content-Disposition: attachment; filename="' || l_file_name || '"');
+                   owa_util.http_header_close;
+                
+                   wpg_docload.download_file(l_blob);
+                   apex_application.stop_apex_engine;
+                EXCEPTION
+                   WHEN OTHERS THEN
+                      apex_application.stop_apex_engine;
+                END;
+                ```
+        }
+        execution {
+            sequence: 1
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 32008651329328832
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: DOWNLOAD_CONTEST_PDF
+        }
+    )
+
+    process populate-emp-details (
+        name: Populate Logged In Employee Details
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    IF :P87_SUBMISSION_ID IS NULL AND :APP_USER IS NOT NULL THEN
+                        :P87_EMP_NUMBER := :APP_USER;
+                        :P87_STATUS := 'SUBMITTED';
+                        
+                        -- Fetch name, job title, project, department from xxapex_hr_emp_data
+                        BEGIN
+                            SELECT emp_name, emp_position_name, project, main_department,
+                                   coalesce(comp_email, pay_email, egpc_email)
+                              INTO :P87_EMP_NAME, :P87_JOB_TITLE, :P87_PROJECT_NAME, :P87_DEPARTMENT_NAME,
+                                   :P87_EMAIL_ADDRESS
+                              FROM central.xxapex_hr_emp_data
+                             WHERE to_char(emp_number) = :APP_USER
+                             FETCH FIRST 1 ROW ONLY;
+                        EXCEPTION
+                            WHEN NO_DATA_FOUND THEN
+                                NULL;
+                        END;
+                        
+                        -- Fetch mobile number from emp_contact
+                        BEGIN
+                            SELECT mobile
+                              INTO :P87_MOBILE_NUMBER
+                              FROM central.emp_contact
+                             WHERE emp_id = :APP_USER
+                             FETCH FIRST 1 ROW ONLY;
+                        EXCEPTION
+                            WHEN NO_DATA_FOUND THEN
+                                NULL;
+                        END;
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 31974224911732233
+        }
+    )
+
+    process process-form-idea-submission (
+        name: Process form Idea Submission
+        type: formAutoRowProcessing
+        formRegion: @idea-submission
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 31938290455569299
+        }
+    )
+
+)

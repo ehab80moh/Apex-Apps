@@ -1,0 +1,153 @@
+buttonTemplate awesome-text-with-icon (
+    name: awesome text with icon
+    templateClass: buttonAlternative1
+    templateOptions {
+        preset: t-Button--iconLeft
+    }
+    button {
+        normal:
+            ```html
+            <button class="t-Button t-Button--radius #BUTTON_CSS_CLASSES#" 
+                    style="background: #f0f0f0; 
+                           color: #333333; 
+                           border: 1px solid #cccccc; 
+                           border-radius: 8px; 
+                           padding: 10px 20px; 
+                           font-size: 16px; 
+                           font-weight: normal; 
+                           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+                           cursor: pointer; 
+                           display: inline-flex; 
+                           align-items: center;" 
+                    #BUTTON_ATTRIBUTES# 
+                    #ONCLICK# 
+                    type="button" 
+                    id="#BUTTON_ID#">
+            
+                <!-- Dynamic Left Icon -->
+                <span class="t-Icon t-Icon--left #ICON_CSS_CLASSES#" 
+                      style="margin-right: 8px;" 
+                      aria-hidden="true">
+                </span>
+            
+                <!-- Button Label -->
+                <span class="t-Button-label">
+                    #LABEL#
+                </span>
+            </button>
+            ```
+        hot:
+            ```html
+            <button class="t-Button t-Button--hot t-Button--radius #BUTTON_CSS_CLASSES#" 
+                    style="background: linear-gradient(135deg, #6186ae, #29405a); 
+                           color: #ffffff; 
+                           border: none; 
+                           border-radius: 8px; 
+                           padding: 10px 20px; 
+                           font-size: 16px; 
+                           font-weight: bold; 
+                           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+                           cursor: pointer; 
+                           display: inline-flex; 
+                           align-items: center;" 
+                    #BUTTON_ATTRIBUTES# 
+                    #ONCLICK# 
+                    type="button" 
+                    id="#BUTTON_ID#">
+            
+                <!-- Dynamic Left Icon -->
+                <span class="t-Icon t-Icon--left #ICON_CSS_CLASSES#" 
+                      style="margin-right: 8px;" 
+                      aria-hidden="true">
+                </span>
+            
+                <!-- Button Label -->
+                <span class="t-Button-label" style="color: #ffffff;">
+                    #LABEL#
+                </span>
+            </button>
+            ```
+    }
+    advanced {
+        identifier: AWESOME_TEXT_WITH_ICON
+    }
+
+    templateOption hide-icon-on-desktop (
+        name: Hide Icon on Desktop
+        sequence: 20
+        appearance {
+            cssClasses: t-Button--desktopHideIcon
+        }
+        help {
+            helpText: This template options hides the button icon on large screens.
+        }
+        advanced {
+            identifier: HIDE_ICON_ON_DESKTOP
+        }
+    )
+
+    templateOption hide-label-on-mobile (
+        name: Hide Label on Mobile
+        sequence: 10
+        appearance {
+            cssClasses: t-Button--mobileHideLabel
+        }
+        help {
+            helpText: This template options hides the button label on small screens.
+        }
+        advanced {
+            identifier: HIDE_LABEL_ON_MOBILE
+        }
+    )
+
+    templateOption lefticon (
+        name: Left
+        sequence: 10
+        appearance {
+            cssClasses: t-Button--iconLeft
+        }
+        advanced {
+            identifier: LEFTICON
+        }
+    )
+
+    templateOption push (
+        name: Push
+        sequence: 20
+        appearance {
+            cssClasses: t-Button--hoverIconPush
+        }
+        help {
+            helpText: The icon will animate to the right or left on button hover or focus.
+        }
+        advanced {
+            identifier: PUSH
+        }
+    )
+
+    templateOption righticon (
+        name: Right
+        sequence: 20
+        appearance {
+            cssClasses: t-Button--iconRight
+        }
+        advanced {
+            identifier: RIGHTICON
+        }
+    )
+
+    templateOption spin (
+        name: Spin
+        sequence: 10
+        appearance {
+            cssClasses: t-Button--hoverIconSpin
+        }
+        help {
+            helpText: The icon will spin on button hover or focus.
+        }
+        advanced {
+            identifier: SPIN
+        }
+    )
+
+)

@@ -1,0 +1,432 @@
+page 10 (
+    name: Edit_Services
+    alias: SERVICES1
+    title: Services
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/drawer
+        templateOptions: [
+            #DEFAULT#
+            js-dialog-class-t-Drawer--pullOutEnd
+        ]
+    }
+    dialog {
+        chained: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region services (
+        name: Services
+        type: form
+        source {
+            location: localDatabase
+            tableName: SUP_SERVICES
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P10_CATEGORY (
+        type: selectList
+        label {
+            label: Category
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select distinct CATEGORY , CATEGORY Cat
+                from   EPROMHQ.SUP_SERVICE_CATEGORIES
+                
+                ```
+        }
+        layout {
+            sequence: 30
+            region: @services
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @services
+            column: CATEGORY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P10_COMMERCIAL_REGISTER (
+        type: checkbox
+        label {
+            label: Commercial Register
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 100
+            region: @services
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @services
+            column: COMMERCIAL_REGISTER
+            dataType: varchar2
+        }
+    )
+
+    pageItem P10_CREATIONDATE (
+        type: hidden
+        layout {
+            sequence: 70
+            region: @services
+            slot: regionBody
+        }
+        source {
+            formRegion: @services
+            column: CREATIONDATE
+            dataType: date
+        }
+    )
+
+    pageItem P10_GENERAL_INFO (
+        type: textarea
+        label {
+            label: General Info
+            alignment: right
+        }
+        layout {
+            sequence: 60
+            region: @services
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @services
+            column: GENERAL_INFO
+            dataType: varchar2
+        }
+    )
+
+    pageItem P10_LASTUPDATEDATE (
+        type: hidden
+        layout {
+            sequence: 80
+            region: @services
+            slot: regionBody
+        }
+        source {
+            formRegion: @services
+            column: LASTUPDATEDATE
+            dataType: date
+        }
+    )
+
+    pageItem P10_PRODUCT (
+        type: selectList
+        label {
+            label: Product
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select PRODUCT Prod  , PRODUCT 
+                from   EPROMHQ.SUP_SERVICE_CATEGORIES
+                where EPROMHQ.SUP_SERVICE_CATEGORIES.category = :P10_CATEGORY ;
+                
+                ```
+        }
+        cascadingLov {
+            parentItems: P10_CATEGORY
+        }
+        layout {
+            sequence: 40
+            region: @services
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @services
+            column: PRODUCT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P10_SERVICE_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @services
+            slot: regionBody
+        }
+        source {
+            formRegion: @services
+            column: SERVICE_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P10_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @services
+            slot: regionBody
+        }
+        source {
+            formRegion: @services
+            column: SUPPLIER_ID
+            dataType: number
+        }
+    )
+
+    pageItem P10_TAX_CARD (
+        type: checkbox
+        label {
+            label: Tax Card
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 90
+            region: @services
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @services
+            column: TAX_CARD
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Cancel
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: Create
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P10_SERVICE_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: Delete
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--simple
+            ]
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P10_SERVICE_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: Apply Changes
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P10_SERVICE_ID
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        settings {
+            itemsToReturn: [
+                P10_SERVICE_ID
+                REQUEST
+            ]
+        }
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 126269616884418994
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process initialize-form-services (
+        name: Initialize form Services
+        type: formInitialization
+        formRegion: @services
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 126268815530418994
+        }
+    )
+
+    process process-form-services (
+        name: Process form Services
+        type: formAutoRowProcessing
+        formRegion: @services
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 126269276207418994
+        }
+    )
+
+)

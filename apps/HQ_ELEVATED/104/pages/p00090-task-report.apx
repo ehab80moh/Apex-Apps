@@ -1,0 +1,1638 @@
+page 90 (
+    name: task_report
+    alias: TASK-REPORT
+    title: &APP_TEXT$TASKREPORT.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @super-duper
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region apex-task-comments (
+        name: apex_task_comments
+        title: &APP_TEXT$APEXTASKCOMMENTS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select * from apex_task_comments
+                where task_id=:P90_TASK_ID
+                
+                ```
+        }
+        layout {
+            sequence: 20
+            parentRegion: @single-task-search
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column APPLICATION_ID (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 50
+                columnAlignment: end
+            }
+        )
+
+        column APPLICATION_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_NAME.
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column CREATED_BY (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CREATED_BY.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+        column CREATED_ON (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CREATED_ON.
+            }
+            layout {
+                sequence: 90
+            }
+        )
+
+        column TASK_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+        )
+
+        column TEXT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TEXT_1.
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column WORKING_COPY_NAME (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKING_COPY_NAME.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column WORKSPACE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKSPACE.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column WORKSPACE_DISPLAY_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKSPACE_DISPLAY_NAME.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+    )
+
+    region apex-task-history (
+        name: apex_task_history
+        title: &APP_TEXT$APEXTASKHISTORY.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select * from apex_task_history
+                where task_id=:P90_TASK_ID
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @single-task-search
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column ACTION_NAME (
+            reportColumnQueryId: 22
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ACTION_NAME.
+            }
+            layout {
+                sequence: 220
+            }
+        )
+
+        column ACTION_STATUS (
+            reportColumnQueryId: 23
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ACTION_STATUS.
+            }
+            layout {
+                sequence: 230
+            }
+        )
+
+        column ACTION_TIMESTAMP (
+            reportColumnQueryId: 24
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ACTION_TIMESTAMP.
+            }
+            layout {
+                sequence: 240
+            }
+        )
+
+        column ALTERNATE_PARTICIPANTS (
+            reportColumnQueryId: 28
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ALTERNATE_PARTICIPANTS.
+            }
+            layout {
+                sequence: 280
+            }
+        )
+
+        column APPLICATION_ID (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 40
+                columnAlignment: end
+            }
+        )
+
+        column APPLICATION_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_NAME.
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column DISPLAY_MSG (
+            reportColumnQueryId: 30
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DISPLAY_MSG.
+            }
+            layout {
+                sequence: 300
+            }
+        )
+
+        column EVENT_CREATOR (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EVENT_CREATOR.
+            }
+            layout {
+                sequence: 90
+            }
+        )
+
+        column EVENT_TIMESTAMP (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EVENT_TIMESTAMP.
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column EVENT_TYPE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EVENT_TYPE.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+        column EVENT_TYPE_CODE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EVENT_TYPE_CODE.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column FAILURE_MSG (
+            reportColumnQueryId: 26
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FAILURE_MSG.
+            }
+            layout {
+                sequence: 260
+            }
+        )
+
+        column NEW_ACTUAL_OWNER (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NEW_ACTUAL_OWNER.
+            }
+            layout {
+                sequence: 160
+            }
+        )
+
+        column NEW_DUE_ON (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NEW_DUE_ON.
+            }
+            layout {
+                sequence: 200
+            }
+        )
+
+        column NEW_PRIORITY (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NEW_PRIORITY.
+                alignment: end
+            }
+            layout {
+                sequence: 180
+                columnAlignment: end
+            }
+        )
+
+        column NEW_STATE (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NEW_STATE.
+            }
+            layout {
+                sequence: 140
+            }
+        )
+
+        column NEW_STATE_CODE (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NEW_STATE_CODE.
+            }
+            layout {
+                sequence: 130
+            }
+        )
+
+        column OLD_ACTUAL_OWNER (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OLD_ACTUAL_OWNER.
+            }
+            layout {
+                sequence: 150
+            }
+        )
+
+        column OLD_DUE_ON (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OLD_DUE_ON.
+            }
+            layout {
+                sequence: 190
+            }
+        )
+
+        column OLD_PRIORITY (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OLD_PRIORITY.
+                alignment: end
+            }
+            layout {
+                sequence: 170
+                columnAlignment: end
+            }
+        )
+
+        column OLD_STATE (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OLD_STATE.
+            }
+            layout {
+                sequence: 120
+            }
+        )
+
+        column OLD_STATE_CODE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OLD_STATE_CODE.
+            }
+            layout {
+                sequence: 110
+            }
+        )
+
+        column OUTCOME (
+            reportColumnQueryId: 27
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OUTCOME.
+            }
+            layout {
+                sequence: 270
+            }
+        )
+
+        column OUTCOME_CODE (
+            reportColumnQueryId: 21
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OUTCOME_CODE.
+            }
+            layout {
+                sequence: 210
+            }
+        )
+
+        column PARTICIPANT_CHANGED_REASON (
+            reportColumnQueryId: 29
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PARTICIPANT_CHANGED_REASON.
+            }
+            layout {
+                sequence: 290
+            }
+        )
+
+        column SUCCESS_MSG (
+            reportColumnQueryId: 25
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$SUCCESS_MSG.
+            }
+            layout {
+                sequence: 250
+            }
+        )
+
+        column TASK_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+        )
+
+        column WORKING_COPY_NAME (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKING_COPY_NAME.
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column WORKSPACE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKSPACE.
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column WORKSPACE_DISPLAY_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKSPACE_DISPLAY_NAME.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+    )
+
+    region apex-task-overview (
+        name: apex_task_overview
+        title: &APP_TEXT$SINGLE_TASK_OVERVIEW.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select *
+                  from EPROMHQ.TASK_FULL_DETAILS_LOG
+                
+                where task_id=:P90_TASK_ID
+                
+                ```
+            pageItemsToSubmit: P90_TASK_ID
+        }
+        layout {
+            sequence: 30
+            parentRegion: @single-task-search
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column ACTUAL_OWNER (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ACTUAL_OWNER.
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column APPLICATION_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 50
+                columnAlignment: end
+            }
+        )
+
+        column APPLICATION_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_NAME.
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column CREATED_BY (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CREATED_BY.
+            }
+            layout {
+                sequence: 120
+            }
+        )
+
+        column CREATED_ON (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CREATED_ON.
+            }
+            layout {
+                sequence: 160
+            }
+        )
+
+        column INITIATOR (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$INITIATOR.
+            }
+            layout {
+                sequence: 90
+            }
+        )
+
+        column LOG_AT (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LOG_AT.
+            }
+            layout {
+                sequence: 170
+            }
+        )
+
+        column OUTCOME (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OUTCOME.
+            }
+            layout {
+                sequence: 110
+            }
+        )
+
+        column SUBJECT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$SUBJECT.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+        column TASK_DEF_STATIC_ID (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_DEF_STATIC_ID.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column TASK_HISTORY_DATA (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_HISTORY_DATA.
+            }
+            layout {
+                sequence: 130
+            }
+        )
+
+        column TASK_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+        )
+
+        column TASK_PARAMETERS_DATA (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_PARAMETERS_DATA.
+            }
+            layout {
+                sequence: 140
+            }
+        )
+
+        column TASK_PARTICIPANTS_DATA (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_PARTICIPANTS_DATA.
+            }
+            layout {
+                sequence: 150
+            }
+        )
+
+    )
+
+    region apex-task-parameters (
+        name: apex_task_parameters
+        title: &APP_TEXT$APEXTASKPARAMETERS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select * from apex_task_parameters
+                where task_id=:P90_TASK_ID
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @single-task-search
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column APPLICATION_ID (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 50
+                columnAlignment: end
+            }
+        )
+
+        column APPLICATION_NAME (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_NAME.
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column IS_REQUIRED (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$IS_REQUIRED.
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column IS_UPDATABLE (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$IS_UPDATABLE.
+            }
+            layout {
+                sequence: 120
+            }
+        )
+
+        column IS_VISIBLE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$IS_VISIBLE.
+            }
+            layout {
+                sequence: 110
+            }
+        )
+
+        column PARAM_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PARAM_LABEL.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+        column PARAM_STATIC_ID (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PARAM_STATIC_ID.
+            }
+            layout {
+                sequence: 90
+            }
+        )
+
+        column PARAM_VALUE (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PARAM_VALUE.
+            }
+            layout {
+                sequence: 130
+            }
+        )
+
+        column TASK_DEF_PARAM_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_DEF_PARAM_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 20
+                columnAlignment: end
+            }
+        )
+
+        column TASK_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+        )
+
+        column WORKING_COPY_NAME (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKING_COPY_NAME.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column WORKSPACE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKSPACE.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column WORKSPACE_DISPLAY_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKSPACE_DISPLAY_NAME.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+    )
+
+    region apex-task-participants (
+        name: apex_task_participants
+        title: &APP_TEXT$APEXTASKPARTICIPANTS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select * from apex_task_participants
+                where task_id=:P90_TASK_ID
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @single-task-search
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column APPLICATION_ID (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 40
+                columnAlignment: end
+            }
+        )
+
+        column APPLICATION_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_NAME.
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column IDENTITY_TYPE (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$IDENTITY_TYPE.
+            }
+            layout {
+                sequence: 90
+            }
+        )
+
+        column PARTICIPANT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PARTICIPANT.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column PARTICIPANT_TYPE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PARTICIPANT_TYPE.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+        column TASK_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+        )
+
+        column WORKING_COPY_NAME (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKING_COPY_NAME.
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column WORKSPACE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKSPACE.
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column WORKSPACE_DISPLAY_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKSPACE_DISPLAY_NAME.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+    )
+
+    region apex-tasks (
+        name: apex_tasks
+        title: &APP_TEXT$APEXTASKS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select * from apex_tasks
+                where task_id=:P90_TASK_ID
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @single-task-search
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column ACTUAL_OWNER (
+            reportColumnQueryId: 22
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ACTUAL_OWNER.
+            }
+            layout {
+                sequence: 220
+            }
+        )
+
+        column APPLICATION_ID (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 60
+                columnAlignment: end
+            }
+        )
+
+        column APPLICATION_NAME (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICATION_NAME.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column CREATED_BY (
+            reportColumnQueryId: 29
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CREATED_BY.
+            }
+            layout {
+                sequence: 290
+            }
+        )
+
+        column CREATED_ON (
+            reportColumnQueryId: 30
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CREATED_ON.
+            }
+            layout {
+                sequence: 300
+            }
+        )
+
+        column DETAIL_PK (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DETAIL_PK.
+            }
+            layout {
+                sequence: 190
+            }
+        )
+
+        column DUE_ON (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DUE_ON.
+            }
+            layout {
+                sequence: 160
+            }
+        )
+
+        column INITIATOR (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$INITIATOR.
+            }
+            layout {
+                sequence: 200
+            }
+        )
+
+        column INITIATOR_CAN_COMPLETE (
+            reportColumnQueryId: 21
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$INITIATOR_CAN_COMPLETE.
+            }
+            layout {
+                sequence: 210
+            }
+        )
+
+        column LAST_UPDATED_BY (
+            reportColumnQueryId: 31
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+            }
+            layout {
+                sequence: 310
+            }
+        )
+
+        column LAST_UPDATED_ON (
+            reportColumnQueryId: 32
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_ON.
+            }
+            layout {
+                sequence: 320
+            }
+        )
+
+        column OUTCOME (
+            reportColumnQueryId: 28
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OUTCOME.
+            }
+            layout {
+                sequence: 280
+            }
+        )
+
+        column OUTCOME_CODE (
+            reportColumnQueryId: 27
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OUTCOME_CODE.
+            }
+            layout {
+                sequence: 270
+            }
+        )
+
+        column PREVIOUS_OWNER (
+            reportColumnQueryId: 23
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PREVIOUS_OWNER.
+            }
+            layout {
+                sequence: 230
+            }
+        )
+
+        column PREVIOUS_TASK_ID (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PREVIOUS_TASK_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 120
+                columnAlignment: end
+            }
+        )
+
+        column PRIORITY (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PRIORITY.
+                alignment: end
+            }
+            layout {
+                sequence: 170
+                columnAlignment: end
+            }
+        )
+
+        column PRIORITY_LEVEL (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PRIORITY_LEVEL.
+            }
+            layout {
+                sequence: 180
+            }
+        )
+
+        column RENEWAL_COUNT (
+            reportColumnQueryId: 26
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$RENEWAL_COUNT.
+                alignment: end
+            }
+            layout {
+                sequence: 260
+                columnAlignment: end
+            }
+        )
+
+        column STATE (
+            reportColumnQueryId: 25
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$STATE.
+            }
+            layout {
+                sequence: 250
+            }
+        )
+
+        column STATE_CODE (
+            reportColumnQueryId: 24
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$STATE_CODE.
+            }
+            layout {
+                sequence: 240
+            }
+        )
+
+        column SUBJECT (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$SUBJECT.
+            }
+            layout {
+                sequence: 130
+            }
+        )
+
+        column TASK_DEF_ID (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_DEF_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 90
+                columnAlignment: end
+            }
+        )
+
+        column TASK_DEF_NAME (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_DEF_NAME.
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column TASK_DEF_STATIC_ID (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_DEF_STATIC_ID.
+            }
+            layout {
+                sequence: 110
+            }
+        )
+
+        column TASK_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+        )
+
+        column TASK_TYPE (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_TYPE.
+            }
+            layout {
+                sequence: 150
+            }
+        )
+
+        column TASK_TYPE_CODE (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TASK_TYPE_CODE.
+            }
+            layout {
+                sequence: 140
+            }
+        )
+
+        column WORKFLOW_ID (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKFLOW_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 30
+                columnAlignment: end
+            }
+        )
+
+        column WORKING_COPY_NAME (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKING_COPY_NAME.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+        column WORKSPACE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKSPACE.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column WORKSPACE_DISPLAY_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKSPACE_DISPLAY_NAME.
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column WORKSPACE_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WORKSPACE_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 20
+                columnAlignment: end
+            }
+        )
+
+    )
+
+    region single-task-search (
+        name: single task search
+        title: &APP_TEXT$SINGLE_TASK_SEARCH.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    pageItem P90_TASK_ID (
+        type: textField
+        label {
+            label: &APP_TEXT$TASK_ID.
+            alignment: left
+        }
+        settings {
+            submitWhenEnterPressed: true
+        }
+        layout {
+            sequence: 10
+            region: @single-task-search
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    button cancel-task (
+        buttonName: cancel_task
+        label: &APP_TEXT$CANCEL_TASK.
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: "&{TASK_P90_TASK_ID_HAS_BEEN_CANCELLED P90_TASK_ID=&P90_TASK_ID.}."
+        }
+    )
+
+    button full-task-log (
+        buttonName: full_task_log
+        label: &APP_TEXT$FULL_TASK_LOG.
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--iconLeft
+                t-Button--stretch
+                t-Button--gapBottom
+            ]
+            icon: fa-list-ul
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 91
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button submit (
+        buttonName: submit
+        label: &APP_TEXT$SUBMIT.
+        layout {
+            sequence: 10
+            region: @single-task-search
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process approve (
+        name: approve
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    apex_human_task.approve_task(
+                        p_task_id => :P90_TASK_ID);
+                END;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 75288400857913719
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                            apex_session.create_session(p_app_id => 105, p_page_id => 1, p_username => '3199');  
+                  apex_approval.cancel_task(p_task_id => :P90_TASK_ID);
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 33233787771096410
+        }
+        serverSideCondition {
+            whenButtonPressed: @cancel-task
+        }
+    )
+
+)

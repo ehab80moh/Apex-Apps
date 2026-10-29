@@ -1,0 +1,1732 @@
+page 705 (
+    name: request-details
+    alias: IT-REQUEST-DETAILS
+    title: &APP_TEXT$ITR_PAGE705_TITLE.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            function p705ResizeNotes(textarea) {
+                textarea.style.height = "auto";
+                textarea.style.height = textarea.scrollHeight + "px";
+            }
+            
+            apex.jQuery(function ($) {
+                const selector = ".p705-notes-field textarea";
+                $(selector).each(function () {
+                    p705ResizeNotes(this);
+                });
+                $(document).on("input", selector, function () {
+                    p705ResizeNotes(this);
+                });
+            });
+            ```
+    }
+    css {
+        inline:
+            ```css
+            .t-Region.p705-shell {
+                border: 1px solid rgba(15, 118, 110, .12);
+                border-radius: 16px;
+                box-shadow: 0 10px 30px rgba(15, 23, 42, .08);
+                overflow: hidden;
+                background: #fff;
+            }
+            .p705-shell .t-Region-header {
+                background: linear-gradient(135deg, #0f766e, #155e75);
+                color: #fff;
+                border: 0;
+            }
+            .p705-shell .t-Region-title {
+                font-weight: 700;
+                letter-spacing: .01em;
+            }
+            .p705-shell .t-Form-label {
+                font-weight: 700;
+                color: #334155;
+            }
+            .p705-shell .t-Form-inputContainer,
+            .p705-shell .display_only {
+                color: #0f172a;
+            }
+            .p705-summary-item {
+                padding-block: .25rem;
+            }
+            .p705-status-item .display_only,
+            .p705-criticality-item .display_only {
+                display: inline-flex;
+                align-items: center;
+                min-height: 2.25rem;
+                padding: .4rem .85rem;
+                border-radius: 999px;
+                font-weight: 800;
+                background: #ecfdf5;
+                color: #0f766e;
+                border: 1px solid #a7f3d0;
+            }
+            .p705-request-card .t-Region-body {
+                padding: .8rem 1rem;
+                background: linear-gradient(180deg, #fff 0%, #f8fafc 160%);
+            }
+            .p705-request-card .p705-meta-item {
+                margin-block: .2rem;
+                padding: .45rem .65rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                background: #f8fafc;
+            }
+            .p705-request-card .p705-meta-item .t-Form-label {
+                color: #64748b;
+                font-size: .78rem;
+            }
+            .p705-request-card .p705-meta-item .display_only {
+                font-size: .98rem;
+                font-weight: 700;
+            }
+            .p705-request-card .p705-description-item .display_only {
+                display: block;
+                min-height: 3.25rem;
+                padding: .7rem .85rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                background: #fff;
+                line-height: 1.6;
+                white-space: pre-wrap;
+            }
+            .p705-action-bar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: .6rem;
+                justify-content: flex-end;
+                padding: .75rem;
+                background: #f8fafc;
+                border-top: 1px solid #e2e8f0;
+            }
+            .p705-action-bar .t-Button {
+                border-radius: 999px;
+                font-weight: 700;
+            }
+            .p705-coordinator-card {
+                border-inline-start: 4px solid #0f766e !important;
+            }
+            .p705-team-suggestion .display_only {
+                display: flex;
+                align-items: center;
+                min-height: 3rem;
+                padding: .75rem 1rem;
+                border: 1px solid #99f6e4;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+                color: #115e59;
+                font-size: 1.05rem;
+                font-weight: 800;
+            }
+            .p705-notes-field textarea {
+                width: 100%;
+                min-height: 4.5rem;
+                overflow-y: hidden;
+                resize: vertical !important;
+                border-radius: 12px;
+                line-height: 1.5;
+            }
+            .p705-shell .t-Region-body {
+                padding-block: .65rem;
+            }
+            .p705-shell .t-Form-fieldContainer {
+                margin-block-end: .35rem;
+            }
+            .p705-shell :focus-visible {
+                outline: 3px solid rgba(14, 165, 233, .35);
+                outline-offset: 2px;
+            }
+            [dir="rtl"] .p705-action-bar {
+                justify-content: flex-start;
+            }
+            @media (max-width: 640px) {
+                .p705-shell .t-Form-fieldContainer {
+                    grid-column: 1 / -1 !important;
+                }
+                .p705-action-bar .t-Button {
+                    flex: 1 1 100%;
+                }
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Actions
+        type: staticContent
+        layout {
+            sequence: 50
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+            cssClasses: p705-action-bar
+        }
+    )
+
+    region cancel-request-dialog (
+        name: Cancel Request
+        title: Cancel IT Request
+        type: staticContent
+        layout {
+            sequence: 35
+            slot: contentBody
+        }
+        appearance {
+            template: @inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-size600x400
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            htmlDomId: p705_cancel_request_dialog
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: itr_request_action_pkg.can_perform('CANCEL', :P705_REQUEST_ID, :P705_TASK_ID, :APP_USER)
+        }
+    )
+
+    region cancel-request-dialog-buttons (
+        name: Cancel Request Dialog Buttons
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @cancel-request-dialog
+            slot: regionBody
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region comments-region (
+        name: Comments & Notes
+        title: &APP_TEXT$ITR_PAGE705_COMMENTS_NOTES.
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+            cssClasses: p705-shell
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: (:P705_IS_COORDINATOR = 'Y' and :P705_REQUEST_ID is not null and :P705_STATUS not in (140, 150, 160)) or ((:P705_IS_TEAM_MEMBER = 'Y' or :P705_T_ID = 'ITR_USER_VERIFICATION') and :P705_T_ID in ('ITR_COORDINATOR_TRIAGE', 'ITR_TEAM_LEADER_ASSIGNMENT', 'ITR_TECHNICIAN_WORK', 'ITR_USER_VERIFICATION'))
+        }
+    )
+
+    region coordinator-actions (
+        name: Coordinator Assignment & Actions
+        title: &APP_TEXT$ITR_PAGE705_COORDINATOR_ACTIONS.
+        type: staticContent
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent1
+            ]
+            cssClasses: [
+                p705-shell
+                p705-coordinator-card
+            ]
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P705_IS_COORDINATOR = 'Y' and :P705_TASK_ID is not null and :P705_T_ID = 'ITR_COORDINATOR_TRIAGE'
+        }
+    )
+
+    region hidden-items (
+        name: Hidden Items
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region request-info (
+        name: Request Information
+        title: &APP_TEXT$ITR_PAGE705_REQUEST_INFO.
+        type: form
+        source {
+            location: localDatabase
+            tableName: ITR_REQUESTS
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+            cssClasses: [
+                p705-shell
+                p705-request-card
+            ]
+        }
+    )
+
+    region team-leader-actions (
+        name: Team Leader Assignment
+        title: "&{Team_Leader_Assignment}."
+        type: staticContent
+        layout {
+            sequence: 45
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent1
+            ]
+            cssClasses: p705-shell
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P705_IS_TEAM_LEADER = 'Y' and :P705_TASK_ID is not null and :P705_T_ID = 'ITR_TEAM_LEADER_ASSIGNMENT'
+        }
+    )
+
+    pageItem P705_ASSIGNED_TEAM_ID (
+        type: selectList
+        label {
+            label: &APP_TEXT$ITR_PAGE705_ASSIGN_TEAM.
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery: select name as d, id as r from ITR_TEAMS order by name
+        }
+        layout {
+            sequence: 20
+            region: @coordinator-actions
+            slot: regionBody
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @request-info
+            column: ASSIGNED_TEAM_ID
+            dataType: number
+        }
+    )
+
+    pageItem P705_ASSIGNED_TO (
+        type: selectList
+        label {
+            label: &APP_TEXT$ITR_PAGE705_ASSIGN_MEMBER.
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select coalesce(hr.emp_name, tm.member_name, tm.username)
+                       || ' (' || tm.username || ')' as d,
+                       tm.username as r
+                  from ITR_TEAM_MEMBERS tm
+                  left join CENTRAL.XXAPEX_HR_EMP_DATA hr
+                    on to_char(hr.emp_number) = to_char(tm.username)
+                 where tm.team_id = :P705_ASSIGNED_TEAM_ID
+                 order by coalesce(hr.emp_name, tm.member_name, tm.username)
+                ```
+        }
+        cascadingLov {
+            parentItems: P705_ASSIGNED_TEAM_ID
+            itemsToSubmit: P705_ASSIGNED_TEAM_ID
+        }
+        layout {
+            sequence: 30
+            region: @team-leader-actions
+            slot: regionBody
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @request-info
+            column: ASSIGNED_TO
+            dataType: varchar2
+        }
+    )
+
+    pageItem P705_CANCEL_REASON (
+        type: textarea
+        label {
+            label: Cancellation Reason
+        }
+        layout {
+            sequence: 10
+            region: @cancel-request-dialog
+            slot: regionBody
+            columnSpan: 12
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    pageItem P705_CRITICALITY (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @hidden-items
+            slot: regionBody
+        }
+        source {
+            formRegion: @request-info
+            column: CRITICALITY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P705_CRITICALITY_LABEL (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ITR_PAGE705_CRITICALITY.
+        }
+        layout {
+            sequence: 20
+            region: @request-info
+            slot: regionBody
+            startNewRow: false
+            columnSpan: 6
+            columnCssClasses: [
+                p705-summary-item
+                p705-criticality-item
+            ]
+        }
+    )
+
+    pageItem P705_DESCRIPTION (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ITR_PAGE705_DESCRIPTION.
+        }
+        layout {
+            sequence: 70
+            region: @request-info
+            slot: regionBody
+            columnSpan: 12
+            columnCssClasses: p705-description-item
+        }
+        source {
+            formRegion: @request-info
+            column: DESCRIPTION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P705_EMP_BUILDING (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ITR_PAGE705_BUILDING.
+        }
+        layout {
+            sequence: 50
+            region: @request-info
+            slot: regionBody
+            columnSpan: 6
+            columnCssClasses: p705-meta-item
+        }
+        source {
+            formRegion: @request-info
+            column: EMP_BUILDING
+            dataType: varchar2
+        }
+    )
+
+    pageItem P705_EMP_ID (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ITR_PAGE705_REQUESTER.
+        }
+        layout {
+            sequence: 30
+            region: @request-info
+            slot: regionBody
+            columnSpan: 6
+            columnCssClasses: p705-meta-item
+        }
+        source {
+            formRegion: @request-info
+            column: EMP_ID
+            dataType: varchar2
+        }
+    )
+
+    pageItem P705_EMP_INTERNAL_NUMBER (
+        type: displayOnly
+        label {
+            label: الرقم الداخلي
+        }
+        layout {
+            sequence: 65
+            region: @request-info
+            slot: regionBody
+            columnSpan: 6
+            columnCssClasses: p705-meta-item
+        }
+        source {
+            formRegion: @request-info
+            column: EMP_INTERNAL_NUMBER
+            dataType: varchar2
+        }
+    )
+
+    pageItem P705_EMP_ROOM (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ITR_PAGE705_ROOM.
+        }
+        layout {
+            sequence: 60
+            region: @request-info
+            slot: regionBody
+            startNewRow: false
+            columnSpan: 6
+            columnCssClasses: p705-meta-item
+        }
+        source {
+            formRegion: @request-info
+            column: EMP_ROOM
+            dataType: varchar2
+        }
+    )
+
+    pageItem P705_IS_COORDINATOR (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @hidden-items
+            slot: regionBody
+        }
+    )
+
+    pageItem P705_IS_TEAM_LEADER (
+        type: hidden
+        layout {
+            sequence: 25
+            region: @hidden-items
+            slot: regionBody
+        }
+    )
+
+    pageItem P705_IS_TEAM_MEMBER (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @hidden-items
+            slot: regionBody
+        }
+    )
+
+    pageItem P705_IT_NOTE (
+        type: textarea
+        label {
+            label: &APP_TEXT$ITR_PAGE705_INTERNAL_NOTE.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @comments-region
+            slot: regionBody
+            alignment: left
+            columnSpan: 12
+            columnCssClasses: p705-notes-field
+        }
+        appearance {
+            height: 4
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @request-info
+            column: IT_NOTE
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P705_IS_COORDINATOR = 'Y' and  :P705_T_ID = 'ITR_COORDINATOR_TRIAGE'
+        }
+    )
+
+    pageItem P705_PREV_WORKER_DISPLAY (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ITR_PAGE705_PREVIOUS_WORKER.
+        }
+        layout {
+            sequence: 40
+            region: @coordinator-actions
+            slot: regionBody
+            columnSpan: 12
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P705_PREV_WORKER_USERNAME is not null and :P705_T_ID = 'ITR_TECHNICIAN_WORK'
+        }
+    )
+
+    pageItem P705_PREV_WORKER_NAME (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @hidden-items
+            slot: regionBody
+        }
+    )
+
+    pageItem P705_PREV_WORKER_USERNAME (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @hidden-items
+            slot: regionBody
+        }
+    )
+
+    pageItem P705_REQUEST_DATE (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ITR_PAGE705_REQUEST_DATE.
+        }
+        layout {
+            sequence: 40
+            region: @request-info
+            slot: regionBody
+            startNewRow: false
+            columnSpan: 6
+            columnCssClasses: p705-meta-item
+        }
+        source {
+            formRegion: @request-info
+            column: REQUEST_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P705_REQUEST_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @hidden-items
+            slot: regionBody
+        }
+        source {
+            formRegion: @request-info
+            column: REQUEST_ID
+            dataType: number
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P705_REQUEST_NO (
+        type: hidden
+        layout {
+            sequence: 70
+            region: @hidden-items
+            slot: regionBody
+        }
+        source {
+            formRegion: @request-info
+            column: REQUEST_NO
+            dataType: number
+        }
+    )
+
+    pageItem P705_STATUS (
+        type: hidden
+        layout {
+            sequence: 60
+            region: @hidden-items
+            slot: regionBody
+        }
+        source {
+            formRegion: @request-info
+            column: STATUS
+            dataType: number
+        }
+    )
+
+    pageItem P705_STATUS_LABEL (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ITR_PAGE705_STATUS.
+        }
+        layout {
+            sequence: 10
+            region: @request-info
+            slot: regionBody
+            columnSpan: 6
+            columnCssClasses: [
+                p705-summary-item
+                p705-status-item
+            ]
+        }
+    )
+
+    pageItem P705_SUGGESTED_TEAM_ID (
+        type: hidden
+        layout {
+            sequence: 80
+            region: @hidden-items
+            slot: regionBody
+        }
+        source {
+            formRegion: @request-info
+            column: SUGGESTED_TEAM_ID
+            dataType: number
+        }
+    )
+
+    pageItem P705_SUGGESTED_TEAM_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ITR_PAGE705_SUGGESTED_TEAM.
+        }
+        layout {
+            sequence: 10
+            region: @coordinator-actions
+            slot: regionBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+            cssClasses: p705-team-suggestion
+        }
+    )
+
+    pageItem P705_TASK_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @hidden-items
+            slot: regionBody
+        }
+    )
+
+    pageItem P705_TECH_COMMENT (
+        type: textarea
+        label {
+            label: &APP_TEXT$ITR_PAGE705_TECH_COMMENT.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @comments-region
+            slot: regionBody
+            alignment: left
+            columnSpan: 12
+            columnCssClasses: p705-notes-field
+        }
+        appearance {
+            height: 4
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @request-info
+            column: TECH_COMMENT
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: (:P705_T_ID = 'ITR_TECHNICIAN_WORK' and :P705_IS_TEAM_MEMBER = 'Y') or (:P705_T_ID = 'ITR_USER_VERIFICATION' and :P705_EMP_ID = :APP_USER)
+        }
+        readOnly {
+            type: item=value
+            item: P705_T_ID
+            value: ITR_USER_VERIFICATION
+        }
+    )
+
+    pageItem P705_T_ID (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @hidden-items
+            slot: regionBody
+        }
+    )
+
+    pageItem P705_USER_COMMENT (
+        type: textarea
+        label {
+            label: &APP_TEXT$ITR_PAGE705_USER_COMMENT.
+        }
+        layout {
+            sequence: 10
+            region: @comments-region
+            slot: regionBody
+            columnSpan: 12
+            columnCssClasses: p705-notes-field
+        }
+        appearance {
+            height: 4
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @request-info
+            column: USER_COMMENT
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P705_T_ID = 'ITR_USER_VERIFICATION' and :P705_EMP_ID = :APP_USER
+        }
+    )
+
+    button assign (
+        buttonName: ASSIGN
+        label: &APP_TEXT$ITR_PAGE705_ASSIGN_TRANSFER.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-share-alt
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: itr_request_action_pkg.can_perform('ASSIGN_TEAM', :P705_REQUEST_ID, :P705_TASK_ID, :APP_USER)
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$ITR_PAGE705_CLOSE.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-times
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button claim (
+        buttonName: CLAIM
+        label: &APP_TEXT$ITR_PAGE705_CLAIM.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-hand-paper-o
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: itr_request_action_pkg.can_perform('CLAIM', :P705_REQUEST_ID, :P705_TASK_ID, :APP_USER)
+        }
+    )
+
+    button close-cancel-dialog (
+        buttonName: CLOSE_CANCEL_DIALOG
+        label: Close
+        layout {
+            sequence: 10
+            region: @cancel-request-dialog-buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-times
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button confirm-cancel (
+        buttonName: CONFIRM_CANCEL
+        label: Confirm Cancellation
+        layout {
+            sequence: 20
+            region: @cancel-request-dialog-buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--iconLeft
+            ]
+            icon: fa-ban
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Cancel this IT request? This action cannot be undone.
+            style: danger
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: itr_request_action_pkg.can_perform('CANCEL', :P705_REQUEST_ID, :P705_TASK_ID, :APP_USER)
+        }
+    )
+
+    button coordinator-cancel (
+        buttonName: COORDINATOR_CANCEL
+        label: "&{Cancel_Request}."
+        layout {
+            sequence: 80
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-ban
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: itr_request_action_pkg.can_perform('CANCEL', :P705_REQUEST_ID, :P705_TASK_ID, :APP_USER)
+        }
+    )
+
+    button coordinator_complete (
+        buttonName: COORDINATOR_COMPLETE
+        label: &APP_TEXT$ITR_PAGE705_FORCE_COMPLETE.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-bolt
+        }
+        behavior {
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Are you sure you want to complete this request without user verification?
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: itr_request_action_pkg.can_perform('COMPLETE_COORDINATOR', :P705_REQUEST_ID, :P705_TASK_ID, :APP_USER)
+        }
+    )
+
+    button finish (
+        buttonName: FINISH
+        label: &APP_TEXT$ITR_PAGE705_FINISH.
+        layout {
+            sequence: 50
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-check-circle
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: itr_request_action_pkg.can_perform('FINISH', :P705_REQUEST_ID, :P705_TASK_ID, :APP_USER)
+        }
+    )
+
+    button leader_assign (
+        buttonName: LEADER_ASSIGN
+        label: "&{Assign_to_Team_Member}."
+        layout {
+            sequence: 25
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-user-plus
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: itr_request_action_pkg.can_perform('ASSIGN_MEMBER', :P705_REQUEST_ID, :P705_TASK_ID, :APP_USER)
+        }
+    )
+
+    button user_complete (
+        buttonName: USER_COMPLETE
+        label: &APP_TEXT$ITR_PAGE705_CONFIRM_COMPLETED.
+        layout {
+            sequence: 60
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-check-circle
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: itr_request_action_pkg.can_perform('COMPLETE_REQUESTER', :P705_REQUEST_ID, :P705_TASK_ID, :APP_USER)
+        }
+    )
+
+    button user_on_hold (
+        buttonName: USER_ON_HOLD
+        label: &APP_TEXT$ITR_PAGE705_ON_HOLD.
+        layout {
+            sequence: 70
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-pause
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: itr_request_action_pkg.can_perform('HOLD_REQUESTER', :P705_REQUEST_ID, :P705_TASK_ID, :APP_USER)
+        }
+    )
+
+    dynamicAction cancel-dialog (
+        name: Cancel Dialog
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancel
+        }
+
+        action native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-cancel-request-dialog (
+        name: Close Cancel Request Dialog
+        execution {
+            sequence: 30
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-cancel-dialog
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @cancel-request-dialog
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction open-cancel-request-dialog (
+        name: Open Cancel Request Dialog
+        execution {
+            sequence: 20
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @coordinator-cancel
+        }
+
+        action native-open-region (
+            action: openRegion
+            affectedElements {
+                selectionType: region
+                region: @cancel-request-dialog
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    validation assigned-member-required (
+        name: Assigned member is required
+        execution {
+            sequence: 40
+        }
+        validation {
+            type: itemIsNotNull
+            item: P705_ASSIGNED_TO
+        }
+        error {
+            errorMessage: Select a team member before assigning this request.
+            displayLocation: inlineWithField
+            associatedItem: @P705_ASSIGNED_TO
+        }
+        serverSideCondition {
+            whenButtonPressed: @leader_assign
+        }
+    )
+
+    validation assigned-team-required (
+        name: Assigned team is required
+        execution {
+            sequence: 30
+        }
+        validation {
+            type: itemIsNotNull
+            item: P705_ASSIGNED_TEAM_ID
+        }
+        error {
+            errorMessage: Select a team before assigning this request.
+            displayLocation: inlineWithField
+            associatedItem: @P705_ASSIGNED_TEAM_ID
+        }
+        serverSideCondition {
+            whenButtonPressed: @assign
+        }
+    )
+
+    validation cancel-reason-length (
+        name: Cancellation reason maximum length
+        execution {
+            sequence: 20
+        }
+        validation {
+            plsqlExpression: LENGTH(:P705_CANCEL_REASON) <= 500
+        }
+        error {
+            errorMessage: Cancellation reason cannot exceed 500 characters.
+            associatedItem: @P705_CANCEL_REASON
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-cancel
+        }
+    )
+
+    validation cancel-reason-required (
+        name: Cancellation reason is required
+        execution {
+            sequence: 10
+        }
+        validation {
+            plsqlExpression: TRIM(:P705_CANCEL_REASON) IS NOT NULL
+        }
+        error {
+            errorMessage: Cancellation reason is required.
+            associatedItem: @P705_CANCEL_REASON
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-cancel
+        }
+    )
+
+    validation it-note-length (
+        name: IT note maximum length
+        execution {
+            sequence: 50
+        }
+        validation {
+            plsqlExpression: LENGTH(:P705_IT_NOTE) <= 500
+        }
+        error {
+            errorMessage: IT note cannot exceed 500 characters.
+            displayLocation: inlineWithField
+            associatedItem: @P705_IT_NOTE
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :REQUEST IN ('ASSIGN', 'COORDINATOR_COMPLETE')
+        }
+    )
+
+    validation requester-comment-length (
+        name: Requester comment maximum length
+        execution {
+            sequence: 70
+        }
+        validation {
+            plsqlExpression: LENGTH(:P705_USER_COMMENT) <= 500
+        }
+        error {
+            errorMessage: Requester comment cannot exceed 500 characters.
+            displayLocation: inlineWithField
+            associatedItem: @P705_USER_COMMENT
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :REQUEST IN ('USER_COMPLETE', 'USER_ON_HOLD')
+        }
+    )
+
+    validation technician-comment-length (
+        name: Technician comment maximum length
+        execution {
+            sequence: 60
+        }
+        validation {
+            plsqlExpression: LENGTH(:P705_TECH_COMMENT) <= 500
+        }
+        error {
+            errorMessage: Technician comment cannot exceed 500 characters.
+            displayLocation: inlineWithField
+            associatedItem: @P705_TECH_COMMENT
+        }
+        serverSideCondition {
+            whenButtonPressed: @finish
+        }
+    )
+
+    process cancel-it-request-workflow (
+        name: Cancel IT request workflow
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    itr_request_action_pkg.cancel_by_coordinator(
+                        p_request_id => :P705_REQUEST_ID,
+                        p_task_id    => :P705_TASK_ID,
+                        p_reason     => :P705_CANCEL_REASON,
+                        p_actor      => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 50765428548441705
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-cancel
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 70
+        }
+        advanced {
+            executionMappingIdentifier: 34427601145321383
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :REQUEST in ('ASSIGN', 'LEADER_ASSIGN', 'COORDINATOR_COMPLETE', 'CLAIM', 'FINISH', 'USER_COMPLETE', 'USER_ON_HOLD', 'CONFIRM_CANCEL')
+        }
+    )
+
+    process initialize-form (
+        name: Initialize Form
+        type: formInitialization
+        formRegion: @request-info
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 34426963547321383
+        }
+    )
+
+    process load-roles-and-suggestions (
+        name: Load Roles and Suggestions
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                  v_count number;
+                  v_prev_username varchar2(100);
+                  v_prev_name varchar2(200);
+                begin
+                  select count(*) into v_count
+                    from ITR_TEAM_MEMBERS tm
+                   where tm.username = :APP_USER
+                     and tm.role = 'COORDINATOR';
+                
+                  if v_count > 0 then
+                    :P705_IS_COORDINATOR := 'Y';
+                  else
+                    :P705_IS_COORDINATOR := 'N';
+                  end if;
+                
+                  if :P705_ASSIGNED_TEAM_ID is not null then
+                    select count(*) into v_count
+                      from ITR_TEAM_MEMBERS tm
+                     where tm.username = :APP_USER
+                       and tm.team_id = :P705_ASSIGNED_TEAM_ID
+                       and upper(tm.role) in ('LEADER', 'COORDINATOR');
+                
+                    if v_count > 0 then
+                      :P705_IS_TEAM_LEADER := 'Y';
+                    else
+                      :P705_IS_TEAM_LEADER := 'N';
+                    end if;
+                  else
+                    :P705_IS_TEAM_LEADER := 'N';
+                  end if;
+                
+                  if :P705_ASSIGNED_TEAM_ID is not null then
+                    select count(*) into v_count
+                      from ITR_TEAM_MEMBERS tm
+                     where tm.username = :APP_USER
+                       and tm.team_id = :P705_ASSIGNED_TEAM_ID;
+                
+                    if v_count > 0 then
+                      :P705_IS_TEAM_MEMBER := 'Y';
+                    else
+                      :P705_IS_TEAM_MEMBER := 'N';
+                    end if;
+                  else
+                    :P705_IS_TEAM_MEMBER := 'N';
+                  end if;
+                
+                  begin
+                    select name
+                      into :P705_SUGGESTED_TEAM_NAME
+                      from ITR_TEAMS
+                     where id = :P705_SUGGESTED_TEAM_ID;
+                  exception
+                    when no_data_found then
+                      :P705_SUGGESTED_TEAM_NAME := null;
+                  end;
+                
+                  if :P705_STATUS = 120 then
+                    begin
+                      select worker_id into v_prev_username
+                        from (
+                            select worker_id
+                              from ITR_REQUEST_WORKERS
+                             where request_id = :P705_REQUEST_ID
+                               and status_id = 3
+                             order by start_date desc
+                        ) where rownum = 1;
+                
+                      select coalesce(hr.emp_name, tm.member_name, tm.username)
+                        into v_prev_name
+                        from ITR_TEAM_MEMBERS tm
+                        left join CENTRAL.XXAPEX_HR_EMP_DATA hr
+                          on to_char(hr.emp_number) = to_char(tm.username)
+                       where tm.username = v_prev_username
+                         and rownum = 1;
+                
+                      :P705_PREV_WORKER_USERNAME := v_prev_username;
+                      :P705_PREV_WORKER_NAME := v_prev_name;
+                      :P705_PREV_WORKER_DISPLAY := v_prev_name || ' (' || v_prev_username || ') - Previously worked on this request.';
+                    exception
+                      when no_data_found then
+                        :P705_PREV_WORKER_USERNAME := null;
+                        :P705_PREV_WORKER_NAME := null;
+                        :P705_PREV_WORKER_DISPLAY := null;
+                    end;
+                  end if;
+                
+                  :P705_STATUS_LABEL := case
+                     when :P705_STATUS = 10 then apex_lang.message('ITR_PAGE705_STATUS_PENDING_APPROVAL')
+                     when :P705_STATUS = 20 then apex_lang.message('ITR_PAGE705_STATUS_APPROVED_PENDING_ASSIGNMENT')
+                     when :P705_STATUS = 100 then apex_lang.message('ITR_PAGE705_STATUS_ASSIGNED')
+                     when :P705_STATUS = 110 then apex_lang.message('ITR_PAGE705_STATUS_IN_PROGRESS')
+                     when :P705_STATUS = 120 then apex_lang.message('ITR_PAGE705_STATUS_ON_HOLD')
+                     when :P705_STATUS = 130 then apex_lang.message('ITR_PAGE705_STATUS_AWAITING_VERIFICATION')
+                     when :P705_STATUS = 140 then apex_lang.message('ITR_PAGE705_STATUS_REJECTED')
+                     when :P705_STATUS = 150 then apex_lang.message('ITR_PAGE705_STATUS_COMPLETED')
+                     when :P705_STATUS = 160 then apex_lang.message('CANCELLED')
+                     else apex_lang.message('ITR_PAGE705_STATUS_UNKNOWN')
+                  end;
+                
+                  :P705_CRITICALITY_LABEL := case lower(trim(:P705_CRITICALITY))
+                     when 'normal' then apex_lang.message('ITR_PAGE705_PRIORITY_NORMAL')
+                     when 'urgent' then apex_lang.message('ITR_PAGE705_PRIORITY_URGENT')
+                     else :P705_CRITICALITY
+                  end;
+                end;
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 34426810848321382
+        }
+    )
+
+    process process-assign (
+        name: Process Assign
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    itr_request_action_pkg.assign_team(
+                        p_request_id => :P705_REQUEST_ID,
+                        p_task_id    => :P705_TASK_ID,
+                        p_team_id    => :P705_ASSIGNED_TEAM_ID,
+                        p_it_note    => :P705_IT_NOTE,
+                        p_actor      => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 34427033844321383
+        }
+        serverSideCondition {
+            whenButtonPressed: @assign
+        }
+    )
+
+    process process-claim (
+        name: Process Claim
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    itr_request_action_pkg.claim_request(
+                        p_request_id => :P705_REQUEST_ID,
+                        p_task_id    => :P705_TASK_ID,
+                        p_actor      => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 34427208907321383
+        }
+        serverSideCondition {
+            whenButtonPressed: @claim
+        }
+    )
+
+    process process-coordinator-complete (
+        name: Process Coordinator Complete
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    itr_request_action_pkg.complete_by_coordinator(
+                        p_request_id => :P705_REQUEST_ID,
+                        p_task_id    => :P705_TASK_ID,
+                        p_it_note    => :P705_IT_NOTE,
+                        p_actor      => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 34427107608321383
+        }
+        serverSideCondition {
+            whenButtonPressed: @coordinator_complete
+        }
+    )
+
+    process process-finish (
+        name: Process Finish
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    itr_request_action_pkg.finish_request(
+                        p_request_id   => :P705_REQUEST_ID,
+                        p_task_id      => :P705_TASK_ID,
+                        p_tech_comment => :P705_TECH_COMMENT,
+                        p_actor        => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 34427396603321383
+        }
+        serverSideCondition {
+            whenButtonPressed: @finish
+        }
+    )
+
+    process process-leader-assign (
+        name: Process Leader Assign
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    itr_request_action_pkg.assign_member(
+                        p_request_id => :P705_REQUEST_ID,
+                        p_task_id    => :P705_TASK_ID,
+                        p_assignee   => :P705_ASSIGNED_TO,
+                        p_actor      => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 34427500145321383
+        }
+        serverSideCondition {
+            whenButtonPressed: @leader_assign
+        }
+    )
+
+    process process-user-complete (
+        name: Process User Complete
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    itr_request_action_pkg.complete_by_requester(
+                        p_request_id   => :P705_REQUEST_ID,
+                        p_task_id      => :P705_TASK_ID,
+                        p_user_comment => :P705_USER_COMMENT,
+                        p_actor        => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 34427489252321383
+        }
+        serverSideCondition {
+            whenButtonPressed: @user_complete
+        }
+    )
+
+    process process-user-on-hold (
+        name: Process User On-Hold
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    itr_request_action_pkg.hold_by_requester(
+                        p_request_id   => :P705_REQUEST_ID,
+                        p_task_id      => :P705_TASK_ID,
+                        p_user_comment => :P705_USER_COMMENT,
+                        p_actor        => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 60
+        }
+        advanced {
+            executionMappingIdentifier: 34427527557321383
+        }
+        serverSideCondition {
+            whenButtonPressed: @user_on_hold
+        }
+    )
+
+    process resolve-task-context (
+        name: Resolve Task Context
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_task_id NUMBER;
+                BEGIN
+                    IF :P705_REQUEST_ID IS NULL AND :P705_TASK_ID IS NOT NULL THEN
+                        :P705_REQUEST_ID := apex_human_task.get_task_parameter_value(
+                            p_task_id          => TO_NUMBER(:P705_TASK_ID),
+                            p_param_static_id  => 'T_REQUEST_ID',
+                            p_ignore_not_found => TRUE
+                        );
+                    END IF;
+                
+                    :P705_TASK_ID := NULL;
+                    :P705_T_ID := NULL;
+                
+                    IF :P705_REQUEST_ID IS NOT NULL THEN
+                        BEGIN
+                            SELECT task_id
+                              INTO l_task_id
+                              FROM (
+                                    SELECT t.task_id
+                                      FROM apex_tasks t
+                                     WHERE t.application_id = 104
+                                       AND t.task_def_static_id = 'gen-wf-action'
+                                       AND t.detail_pk = TO_CHAR(:P705_REQUEST_ID)
+                                       AND t.state_code IN ('UNASSIGNED', 'ASSIGNED')
+                                       AND EXISTS (
+                                             SELECT 1
+                                               FROM apex_task_participants p
+                                              WHERE p.application_id = t.application_id
+                                                AND p.task_id = t.task_id
+                                                AND p.participant = :APP_USER
+                                           )
+                                     ORDER BY t.created_on DESC
+                                   )
+                             WHERE ROWNUM = 1;
+                
+                            :P705_TASK_ID := l_task_id;
+                            :P705_T_ID := apex_human_task.get_task_parameter_value(
+                                p_task_id          => l_task_id,
+                                p_param_static_id  => 'T_ID',
+                                p_ignore_not_found => TRUE
+                            );
+                        EXCEPTION
+                            WHEN NO_DATA_FOUND THEN
+                                NULL;
+                        END;
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 34427601145321384
+        }
+    )
+
+)

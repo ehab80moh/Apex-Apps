@@ -1,0 +1,790 @@
+page 701 (
+    name: IT Request
+    alias: IT-REQUEST
+    title: &APP_TEXT$IT_REQUEST_TITLE.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            html, body {
+                overflow: hidden !important;
+            }
+            .t-Dialog-body {
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+            }
+            .t-Region--accent1>.t-Region-header{
+                --ut-region-header-background-color: #415b72;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region emp-details (
+        name: &APP_TEXT$IT_REQUEST_REQUESTER_DETAILS.
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_NAME,
+                       EMP_NUMBER,
+                       EXCEL_POS,
+                       PROJECT,
+                       ORGANIZATION_NAME as ORG_NAME
+                  from central.XXAPEX_HR_EMP_DATA
+                 where emp_number = :APP_USER
+                ```
+            pageItemsToSubmit: APP_USER
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--showIcon
+                t-Region--accent1
+                t-Region--noBorder
+            ]
+            icon: fa-user
+        }
+        advanced {
+            customAttributes: style="display:none;"
+        }
+    )
+
+    region hidden-items (
+        name: Hidden Items
+        type: staticContent
+        layout {
+            sequence: 1
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+    )
+
+    region request-form (
+        name: &APP_TEXT$IT_REQUEST_DETAILS_TITLE.
+        title: &APP_TEXT$IT_REQUEST_DETAILS_TITLE.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: HQ_ELEVATED
+            tableName: ITR_REQUESTS
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @awesome-region
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: add
+        }
+    )
+
+    pageItem P701_CRITICALITY (
+        type: radioGroup
+        label {
+            label: &APP_TEXT$IT_REQUEST_CRITICALITY.
+            alignment: left
+        }
+        settings {
+            noOfCols: 2
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:&APP_TEXT$IT_REQUEST_NORMAL.;normal,&APP_TEXT$IT_REQUEST_URGENT.;urgent
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 50
+            region: @request-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            template: @optional
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: static
+            staticValue: normal
+        }
+    )
+
+    pageItem P701_DESCRIPTION (
+        type: textarea
+        label {
+            label: &APP_TEXT$IT_REQUEST_DESCRIPTION.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @request-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            height: 3
+        }
+        validation {
+            valueRequired: true
+            maxLength: 500
+        }
+    )
+
+    pageItem P701_EMP_BUILDING (
+        type: textField
+        label {
+            label: &APP_TEXT$IT_REQUEST_BUILDING.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @request-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 99
+        }
+    )
+
+    pageItem P701_EMP_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @hidden-items
+            slot: regionBody
+        }
+    )
+
+    pageItem P701_EMP_INTERNAL_NUMBER (
+        type: textField
+        label {
+            label: &APP_TEXT$IT_REQUEST_INTERNAL_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @request-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 4
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :EMP_SITE = 'EPROM_HQ_ALEX'
+        }
+    )
+
+    pageItem P701_EMP_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$IT_REQUEST_REQUESTER_NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @emp-details
+            slot: regionBody
+            alignment: left
+            columnSpan: 7
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+                margin-bottom-sm
+                t-Form-fieldContainer--normalDisplay
+            ]
+        }
+        source {
+            formRegion: @emp-details
+            column: EMP_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P701_EMP_NUMBER (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$IT_REQUEST_EMPLOYEE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @emp-details
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 5
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+                margin-bottom-sm
+                t-Form-fieldContainer--normalDisplay
+            ]
+        }
+        source {
+            formRegion: @emp-details
+            column: EMP_NUMBER
+            dataType: varchar2
+            primaryKey: true
+        }
+        default {
+            type: expression
+            plsqlExpression: :app_user
+        }
+    )
+
+    pageItem P701_EMP_ROOM (
+        type: textField
+        label {
+            label: &APP_TEXT$IT_REQUEST_ROOM.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @request-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 99
+        }
+    )
+
+    pageItem P701_MSG (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @hidden-items
+            slot: regionBody
+        }
+    )
+
+    pageItem P701_ORG_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$IT_REQUEST_DEPARTMENT.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @emp-details
+            slot: regionBody
+            alignment: left
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+                margin-bottom-sm
+                t-Form-fieldContainer--normalDisplay
+            ]
+        }
+        source {
+            formRegion: @emp-details
+            column: ORG_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P701_REQUEST_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @hidden-items
+            slot: regionBody
+        }
+    )
+
+    pageItem P701_REQUEST_TYPE (
+        type: selectList
+        label {
+            label: &APP_TEXT$IT_REQUEST_CATEGORY.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery: select name as d, id as r from HQ_ELEVATED.ITR_REQUEST_TYPES order by name
+        }
+        layout {
+            sequence: 10
+            region: @request-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P701_REQUEST_TYPE_DETAIL_ID (
+        type: selectList
+        label {
+            label: &APP_TEXT$IT_REQUEST_SUBCATEGORY.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select title as d, id as r
+                  from HQ_ELEVATED.ITR_REQUEST_TYPE_DETAILS
+                 where request_type_id = :P701_REQUEST_TYPE
+                 order by title
+                ```
+        }
+        cascadingLov {
+            parentItems: P701_REQUEST_TYPE
+            itemsToSubmit: P701_REQUEST_TYPE
+        }
+        layout {
+            sequence: 20
+            region: @request-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P701_WORKFLOW_ID (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @hidden-items
+            slot: regionBody
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$IT_REQUEST_CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button submit (
+        buttonName: SUBMIT
+        label: &APP_TEXT$IT_REQUEST_SUBMIT.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction cancel-dialog (
+        name: Cancel Dialog
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancel
+        }
+
+        action native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    validation description-length (
+        name: Validate description length
+        execution {
+            sequence: 20
+        }
+        validation {
+            plsqlExpression: LENGTH(TRIM(:P701_DESCRIPTION)) BETWEEN 5 AND 500
+        }
+        error {
+            errorMessage: &APP_TEXT$IT_REQUEST_DESCRIPTION_LENGTH_ERROR.
+            associatedItem: @P701_DESCRIPTION
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
+    validation employee-is-current-user (
+        name: Validate employee identity
+        execution {
+            sequence: 40
+        }
+        validation {
+            plsqlExpression: :P701_EMP_ID = :APP_USER
+        }
+        error {
+            errorMessage: &APP_TEXT$IT_REQUEST_EMPLOYEE_ERROR.
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
+    validation internal-extension-four-digits (
+        name: Internal extension four digits
+        execution {
+            sequence: 50
+        }
+        validation {
+            type: itemMatchesRegexp
+            item: P701_EMP_INTERNAL_NUMBER
+            regexp: "^([0-9]{4})?$"
+        }
+        error {
+            errorMessage: &APP_TEXT$IT_REQUEST_INTERNAL_NUMBER_ERROR.
+            associatedItem: @P701_EMP_INTERNAL_NUMBER
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :REQUEST = 'SUBMIT' AND :EMP_SITE = 'EPROM_HQ_ALEX'
+        }
+    )
+
+    validation valid-criticality (
+        name: Validate criticality
+        execution {
+            sequence: 30
+        }
+        validation {
+            plsqlExpression: :P701_CRITICALITY IN ('normal', 'urgent')
+        }
+        error {
+            errorMessage: &APP_TEXT$IT_REQUEST_CRITICALITY_ERROR.
+            associatedItem: @P701_CRITICALITY
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
+    validation valid-request-detail (
+        name: Validate request category
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: functionBodyReturningBoolean
+            plsqlFunctionBody:
+                ```plsql
+                DECLARE
+                    l_count NUMBER;
+                BEGIN
+                    SELECT COUNT(*)
+                      INTO l_count
+                      FROM HQ_ELEVATED.ITR_REQUEST_TYPE_DETAILS
+                     WHERE ID = :P701_REQUEST_TYPE_DETAIL_ID
+                       AND REQUEST_TYPE_ID = :P701_REQUEST_TYPE;
+                    RETURN l_count = 1;
+                END;
+                ```
+        }
+        error {
+            errorMessage: &APP_TEXT$IT_REQUEST_DETAIL_ERROR.
+            associatedItem: @P701_REQUEST_TYPE_DETAIL_ID
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 40
+        }
+        successMessage {
+            successMessage: &P701_MSG.
+        }
+        advanced {
+            executionMappingIdentifier: 834419389371321343
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
+    process enter-employee-id (
+        name: Enter employee id
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    :P701_EMP_ID := NVL(:P701_EMP_ID, :APP_USER);
+                    :P701_EMP_NUMBER := NVL(:P701_EMP_NUMBER, :APP_USER);
+                END;
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 842908881574505923
+        }
+    )
+
+    process initialize-details (
+        name: Initialize Details
+        type: formInitialization
+        formRegion: @emp-details
+        execution {
+            sequence: 30
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 834419170030321343
+        }
+    )
+
+    process new (
+        name: clear items
+        type: clearSessionState
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 49861239143843702
+        }
+    )
+
+    process start-it-request-workflow (
+        name: Start IT Request Workflow
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_workflow_id NUMBER;
+                    l_title       VARCHAR2(100);
+                BEGIN
+                    SELECT title
+                      INTO l_title
+                      FROM HQ_ELEVATED.ITR_REQUEST_TYPE_DETAILS
+                     WHERE id = :P701_REQUEST_TYPE_DETAIL_ID;
+                
+                    l_workflow_id := APEX_WORKFLOW.START_WORKFLOW(
+                        p_application_id => 104,
+                        p_static_id      => 'IT_REQUEST_WF',
+                        p_parameters     => APEX_WORKFLOW.T_WORKFLOW_PARAMETERS(
+                            1 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                static_id => 'P_EMP_ID',
+                                string_value => :P701_EMP_ID
+                            ),
+                            2 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                static_id => 'P_EMP_NAME',
+                                string_value => :P701_EMP_NAME
+                            ),
+                            3 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                static_id => 'P_REQUEST_ID',
+                                string_value => TO_CHAR(:P701_REQUEST_ID)
+                            ),
+                            4 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                static_id => 'P_REQUEST_TYPE_ID',
+                                string_value => '104'
+                            ),
+                            5 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                static_id => 'P_TITLE',
+                                string_value => l_title
+                            )
+                        ),
+                        p_initiator => :P701_EMP_ID,
+                        p_detail_pk => TO_CHAR(:P701_REQUEST_ID)
+                    );
+                
+                    :P701_WORKFLOW_ID := l_workflow_id;
+                    :P701_MSG := APEX_LANG.MESSAGE('IT_REQUEST_SUBMITTED');
+                END;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        error {
+            errorMessage: &APP_TEXT$IT_REQUEST_SUBMIT_ERROR.
+        }
+        advanced {
+            executionMappingIdentifier: 842908697773505923
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
+    process submit-request (
+        name: Submit Request
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                  v_suggested_team_id number;
+                begin
+                  select suggested_team_id into v_suggested_team_id
+                    from HQ_ELEVATED.ITR_REQUEST_TYPE_DETAILS
+                   where id = :P701_REQUEST_TYPE_DETAIL_ID;
+                
+                  insert into HQ_ELEVATED.ITR_REQUESTS (
+                    description,
+                    request_date,
+                    request_type,
+                    request_type_detail_id,
+                    emp_id,
+                    status,
+                    emp_building,
+                    emp_room,
+                    emp_internal_number,
+                    criticality,
+                    suggested_team_id
+                  ) values (
+                    :P701_DESCRIPTION,
+                    sysdate,
+                    :P701_REQUEST_TYPE,
+                    :P701_REQUEST_TYPE_DETAIL_ID,
+                    :APP_USER,
+                    10, -- Pending Approval
+                    :P701_EMP_BUILDING,
+                    :P701_EMP_ROOM,
+                    :P701_EMP_INTERNAL_NUMBER,
+                    :P701_CRITICALITY,
+                    v_suggested_team_id
+                  )
+                  RETURNING request_id INTO :P701_REQUEST_ID;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        error {
+            errorMessage: &APP_TEXT$IT_REQUEST_SUBMIT_ERROR.
+        }
+        advanced {
+            executionMappingIdentifier: 834419211644321343
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
+)

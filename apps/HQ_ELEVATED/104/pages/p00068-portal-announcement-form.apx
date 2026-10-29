@@ -1,0 +1,406 @@
+page 68 (
+    name: PORTAL ANNOUNCEMENT Form
+    alias: PORTAL-ANNOUNCEMENT-FORM
+    title: &APP_TEXT$PORTAL_ANNOUNCEMENT_FORM.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: [
+            #DEFAULT#
+            ui-dialog--stretch
+        ]
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region portal-announcement-form (
+        name: PORTAL ANNOUNCEMENT Form
+        title: &APP_TEXT$PORTAL_ANNOUNCEMENT_FORM.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: PORTAL_ANNOUNCEMENT
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P68_BODY (
+        type: richTextEditor
+        label {
+            label: &APP_TEXT$BODY.
+            alignment: left
+        }
+        settings {
+            format: html
+            toolbar: full
+            minHeight: 180
+            allowCustomHtml: true
+        }
+        layout {
+            sequence: 40
+            region: @portal-announcement-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @portal-announcement-form
+            column: BODY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P68_CREATED_AT (
+        type: hidden
+        layout {
+            sequence: 80
+            region: @portal-announcement-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @portal-announcement-form
+            column: CREATED_AT
+            dataType: date
+        }
+        default {
+            type: expression
+            plsqlExpression: sysdate
+        }
+    )
+
+    pageItem P68_CREATED_BY (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @portal-announcement-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @portal-announcement-form
+            column: CREATED_BY
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    pageItem P68_EXPIRE_DATE (
+        type: datePicker
+        label {
+            label: &APP_TEXT$EXPIRE_DATE.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @portal-announcement-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @portal-announcement-form
+            column: EXPIRE_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P68_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @portal-announcement-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @portal-announcement-form
+            column: ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P68_IMAGE_ANNOUNCEMENT (
+        type: fileUpload
+        label {
+            label: &APP_TEXT$IMAGE_ANNOUNCEMENT.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @portal-announcement-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @portal-announcement-form
+            column: IMAGE_ANNOUNCEMENT
+            dataType: blob
+        }
+    )
+
+    pageItem P68_IMAGE_ID (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @portal-announcement-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @portal-announcement-form
+            column: IMAGE_ID
+            dataType: number
+        }
+    )
+
+    pageItem P68_TITEL_ANNOUNCEMENT (
+        type: textField
+        label {
+            label: &APP_TEXT$TITEL_ANNOUNCEMENT.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @portal-announcement-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @portal-announcement-form
+            column: TITEL_ANNOUNCEMENT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P68_URL (
+        type: textarea
+        label {
+            label: &APP_TEXT$URL.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @portal-announcement-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        source {
+            formRegion: @portal-announcement-form
+            column: URL
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$CREATE.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P68_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P68_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$APPLY_CHANGES.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P68_ID
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 37748342804166365
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process initialize-form-portal-announcement-form (
+        name: Initialize form PORTAL ANNOUNCEMENT Form
+        type: formInitialization
+        formRegion: @portal-announcement-form
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 37747540365166365
+        }
+    )
+
+    process process-form-portal-announcement-form (
+        name: Process form PORTAL ANNOUNCEMENT Form
+        type: formAutoRowProcessing
+        formRegion: @portal-announcement-form
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 37747962016166365
+        }
+    )
+
+)

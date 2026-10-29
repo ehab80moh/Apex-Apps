@@ -1,0 +1,472 @@
+page 76 (
+    name: اعداد الطلب
+    alias: REQUEST-PREPARATION
+    title: &APP_TEXT$PREPARE_THE_ORDER.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region اعداد-الطلب (
+        name: اعداد الطلب
+        title: &APP_TEXT$PREPARE_THE_ORDER.
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select DETAIL_ID,
+                       REQUEST_ID,
+                       EMP_ID,
+                       FIELD_NAME,
+                       NEW_VALUE,
+                       OLD_VALUE,
+                       "COMMENT",
+                       dbms_lob.getlength(ATTACHMENT_1) as BLOB,
+                       dbms_lob.getlength(ATTACHMENT_2) as ATTACHMENT_2,
+                       dbms_lob.getlength(ATTACHMENT_3) as ATTACHMENT_3,
+                       dbms_lob.getlength(ATTACHMENT_4) as ATTACHMENT_4,
+                       CREATED_AT,
+                       UPDATED_BY
+                  from EPROMHQ.HRF_PERSONAL_EDIT_DETAILS
+                 where EMP_ID = :APP_USER
+                
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P76_ATTACHMENT_2 (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @اعداد-الطلب
+            slot: regionBody
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: ATTACHMENT_2
+            dataType: number
+        }
+    )
+
+    pageItem P76_ATTACHMENT_3 (
+        type: hidden
+        layout {
+            sequence: 100
+            region: @اعداد-الطلب
+            slot: regionBody
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: ATTACHMENT_3
+            dataType: number
+        }
+    )
+
+    pageItem P76_ATTACHMENT_4 (
+        type: hidden
+        layout {
+            sequence: 110
+            region: @اعداد-الطلب
+            slot: regionBody
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: ATTACHMENT_4
+            dataType: number
+        }
+    )
+
+    pageItem P76_BLOB (
+        type: hidden
+        layout {
+            sequence: 80
+            region: @اعداد-الطلب
+            slot: regionBody
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: BLOB
+            dataType: number
+        }
+    )
+
+    pageItem P76_COMMENT (
+        type: textarea
+        label {
+            label: &APP_TEXT$COMMENT.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @اعداد-الطلب
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: COMMENT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P76_CREATED_AT (
+        type: hidden
+        layout {
+            sequence: 120
+            region: @اعداد-الطلب
+            slot: regionBody
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: CREATED_AT
+            dataType: date
+        }
+    )
+
+    pageItem P76_DETAIL_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @اعداد-الطلب
+            slot: regionBody
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: DETAIL_ID
+            dataType: number
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P76_EMP_ID (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @اعداد-الطلب
+            slot: regionBody
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: EMP_ID
+            dataType: number
+        }
+    )
+
+    pageItem P76_FIELD_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$STATEMENT_NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @اعداد-الطلب
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: FIELD_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P76_NEW_VALUE (
+        type: textarea
+        label {
+            label: &APP_TEXT$NEW_VALUE.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @اعداد-الطلب
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        validation {
+            maxLength: 400
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: NEW_VALUE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P76_OLD_VALUE (
+        type: textarea
+        label {
+            label: &APP_TEXT$OLD_VALUE.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @اعداد-الطلب
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        validation {
+            maxLength: 400
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: OLD_VALUE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P76_REQUEST_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @اعداد-الطلب
+            slot: regionBody
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: REQUEST_ID
+            dataType: number
+        }
+    )
+
+    pageItem P76_UPDATED_BY (
+        type: hidden
+        layout {
+            sequence: 130
+            region: @اعداد-الطلب
+            slot: regionBody
+        }
+        source {
+            formRegion: @اعداد-الطلب
+            column: UPDATED_BY
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$CREATE.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P76_DETAIL_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--danger
+            ]
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$ARE_YOU_SURE_ABOUT_THE_LIMIT.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P76_DETAIL_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$SAVE_CHANGES.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P76_DETAIL_ID
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 138647958616231695
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process initialize-form-اعداد-الطلب (
+        name: Initialize form اعداد الطلب
+        type: formInitialization
+        formRegion: @اعداد-الطلب
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 138647163613231695
+        }
+    )
+
+    process process-form-اعداد-الطلب (
+        name: Process form اعداد الطلب
+        type: formAutoRowProcessing
+        formRegion: @اعداد-الطلب
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 138647553401231695
+        }
+    )
+
+)

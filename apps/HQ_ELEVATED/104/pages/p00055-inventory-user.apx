@@ -1,0 +1,406 @@
+page 55 (
+    name: inventory_user
+    alias: INVENTORY-USER
+    title: &APP_TEXT$INVENTORYUSER.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        title: &APP_TEXT$BREADCRUMB.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region inventory-user (
+        name: inventory_user
+        title: &APP_TEXT$INVENTORYUSER.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select
+                i.INV_ID,
+                       i.DEPARTMENT_ID,
+                       i.LOCATION_ID,
+                       i.CATEGORY_ID,
+                       i.COMPANY,
+                       i.SERIAL,
+                       i.EMPLOYEE_NAME,
+                       i.EMPLOYEE_ID,
+                       i.RECEIVED_DATE,
+                       i.PERCENTAGE || '%' AS PERCENTAGE_DISPLAY,
+                       i.PO_DETAILS,
+                       i.REMARKS,
+                    COALESCE(TO_CHAR(i.LAST_EXIST_DATE, 'YYYY-MM-DD'), 'لم يتم الجرد') AS LAST_EXIST_DATE,
+                       i.CREATED_AT,
+                       i.UPDATED_AT,
+                       i.PLACEMENT_DETAILS,
+                       i.MODEL_ID,
+                       i.EMPLOYEE_DEPARTMENT,
+                       i.UPDATED_BY,
+                       i.CREATED_BY
+                       ,m.model_name,m.model_name_ar,i.FINANCe_ID,i.finance_location
+                  from epromhq.INV_INVENTORIES  i
+                  join epromhq.INV_ITEM_MODELS m on m.model_id = i.model_id
+                where :App_User = EMPLOYEE_ID;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--hideHeader
+                t-Region--scrollBody
+            ]
+        }
+        reportLayout {
+            numberOfRows: 50
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--staticRowColors
+                t-Report--rowHighlight
+                t-Report--inline
+                t-Report--hideNoPagination
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        performance {
+            maxRowsToProcess: 500
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_DATA_FOUND.
+        }
+
+        column CATEGORY_ID (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$CLASS.
+                alignment: end
+            }
+            lov {
+                type: sqlQuery
+                sqlQuery: select category_name ,category_id from EPROMHQ.INV_CATEGORIES
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column COMPANY (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$A_COMPANY.
+                alignment: end
+            }
+            layout {
+                sequence: 5
+            }
+            sorting {
+                defaultSequence: 1
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 95
+            }
+        )
+
+        column CREATED_BY (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 155
+            }
+            sorting {
+                defaultSequence: 1
+            }
+        )
+
+        column DEPARTMENT_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$MANAGEMENT.
+                alignment: end
+            }
+            lov {
+                type: sqlQuery
+                sqlQuery: Select department_name, department_id from EPROMHQ.INV_DEPARTMENTS
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column EMPLOYEE_DEPARTMENT (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 135
+            }
+        )
+
+        column EMPLOYEE_ID (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NAME_AND_NUMBER.
+                alignment: end
+            }
+            lov {
+                type: sharedComponent
+                lov: @employee-numbers
+            }
+            layout {
+                sequence: 45
+            }
+            sorting {
+                defaultSequence: 1
+            }
+        )
+
+        column EMPLOYEE_NAME (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 35
+            }
+            sorting {
+                defaultSequence: 1
+            }
+        )
+
+        column FINANCE_ID (
+            reportColumnQueryId: 23
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 175
+            }
+        )
+
+        column FINANCE_LOCATION (
+            reportColumnQueryId: 24
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 165
+            }
+            sorting {
+                defaultSequence: 1
+            }
+        )
+
+        column INV_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 0
+            }
+        )
+
+        column LAST_EXIST_DATE (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$INVENTORY_DONE.
+                alignment: end
+            }
+            layout {
+                sequence: 85
+            }
+        )
+
+        column LOCATION_ID (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_SITE.
+                alignment: end
+            }
+            lov {
+                type: sqlQuery
+                sqlQuery: select location_name, Location_id from EPROMHQ.INV_LOCATIONS
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column MODEL_ID (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 125
+            }
+        )
+
+        column MODEL_NAME (
+            reportColumnQueryId: 21
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MODEL_NAME.
+                alignment: end
+            }
+            layout {
+                sequence: 15
+            }
+        )
+
+        column MODEL_NAME_AR (
+            reportColumnQueryId: 22
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 205
+            }
+        )
+
+        column PERCENTAGE_DISPLAY (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 185
+            }
+        )
+
+        column PLACEMENT_DETAILS (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 115
+            }
+            sorting {
+                defaultSequence: 1
+            }
+        )
+
+        column PO_DETAILS (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 65
+            }
+            sorting {
+                defaultSequence: 1
+            }
+        )
+
+        column RECEIVED_DATE (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 55
+            }
+        )
+
+        column REMARKS (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 75
+            }
+            sorting {
+                defaultSequence: 1
+            }
+        )
+
+        column SERIAL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$SERIES.
+                alignment: end
+            }
+            layout {
+                sequence: 25
+            }
+            sorting {
+                defaultSequence: 1
+            }
+        )
+
+        column UPDATED_AT (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 105
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 145
+            }
+            sorting {
+                defaultSequence: 1
+            }
+        )
+
+    )
+
+)

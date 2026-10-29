@@ -1,0 +1,253 @@
+page 70 (
+    name: تفاصيل الإعلان
+    alias: ANNOUNCEMENT-DETAILS
+    title: &APP_TEXT$ADVERTISEMENT_DETAILS.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            
+            
+            img {
+                width: -webkit-fill-available; 
+            }
+            
+            .t-AVPList {
+                display: flex; 
+                justify-content: space-evenly; 
+            }
+            
+            .t-AVPList-label {
+                display: none; 
+            }
+            
+            .t-AVPList--leftAligned .t-AVPList-value, .t-AVPList--rightAligned .t-AVPList-label {
+                width: 100% !important;
+                    text-align: left !important;
+            
+            }
+            
+            
+            
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                DECLARE
+                  l_result     CLOB := '';
+                  l_title      VARCHAR2(4000);
+                  l_body       CLOB;
+                  l_url        VARCHAR2(500);
+                  l_date       DATE;
+                  l_image_url  BLOB;
+                BEGIN
+                
+                  SELECT 
+                    TITEL_ANNOUNCEMENT,
+                    BODY,
+                    URL,
+                    CREATED_AT,
+                    IMAGE_ANNOUNCEMENT
+                  INTO l_title, l_body, l_url, l_date, l_image_url
+                  FROM EPROMHQ.PORTAL_ANNOUNCEMENT
+                  WHERE ID = :P70_ID;
+                
+                  IF :P70_ID <> 41 THEN
+                  l_result := l_result || '
+                    <div style="max-width: 900px; margin: auto; padding: 2rem;">
+                      <h1 style="text-align: right; font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem; color: #111827;">
+                        ' || apex_escape.html(l_title) || '
+                      </h1>';
+                  END IF;
+                
+                
+                  l_result := l_result || '
+                      <div style="font-size: 1.1rem; line-height: 1.8; color: #333; text-align: left; margin-bottom: 2rem;">
+                        ' || l_body || '
+                      </div>';
+                
+                  IF l_url IS NOT NULL and :P70_ID <> 41 THEN
+                    l_result := l_result || '
+                      <div style="margin-bottom: 2rem;">
+                        <a href="' || l_url || '" target="_blank" 
+                           style="color: #1d4ed8; font-weight: 600; font-size: 1rem;">
+                           Go To Link ↗
+                        </a>
+                      </div>';
+                  END IF;
+                
+                  l_result := l_result || '
+                      <div style="text-align: center; margin-top: 30px;">
+                        <button onclick="window.parent.apex.navigation.dialog.close(true);" 
+                                style="padding:10px 20px; background-color:#e5e7eb; border: none; border-radius:5px; cursor:pointer; font-size: 1rem;">
+                          ← رجوع إلى كل الإعلانات
+                        </button>
+                      </div>
+                    </div>';
+                
+                  RETURN l_result;
+                END;
+                
+                ```
+            pageItemsToSubmit: P70_ID
+        }
+        layout {
+            sequence: 41
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+        performance {
+            lazyLoading: true
+        }
+    )
+
+    region new-2 (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div style="text-align: center; margin-top: 20px;">
+                  <img 
+                    src="&APP_PAGE_ID_URL.?REQUEST=P70_GET_IMAGE&P70_ID=&P70_ID." 
+                    alt="صورة الإعلان" 
+                    style="max-width: 600px; border-radius: 10px; box-shadow: 0 0 8px #ccc;" />
+                </div>
+                
+                <img P70_GET_IMAGE>
+                ```
+        }
+        layout {
+            sequence: 61
+            slot: contentBody
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P70_GET_IMAGE (
+        type: displayImage
+        label {
+            alignment: left
+        }
+        settings {
+            basedOn: blobColSql
+            sqlQuery:
+                ```sql
+                SELECT
+                  IMAGE_ANNOUNCEMENT
+                FROM EPROMHQ.PORTAL_ANNOUNCEMENT
+                where id = :P70_ID
+                ```
+        }
+        layout {
+            sequence: 31
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P70_ID (
+        type: hidden
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+        source {
+            used: always
+        }
+    )
+
+    pageItem P70_NEW_1 (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$NEW.
+            alignment: left
+        }
+        layout {
+            sequence: 51
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process show-announcement-image (
+        name: SHOW_ANNOUNCEMENT_IMAGE
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                  l_blob BLOB;
+                BEGIN
+                  SELECT IMAGE_ANNOUNCEMENT
+                  INTO l_blob
+                  FROM EPROMHQ.PORTAL_ANNOUNCEMENT
+                  WHERE ID = :P70_ID;
+                
+                  owa_util.mime_header('image/jpeg', FALSE);
+                  htp.p('Content-length: ' || dbms_lob.getlength(l_blob));
+                  owa_util.http_header_close;
+                  wpg_docload.download_file(l_blob);
+                  apex_application.stop_apex_engine;
+                EXCEPTION
+                  WHEN OTHERS THEN
+                    htp.p('Error loading image.');
+                    apex_application.stop_apex_engine;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+            point: afterHeader
+        }
+        advanced {
+            executionMappingIdentifier: 37788542085273449
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+)

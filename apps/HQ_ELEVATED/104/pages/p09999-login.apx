@@ -1,0 +1,682 @@
+page 9999 (
+    name: Login Page
+    alias: LOGIN
+    title: &APP_TEXT$EEPROM_DIGITAL_PORTAL_LOGIN.
+    appearance {
+        pageTemplate: @login
+        templateOptions: [
+            #DEFAULT#
+            t-LoginPage--bg1
+        ]
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    javaScript {
+        executeWhenPageLoads:
+            ```javascript-browser
+            apex.jQuery("#P9999_USERNAME").on("input", function() {
+                var item = apex.item("P9999_USERNAME");
+                var value = item.getValue();
+            
+                // تحويل الأرقام العربية أو أي أرقام غير إنجليزية إلى الأرقام الإنجليزية
+                var newValue = value.replace(/[٠-٩]/g, function(d) {
+                    return "٠١٢٣٤٥٦٧٨٩".indexOf(d);
+                });
+            
+                // إزالة أي أحرف غير رقمية
+                newValue = newValue.replace(/\D/g, "");
+                
+                item.setValue(newValue);
+            });
+            
+            ```
+    }
+    css {
+        fileUrls: #APP_FILES#test_s.min.css
+        inline:
+            ```css
+            .bn31 {
+              background-image: linear-gradient(to right, #006175 0%, #00a950 100%);
+              border-radius: 40px;
+              box-sizing: border-box;
+              color: #18311f;
+              display: block;
+              height: 50px;
+              font-family: Amiri; 
+              font-size: 1.4em;
+              padding: 4px;
+              position: relative;
+              text-decoration: none;
+              width: 7em;
+              z-index: 2;
+            }
+            
+            .bn31:hover {
+              color: #fff;
+            }
+            
+            .bn31 .bn31span {
+              align-items: center;
+              background: #0e0e10;
+              border-radius: 40px;
+              display: flex;
+              justify-content: center;
+              height: 100%;
+              transition: background 0.5s ease;
+              width: 100%;
+            }
+            .bn31:hover .bn31span {
+              background: transparent;
+            }
+            
+            .pw-item-icon {
+                float: left;
+                margin-right: -30px; 
+                margin-top: 4px;
+                position: relative;
+                z-index: 1;
+            }
+            
+            
+            
+            
+            
+            
+            
+            
+             .a-Login-links {
+                 padding: 12px 24px;
+                 text-align: center;
+                 font-size: 12px
+             }
+            
+             .a-Login-links>a {
+                 margin: 0 8px
+             }
+            
+             .a-Login-links--languages {
+                 border-top: 2px solid;
+                 border-color: black;
+             }
+            
+             .a-Login-links {
+                 padding: 12px 24px;
+                 text-align: center;
+                 font-size: 12px
+             }
+            
+             .a-Login-links>a {
+                 margin: 0 8px
+             }
+            
+             ul.a-LinksList.a-LinksList--lang {
+                 text-align: center;
+             }
+            
+             .a-LinksList--lang .a-LinksList-item {
+                 display: inline;
+                 margin: 0;
+                 border: none
+             }
+            
+             .a-LinksList--lang .a-LinksList-item.is-active {
+                 font-weight: 700
+             }
+            
+             .a-LinksList--lang .a-LinksList-item:after {
+                 content: " ·"
+             }
+            
+             .a-LinksList--lang .a-LinksList-item:last-child:after {
+                 display: none
+             }
+            
+             .a-LinksList--lang .a-LinksList-link {
+                 display: inline;
+                 white-space: nowrap;
+                 font-weight: inherit;
+                 transition: none
+             }
+            
+             .a-LinksList--lang .a-LinksList-link:hover {
+                 text-decoration: underline
+             }
+            
+            ```
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region app-name (
+        name: &APP_NAME.
+        title: &APP_NAME.
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @login
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+            cssClasses: region
+        }
+        image {
+            fileUrl: #APP_FILES#app-icon-512.png
+        }
+    )
+
+    region language-selector (
+        name: Language Selector
+        title: &APP_TEXT$LANGUAGE_SELECTOR.
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                 RETURN apex_lang.get_language_selector_list;
+                
+                ```
+        }
+        layout {
+            sequence: 30
+            parentRegion: @app-name
+            slot: subRegions
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @app-name
+            slot: subRegions
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-ButtonRegion--slimPadding
+                t-ButtonRegion--noUI
+                t-Region-orderBy--center
+            ]
+        }
+    )
+
+    region reset-password (
+        name: reset_password
+        title: &APP_TEXT$RESETPASSWORD.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @login
+            templateOptions: [
+                #DEFAULT#
+                t-Login-region--headerHidden js-removeLandmark
+            ]
+            cssClasses: region
+        }
+    )
+
+    pageItem P9999_LANG (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @app-name
+            slot: regionBody
+        }
+        source {
+            used: always
+        }
+        default {
+            type: expression
+            plsqlExpression: APEX_UTIL.GET_SESSION_LANG
+        }
+    )
+
+    pageItem P9999_MSG (
+        type: hidden
+        layout {
+            sequence: 70
+            region: @app-name
+            slot: regionBody
+        }
+    )
+
+    pageItem P9999_PASSWORD (
+        type: password
+        label {
+            label: &APP_TEXT$PASSWORD.
+            alignment: left
+        }
+        settings {
+            submitWhenEnterPressed: false
+        }
+        layout {
+            sequence: 50
+            region: @app-name
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @hidden
+            templateOptions: #DEFAULT#
+            icon: fa-key
+            width: 40
+            valuePlaceholder: &APP_TEXT$PASSWORD.
+        }
+        validation {
+            valueRequired: true
+            maxLength: 100
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P9999_PERSISTENT_AUTH (
+        type: checkbox
+        label {
+            label: &APP_TEXT$REMEMBER_YOUR_LOGIN_INFORMATION_ON_THIS_DEVICE.
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 60
+            region: @app-name
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: static
+            staticValue: Y
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: apex_authentication.persistent_auth_enabled
+        }
+    )
+
+    pageItem P9999_USERNAME (
+        type: textField
+        label {
+            label: &APP_TEXT$EMPLOYEE_NUMBER.
+            alignment: left
+        }
+        settings {
+            trimSpaces: none
+        }
+        layout {
+            sequence: 40
+            region: @app-name
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @hidden
+            templateOptions: #DEFAULT#
+            icon: fa-user
+            width: 40
+            valuePlaceholder: &APP_TEXT$WORKER_NUMBER.
+        }
+        validation {
+            valueRequired: true
+            maxLength: 100
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P9999_VERIFY_METHOD (
+        type: radioGroup
+        label {
+            label: &APP_TEXT$LOG_IN_USING.
+            alignment: left
+        }
+        settings {
+            noOfCols: 2
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:هاتف;m,بريد إلكتروني;e
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 80
+            region: @app-name
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    button login-not-really (
+        buttonName: LOGIN_not_really
+        label: &APP_TEXT$LOGIN.
+        layout {
+            sequence: 50
+            region: @app-name
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+            cssClasses: bn31
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button reset-password (
+        buttonName: reset-password_1
+        label: &APP_TEXT$CLICK_HERE_TO_LOG_IN_FOR_THE_FIRST_TIME!RAW.
+        layout {
+            sequence: 30
+            region: @reset-password
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+                t-Button--link
+                t-Button--gapLeft
+                t-Button--gapRight
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 9990
+                items: {
+                    P9990_LANG: &P9999_LANG.
+                }
+                clearCache: 9990
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button reset-password-2 (
+        buttonName: reset-password
+        label: &APP_TEXT$FORGOT_YOUR_PASSWORD!RAW.
+        layout {
+            sequence: 40
+            region: @reset-password
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--danger
+                t-Button--link
+                t-Button--gapLeft
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 9990
+                items: {
+                    P9990_LANG: &P9999_LANG.
+                }
+                clearCache: 9990
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button set-lang-ar (
+        buttonName: SET_LANG_AR_1
+        label: &APP_TEXT$ARABIC.
+        layout {
+            sequence: 20
+            region: @new
+            slot: change
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--link
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 9999
+                items: {
+                    P9999_LANG: ar-ae
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button set-lang-en (
+        buttonName: SET_LANG_EN_1
+        label: &APP_TEXT$ENGLISH.
+        layout {
+            sequence: 20
+            region: @new
+            slot: change
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--link
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 9999
+                items: {
+                    P9999_LANG: en-us
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process check-auth-and-send-otp (
+        name: check auth and send otp
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                
+                
+                
+                DECLARE
+                  v_mobile VARCHAR2(99);
+                  v_ok     BOOLEAN;
+                  v_lang   VARCHAR2(10); -- 🔤 اللغة
+                
+                BEGIN  
+                  v_lang := :P9999_LANG;
+                
+                  v_ok := central.AUTH_EMP(
+                    P_USERNAME => :P9999_USERNAME,
+                    P_PASSWORD => :P9999_PASSWORD
+                  );
+                
+                 central.SET_EMP_LANG(
+                    P_EMP_ID => :P9999_USERNAME,
+                    P_LANG_CODE => :P9999_LANG
+                  ); 
+                  
+                   IF v_ok THEN
+                    :P9999_MSG := central.SMS_PKG.SEND_OTP3(
+                      P_USER => :P9999_USERNAME,
+                      P_PASS => :P9999_PASSWORD
+                    );
+                
+                  ELSE
+                    apex_error.add_error (
+                      p_message          => CASE WHEN v_lang = 'en-us' THEN 'Wrong username or password'
+                                                 ELSE 'اسم مستخدم او كلمة سر خطأ' END,
+                      p_display_location => apex_error.c_inline_in_notification
+                    );
+                  END IF;
+                
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 11034369323108607
+        }
+        serverSideCondition {
+            whenButtonPressed: @login-not-really
+        }
+    )
+
+    process check-otp-throttele (
+        name: check_otp_throttele
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                   L_res NUMBER;
+                BEGIN
+                   L_res := central.THROTTELE_FAILD_OTP(:P9999_USERNAME);
+                
+                   IF L_res = 1 THEN
+                      apex_error.add_error (
+                         p_message          => 'تم إغلاق الحساب مؤقتًا بعد تجاوز عدة محاولات فاشلة للدخول',
+                         p_display_location => apex_error.c_inline_in_notification
+                      );
+                   END IF;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 24092331938679213
+        }
+        serverSideCondition {
+            whenButtonPressed: @login-not-really
+        }
+    )
+
+    process set-items (
+        name: set items
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                APEX_UTIL.SET_SESSION_STATE('P9998_USERNAME', :P9999_USERNAME);
+                  APEX_UTIL.SET_SESSION_STATE('P9998_PASSWORD', :P9999_PASSWORD);  
+                  APEX_UTIL.SET_SESSION_STATE('P9998_PERSISTENT_AUTH', :P9999_PERSISTENT_AUTH);
+                  APEX_UTIL.SET_SESSION_STATE('P9998_MSG', :P9999_MSG);
+                
+                ```
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 24091381354679203
+        }
+        serverSideCondition {
+            whenButtonPressed: @login-not-really
+        }
+    )
+
+    process set-lang (
+        name: set lang
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                 if :P9999_LANG is null then
+                APEX_UTIL.SET_SESSION_LANG( P_LANG => 'ar-ae');
+                else
+                APEX_UTIL.SET_SESSION_LANG( P_LANG => :P9999_LANG);
+                end if;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 42866932121136705
+        }
+    )
+
+    branch (
+        name: "Branch to OTP "
+        execution {
+            sequence: 20
+        }
+        behavior {
+            target: {
+                page: 9998
+                items: {
+                    P9998_MSG: &P9999_MSG.
+                    P9998_LANG: &P9999_LANG.
+                }
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @login-not-really
+        }
+    )
+
+)

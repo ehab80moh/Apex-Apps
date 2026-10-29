@@ -1,0 +1,163 @@
+breadcrumb breadcrumb (
+    name: Breadcrumb
+
+    entry approval-members (
+        name: APPROVAL MEMBERS
+        pageNumber: 15
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 15
+            }
+        }
+    )
+
+    entry approved-suppliers-committee (
+        name: Approved Suppliers Committee
+        pageNumber: 30
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 30
+            }
+        }
+    )
+
+    entry home (
+        name: Home
+        pageNumber: 1
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 1
+            }
+        }
+    )
+
+    entry list-suppliers-x2f-services-x2f-attachments (
+        name: List Suppliers&#x2F;services&#x2F;Attachments
+        pageNumber: 2
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 2
+            }
+        }
+    )
+
+    entry new-suppliers-approval-process (
+        name: New Suppliers Approval Process
+        pageNumber: 11
+        execution {
+            sequence: 10
+        }
+    )
+
+    entry otp-verification (
+        name: OTP_Verification
+        pageNumber: 4
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 4
+            }
+        }
+    )
+
+    entry password (
+        name: Password
+        pageNumber: 7
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 7
+            }
+        }
+    )
+
+    entry profile (
+        name: PROFILE
+        pageNumber: 13
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 13
+            }
+        }
+    )
+
+    entry reg (
+        name: Reg.
+        pageNumber: 9991
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 9991
+            }
+        }
+    )
+
+    entry roles (
+        name: roles
+        pageNumber: 100
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 100
+            }
+        }
+    )
+
+    entry suppliers-approval-status (
+        name: Suppliers Approval Status
+        pageNumber: 16
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 16
+            }
+        }
+    )
+
+    entry suppliers-search-edit (
+        name: Suppliers  Search Edit
+        pageNumber: 5
+        execution {
+            sequence: 10
+        }
+    )
+
+    entry verify-mobile (
+        name: Verify Mobile
+        pageNumber: 6
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 6
+            }
+        }
+    )
+
+)

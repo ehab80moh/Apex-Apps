@@ -1,0 +1,14 @@
+supportingObject (
+    prerequisites {
+        freeSpace: 100
+        systemPrivileges: [
+            createProcedure
+            createTable
+            createTrigger
+            createView
+        ]
+    }
+    advanced {
+        includeInAppExport: true
+    }
+)

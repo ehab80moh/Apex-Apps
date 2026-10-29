@@ -1,0 +1,848 @@
+page 401 (
+    name: Complains Form
+    alias: COMPLAINS-FORM
+    title: &APP_TEXT$COMPLAINT_FORM.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        chained: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region الأدلة-الداعمة (
+        name: الأدلة الداعمة
+        title: &APP_TEXT$SUPPORTING_EVIDENCE.
+        type: staticContent
+        layout {
+            sequence: 200
+            parentRegion: @نموذج-شكوى
+            slot: regionBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent1
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region طريقة-المعالجة-المفضلة (
+        name: طريقة المعالجة المفضلة
+        title: &APP_TEXT$PREFERRED_PROCESSING_METHOD.
+        type: staticContent
+        layout {
+            sequence: 110
+            parentRegion: @نموذج-شكوى
+            slot: regionBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent1
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region نموذج-شكوى (
+        name: نموذج شكوى
+        title: &APP_TEXT$COMPLAINT_FORM.
+        type: form
+        source {
+            location: localDatabase
+            tableName: CMPL_COMPLAINTS
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P401_ACCEPT_CONTACT (
+        type: switch
+        label {
+            label: &APP_TEXT$I_AGREE_TO_CONTACT_ME_FOR_FURTHER_CLARIFICATION.
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            onValue: 1
+            offValue: 0
+        }
+        layout {
+            sequence: 10
+            region: @طريقة-المعالجة-المفضلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: ACCEPT_CONTACT
+            dataType: number
+        }
+    )
+
+    pageItem P401_CATEGORY_ID (
+        type: selectList
+        label {
+            label: &APP_TEXT$CATEGORY.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @cmpl-categories-name-ar-en
+            nullDisplayValue: &APP_TEXT$PLEASE_SELECT.
+        }
+        layout {
+            sequence: 70
+            region: @نموذج-شكوى
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: CATEGORY_ID
+            dataType: number
+        }
+    )
+
+    pageItem P401_COMPLAINT_DATE (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$DATE_OF_COMPLAINT.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @نموذج-شكوى
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: COMPLAINT_DATE
+            dataType: date
+        }
+        default {
+            type: expression
+            plsqlExpression: sysdate
+        }
+    )
+
+    pageItem P401_COMPLAINT_ID (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @نموذج-شكوى
+            slot: regionBody
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: COMPLAINT_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P401_CREATED_BY (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @الأدلة-الداعمة
+            slot: regionBody
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: CREATED_BY
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    pageItem P401_DESCRIPTION_AR (
+        type: textarea
+        label {
+            label: &APP_TEXT$COMPLAINT_DETAILS.
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @نموذج-شكوى
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: DESCRIPTION_AR
+            dataType: clob
+        }
+        sessionState {
+            dataType: clob
+        }
+        help {
+            inlineHelpText: &APP_TEXT$INLINE_HELP_TEXT.
+        }
+    )
+
+    pageItem P401_EMAIL (
+        type: textField
+        label {
+            label: &APP_TEXT$EMAIL_IN_CASE_YOU_WOULD_LIKE_TO_FOLLOW_UP.
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @طريقة-المعالجة-المفضلة
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 150
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P401_EVIDENCE_CHECK (
+        type: checkboxGroup
+        label {
+            label: &APP_TEXT$SUPPORTING_EVIDENCE_IF_ANY.
+            alignment: left
+        }
+        settings {
+            noOfCols: 2
+        }
+        lov {
+            type: sharedComponent
+            lov: @p401-cmpl-evidence-check
+        }
+        layout {
+            sequence: 10
+            region: @الأدلة-الداعمة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: EVIDENCE_CHECK
+            dataType: varchar2
+        }
+    )
+
+    pageItem P401_EVIDENCE_FILES (
+        type: fileUpload
+        label {
+            label: &APP_TEXT$PLEASE_UPLOAD_THE_EVIDENCE_FILES.
+            alignment: left
+        }
+        display {
+            displayAs: blockDropzone
+        }
+        storage {
+            type: appTempFiles
+            allowMultipleFiles: true
+            maxFileSize: 10000
+        }
+        layout {
+            sequence: 10
+            region: @الأدلة-الداعمة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P401_HIDE_IDENTITY_FLAG (
+        type: switch
+        label {
+            label: &APP_TEXT$KEEP_MY_IDENTITY_SECRET_ANONYMOUS.
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            onValue: 1
+            offValue: 0
+        }
+        layout {
+            sequence: 10
+            region: @طريقة-المعالجة-المفضلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: HIDE_IDENTITY_FLAG
+            dataType: number
+        }
+    )
+
+    pageItem P401_PHONE (
+        type: textField
+        label {
+            label: &APP_TEXT$PHONE_IN_CASE_YOU_WANT_TO_CONTINUE.
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @طريقة-المعالجة-المفضلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 30
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: PHONE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P401_SUBCATEGORY_ID (
+        type: selectList
+        label {
+            label: &APP_TEXT$SUBCATEGORY.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @cmpl-subcategories-name-ar-en
+            displayExtraValues: false
+        }
+        cascadingLov {
+            parentItems: P401_CATEGORY_ID
+            itemsToSubmit: P401_CATEGORY_ID
+        }
+        layout {
+            sequence: 80
+            region: @نموذج-شكوى
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: SUBCATEGORY_ID
+            dataType: number
+        }
+    )
+
+    pageItem P401_SUBCATEGORY_TEXT (
+        type: textField
+        label {
+            label: &APP_TEXT$SUBCATEGORY.
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @نموذج-شكوى
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 250
+        }
+        source {
+            formRegion: @نموذج-شكوى
+            column: SUBCATEGORY_TEXT
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$SUBMIT_A_COMPLAINT.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P401_COMPLAINT_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P401_COMPLAINT_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$APPLY_CHANGES.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P401_COMPLAINT_ID
+        }
+    )
+
+    dynamicAction accpet-contact-change (
+        name: accpet contact change
+        execution {
+            sequence: 30
+        }
+        when {
+            selectionType: items
+            items: P401_ACCEPT_CONTACT
+        }
+
+        action native-hide (
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: [
+                    P401_PHONE
+                    P401_EMAIL
+                ]
+            }
+            execution {
+                sequence: 10
+            }
+            clientSideCondition {
+                type: item=value
+                item: P401_ACCEPT_CONTACT
+                value: 0
+            }
+        )
+
+        action native-hide-2 (
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: P401_HIDE_IDENTITY_FLAG
+            }
+            execution {
+                sequence: 40
+            }
+            clientSideCondition {
+                type: item=value
+                item: P401_ACCEPT_CONTACT
+                value: 1
+            }
+        )
+
+        action native-show (
+            action: show
+            affectedElements {
+                selectionType: items
+                items: [
+                    P401_PHONE
+                    P401_EMAIL
+                ]
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+            clientSideCondition {
+                type: item=value
+                item: P401_ACCEPT_CONTACT
+                value: 1
+            }
+        )
+
+        action native-show-2 (
+            action: show
+            affectedElements {
+                selectionType: items
+                items: P401_HIDE_IDENTITY_FLAG
+            }
+            execution {
+                sequence: 50
+            }
+            clientSideCondition {
+                type: item=value
+                item: P401_ACCEPT_CONTACT
+                value: 0
+            }
+        )
+
+    )
+
+    dynamicAction change-hide-ientity (
+        name: change hide ientity
+        execution {
+            sequence: 40
+        }
+        when {
+            selectionType: items
+            items: P401_HIDE_IDENTITY_FLAG
+        }
+
+        action native-hide (
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: [
+                    P401_ACCEPT_CONTACT
+                    P401_PHONE
+                    P401_EMAIL
+                ]
+            }
+            execution {
+                sequence: 10
+            }
+            clientSideCondition {
+                type: item=value
+                item: P401_HIDE_IDENTITY_FLAG
+                value: 1
+            }
+        )
+
+        action native-show (
+            action: show
+            affectedElements {
+                selectionType: items
+                items: P401_ACCEPT_CONTACT
+            }
+            execution {
+                sequence: 20
+            }
+            clientSideCondition {
+                type: item=value
+                item: P401_HIDE_IDENTITY_FLAG
+                value: 0
+            }
+        )
+
+    )
+
+    dynamicAction changing-category (
+        name: CHANGING CATEGORY
+        execution {
+            sequence: 20
+        }
+        when {
+            selectionType: items
+            items: P401_CATEGORY_ID
+        }
+
+        action native-hide (
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: P401_SUBCATEGORY_ID
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+            clientSideCondition {
+                type: item=value
+                item: P401_CATEGORY_ID
+                value: 28
+            }
+        )
+
+        action native-hide-2 (
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: P401_SUBCATEGORY_TEXT
+            }
+            execution {
+                sequence: 30
+            }
+            clientSideCondition {
+                type: item!=value
+                item: P401_CATEGORY_ID
+                value: 28
+            }
+        )
+
+        action native-show (
+            action: show
+            affectedElements {
+                selectionType: items
+                items: P401_SUBCATEGORY_ID
+            }
+            execution {
+                sequence: 20
+            }
+            clientSideCondition {
+                type: item!=value
+                item: P401_CATEGORY_ID
+                value: 28
+            }
+        )
+
+        action native-show-2 (
+            action: show
+            affectedElements {
+                selectionType: items
+                items: P401_SUBCATEGORY_TEXT
+            }
+            execution {
+                sequence: 40
+            }
+            clientSideCondition {
+                type: item=value
+                item: P401_CATEGORY_ID
+                value: 28
+            }
+        )
+
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 234974304123340822
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process initialize-form-complains-form (
+        name: Initialize form Complains Form
+        type: formInitialization
+        formRegion: @نموذج-شكوى
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 234973504532340821
+        }
+    )
+
+    process process-form-complains-form (
+        name: Process form Complains Form
+        type: formAutoRowProcessing
+        formRegion: @نموذج-شكوى
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 234973907745340821
+        }
+    )
+
+    process upload-attachents (
+        name: UPLOAD ATTACHENTS
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_file_names apex_t_varchar2;
+                    l_file       apex_application_temp_files%rowtype;
+                begin
+                    l_file_names := apex_string.split (
+                                        p_str => :P401_EVIDENCE_FILES,
+                                        p_sep => ':' );
+                    for i in 1 .. l_file_names.count loop
+                        select *
+                          into l_file
+                          from apex_application_temp_files
+                         where name = l_file_names(i);
+                INSERT INTO CMPL_ATTACHMENTS (
+                    COMPLAINT_ID,
+                    FILE_NAME,
+                    MIME_TYPE,
+                    FILE_BLOB,
+                    UPLOADED_AT
+                ) VALUES (
+                    :P401_COMPLAINT_ID,
+                    l_file.FILENAME,
+                    l_file.MIME_TYPE,
+                    l_file.BLOB_CONTENT,
+                    l_file.CREATED_ON
+                );
+                
+                    end loop;
+                end;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 235089607916633406
+        }
+    )
+
+)

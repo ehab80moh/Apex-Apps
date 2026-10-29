@@ -1,0 +1,203 @@
+page 89 (
+    name: تفاصيل الفكرة - مسابقة إيبروم تبتكر
+    alias: EPROM-INNOVATES-DETAILS
+    title: &APP_TEXT$PORTAL_PAGE_89_TITLE.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @drawer
+        templateOptions: [
+            #DEFAULT#
+            js-dialog-class-t-Drawer--pullOutEnd
+        ]
+    }
+    dialog {
+        chained: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @super-duper
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: الأزرار
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region idea-details (
+        name: Idea Details View
+        title: تفاصيل الفكرة
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select submission_id,
+                      TO_CLOB( '<div class="idea-details-container" style="direction: rtl; text-align: right; font-family: sans-serif; line-height: 1.6; padding: 15px; background: #fff; border-radius: 8px;">') ||
+                       '  <h2 style="color: #1f456e; border-bottom: 2px solid #eef6ff; padding-bottom: 10px; margin-bottom: 20px;">' || APEX_ESCAPE.HTML(IDEA_TITLE) || '</h2>' ||
+                       
+                       '  <div class="info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8fafc; border-radius: 8px;">' ||
+                       '    <div><strong>الاسم:</strong> ' || APEX_ESCAPE.HTML(EMP_NAME) || '</div>' ||
+                       '    <div><strong>الرقم الوظيفي:</strong> ' || APEX_ESCAPE.HTML(EMP_NUMBER) || '</div>' ||
+                       '    <div><strong>الإدارة:</strong> ' || APEX_ESCAPE.HTML(DEPARTMENT_NAME) || '</div>' ||
+                       '    <div><strong>الوظيفة:</strong> ' || APEX_ESCAPE.HTML(JOB_TITLE) || '</div>' ||
+                       '    <div><strong>الموبايل:</strong> ' || APEX_ESCAPE.HTML(MOBILE_NUMBER) || '</div>' ||
+                       '    <div><strong>البريد الإلكتروني:</strong> ' || APEX_ESCAPE.HTML(EMAIL_ADDRESS) || '</div>' ||
+                       '  </div>' ||
+                
+                       '  <div class="participation-group" style="padding: 12px 16px; border-radius: 8px; background: #eef6ff; color: #1f456e; border-inline-start: 4px solid #2f80ed; margin-bottom: 25px;">' ||
+                       '    <div><strong>نوع المشاركة:</strong> ' || decode(PARTICIPATION_TYPE, 'INDIVIDUAL', 'فردي', 'GROUP', 'جماعي', PARTICIPATION_TYPE) || '</div>' ||
+                            nvl2(TEAM_MEMBERS, '    <div style="margin-top: 8px; border-top: 1px solid #d0e4ff; padding-top: 8px;"><strong>أعضاء الفريق:</strong><br>' || replace(APEX_ESCAPE.HTML(TEAM_MEMBERS), chr(10), '<br>') || '</div>', '') ||
+                       '  </div>' ||
+                
+                       '  <div class="detail-section" style="margin-bottom: 20px;">' ||
+                       '    <h3 style="color: #2f80ed; font-size: 1.1em; margin-bottom: 8px; border-inline-start: 4px solid #2f80ed; padding-inline-start: 8px;">مجال التطبيق</h3>' ||
+                       '    <p style="margin: 0; padding-inline-start: 12px; color: #334155;">' || APEX_ESCAPE.HTML(APPLICATION_DOMAIN) || 
+                              nvl2(APPLICATION_DOMAIN_OTHER, ' (' || APEX_ESCAPE.HTML(APPLICATION_DOMAIN_OTHER) || ')', '') || '</p>' ||
+                       '  </div>' ||
+                
+                       '  <div class="detail-section" style="margin-bottom: 20px;">' ||
+                       '    <h3 style="color: #2f80ed; font-size: 1.1em; margin-bottom: 8px; border-inline-start: 4px solid #2f80ed; padding-inline-start: 8px;">المشكلة القائمة</h3>' ||
+                       '    <p style="margin: 0; padding-inline-start: 12px; color: #334155; white-space: pre-wrap;">' || APEX_ESCAPE.HTML(PROBLEM_STATEMENT) || '</p>' ||
+                       '  </div>' ||
+                
+                       '  <div class="detail-section" style="margin-bottom: 20px;">' ||
+                       '    <h3 style="color: #2f80ed; font-size: 1.1em; margin-bottom: 8px; border-inline-start: 4px solid #2f80ed; padding-inline-start: 8px;">شرح الفكرة بالتفصيل</h3>' ||
+                       '    <p style="margin: 0; padding-inline-start: 12px; color: #334155; white-space: pre-wrap;">' || APEX_ESCAPE.HTML(IDEA_DESCRIPTION) || '</p>' ||
+                       '  </div>' ||
+                
+                       '  <div class="detail-section" style="margin-bottom: 20px;">' ||
+                       '    <h3 style="color: #2f80ed; font-size: 1.1em; margin-bottom: 8px; border-inline-start: 4px solid #2f80ed; padding-inline-start: 8px;">العائد المتوقع من التطبيق</h3>' ||
+                       '    <p style="margin: 0; padding-inline-start: 12px; color: #334155; white-space: pre-wrap;">' || APEX_ESCAPE.HTML(EXPECTED_RETURN) || '</p>' ||
+                       '  </div>' ||
+                
+                       '  <div class="detail-section" style="margin-bottom: 20px;">' ||
+                       '    <h3 style="color: #2f80ed; font-size: 1.1em; margin-bottom: 8px; border-inline-start: 4px solid #2f80ed; padding-inline-start: 8px;">القيمة المضافة</h3>' ||
+                       '    <p style="margin: 0; padding-inline-start: 12px; color: #334155; white-space: pre-wrap;">' || APEX_ESCAPE.HTML(ADDED_VALUE) || '</p>' ||
+                       '  </div>' ||
+                
+                       '  <div class="detail-section" style="margin-bottom: 20px;">' ||
+                       '    <h3 style="color: #2f80ed; font-size: 1.1em; margin-bottom: 8px; border-inline-start: 4px solid #2f80ed; padding-inline-start: 8px;">المخاطر تعوق التنفيذ</h3>' ||
+                       '    <p style="margin: 0; padding-inline-start: 12px; color: #334155; white-space: pre-wrap;">' || 
+                              decode(HAS_RISKS, 'Y', 'نعم - ' || APEX_ESCAPE.HTML(RISK_DETAILS), 'لا توجد') || '</p>' ||
+                       '  </div>' ||
+                
+                       '  <div class="detail-section" style="margin-bottom: 20px;">' ||
+                       '    <h3 style="color: #2f80ed; font-size: 1.1em; margin-bottom: 8px; border-inline-start: 4px solid #2f80ed; padding-inline-start: 8px;">متطلبات البدء في الفكرة</h3>' ||
+                       '    <p style="margin: 0; padding-inline-start: 12px; color: #334155; white-space: pre-wrap;">' || APEX_ESCAPE.HTML(START_REQUIREMENTS) || '</p>' ||
+                       '  </div>' ||
+                
+                       '  <div class="detail-section" style="margin-bottom: 20px;">' ||
+                       '    <h3 style="color: #2f80ed; font-size: 1.1em; margin-bottom: 8px; border-inline-start: 4px solid #2f80ed; padding-inline-start: 8px;">مدى توافق المقترح مع استراتيجيات الشركة</h3>' ||
+                       '    <p style="margin: 0; padding-inline-start: 12px; color: #334155; white-space: pre-wrap;">' || APEX_ESCAPE.HTML(STRATEGY_ALIGNMENT) || '</p>' ||
+                       '  </div>' ||
+                
+                       '  <div class="detail-section" style="margin-bottom: 10px; display: flex; gap: 20px; font-size: 0.9em; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 25px;">' ||
+                       '    <div><strong>الحالة:</strong> <span style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-weight: bold;">' || APEX_ESCAPE.HTML(STATUS) || '</span></div>' ||
+                       '    <div><strong>تاريخ التقديم:</strong> ' || to_char(CREATED_AT, 'YYYY-MM-DD HH24:MI') || '</div>' ||
+                       '    <div><strong>قدم بواسطة:</strong> ' || APEX_ESCAPE.HTML(CREATED_BY) || '</div>' ||
+                       '  </div>' ||
+                       '</div>'  as IDEA_HTML_VIEW 
+                  from hq_elevated.sug_idea_submissions
+                 where submission_id = :P89_SUBMISSION_ID
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--noBorders
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: لا توجد بيانات لهذه الفكرة.
+        }
+
+        column IDEA_HTML_VIEW (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: تفاصيل الفكرة
+            }
+            layout {
+                sequence: 20
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column SUBMISSION_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+    )
+
+    pageItem P89_SUBMISSION_ID (
+        type: hidden
+        layout {
+            sequence: 5
+            region: @idea-details
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: إغلاق
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+)

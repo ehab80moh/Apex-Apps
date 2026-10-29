@@ -1,0 +1,1397 @@
+page 30 (
+    name: Approved Suppliers Committee
+    alias: APPROVED-SUPPLIERS-COMMITTEE
+    title: Approved Suppliers Committee
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            /* Style input field */
+            #P30_COMMITTEE_DATE {
+                background-color: #d2dff8 !important;
+                color: #0b3d91 !important;
+                font-weight: bold !important;
+                text-align: center !important;
+                border: 1.5px solid #11508f !important;
+                border-radius: 8px !important;
+            }
+            
+            /* Style label */
+            label[for="P30_COMMITTEE_DATE"] {
+                color: #0D355D !important;
+                font-weight: bold !important;
+                font-size: 15px !important;
+                text-align: center !important;
+                }
+            
+            #P30_COMMITTEE_NO {
+                background-color: #f1f5fc !important;
+                color: #071c41 !important;
+                font-weight:normal  !important;
+                text-align: center !important;
+                border: 1.5px solid #11508f !important;
+                border-radius: 8px !important;
+            }
+            
+            /* Style label */
+            label[for="P30_COMMITTEE_NO"] {
+                color: #0D355D !important;
+                font-weight: bold !important;
+                font-size: 15px !important;
+                text-align: center !important;
+                }
+            
+            #P30_DECISION_NO {
+                background-color: #f1f5fc !important;
+                color: #071c41 !important;
+                font-weight:normal  !important;
+                text-align: center !important;
+                border: 1.5px solid #11508f !important;
+                border-radius: 8px !important;
+            }
+            
+            /* Style label */
+            label[for="P30_DECISION_NO"] {
+                color: #0D355D !important;
+                font-weight: bold !important;
+                font-size: 15px !important;
+                text-align: center !important;
+                }
+            
+            .col-end {
+              text-align: center;
+              margin-top: 15px; /* ينزل الزر لتحت شوية */
+            }
+            .btn-container-center {
+              text-align: center;
+              margin-top: 15px;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region approved-suppliers-committee (
+        name: Approved Suppliers Committee
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select
+                --row_number() over (order by s.company_name) as "NO",
+                    s.supplier_id,
+                    s.company_name,
+                    s.applay_as,
+                        case committee_approved
+                        when 'N' then 'Not Approved Yet'
+                        when Null then 'Not Approved Yet'
+                        when 'Y' then 'Committee Approved'
+                    end committee_approved,
+                
+                    /* Aggregated Categories */
+                    (
+                        select listagg(distinct ss.category, ', ')
+                               within group (order by ss.category)
+                        from sup_services ss
+                        where ss.supplier_id = s.supplier_id
+                    ) as service_categories,
+                
+                    /* Procurement */
+                    proc.employee_name ||
+                    case
+                        when a.procurement_date is not null
+                        then chr(10) || to_char(a.procurement_date,'DD/MM/YYYY')
+                        else null
+                    end as procurement_name,
+                
+                    /* Technical */
+                    tech.employee_name ||
+                    case
+                        when a.technical_date is not null
+                        then chr(10) || to_char(a.technical_date,'DD/MM/YYYY')
+                        else null
+                    end as technical_name,
+                
+                    /* Financial */
+                    fin.employee_name ||
+                    case
+                        when a.financial_date is not null
+                        then chr(10) || to_char(a.financial_date,'DD/MM/YYYY')
+                        else null
+                    end as financial_name,
+                
+                    /* Legal */
+                    leg.employee_name ||
+                    case
+                        when a.legal_date is not null
+                        then chr(10) || to_char(a.legal_date,'DD/MM/YYYY')
+                        else null
+                    end as legal_name
+                
+                from sup_suppliers s
+                
+                left join (
+                    select a1.*
+                    from sup_supplier_approvals a1
+                    where a1.approval_id = (
+                        select max(a2.approval_id)
+                        from sup_supplier_approvals a2
+                        where a2.supplier_id = a1.supplier_id
+                    )
+                ) a
+                on a.supplier_id = s.supplier_id
+                
+                left join sup_approval_members proc
+                    on proc.employee_num = a.procurement_by
+                   and proc.approval_role = 'PROC'
+                   and proc.status = 'ACTIVE'
+                
+                left join sup_approval_members tech
+                    on tech.employee_num = a.technical_empno
+                   and tech.approval_role = 'TECH'
+                   and tech.status = 'ACTIVE'
+                
+                left join sup_approval_members fin
+                    on fin.employee_num = a.financial_by
+                   and fin.approval_role = 'FIN'
+                   and fin.status = 'ACTIVE'
+                
+                left join sup_approval_members leg
+                    on leg.employee_num = a.legal_by
+                   and leg.approval_role = 'LEGAL'
+                   and leg.status = 'ACTIVE'
+                
+                where s.status = 'APPROVED'
+                and   s.COMMITTEE_APPROVED like 'N'
+                
+                
+                -- select
+                --     s.supplier_id,
+                --     s.company_name,
+                --     s.APPLAY_AS,
+                --     s.committee_approved,
+                
+                --     /* Procurement */
+                --     proc.employee_name ||
+                --     case
+                --         when a.procurement_date is not null
+                --         then chr(10) || to_char(a.procurement_date,'DD/MM/YYYY')
+                --         else null
+                --     end as procurement_name,
+                
+                --     /* Technical */
+                --     tech.employee_name ||
+                --     case
+                --         when a.technical_date is not null
+                --         then chr(10) || to_char(a.technical_date,'DD/MM/YYYY')
+                --         else null
+                --     end as technical_name,
+                
+                --     /* Financial */
+                --     fin.employee_name ||
+                --     case
+                --         when a.financial_date is not null
+                --         then chr(10) || to_char(a.financial_date,'DD/MM/YYYY')
+                --         else null
+                --     end as financial_name,
+                
+                --     /* Legal */
+                --     leg.employee_name ||
+                --     case
+                --         when a.legal_date is not null
+                --         then chr(10) || to_char(a.legal_date,'DD/MM/YYYY')
+                --         else null
+                --     end as legal_name
+                
+                -- from sup_suppliers s
+                
+                -- left join (
+                --     select a1.*
+                --     from sup_supplier_approvals a1
+                --     where a1.approval_id = (
+                --         select max(a2.approval_id)
+                --         from sup_supplier_approvals a2
+                --         where a2.supplier_id = a1.supplier_id
+                --     )
+                -- ) a
+                -- on a.supplier_id = s.supplier_id
+                
+                -- left join sup_approval_members proc
+                --     on proc.employee_num = a.procurement_by
+                --    and proc.approval_role = 'PROC'
+                --    and proc.status = 'ACTIVE'
+                
+                -- left join sup_approval_members tech
+                --     on tech.employee_num = a.technical_empno
+                --    and tech.approval_role = 'TECH'
+                --    and tech.status = 'ACTIVE'
+                
+                -- left join sup_approval_members fin
+                --     on fin.employee_num = a.financial_by
+                --    and fin.approval_role = 'FIN'
+                --    and fin.status = 'ACTIVE'
+                
+                -- left join sup_approval_members leg
+                --     on leg.employee_num = a.legal_by
+                --    and leg.approval_role = 'LEGAL'
+                --    and leg.status = 'ACTIVE'
+                
+                -- where s.status = 'APPROVED'
+                
+                --order by s.company_name
+                -----------------------------------------------------------------------------------------
+                -- select
+                
+                --     s.supplier_id,
+                --     s.company_name,
+                --     s.committee_approved,
+                
+                --     /* Procurement */
+                --     proc.employee_name as procurement_name,
+                
+                --     /* Technical */
+                --     tech.employee_name as technical_name,
+                
+                --     /* Finance */
+                --     fin.employee_name as financial_name,
+                
+                --     /* Legal */
+                --     leg.employee_name as legal_name
+                
+                -- from sup_suppliers s
+                -- left outer join sup_supplier_approvals a
+                --      on a.supplier_id = s.supplier_id
+                
+                -- left join sup_approval_members proc
+                --        on proc.employee_num = a.procurement_by
+                --       and proc.approval_role = 'PROC'
+                --       and proc.status = 'ACTIVE'
+                
+                -- left join sup_approval_members tech
+                --        on tech.employee_num = a.technical_empno
+                --       and tech.approval_role = 'TECH'
+                --       and tech.status = 'ACTIVE'
+                
+                -- left join sup_approval_members fin
+                --        on fin.employee_num = a.financial_by
+                --       and fin.approval_role = 'FIN'
+                --       and fin.status = 'ACTIVE'
+                
+                -- left join sup_approval_members leg
+                --        on leg.employee_num = a.legal_by
+                --       and leg.approval_role = 'LEGAL'
+                --       and leg.status = 'ACTIVE'
+                
+                -- where s.status = 'APPROVED'
+                -- --   and a.procurement_decision = 'APPROVE'
+                -- --   and a.technical_decision   = 'APPROVE'
+                -- --   and a.financial_decision   = 'APPROVE'
+                -- --   and a.legal_decision       = 'APPROVE'
+                ```
+            pageItemsToSubmit: P30_DECISION_NO
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: Committee
+        }
+        edit {
+            enabled: true
+        }
+        componentAppearance {
+            selectFirstRow: false
+            fixedRowHeight: false
+        }
+        toolbar {
+            controls: [
+                searchCol
+                searchField
+                actionsMenu
+                resetButton
+                saveButton
+            ]
+        }
+        download {
+            formats: [
+                csv
+                html
+                excel
+                pdf
+            ]
+        }
+        componentAdvanced {
+            initJavaScriptFunction:
+                ```javascript-browser
+                 function( options ) {
+                     options.defaultGridViewOptions=  {rowHeader : "sequence"};
+                     return options;
+                 }
+                ```
+        }
+        advanced {
+            savedReportMappingIdentifier: 251964658366415409
+        }
+
+        savedReport 2520080 (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @SUPPLIER_ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @COMPANY_NAME
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @PROCUREMENT_NAME
+                layout {
+                    sequence: 4
+                }
+            )
+
+            displayColumn (
+                column: @TECHNICAL_NAME
+                layout {
+                    sequence: 5
+                }
+            )
+
+            displayColumn (
+                column: @FINANCIAL_NAME
+                layout {
+                    sequence: 6
+                }
+            )
+
+            displayColumn (
+                column: @LEGAL_NAME
+                layout {
+                    sequence: 7
+                }
+            )
+
+            displayColumn (
+                column: @APPLAY_AS
+                layout {
+                    sequence: 8
+                }
+            )
+
+            displayColumn (
+                column: @SERVICE_CATEGORIES
+                layout {
+                    sequence: 9
+                }
+            )
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+            displayColumn (
+                column: @COMMITTEE_APPROVED
+                layout {
+                    sequence: 11
+                }
+            )
+
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column APEX$ROW_SELECTOR (
+            type: rowSelector
+            layout {
+                sequence: 10
+            }
+        )
+
+        column APPLAY_AS (
+            type: textField
+            heading {
+                heading: Applay As
+            }
+            layout {
+                sequence: 100
+            }
+            validation {
+                maxLength: 100
+            }
+            source {
+                databaseColumn: APPLAY_AS
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column COMMITTEE_APPROVED (
+            type: textField
+            heading {
+                heading: Committee Approved
+            }
+            layout {
+                sequence: 120
+            }
+            validation {
+                maxLength: 18
+            }
+            source {
+                databaseColumn: COMMITTEE_APPROVED
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column COMPANY_NAME (
+            type: textField
+            heading {
+                heading: Company Name
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            validation {
+                valueRequired: true
+                maxLength: 200
+            }
+            source {
+                databaseColumn: COMPANY_NAME
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column FINANCIAL_NAME (
+            type: textField
+            heading {
+                heading: Financial Name
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            validation {
+                maxLength: 200
+            }
+            source {
+                databaseColumn: FINANCIAL_NAME
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column LEGAL_NAME (
+            type: textField
+            heading {
+                heading: Legal Name
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            validation {
+                maxLength: 200
+            }
+            source {
+                databaseColumn: LEGAL_NAME
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column PROCUREMENT_NAME (
+            type: textField
+            heading {
+                heading: Procurement Name
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            validation {
+                maxLength: 200
+            }
+            source {
+                databaseColumn: PROCUREMENT_NAME
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column SERVICE_CATEGORIES (
+            type: textarea
+            heading {
+                heading: Service Categories
+            }
+            layout {
+                sequence: 110
+            }
+            validation {
+                maxLength: 4000
+            }
+            source {
+                databaseColumn: SERVICE_CATEGORIES
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: none
+            }
+            enableUsersTo {
+                sort: false
+            }
+        )
+
+        column SUPPLIER_ID (
+            type: hidden
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: SUPPLIER_ID
+                dataType: number
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column TECHNICAL_NAME (
+            type: textField
+            heading {
+                heading: Technical Name
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            validation {
+                maxLength: 200
+            }
+            source {
+                databaseColumn: TECHNICAL_NAME
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+    )
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P30_COMMITTEE_DATE (
+        type: datePicker
+        label {
+            label: Committee Date
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @approved-suppliers-committee
+            slot: regionBody
+            alignment: left
+            column: 3
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            formatMask: DD-MM-YYYY
+            width: 30
+        }
+    )
+
+    pageItem P30_COMMITTEE_NO (
+        type: textField
+        label {
+            label: Committee No
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @approved-suppliers-committee
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P30_DECISION_NO (
+        type: textField
+        label {
+            label: Decision no
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @approved-suppliers-committee
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P30_ITEMS (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+    )
+
+    button approve-committee (
+        buttonName: Approve_Committee
+        label: Approve For Committee
+        layout {
+            sequence: 10
+            region: @approved-suppliers-committee
+            slot: belowBox
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--pill
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction confirm (
+            name: Confirm
+            action: confirm
+            settings {
+                message: Are you sure you want to approve the selected suppliers as a committee Approved?
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+        triggerAction js-button (
+            name: JS BUTTON
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    (function () {
+                    
+                        var region = apex.region("Committee");
+                        if (!region) {
+                            apex.message.alert("Region not found.");
+                            return;
+                        }
+                    
+                        var ig$ = region.widget();
+                        var gridView = ig$.interactiveGrid("getViews", "grid");
+                    
+                        if (!gridView) {
+                            apex.message.alert("Grid not ready.");
+                            return;
+                        }
+                    
+                        var model = gridView.model;
+                        var selected = gridView.getSelectedRecords();
+                    
+                        if (!selected || selected.length === 0) {
+                            apex.message.alert("Please select at least one supplier.");
+                            return;
+                        }
+                    
+                        var ids = selected.map(function (record) {
+                            return model.getValue(record, "SUPPLIER_ID");
+                        }).filter(function (v) {
+                            return v !== null;
+                        });
+                    
+                        if (ids.length === 0) {
+                            apex.message.alert("No valid suppliers selected.");
+                            return;
+                        }
+                    
+                        if (!apex.item("P30_COMMITTEE_DATE").getValue()) {
+                            apex.message.alert("Please select Committee Date.");
+                            return;
+                        }
+                    
+                        apex.server.process(
+                            "APPROVE_COMMITTEE_PROC",
+                            {
+                                x01: ids.join(","),
+                                pageItems: "#P30_COMMITTEE_DATE"
+                            },
+                            {
+                                dataType: "json",
+                                success: function (pData) {
+                    
+                                    if (!pData) {
+                                        apex.message.alert("Empty server response.");
+                                        return;
+                                    }
+                    
+                                    if (pData.status === "success") {
+                    
+                                        apex.message.showPageSuccess(
+                                            "Updated rows: " + pData.updated_count
+                                        );
+                    
+                                        region.refresh();
+                    
+                                    } else {
+                                        apex.message.alert(pData.message);
+                                    }
+                                },
+                                error: function (jqXHR) {
+                                    console.log(jqXHR.responseText);
+                                    apex.message.alert("Server error occurred.");
+                                }
+                            }
+                        );
+                    
+                    })();
+                    
+                    // apex.server.process(
+                    //   "APPROVE_COMMITTEE_PROC",
+                    //   { x01: apex.item("P30_ITEMS").getValue()  },
+                    //   {
+                    //     success: function (pData) {
+                    //       if (pData.status === "success") {
+                    //         apex.message.showPageSuccess("Committee approval completed. Updated: " + pData.updated_count);
+                    //         ig$.interactiveGrid("refresh");
+                    //       } else {
+                    //         apex.message.alert(pData.message || "Error");
+                    //       }
+                    //     },
+                    //     error: function (jqXHR, textStatus, errorThrown) {
+                    //       apex.message.alert("Ajax error: " + (jqXHR.responseText || errorThrown));
+                    //     }
+                    //   }
+                    // );
+                    
+                    ```
+            }
+            execution {
+                sequence: 30
+            }
+        )
+
+        triggerAction native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @approved-suppliers-committee
+            }
+            execution {
+                sequence: 40
+            }
+        )
+
+    )
+
+    button p30-run-report (
+        buttonName: P30_RUN_REPORT
+        label: Run Committee Report
+        layout {
+            sequence: 40
+            region: @approved-suppliers-committee
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--gapTop
+                t-Button--padBottom
+            ]
+            cssClasses: btn-center
+            icon: fa-print
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                language: js-mle
+                jsCode: null;
+                itemsToSubmit: [
+                    P30_COMMITTEE_DATE
+                    P30_COMMITTEE_NO
+                    P30_ITEMS
+                    P30_DECISION_NO
+                ]
+                itemsToReturn: P30_DECISION_NO
+                showProcessing: true
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+        triggerAction native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    (function () {
+                    
+                        var region = apex.region("Committee");
+                        var gridView = region.widget().interactiveGrid("getViews", "grid");
+                        var model = gridView.model;
+                        var selected = gridView.getSelectedRecords();
+                    
+                        if (!selected || selected.length === 0) {
+                            apex.message.alert("Please select at least one supplier.");
+                            apex.event.gCancelFlag = true;
+                            return false;
+                        }
+                    
+                        if (!apex.item("P30_COMMITTEE_DATE").getValue()) {
+                            apex.message.alert("Please select Committee Date.");
+                            apex.event.gCancelFlag = true;
+                            return false;
+                        }
+                    
+                        if (!apex.item("P30_COMMITTEE_NO").getValue()) {
+                            apex.message.alert("Please enter Committee Number.");
+                            apex.event.gCancelFlag = true;
+                            return false;
+                        }
+                    
+                        var ids = selected.map(function (record) {
+                            return model.getValue(record, "SUPPLIER_ID");
+                        });
+                    
+                        apex.item("P30_ITEMS").setValue(ids.join(","));
+                    
+                        // Submit the page to trigger the print
+                      //  apex.submit({request: "PRINT",  showWait: true  });
+                    
+                    })();
+                    
+                    // (function () {
+                    
+                    //     var region = apex.region("Committee");
+                    //     var gridView = region.widget().interactiveGrid("getViews", "grid");
+                    //     var model = gridView.model;
+                    //     var selected = gridView.getSelectedRecords();
+                    
+                    //     // 1️⃣ Check selection
+                    //     if (!selected || selected.length === 0) {
+                    //         apex.message.alert("Please select at least one supplier.");
+                    //         return;
+                    //     }
+                    
+                    //     // 2️⃣ Check Committee Date
+                    //     if (!apex.item("P30_COMMITTEE_DATE").getValue()) {
+                    //         apex.message.alert("Please select Committee Date.");
+                    //         return;
+                    //     }
+                    
+                    //     // 3️⃣ Check Committee Number
+                    //     if (!apex.item("P30_COMMITTEE_NO").getValue()) {
+                    //         apex.message.alert("Please enter Committee Number.");
+                    //         return;
+                    //     }
+                    
+                    //     // 4️⃣ Collect IDs safely
+                    //     var ids = selected.map(function (record) {
+                    //         return model.getValue(record, "SUPPLIER_ID");
+                    //     });
+                    
+                    //     apex.item("P30_ITEMS").setValue(ids.join(","));
+                    
+                    //     // 5️⃣ Submit page
+                    //     //apex.submit("PRINT_AOP");
+                    
+                    // })();
+                    ```
+            }
+            execution {
+                sequence: 20
+            }
+        )
+
+        triggerAction plugin-be-apexrnd-aop-da (
+            action: plugin/ucApexOfficePrintAopDa
+            settings {
+                templateType: filenameWithPathRelativeToAopServer
+                templateSource3: C:\aop_24_2\reports\committee_template.docx
+                dataSource:
+                    ```sql
+                    with suppliers_q as (
+                        select
+                            s.supplier_id
+                        from sup_suppliers s
+                        where instr(',' || :P30_ITEMS || ',',
+                                    ',' || to_char(s.supplier_id) || ',') > 0
+                        and s.status = 'APPROVED'
+                    )
+                    select
+                    
+                      'Committee_Report_' || :P30_COMMITTEE_NO as "filename",
+                      cursor(
+                        select
+                            :P30_COMMITTEE_NO  as "COMMITTEE_NO",
+                            :P30_COMMITTEE_DATE as "COMMITTEE_DATE",
+                            :P30_DECISION_NO as "DECISION_NO",
+                            (select count(*) from suppliers_q) as "S_TOT",
+                            cursor(
+                                select
+                                    row_number() over(order by s.company_name) as "NO",
+                                    -- count(*) over() as "S_COUNT",
+                                    s.supplier_id,
+                                    s.company_name,
+                                    case 
+                                        when s.applay_as = 'BOTH' then 'Supplier/Contractor'
+                                        else s.applay_as
+                                    end as applay_as,
+                    
+                                    /* Service Categories */
+                                   sc.SERVICE_CATEGORIES,
+                    
+                                    /* Procurement */
+                                    proc.employee_name as procurement_name,
+                                    to_char(a.procurement_date,'DD/MM/YYYY') as procurement_date,
+                    
+                                    /* Technical */
+                                    tech.employee_name as technical_name,
+                                    to_char(a.technical_date,'DD/MM/YYYY') as technical_date,
+                    
+                                    /* Financial */
+                                    fin.employee_name as financial_name,
+                                    to_char(a.financial_date,'DD/MM/YYYY') as financial_date,
+                    
+                                    /* Legal */
+                                    leg.employee_name as legal_name,
+                                    to_char(a.legal_date,'DD/MM/YYYY') as legal_date
+                    
+                                from sup_suppliers s
+                                   left join (
+                                        select
+                                            supplier_id,
+                                            listagg(distinct category, ', ')
+                                            within group (order by category) as service_categories
+                                        from sup_services
+                                        group by supplier_id
+                                        ) sc
+                                on sc.supplier_id = s.supplier_id
+                                left join (
+                                    select a1.*
+                                    from sup_supplier_approvals a1
+                                    where a1.approval_id = (
+                                        select max(a2.approval_id)
+                                        from sup_supplier_approvals a2
+                                        where a2.supplier_id = a1.supplier_id
+                                    )
+                                ) a
+                                on a.supplier_id = s.supplier_id
+                    
+                                left join sup_approval_members proc
+                                    on proc.employee_num = a.procurement_by
+                                   and proc.approval_role = 'PROC'
+                                   and proc.status = 'ACTIVE'
+                    
+                                left join sup_approval_members tech
+                                    on tech.employee_num = a.technical_empno
+                                   and tech.approval_role = 'TECH'
+                                   and tech.status = 'ACTIVE'
+                    
+                                left join sup_approval_members fin
+                                    on fin.employee_num = a.financial_by
+                                   and fin.approval_role = 'FIN'
+                                   and fin.status = 'ACTIVE'
+                    
+                                left join sup_approval_members leg
+                                    on leg.employee_num = a.legal_by
+                                   and leg.approval_role = 'LEGAL'
+                                   and leg.status = 'ACTIVE'
+                    
+                                where instr(',' || :P30_ITEMS || ',',
+                                            ',' || to_char(s.supplier_id) || ',') > 0
+                                and s.status = 'APPROVED'
+                            
+                    
+                            ) as "SUPPLIERS"
+                    
+                        from dual
+                    ) as "data"
+                    from dual
+                    
+                    
+                    ```
+                initPlSqlCode: aop_api_pkg.g_output_filename := 'Committee_&P30_COMMITTEE_NO.';
+                outputType: wordDocx
+            }
+            execution {
+                sequence: 30
+            }
+            clientSideCondition {
+                type: jsExpression
+                javaScriptExpression:
+                    ```javascript-browser
+                    apex.item("P30_ITEMS").getValue() !== "" &&
+                    apex.item("P30_COMMITTEE_DATE").getValue() !== "" &&
+                    apex.item("P30_COMMITTEE_NO").getValue() !== ""
+                    ```
+            }
+            comments {
+                comments: https://www.webtoolkitonline.com/sql-minifier.html
+            }
+        )
+
+    )
+
+    dynamicAction da-collect-selected-ids (
+        name: DA_Collect_Selected_IDs
+        execution {
+            sequence: 20
+        }
+        when {
+            event: region/interactiveGrid/interactivegridselectionchange
+            selectionType: region
+            region: @approved-suppliers-committee
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    (function () {
+                    
+                        var region = apex.region("Committee");
+                        if (!region) return;
+                    
+                        var ig$ = region.widget();
+                        var gridView = ig$.interactiveGrid("getViews","grid");
+                    
+                        if (!gridView) return;
+                    
+                        var model = gridView.model;
+                    
+                        // ✅ correct selection API
+                        var selectedRecords = gridView.getSelectedRecords();
+                    
+                        var ids = [];
+                    
+                        selectedRecords.forEach(function(record){
+                            var val = model.getValue(record, "SUPPLIER_ID");
+                            if (val) {
+                                ids.push(val);
+                            }
+                        });
+                    
+                        apex.item("P30_ITEMS").setValue(ids.join(","));
+                    
+                    })();
+                    
+                    // (function () {
+                    //   // IG Static ID
+                    //   var region = apex.region("Committee");
+                    //   if (!region) return;
+                    
+                    //   var ig$ = region.widget();
+                    //   var grid = ig$.interactiveGrid("getViews", "grid");
+                    //   var model = grid.model;
+                    //   var selected = grid.view$.grid("getSelectedRecords");
+                    
+                    //   // 🔁 CHANGE THIS to your real PK column name
+                    //   var pkCol = "SUPPLIER_ID"; // or "COMMITTEE_ID"
+                    
+                    //   var ids = selected.map(function (rec) {
+                    //     return model.getValue(rec, pkCol);
+                    //   }).filter(function (v) {
+                    //     return v !== null && v !== undefined && v !== "";
+                    //   });
+                    
+                    //   // Put IDs into page item (comma separated)
+                    //   apex.item("P30_ITEMS").setValue(ids.join(","));
+                    // })();
+                    
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 30
+        }
+        when {
+            event: apexafterrefresh
+            selectionType: region
+            region: @approved-suppliers-committee
+        }
+        config {
+            buildOption: @commented-out
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    (function () {
+                    
+                        var region = apex.region("Committee");
+                        var ig$ = region.widget();
+                        var gridView = ig$.interactiveGrid("getViews", "grid");
+                    
+                        if (!gridView || !gridView.view$) {
+                            return;
+                        }
+                    
+                        var i = 1;
+                    
+                        gridView.view$.find("tbody tr").each(function () {
+                            $(this).find("td[headers='ROW_NUM']").text(i++);
+                        });
+                    
+                    })();
+                    
+                    // (function() {
+                    
+                    //     var region = apex.region("Committee");
+                    //     var gridView = region.call("getViews", "grid");
+                    //     var model = gridView.model;
+                    
+                    //     var i = 1;
+                    
+                    //     model.forEach(function(record) {
+                    //         model.setValue(record, "ROW_NUM", i++);
+                    //     });
+                    
+                    // })();
+                    
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process approve-committee-proc (
+        name: APPROVE_COMMITTEE_PROC
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_ids apex_t_varchar2;
+                begin
+                
+                    if apex_application.g_x01 is null then
+                        apex_json.open_object;
+                        apex_json.write('status','error');
+                        apex_json.write('message','No suppliers selected.');
+                        apex_json.close_object;
+                        return;
+                    end if;
+                
+                    if :P30_COMMITTEE_DATE is null then
+                        apex_json.open_object;
+                        apex_json.write('status','error');
+                        apex_json.write('message','Committee Date is required.');
+                        apex_json.close_object;
+                        return;
+                    end if;
+                
+                    l_ids := apex_string.split(apex_application.g_x01, ',');
+                
+                update sup_suppliers
+                   set committee_approved = 'Y',
+                       committee_date     = to_date(:P30_COMMITTEE_DATE,'DD-MM-YYYY')
+                 where supplier_id in (
+                       select to_number(column_value)
+                       from table(l_ids)
+                 );
+                
+                    apex_json.open_object;
+                    apex_json.write('status','success');
+                    apex_json.write('updated_count', sql%rowcount);
+                    apex_json.close_object;
+                
+                exception
+                    when others then
+                        rollback;
+                
+                        apex_json.open_object;
+                        apex_json.write('status','error');
+                        apex_json.write('message', sqlerrm);
+                        apex_json.close_object;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 265618648337371307
+        }
+    )
+
+    process approved-suppliers-committee-save-interactive-grid-data (
+        name: Approved Suppliers Committee - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @approved-suppliers-committee
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 265618432711371305
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+)

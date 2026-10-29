@@ -1,0 +1,59 @@
+emailTemplate ACTIVATION_CODE (
+    name: activation code
+    emailSubject: &APP_TEXT$ACTIVATION_CODE_EEPROM_DIGITAL_PORTAL.
+    htmlFormat {
+        header: "&{DOCTYPE_HTMLHTML_HEAD}!RAW."
+        body: "&{HTML_BODY EMP_NAME=#EMP_NAME# V_CODE=#V_CODE#}!RAW."
+        footer: "&{HTML}!RAW."
+    }
+    advanced {
+        versionNumber: 2
+    }
+)
+
+emailTemplate BACKUP_SEND_MAIL_EMP_PENDING (
+    name: backup send mail emp pending
+    emailSubject: &APP_TEXT$APPLICATIONS_ARE_AWAITING_APPROVAL_BY_MANAGERS.
+    htmlFormat {
+        body: "&{HTML_BODY_1 EMP_NAME=#EMP_NAME# VAC_SUMMRY=#VAC_SUMMRY!RAW# PER_SUMMRY=#PER_SUMMRY!RAW# MISSION_SUMMRY=#MISSION_SUMMRY!RAW#}!RAW."
+    }
+    advanced {
+        versionNumber: 2
+    }
+)
+
+emailTemplate NOTIFICATION_NOTES (
+    name: Notification Notes
+    emailSubject: &APP_TEXT$ALERTS_EEPROM_DIGITAL_PORTAL.
+    htmlFormat {
+        header: "&{DOCTYPE_HTMLHTML_HEAD}!RAW."
+        body: "&{HTML_BODY_2 EMP_NAME=#EMP_NAME# V_NUM=#V_NUM#}!RAW."
+        footer: "&{HTML}!RAW."
+    }
+    advanced {
+        versionNumber: 2
+    }
+)
+
+emailTemplate PASSWORD_RESET (
+    name: password reset
+    emailSubject: &APP_TEXT$PASSWORD_CHANGE_REQUEST_EEPROM_DIGITAL_PORTAL.
+    htmlFormat {
+        header: "&{HTML_HEADER}!RAW."
+        body: "&{HTML_BODY_3 EMP_NAME=#EMP_NAME# EMP_ID=#EMP_ID# NEW_PASS=#NEW_PASS# EMP_NAME=#EMP_NAME# EMP_ID=#EMP_ID# NEW_PASS=#NEW_PASS#}!RAW."
+    }
+    advanced {
+        versionNumber: 2
+    }
+)
+
+emailTemplate PENDING_REQUEST (
+    name: Send mail To employee with pending Request
+    emailSubject: &APP_TEXT$APPLICATIONS_ARE_AWAITING_APPROVAL_BY_MANAGERS.
+    htmlFormat {
+        body: "&{HTML_BODY_4 EMP_NAME=#EMP_NAME# VAC_SUMMRY=#VAC_SUMMRY!RAW# PER_SUMMRY=#PER_SUMMRY!RAW# MISSION_SUMMRY=#MISSION_SUMMRY!RAW#}!RAW."
+    }
+    advanced {
+        versionNumber: 2
+    }
+)

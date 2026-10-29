@@ -1,0 +1,1662 @@
+page 5 (
+    name: Suppliers  Search Edit
+    alias: SUPPLIERS-SEARCH-EDIT
+    title: Suppliers  Search
+    appearance {
+        pageTemplate: @/left-side-column
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+        warnOnUnsavedChanges: false
+    }
+    css {
+        inline:
+            ```css
+            /* Scroll Results Only in Side Column */
+            .t-Body-side {
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .search-results {
+                flex: 1;
+                overflow: auto;
+            }
+            /* Format Search Region */
+            .search-region {
+                border-bottom: 1px solid rgba(0,0,0,.1);
+                flex-shrink: 0;
+            }
+            
+            /* Style input field */
+            #P5_SEARCH {
+                background-color: #d2dff8 !important;
+                color: #0b3d91 !important;
+                font-weight: bold !important;
+                text-align: center !important;
+                border: 1.5px solid #11508f !important;
+                border-radius: 8px !important;
+            }
+            
+            /* Style label */
+            label[for="P5_SEARCH"] {
+                color: #0D355D !important;
+                font-weight: bold !important;
+                font-size: 15px !important;
+                text-align: center !important;
+                }
+                #P5_APPLAY_AS {
+                background-color: #e2e8f2 !important;
+                color: #336bc6 !important;
+                font-weight: bold !important;
+                text-align: center !important;
+                border: 1.5px solid #11508f !important;
+                border-radius: 8px !important;
+            }
+            
+            /* Style label */
+            label[for="P5_APPLAY_AS"] {
+                color: #408edc !important;
+                font-weight: bold !important;
+                font-size: 15px !important;
+                text-align: center !important;
+                }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+    }
+    advanced {
+        enableDuplicatePageSubmissions: false
+        reloadOnSubmit: always
+    }
+
+    region b-attachments-b (
+        name: <b>Attachments</b>
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 
+                       ATTACH_ID,
+                       SUPPLIER_ID,
+                       STATIC_NAME,
+                       FILE_NAME,
+                       MIME_TYPE,
+                       ORIGINAL_NAME,
+                       UPLOAD_DATE,
+                       apex_util.prepare_url(
+                            'f?p=' || :APP_ID || ':12:' || :APP_SESSION ||
+                            '::::P12_ATTACH_ID:' || ATTACH_ID
+                       ) as DOWNLOAD_LINK
+                from SUP_SUPPLIERS_ATTACHES
+                where SUPPLIER_ID = :P5_SUPPLIER_ID
+                ```
+            pageItemsToSubmit: P5_SUPPLIER_ID
+        }
+        layout {
+            sequence: 90
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column ATTACH_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column DOWNLOAD_LINK (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Download
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: url
+                    url: #DOWNLOAD_LINK#
+                }
+                linkText: <i class="fa fa-download"></i>
+            }
+        )
+
+        column FILE_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: File Name
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column MIME_TYPE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Mime Type
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column ORIGINAL_NAME (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Original Name
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column STATIC_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Static Name
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column SUPPLIER_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column UPLOAD_DATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+    )
+
+    region b-services-b (
+        name: <b>Services</b>
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: SUP_SERVICES
+            whereClause: "SUPPLIER_ID" = :P5_SUPPLIER_ID
+        }
+        layout {
+            sequence: 80
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+            cssClasses: js-detail-region
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P5_SUPPLIER_ID
+        }
+        reportLayout {
+            numberOfRows: 100
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                t-Report--stretch
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+                t-Report--inline
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        performance {
+            maxRowsToProcess: 5000
+        }
+        messages {
+            whenNoDataFound: No data found.
+        }
+        componentAdvanced {
+            stripHtml: true
+        }
+
+        column CATEGORY (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Category
+            }
+            layout {
+                sequence: 3
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COMMERCIAL_REGISTER (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: Commercial Register
+                alignment: center
+            }
+            lov {
+                type: staticValues
+                staticValues: STATIC:Yes;Y,No;N
+            }
+            layout {
+                sequence: 28
+                columnAlignment: center
+            }
+        )
+
+        column CREATIONDATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 7
+            }
+        )
+
+        column GENERAL_INFO (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: General Info
+            }
+            layout {
+                sequence: 6
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LASTUPDATEDATE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 8
+            }
+        )
+
+        column PRODUCT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Product
+            }
+            layout {
+                sequence: 4
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column SERVICE_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: link
+            heading {
+                heading: <span class="u-VisuallyHidden">Edit</span>
+            }
+            layout {
+                sequence: 1
+            }
+            link {
+                target: {
+                    page: 10
+                    items: {
+                        P10_SERVICE_ID: #SERVICE_ID#
+                    }
+                    action: resetPagination
+                }
+                linkText: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+            }
+            sorting {
+                sortable: false
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column SUPPLIER_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TAX_CARD (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: Tax Card
+                alignment: center
+            }
+            lov {
+                type: staticValues
+                staticValues: STATIC2:Yes;Y,No;N
+            }
+            layout {
+                sequence: 18
+                columnAlignment: center
+            }
+        )
+
+    )
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region master-records (
+        name: Master Records
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select
+                    x.supplier_id,
+                    null as link_class,
+                    apex_page.get_url(
+                        p_items  => 'P5_SUPPLIER_ID',
+                        p_values => x.supplier_id
+                    ) as link,
+                    null as ICON_CLASS,
+                    null as LINK_ATTR,
+                    null as ICON_COLOR_CLASS,
+                    case
+                        when coalesce(:p5_supplier_id,'0') = x.supplier_id
+                        then 'is-active'
+                        else ' '
+                    end as list_class,
+                    substr(x.COMPANY_NAME, 1, 50)
+                        || case when length(x.COMPANY_NAME) > 50 then '...' end
+                        as list_title,
+                
+                substr(x.applay_as, 1, 50)
+                || case when length(x.applay_as) > 50 then '...' else '' end
+                || ' - ' || initcap(x.status)
+                as list_text,
+                    null as list_badge
+                from sup_suppliers x
+                where
+                    ( :p5_search is null
+                      or upper(x.applay_as) like '%'||upper(:p5_search)||'%'
+                      or upper(x.COMPANY_NAME) like '%'||upper(:p5_search)||'%'
+                    )
+                    and ( :P5_applay_as is null or upper(x.applay_as) = upper(:P5_applay_as))
+                    and nvl(x.status, 'X') not in ('ACTIVE', 'PENDING')
+                order by
+                    case
+                        when x.status = 'APPROVED' then 1
+                        when x.status like '%APPROV%' then 2
+                        else 3
+                    end,
+                    x.COMPANY_NAME
+                ```
+            pageItemsToSubmit: [
+                P5_SEARCH
+                P5_APPLAY_AS
+            ]
+        }
+        layout {
+            sequence: 20
+            slot: leftColumn
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+            cssClasses: search-results
+        }
+        reportLayout {
+            numberOfRows: 1000
+        }
+        componentAppearance {
+            template: @/media-list
+            templateOptions: [
+                #DEFAULT#
+                t-MediaList--stack
+            ]
+        }
+        performance {
+            maxRowsToProcess: 500
+        }
+        messages {
+            whenNoDataFound: <div class="u-tC">No data found.</div>
+        }
+
+        column ICON_CLASS (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: ICON_CLASS
+                alignment: center
+            }
+            layout {
+                sequence: 4
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column ICON_COLOR_CLASS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: ICON_COLOR_CLASS
+                alignment: center
+            }
+            layout {
+                sequence: 6
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LINK (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: LINK
+                alignment: center
+            }
+            layout {
+                sequence: 3
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LINK_ATTR (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: LINK_ATTR
+                alignment: center
+            }
+            layout {
+                sequence: 5
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LINK_CLASS (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: LINK_CLASS
+                alignment: center
+            }
+            layout {
+                sequence: 2
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LIST_BADGE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: LIST_BADGE
+                alignment: center
+            }
+            layout {
+                sequence: 10
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LIST_CLASS (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: LIST_CLASS
+                alignment: center
+            }
+            layout {
+                sequence: 7
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LIST_TEXT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: LIST_TEXT
+                alignment: center
+            }
+            layout {
+                sequence: 9
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LIST_TITLE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: LIST_TITLE
+                alignment: center
+            }
+            layout {
+                sequence: 8
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column SUPPLIER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: SUPPLIER_ID
+                alignment: center
+            }
+            layout {
+                sequence: 1
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region no-record-selected (
+        name: No Record Selected
+        type: staticContent
+        source {
+            htmlCode: No Record Selected
+        }
+        layout {
+            sequence: 100
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P5_SUPPLIER_ID
+        }
+    )
+
+    region region-display-selector (
+        name: Region Display Selector
+        type: regionDisplaySelector
+        layout {
+            sequence: 70
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+            cssClasses: js-detail-rds
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P5_SUPPLIER_ID
+        }
+        settings {
+            rememberSelection: false
+        }
+    )
+
+    region search (
+        name: Search
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: leftColumn
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+            cssClasses: [
+                search-region
+                padding-md
+            ]
+        }
+    )
+
+    region suppliers-contractors (
+        name: Suppliers / Contractors
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: SUP_SUPPLIERS
+            whereClause: "SUPPLIER_ID" = :P5_SUPPLIER_ID
+        }
+        layout {
+            sequence: 60
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P5_SUPPLIER_ID
+        }
+        componentAppearance {
+            template: @/value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+        performance {
+            maxRowsToProcess: 500
+        }
+        messages {
+            whenNoDataFound: No Record Selected
+        }
+        componentAdvanced {
+            stripHtml: true
+        }
+
+        column ACTIVATED_ON (
+            reportColumnQueryId: 26
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 62
+            }
+        )
+
+        column APPLAY_AS (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    and upper("APPLAY_AS") is not null
+                    ```
+            }
+        )
+
+        column BRANCHES_EGY (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: Branches in Egypt
+            }
+            layout {
+                sequence: 13
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "BRANCHES_EGY" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column BRANCHES_OUT_EGY (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            heading {
+                heading: Branches Outside Egypt
+            }
+            layout {
+                sequence: 14
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "BRANCHES_OUT_EGY" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column COMPANY_CAPITAL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Capital
+            }
+            layout {
+                sequence: 4
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "COMPANY_CAPITAL" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column COMPANY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Company Name
+            }
+            layout {
+                sequence: 2
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "COMPANY_NAME" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column CONTACT_EMAIL (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            heading {
+                heading: Contact Email
+            }
+            layout {
+                sequence: 20
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "CONTACT_EMAIL" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column CONTACT_MAIN_MOBILE (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            heading {
+                heading: Contact Mobile
+            }
+            layout {
+                sequence: 18
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "CONTACT_MAIN_MOBILE" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column CONTACT_PERSON (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            heading {
+                heading: Contact Person
+            }
+            layout {
+                sequence: 16
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "CONTACT_PERSON" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column CONTACT_POSITION (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            heading {
+                heading: Contact Position
+            }
+            layout {
+                sequence: 17
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "CONTACT_POSITION" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column CONTACT_SEC_MOBILE (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            heading {
+                heading: Contact Secondary Mobile
+            }
+            layout {
+                sequence: 19
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "CONTACT_SEC_MOBILE" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column CREATED_ON (
+            reportColumnQueryId: 25
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 52
+            }
+        )
+
+        column CREATIONDATE (
+            reportColumnQueryId: 21
+            derivedColumn: N
+            heading {
+                heading: Creation date
+            }
+            layout {
+                sequence: 21
+            }
+            appearance {
+                formatMask: YYYY-MM-DD
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "CREATIONDATE" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column EXPERIENCE_EGY (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: Experience in Egypt
+            }
+            layout {
+                sequence: 11
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "EXPERIENCE_EGY" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column EXPERIENCE_OUT_EGY (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: Experience Outside Egypt
+            }
+            layout {
+                sequence: 12
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "EXPERIENCE_OUT_EGY" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column HEADOFF_ADDRESS (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Headoffice Address
+            }
+            layout {
+                sequence: 5
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "HEADOFF_ADDRESS" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column HEADOFF_EMAIL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Email
+            }
+            layout {
+                sequence: 9
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "HEADOFF_EMAIL" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column HEADOFF_FAX (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Fax
+            }
+            layout {
+                sequence: 8
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "HEADOFF_FAX" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column HEADOFF_MOBILE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Mobile
+            }
+            layout {
+                sequence: 7
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "HEADOFF_MOBILE" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column HEADOFF_PHONE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Phone
+            }
+            layout {
+                sequence: 6
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "HEADOFF_PHONE" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column LASTUPDATEDATE (
+            reportColumnQueryId: 22
+            derivedColumn: N
+            heading {
+                heading: Lastupdatedate
+            }
+            layout {
+                sequence: 22
+            }
+            appearance {
+                formatMask: YYYY-MM-DD
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "LASTUPDATEDATE" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column LAST_LOGIN_ON (
+            reportColumnQueryId: 27
+            derivedColumn: N
+            heading {
+                heading: Last Login
+            }
+            layout {
+                sequence: 72
+            }
+            appearance {
+                formatMask: YYYY-MM-DD
+            }
+        )
+
+        column PASSWORD_HASH (
+            reportColumnQueryId: 28
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 82
+            }
+        )
+
+        column SECONDARY_BRANCH_INFO (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            heading {
+                heading: Secondary Branch Info
+            }
+            layout {
+                sequence: 15
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "SECONDARY_BRANCH_INFO" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column STATUS (
+            reportColumnQueryId: 24
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 42
+            }
+        )
+
+        column SUPPLIER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "SUPPLIER_ID" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column SUPPLIER_REGISTERED_NO (
+            reportColumnQueryId: 23
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 32
+            }
+        )
+
+        column WEBSITE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: Website
+            }
+            layout {
+                sequence: 10
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "WEBSITE" is not null
+                    and "SUPPLIER_ID" = :P5_SUPPLIER_ID
+                    ```
+            }
+        )
+
+    )
+
+    pageItem P5_APPLAY_AS (
+        type: selectList
+        label {
+            label: Apply As
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Supplier;Supplier,Contractor;Contractor,Both;Both
+        }
+        layout {
+            sequence: 20
+            slot: body
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P5_APP_USER (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @search
+            slot: regionBody
+        }
+        default {
+            type: expression
+            plsqlExpression: :app_user
+        }
+    )
+
+    pageItem P5_SEARCH (
+        type: textField
+        label {
+            label: Search
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @search
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/hidden
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--large
+                t-Form-fieldContainer--postTextBlock
+            ]
+            icon: fa-search
+            width: 30
+            valuePlaceholder: Search...
+        }
+    )
+
+    pageItem P5_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @suppliers-contractors
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button create (
+        buttonName: CREATE
+        label: Create
+        layout {
+            sequence: 20
+            region: @breadcrumb
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-plus
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 9
+                clearCache: 9
+                action: resetPagination
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button edit (
+        buttonName: EDIT
+        label: Edit
+        layout {
+            sequence: 20
+            region: @suppliers-contractors
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--noUI
+                t-Button--iconLeft
+            ]
+            icon: fa-pencil-square-o
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 9
+                items: {
+                    P9_SUPPLIER_ID: &P5_SUPPLIER_ID.
+                }
+                clearCache: 9
+                action: resetPagination
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        advanced {
+            htmlDomId: edit_master_btn
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    button pop-sup-services (
+        buttonName: POP_SUP_SERVICES
+        label: Add Services
+        layout {
+            sequence: 10
+            region: @b-services-b
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--noUI
+            ]
+            icon: fa-plus
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 10
+                items: {
+                    P10_SUPPLIER_ID: &P5_SUPPLIER_ID.
+                }
+                clearCache: 10
+                action: resetPagination
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    button reset (
+        buttonName: RESET
+        label: Reset
+        layout {
+            sequence: 40
+            region: @breadcrumb
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--noUI
+                t-Button--iconLeft
+                t-Button--gapRight
+            ]
+            icon: fa-undo-alt
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 5
+                clearCache: 5
+                action: resetPagination
+                request: RESET
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction dialog-closed (
+        name: Dialog Closed
+        execution {
+            sequence: 40
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @b-services-b
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode: apex.message.showPageSuccess('Services row(s) updated.');
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @b-services-b
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction dialog-closed-2 (
+        name: Dialog Closed
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @suppliers-contractors
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode: apex.message.showPageSuccess('Suppliers row(s) updated.');
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @suppliers-contractors
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction perform-search (
+        name: Perform Search
+        execution {
+            sequence: 150
+        }
+        when {
+            event: keypress
+            selectionType: items
+            items: P5_SEARCH
+        }
+        clientSideCondition {
+            type: jsExpression
+            javaScriptExpression: this.browserEvent.which === apex.jQuery.ui.keyCode.ENTER
+        }
+
+        action native-cancel-event (
+            action: cancelEvent
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @master-records
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh (
+        name: refresh
+        execution {
+            sequence: 160
+        }
+        when {
+            selectionType: items
+            items: P5_APPLAY_AS
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @master-records
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

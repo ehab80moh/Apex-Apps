@@ -1,0 +1,288 @@
+page 20020 (
+    name: Dynamic Prefrences
+    alias: DYNAMIC-PREFRENCES
+    title: تحكم في رسائل البوابة
+    pageGroup: @user-settings
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @drawer
+        templateOptions: [
+            #DEFAULT#
+            js-dialog-class-t-Drawer--pullOutEnd
+        ]
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+        warnOnUnsavedChanges: false
+    }
+    javaScript {
+        executeWhenPageLoads: apex.pwa.initPushSubscriptionPage();
+    }
+    css {
+        inline:
+            ```css
+            #d_item_reg{
+            margin-top: 3em;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    help {
+        helpText: This page contains the settings for controlling push notification subscription for the current user.
+    }
+    config {
+        buildOption: @feature-push-notifications
+    }
+
+    region d-item-reg (
+        name: d_item_reg
+        type: staticContent
+        layout {
+            sequence: 70
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: d_item_reg
+        }
+    )
+
+    pageItem P20020_PREF_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+    )
+
+    pageItem P20020_PREF_NAME (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+    )
+
+    pageItem P20020_RES (
+        type: hidden
+        layout {
+            sequence: 60
+            slot: contentBody
+        }
+    )
+
+    pageItem P20020_SELECT (
+        type: selectList
+        label {
+            label: &P20020_PREF_NAME.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @yes-or-no
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 20
+            region: @d-item-reg
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        default {
+            type: item
+            item: P20020_VAL
+        }
+    )
+
+    pageItem P20020_VAL (
+        type: hidden
+        layout {
+            sequence: 50
+            slot: contentBody
+        }
+    )
+
+    pageItem P20020_VALS (
+        type: hidden
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+    )
+
+    button back (
+        buttonName: BACK
+        label: الإعدادات
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--link
+                t-Button--iconLeft
+            ]
+            cssClasses: t-Button--inlineLink
+            icon: fa-chevron-left
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 20000
+                action: clearRegions
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button save (
+        buttonName: save
+        label: حفظ
+        layout {
+            sequence: 80
+            slot: contentBody
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconRight
+            ]
+            icon: fa-save
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction change-p20020-enable-push (
+        name: Change P20020_ENABLE_PUSH
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: P20020_ENABLE_PUSH
+        }
+        clientSideCondition {
+            type: item=value
+            item: P20020_ENABLE_PUSH
+            value: Y
+        }
+
+        action subscribe-to-push-notifications (
+            name: Subscribe to push notifications
+            action: executeJsCode
+            settings {
+                jsCode: apex.pwa.subscribePushNotifications();
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action unsubscribe-from-push-notifications (
+            name: Unsubscribe from push notifications
+            action: executeJsCode
+            settings {
+                jsCode: apex.pwa.unsubscribePushNotifications();
+            }
+            execution {
+                sequence: 10
+                fireWhenEventResultIs: false
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    computation p20020-vals (
+        itemName: P20020_VALS
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        computation {
+            sqlQuery:
+                ```sql
+                select val from central.emp_prefs_v
+                where emp_id=:APP_USER
+                and pref_id=:P20020_PREF_ID
+                ;
+                
+                ```
+        }
+    )
+
+    process clear (
+        name: clear
+        type: clearSessionState
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 900000000000000000101
+        }
+    )
+
+    process redirect-to-prev-page (
+        name: redirect to prev page
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                APEX_UTIL.REDIRECT_URL (
+                     p_url => APEX_PAGE.GET_URL (
+                p_application        =>104,
+                            p_page   => 20000 )
+                );
+                ```
+        }
+        execution {
+            sequence: 40
+        }
+        successMessage {
+            successMessage: success
+        }
+        advanced {
+            executionMappingIdentifier: 900000000000000000102
+        }
+    )
+
+    process set-val (
+        name: set val
+        type: executeCode
+        source {
+            plsqlCode: :P20020_RES := central.pref_pkg.set_pref(p_emp_id=>:APP_USER,p_pref_id=>:P20020_PREF_ID,p_val=>:P20020_SELECT) ;
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 900000000000000000103
+        }
+        serverSideCondition {
+            whenButtonPressed: @save
+        }
+    )
+
+)

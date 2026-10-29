@@ -1,0 +1,518 @@
+page 503 (
+    name: create survey questions
+    alias: CREATE-SURVEY-QUESTIONS
+    title: &APP_TEXT$CREATE_SURVEY_QUESTIONS.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-ButtonRegion--noPadding
+                t-ButtonRegion--noUI
+            ]
+        }
+    )
+
+    region إنشاء-أسئلة-الاستطلاع (
+        name: إنشاء أسئلة الاستطلاع
+        title: &APP_TEXT$CREATE_SURVEY_QUESTIONS.
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: GEN_SURVEY_QUESTIONS
+            whereClause: SURVEY_ID = :P503_SURVEY_ID
+            pageItemsToSubmit: P503_SURVEY_ID
+        }
+        layout {
+            sequence: 31
+            slot: contentBody
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+        toolbar {
+            controls: [
+                searchCol
+                searchField
+                actionsMenu
+                resetButton
+            ]
+        }
+        download {
+            formats: [
+                csv
+                html
+                pdf
+                excel
+            ]
+        }
+        heading {
+            fixedTo: region
+            fixedReportHeight: 300
+        }
+        advanced {
+            savedReportMappingIdentifier: 98111541343170175
+        }
+
+        savedReport 981120 (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+            displayColumn (
+                column: @QUESTION_ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @SURVEY_ID
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @السؤال
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @"رقم السؤال"
+                layout {
+                    sequence: 4
+                }
+            )
+
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column APEX$ROW_SELECTOR (
+            type: rowSelector
+            layout {
+                sequence: 10
+            }
+        )
+
+        column QUESTION_ID (
+            type: hidden
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: QUESTION_ID
+                dataType: number
+                queryOnly: true
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column SURVEY_ID (
+            type: hidden
+            layout {
+                sequence: 40
+            }
+            source {
+                databaseColumn: SURVEY_ID
+                dataType: number
+            }
+            default {
+                type: item
+                item: P503_SURVEY_ID
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column السؤال (
+            type: textField
+            heading {
+                heading: &APP_TEXT$QUESTION_TEXT.
+            }
+            layout {
+                sequence: 50
+            }
+            validation {
+                valueRequired: true
+                maxLength: 200
+            }
+            source {
+                databaseColumn: QUESTION_TEXT
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column "رقم السؤال" (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$QUESTION_NUMBER.
+                alignment: end
+            }
+            layout {
+                sequence: 60
+                columnAlignment: end
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: QUESTION_NUMBER
+                dataType: number
+            }
+            default {
+                type: static
+                staticValue: 0
+            }
+            columnFilter {
+                lovType: none
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: &APP_TEXT$CREATE_SURVEY_QUESTIONS.
+        }
+    )
+
+    region الاجابات (
+        name: الاجابات
+        title: &APP_TEXT$ANSWERS.
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: GEN_SURVEY_ANSWERS
+        }
+        layout {
+            sequence: 41
+            slot: contentBody
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        masterDetail {
+            masterRegion: @إنشاء-أسئلة-الاستطلاع
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+        toolbar {
+            controls: [
+                searchCol
+                searchField
+                actionsMenu
+                resetButton
+            ]
+        }
+        download {
+            formats: [
+                csv
+                html
+                pdf
+                excel
+            ]
+        }
+        heading {
+            fixedTo: region
+            fixedReportHeight: 300
+        }
+        advanced {
+            savedReportMappingIdentifier: 98118648791170194
+        }
+
+        savedReport 981191 (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+            displayColumn (
+                column: @ANSWER_ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @QUESTION_ID
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @ANSWER_TEXT
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @ORD
+                layout {
+                    sequence: 4
+                }
+            )
+
+        )
+
+        column ANSWER_ID (
+            type: hidden
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: ANSWER_ID
+                dataType: number
+                queryOnly: true
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column ANSWER_TEXT (
+            type: textField
+            heading {
+                heading: &APP_TEXT$ANSWER_TEXT.
+            }
+            layout {
+                sequence: 50
+            }
+            validation {
+                valueRequired: true
+                maxLength: 200
+            }
+            source {
+                databaseColumn: ANSWER_TEXT
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column APEX$ROW_SELECTOR (
+            type: rowSelector
+            layout {
+                sequence: 10
+            }
+        )
+
+        column ORD (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$ORD.
+                alignment: end
+            }
+            layout {
+                sequence: 60
+                columnAlignment: end
+            }
+            source {
+                databaseColumn: ORD
+                dataType: number
+            }
+            default {
+                type: static
+                staticValue: 0
+            }
+            columnFilter {
+                lovType: none
+            }
+        )
+
+        column QUESTION_ID (
+            type: hidden
+            layout {
+                sequence: 40
+            }
+            source {
+                databaseColumn: QUESTION_ID
+                dataType: number
+            }
+            masterDetail {
+                masterColumn: @QUESTION_ID
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: &APP_TEXT$ANSWERS.
+        }
+    )
+
+    pageItem P503_SURVEY_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+    )
+
+    button حفظ (
+        buttonName: حفظ
+        label: &APP_TEXT$SAVE.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process answers-save-interactive-grid-data (
+        name: answers - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @الاجابات
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 98124976268170198
+        }
+        serverSideCondition {
+            whenButtonPressed: @حفظ
+        }
+    )
+
+    process create-survey-questions-save-interactive-grid-data (
+        name: create survey questions - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @إنشاء-أسئلة-الاستطلاع
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 98117896933170179
+        }
+        serverSideCondition {
+            whenButtonPressed: @حفظ
+        }
+    )
+
+    process new (
+        name: New
+        type: closeDialog
+        execution {
+            sequence: 30
+        }
+        successMessage {
+            successMessage: &APP_TEXT$SUCCESS.
+        }
+        advanced {
+            executionMappingIdentifier: 97873689159731437
+        }
+    )
+
+)

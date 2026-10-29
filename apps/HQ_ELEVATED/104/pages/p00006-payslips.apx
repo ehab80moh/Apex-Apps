@@ -1,0 +1,164 @@
+page 6 (
+    name: payslips
+    alias: PAYSLIPS
+    title: &APP_TEXT$SALARY_JEWELLERY.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region مصوغات-الرواتب (
+        name: مصوغات الرواتب
+        title: &APP_TEXT$SALARY_JEWELLERY.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select ID,
+                       EMP_NUM,
+                       MON,
+                       YEAR,
+                        SYS.dbms_lob.getlength(out ) OUT,
+                       FILE_NAME,
+                       MIME_TYPE
+                  from CENTRAL.XXAPEX_CONCURRENT_OUT_V
+                 where EMP_NUM = :APP_USER
+                order by year desc,mon desc
+                
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+            icon: fa-money
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+
+        column EMP_NUM (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column FILE_NAME (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column MIME_TYPE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column MON (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MONTH.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column OUT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$FILE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            appearance {
+                downloadText: تحميل
+            }
+            blobAttributes {
+                tableOwner: CENTRAL
+                tableName: XXAPEX_CONCURRENT_OUT_V
+                blobColumn: OUT
+                primaryKeyColumn1: ID
+                mimeTypeColumn: MIME_TYPE
+                filenameColumn: FILE_NAME
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column YEAR (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$GENERAL.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+)

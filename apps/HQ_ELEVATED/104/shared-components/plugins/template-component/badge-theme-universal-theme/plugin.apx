@@ -1,0 +1,43 @@
+plugin badge (
+    name: Badge
+    staticId: THEME_42$BADGE
+    theme: @universal-theme
+    templateComponent {
+        availableAs: [
+            partial
+            report
+        ]
+        partial:
+            ```html
+            {if APEX$IS_LAZY_LOADING/}
+              <span class="t-Badge is-placeholder{if ?SIZE/} #SIZE#{endif/}{if ?SHAPE/} #SHAPE#{endif/}"></span>
+            {else/}
+              {if ?LINK/}<a href="#LINK#" #LINK_ATTR#{else/}<span{endif/} class="t-Badge{if ?STATE/} t-Badge--#STATE#{endif/}{if ?STYLE/} #STYLE#{endif/}{if ?SIZE/} #SIZE#{endif/}{if ?SHAPE/} #SHAPE#{endif/}" role="status" aria-label="#LABEL!STRIPHTML# #VALUE#" title="#LABEL!STRIPHTML# #VALUE#">
+                {if ?ICON/}<span class="t-Badge-icon #ICON#" aria-hidden="true"></span>{endif/}
+                {if LABEL_DISPLAY/}<span class="t-Badge-label">#LABEL#</span>{endif/}
+                <span class="t-Badge-value">#VALUE#</span>
+              {if ?LINK/}</a>{else/}</span>{endif/}
+            {endif/}
+            
+            ```
+        reportBody:
+            ```html
+            {if !APEX$HAS_MESSAGE/}
+              <ul class="t-Badges #APEX$COMPONENT_CSS_CLASSES#">#APEX$ROWS#</ul>
+            {endif/}
+            ```
+        reportRow:
+            ```html
+            <li class="t-Badges-item" #APEX$ROW_IDENTIFICATION#>#APEX$PARTIAL#</li>
+            
+            ```
+        numberOfLazyLoadingSkeletons: 1
+    }
+    component {
+        standardAttributes: regionTemplateAttr
+    }
+    information {
+        version: 1.0
+        helpText: Display content within a badge. Available for multiple report rows or a single row.
+    }
+)

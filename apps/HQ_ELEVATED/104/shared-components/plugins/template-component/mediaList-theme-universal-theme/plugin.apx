@@ -1,0 +1,87 @@
+plugin mediaList (
+    name: Media List
+    staticId: THEME_42$MEDIA_LIST
+    theme: @universal-theme
+    templateComponent {
+        availableAs: [
+            partial
+            report
+        ]
+        partial:
+            ```html
+            {if APEX$IS_LAZY_LOADING/}
+              <div class="t-MediaList-itemWrap">
+                {if ?APEX$SELECTOR%assigned/}<div class="t-MediaList-selection is-placeholder"></div>{endif/}
+                {if DISPLAY_AVATAR/}
+                  <div class="t-MediaList-iconWrap" aria-hidden="true">
+                    {with/}
+                      SIZE:=t-Avatar--xs
+                      SHAPE:=#AVATAR_SHAPE#
+                    {apply THEME$AVATAR/}
+                  </div>
+                {endif/}
+                <div class="t-MediaList-body">
+                  {if ?TITLE%assigned/}<div class="t-MediaList-title is-placeholder"></div>{endif/}
+                  {if ?DESCRIPTION%assigned/}<div class="t-MediaList-desc is-placeholder"></div>{endif/}
+                </div>
+                {if DISPLAY_BADGE%assigned/}
+                  {with/}
+                    LABEL:=
+                    VALUE:=
+                    SHAPE:=#BADGE_SHAPE#
+                    STYLE:=#BADGE_STYLE#
+                  {apply THEME$BADGE/}
+                {endif/}
+              </div>
+            {else/}
+              {if LINK/}<a href="#LINK#" #LINK_ATTR#{else/}<div{endif/} class="t-MediaList-itemWrap{if ?DESCRIPTION/} t-MediaList-itemWrap--showDesc{endif/}">
+                {if ?APEX$SELECTOR%assigned/}<div class="t-MediaList-selection">#APEX$SELECTOR#</div>{endif/}
+                {if DISPLAY_AVATAR/}
+                  <div class="t-MediaList-iconWrap" aria-hidden="true">
+                    {with/}
+                      TYPE:=#AVATAR_TYPE#
+                      IMAGE:=#AVATAR_IMAGE#
+                      DESCRIPTION:=#AVATAR_DESCRIPTION#
+                      ICON:=#AVATAR_ICON#
+                      INITIALS:=#AVATAR_INITIALS#
+                      CSS_CLASSES:=u-color
+                      SHAPE:=#AVATAR_SHAPE#
+                    {apply THEME$AVATAR/}
+                  </div>
+                {endif/}
+                <div class="t-MediaList-body">
+                  {if ?TITLE/}<h3 class="t-MediaList-title">#TITLE#</h3>{endif/}
+                  {if ?DESCRIPTION/}<p class="t-MediaList-desc">#DESCRIPTION#</p>{endif/}
+                </div>
+                {if DISPLAY_BADGE/}
+                  {with/}
+                    LABEL_DISPLAY:=#BADGE_LABEL_DISPLAY#
+                    LABEL:=#BADGE_LABEL#
+                    VALUE:=#BADGE_VALUE#
+                    ICON:=#BADGE_ICON#
+                    STATE:=#BADGE_STATE#
+                    SIZE:=t-Badge--md
+                    STYLE:=#BADGE_STYLE#
+                    SHAPE:=#BADGE_SHAPE#
+                  {apply THEME$BADGE/}
+                {endif/}
+              {if LINK/}</a>{else/}</div>{endif/}
+            {endif/}
+            ```
+        reportBody: "<ul class=\"t-MediaList t-MediaList--showIcons{if ?LAYOUT/} #LAYOUT!ATTR#{endif/}{if ?SIZE/} #SIZE!ATTR#{endif/}{if APPLY_THEME_COLORS/} u-colors{endif/} #APEX$COMPONENT_CSS_CLASSES#\">#APEX$ROWS#</ul>"
+        reportRow: <li class="t-MediaList-item" #APEX$ROW_IDENTIFICATION#>#APEX$PARTIAL#</li>
+        numberOfLazyLoadingSkeletons: 3
+    }
+    component {
+        standardAttributes: [
+            rowSelection
+            regionTemplateAttr
+        ]
+    }
+    advanced {
+        quickPick: true
+    }
+    information {
+        helpText: Display report content in a formatted media list. Supports avatars and badges. Available for a single row or as a report with multiple rows.
+    }
+)

@@ -1,0 +1,119 @@
+page 49 (
+    name: Globale_Instructions
+    alias: GLOBALE-INSTRUCTIONS
+    title: &APP_TEXT$GENERAL_INSTRUCTIONS.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region page_plug (
+        name: .
+        title: &APP_TEXT$TITLE.
+        type: staticContent
+        source {
+            htmlCode: "&{PLUG_SOURCE_6 APP_FILES=#APP_FILES# APP_FILES=#APP_FILES#}!RAW."
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--accent1
+                t-Region--hiddenOverflow
+                t-Form--slimPadding
+                margin-top-md
+            ]
+        }
+        advanced {
+            htmlDomId: ins_reg
+        }
+    )
+
+    button back (
+        buttonName: BACK
+        label: &APP_TEXT$SETTINGS.
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            cssClasses: t-Button--inlineLink
+            icon: fa-chevron-left
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 20000
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction on-change (
+        name: ON CHANGE
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: P49_DONT_SHOW
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                        pref_val VARCHAR2(9);
+                        v_Return number;
+                    BEGIN
+                        IF :P49_DONT_SHOW = 1 THEN
+                            pref_val := 'no';
+                        ELSE
+                            pref_val := 'yes';
+                        END IF;
+                    
+                         v_Return := central.PREF_PKG.SET_PREF(
+                        P_EMP_ID => :App_user,
+                        P_PREF_ID => 41,
+                        P_VAL => pref_val
+                      );
+                    
+                    
+                    
+                    END;
+                    
+                    ```
+                itemsToSubmit: P49_DONT_SHOW
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

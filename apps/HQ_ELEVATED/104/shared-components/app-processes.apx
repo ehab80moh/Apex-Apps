@@ -1,0 +1,223 @@
+appProcess get-emp-avatar (
+    name: GET_EMP_AVATAR
+    type: executeCode
+    source {
+        plsqlCode:
+            ```plsql
+            DECLARE
+                l_blob BLOB;
+                l_emp  VARCHAR2(50);
+            BEGIN
+                l_emp := NVL(:IMAGE_ID, NVL(:P450_EMP_ID, :APP_USER));
+                SELECT image INTO l_blob
+                FROM central.xxapex_hr_emp_data
+                WHERE emp_number = l_emp;
+            
+                IF l_blob IS NOT NULL AND DBMS_LOB.GETLENGTH(l_blob) > 0 THEN
+                    owa_util.mime_header('image/jpeg', FALSE);
+                    htp.p('Content-Length: ' || DBMS_LOB.GETLENGTH(l_blob));
+                    owa_util.http_header_close;
+                    wpg_docload.download_file(l_blob);
+                ELSE
+                    owa_util.mime_header('image/gif', FALSE);
+                    owa_util.http_header_close;
+                END IF;
+                apex_application.stop_apex_engine;
+            EXCEPTION
+                WHEN OTHERS THEN
+                    apex_application.stop_apex_engine;
+            END;
+            ```
+    }
+    execution {
+        sequence: 2
+        point: ajaxCallback
+    }
+    security {
+        authorizationScheme: mustNotBePublicUser
+    }
+)
+
+appProcess get-news-image (
+    name: GET_NEWS_IMAGE
+    type: executeCode
+    source {
+        plsqlCode:
+            ```plsql
+            DECLARE
+                l_mime_type  VARCHAR2(255);
+                l_filename   VARCHAR2(255);
+                l_blob       BLOB;
+            BEGIN
+                SELECT MIME_TYPE, FILE_NAME, IMAGE
+                INTO l_mime_type, l_filename, l_blob
+                FROM epromhq.NEWS_IMAGES
+                WHERE IMAGE_ID = TO_NUMBER(:IMAGE_ID);
+            
+                owa_util.mime_header(l_mime_type, FALSE);
+                htp.p('Content-Disposition: inline; filename="' || l_filename || '"');
+                owa_util.http_header_close;
+            
+                wpg_docload.download_file(l_blob);
+                apex_application.stop_apex_engine;
+            
+            EXCEPTION
+                WHEN NO_DATA_FOUND THEN
+                    htp.p('No image found');
+                    apex_application.stop_apex_engine;
+            END;
+            ```
+    }
+    execution {
+        sequence: 1
+        point: ajaxCallback
+    }
+    security {
+        authorizationScheme: mustNotBePublicUser
+    }
+)
+
+appProcess mark-all-notification-seen (
+    name: MARK_ALL_NOTIFICATION_SEEN
+    type: executeCode
+    source {
+        plsqlCode:
+            ```plsql
+            BEGIN
+                central.xxapex_emp_notifications.mark_all_notification_seen(:APP_USER);
+                :NOT_COUNT := 0;
+                apex_json.open_object;
+                apex_json.write('success', true);
+                apex_json.close_object;
+            EXCEPTION
+                WHEN OTHERS THEN
+                    apex_json.open_object;
+                    apex_json.write('success', false);
+                    apex_json.write('message', SQLERRM);
+                    apex_json.close_object;
+            END;
+            ```
+    }
+    execution {
+        sequence: 15
+        point: ajaxCallback
+    }
+    security {
+        authorizationScheme: mustNotBePublicUser
+    }
+)
+
+appProcess set-emp-vars (
+    name: set_emp_vars
+    type: executeCode
+    source {
+        plsqlCode:
+            ```plsql
+            begin :SESSION_LANG := nvl(APEX_UTIL.GET_SESSION_LANG,'ar-ae');
+            IF central.APR_MED_LOCAL_PORTAL_AUTH.is_local(:APP_USER)=1 THEN
+                IF central.APR_MED_LOCAL_PORTAL_AUTH.is_active(:APP_USER)<>1 THEN
+                    RAISE_APPLICATION_ERROR(-20881,'Medical account is inactive or its identity mapping changed');
+                END IF;
+                SELECT emp_name,site_code,project INTO :EMP_NAME,:EMP_SITE,:EMP_PROJECT
+                  FROM HQ_ELEVATED.DEVELOPERS_EMPS
+                 WHERE emp_id=:APP_USER AND ACCESS_PROFILE='MEDICAL_PORTAL';
+                :EMP_PERSON_ID:=NULL;
+                :EMP_GRADE:=NULL;
+                :EMP_BIRTH:=NULL;
+                :EMP_ROTATION:=NULL;
+                :ERC_TYPE:=NULL;
+                :MOBILE:=NULL;
+                :PERSONAL_EMAIL:=NULL;
+                :USER_ROLES:=central.GET_USER_ROLES_names(p_APP_ID=>:APP_ID,p_APP_USER=>:APP_USER);
+                FOR contact_row IN (SELECT mobile,personal_email FROM central.emp_contact WHERE emp_id=:APP_USER) LOOP
+                    :MOBILE:=contact_row.mobile;
+                    :PERSONAL_EMAIL:=contact_row.personal_email;
+                END LOOP;
+                DECLARE local_lang VARCHAR2(99);
+                BEGIN
+                    local_lang:=CENTRAL.GET_emp_lang(:APP_USER);
+                    APEX_UTIL.SET_SESSION_LANG(p_lang=>NVL(local_lang,'ar-ae'));
+                END;
+                RETURN;
+            END IF;
+            -- Handle active developer accounts separately.
+            FOR dev IN (
+                SELECT emp_name, site_code, project, is_active
+                  FROM HQ_ELEVATED.DEVELOPERS_EMPS
+                 WHERE emp_id = :APP_USER
+                   AND access_profile = 'DEVELOPER'
+            ) LOOP
+                IF NVL(dev.is_active, 'N') <> 'Y' THEN
+                    RAISE_APPLICATION_ERROR(-20882, 'Developer account is inactive');
+                END IF;
+                :EMP_NAME := dev.emp_name;
+                :EMP_SITE := dev.site_code;
+                :EMP_PROJECT := dev.project;
+                :EMP_PERSON_ID := NULL;
+                :EMP_GRADE := NULL;
+                :EMP_BIRTH := NULL;
+                :EMP_ROTATION := NULL;
+                :ERC_TYPE := NULL;
+                :MOBILE := NULL;
+                :PERSONAL_EMAIL := NULL;
+                :USER_ROLES := central.GET_USER_ROLES_names(
+                    p_APP_ID => :APP_ID, p_APP_USER => :APP_USER
+                );
+                FOR contact_row IN (
+                    SELECT mobile, personal_email
+                      FROM central.emp_contact
+                     WHERE emp_id = :APP_USER
+                ) LOOP
+                    :MOBILE := contact_row.mobile;
+                    :PERSONAL_EMAIL := contact_row.personal_email;
+                END LOOP;
+                DECLARE
+                    l_lang VARCHAR2(99);
+                BEGIN
+                    l_lang := central.GET_emp_lang(:APP_USER);
+                    APEX_UTIL.SET_SESSION_LANG(p_lang => NVL(l_lang, 'ar-ae'));
+                END;
+                RETURN;
+            END LOOP;
+            
+             select 
+             e.emp_name,
+             e.site_code,
+             e.project,
+             e.person_id,
+             to_number(replace(replace(nvl(e.grade_name, 'EPROM.10'),'EPROM.',''),'ERC.','')),
+             e.emp_date_of_birth , epromhq.get_emp_rotation(:APP_USER,sysdate)
+               into 
+            :EMP_NAME,
+            :EMP_SITE,
+            :EMP_PROJECT,
+            :EMP_PERSON_ID,
+            :EMP_GRADE,
+            :EMP_BIRTH,
+            :EMP_ROTATION
+             from central.xxapex_hr_emp_data e
+             where e.emp_number=:APP_USER;
+                :USER_ROLES := central.GET_USER_ROLES_names(p_APP_ID => :APP_ID, p_APP_USER => :APP_USER);
+            for x in (select CURRENTLY_PROJECT from central.XXAPEX_LEAVE_CREDIT_HR where EMP_ID = :APP_USER) LOOP
+            :ERC_TYPE := x.CURRENTLY_PROJECT;
+            END LOOP;
+            declare v_lang varchar2(99); BEGIN SELECT mobile INTO :MOBILE FROM central.emp_contact WHERE emp_id = :App_user;
+            v_lang := CENTRAL.GET_emp_lang (:APP_USER); APEX_UTIL.SET_SESSION_LANG( P_LANG => v_lang); EXCEPTION WHEN NO_DATA_FOUND THEN NULL; END;
+            BEGIN SELECT PERSONAL_EMAIL INTO :PERSONAL_EMAIL FROM central.emp_contact WHERE emp_id = :App_user; EXCEPTION WHEN NO_DATA_FOUND THEN NULL; END;
+            end;
+            ```
+    }
+    execution {
+        sequence: 10
+    }
+    error {
+        errorMessage: &APP_TEXT$SET_EMP_VARS_ERROR_.
+    }
+    serverSideCondition {
+        type: expression
+        plsqlExpression: :EMP_PERSON_ID IS NULL
+    }
+    security {
+        authorizationScheme: mustNotBePublicUser
+    }
+)

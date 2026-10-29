@@ -1,0 +1,391 @@
+customAttribute APPLY_THEME_COLORS (
+    apexlangName: applyThemeColors
+    attribute: 13
+    name: Apply Theme Colors
+    scope: report
+    type: yesNo
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 130
+    }
+    default {
+        value: true
+    }
+    help {
+        helpText: Specify whether to use the Universal Theme colors for avatar and badge row items. When set to Yes, the u-colors class will be applied to each row. When set to No, a default color will be used instead.
+    }
+)
+
+customAttribute ATTRIBUTES (
+    apexlangName: attributes
+    attribute: 4
+    name: Attributes
+    type: html
+    security {
+        escapeMode: raw
+    }
+    appearance {
+        sequence: 40
+    }
+    builder {
+        translatable: true
+    }
+    help {
+        helpText: Enter some text and/or column substitution strings to be used as the comment attributes.
+    }
+)
+
+customAttribute AVATAR_DESCRIPTION (
+    apexlangName: description
+    attribute: 7
+    name: Description
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 95
+    }
+    builder {
+        translatable: true
+    }
+    help {
+        helpText: Enter a short description of the image/icon or select a source column from the quick pick options. This will be used as title & alt text for the avatar image/icon.
+    }
+)
+
+customAttribute AVATAR_ICON (
+    apexlangName: icon
+    attribute: 9
+    name: Icon
+    type: icon
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 90
+    }
+    default {
+        value: fa-user
+    }
+    dependingOn {
+        attribute: @AVATAR_TYPE/component
+        conditionType: =
+        value: icon
+    }
+    help {
+        helpText: Enter an icon class or use the Pick Icon dialog to select the icon you want to add to display in the avatar.
+    }
+)
+
+customAttribute AVATAR_IMAGE (
+    apexlangName: image
+    attribute: 6
+    name: Image
+    type: media
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 60
+    }
+    dependingOn {
+        attribute: @AVATAR_TYPE/component
+        conditionType: =
+        value: image
+    }
+    help {
+        helpText:
+            ```
+            <p>Use the Media popup dialog to select a source for the avatar image.</p>
+            
+            <p>Available options include:
+            <ul>
+            <li>URL</li>
+            <li>BLOB Column</li>
+            <li>URL Column</li>
+            </ul>
+            </p>
+            ```
+    }
+)
+
+customAttribute AVATAR_INITIALS (
+    apexlangName: initials
+    attribute: 8
+    name: Initials
+    type: sessionStateValue
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: stripHtml
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 80
+    }
+    default {
+        sampleDataValue: JK
+    }
+    dependingOn {
+        attribute: @AVATAR_TYPE/component
+        conditionType: =
+        value: initials
+    }
+    help {
+        helpText: Select the source column to be displayed within each avatar. Only varchar2 data types are supported.
+    }
+)
+
+customAttribute AVATAR_SHAPE (
+    apexlangName: shape
+    attribute: 10
+    name: Shape
+    type: selectList
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 100
+    }
+    default {
+        value: t-Avatar--rounded
+    }
+    dependingOn {
+        attribute: @DISPLAY_AVATAR/component
+        conditionType: =
+        value: Y
+    }
+    help {
+        helpText: Select the shape of the avatar. Default inherits the shape set by the containing template.
+    }
+
+    entry circular (
+        sequence: 20
+        display: Circular
+        return: t-Avatar--circle
+        help {
+            helpText: Displayed within a circular shape.
+        }
+    )
+
+    entry noShape (
+        sequence: 40
+        display: No Shape
+        return: t-Avatar--noShape
+        help {
+            helpText: Displayed inline without a containing shape.
+        }
+    )
+
+    entry rounded (
+        sequence: 10
+        display: Rounded
+        return: t-Avatar--rounded
+        help {
+            helpText: Displayed within a square with rounded corners.
+        }
+    )
+
+    entry square (
+        sequence: 30
+        display: Square
+        return: t-Avatar--square
+        help {
+            helpText: Displayed within a square shape.
+        }
+    )
+
+)
+
+customAttribute AVATAR_TYPE (
+    apexlangName: type
+    attribute: 5
+    name: Type
+    type: selectList
+    validation {
+        required: true
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 50
+    }
+    default {
+        value: icon
+        sampleDataValue: initials
+    }
+    dependingOn {
+        attribute: @DISPLAY_AVATAR/component
+        conditionType: =
+        value: Y
+    }
+    help {
+        helpText: Select the type of content that will be displayed in the avatar.
+    }
+
+    entry icon (
+        sequence: 30
+        display: Icon
+        return: icon
+    )
+
+    entry image (
+        sequence: 10
+        display: Image
+        return: image
+    )
+
+    entry initials (
+        sequence: 20
+        display: Initials
+        return: initials
+    )
+
+)
+
+customAttribute COMMENT_CLASS (
+    apexlangName: commentClass
+    attribute: 14
+    name: Comment Class
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 45
+    }
+    help {
+        helpText: Allows you to pass a class onto individual comments. Example using is-active will highlight the specific comment with a different shade.
+    }
+)
+
+customAttribute COMMENT_DATE (
+    apexlangName: date
+    attribute: 3
+    name: Date
+    type: sessionStateValue
+    appearance {
+        sequence: 30
+    }
+    default {
+        sampleDataValue: 5 minutes ago
+    }
+    supports {
+        dataTypes: [
+            varchar2
+            date
+        ]
+    }
+    help {
+        helpText: Select a source column containing a date, date range, or time.
+    }
+)
+
+customAttribute COMMENT_TEXT (
+    apexlangName: commentText
+    attribute: 1
+    name: Comment Text
+    type: sessionStateValue
+    validation {
+        required: true
+    }
+    appearance {
+        sequence: 10
+    }
+    default {
+        sampleDataValue: Praesent vel felis rutrum erat elementum viverra sit amet non odio. Cras vel auctor eros, in malesuada dolor. Nulla tellus magna, ornare consectetur purus id, volutpat egestas felis. Proin lobortis risus massa, nec faucibus arcu malesuada a. Nunc sed gravida urna. Fusce at ligula sed erat consequat pharetra.
+    }
+    help {
+        helpText: Select a source column containing text for user comments.
+    }
+)
+
+customAttribute DISPLAY_AVATAR (
+    apexlangName: displayAvatar
+    attribute: 11
+    name: Display Avatar
+    type: yesNo
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 110
+    }
+    default {
+        value: true
+        sampleDataValue: Y
+    }
+    help {
+        helpText: Specify whether to display or hide the avatar for each row. When set to Yes, an avatar will be displayed with the assigned image, icon, or initials. When set to No, no avatar will be displayed.
+    }
+)
+
+customAttribute STYLE (
+    apexlangName: style
+    attribute: 12
+    name: Style
+    scope: report
+    type: selectList
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 120
+    }
+    default {
+        value: t-Comments--basic
+        sampleDataValue: t-Comments--chat
+    }
+    help {
+        helpText: Set the style of the comments.
+    }
+
+    entry basic (
+        sequence: 10
+        display: Basic
+        return: t-Comments--basic
+    )
+
+    entry chatSpeechBubbles (
+        sequence: 20
+        display: Chat (Speech Bubbles)
+        return: t-Comments--chat
+    )
+
+)
+
+customAttribute USER_NAME (
+    apexlangName: userName
+    attribute: 2
+    name: User Name
+    type: sessionStateValue
+    validation {
+        required: true
+    }
+    appearance {
+        sequence: 20
+    }
+    default {
+        sampleDataValue: Joel
+    }
+    help {
+        helpText: Select a source column to be displayed as the user name associated with a comment.
+    }
+)

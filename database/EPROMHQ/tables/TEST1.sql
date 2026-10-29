@@ -1,0 +1,4 @@
+
+  CREATE TABLE "EPROMHQ"."TEST1"
+   (	"CL" CLOB
+   ) ;

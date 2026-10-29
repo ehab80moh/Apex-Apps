@@ -1,0 +1,30 @@
+authentication custom-emp-auth (
+    name: custom-emp-auth
+    type: custom
+    settings {
+        authFunctionName: central.AUTH_EMP
+    }
+    source {
+        plsqlCode:
+            ```plsql
+            procedure post_auth is
+            
+            begin
+            NULL;
+            
+            end;
+            ```
+    }
+    loginProcessing {
+        postAuthenticationProcedureName: post_auth
+    }
+    sessionSharing {
+        type: custom
+        cookieName: EPROM_HQ
+    }
+)
+
+authentication oracle-apex-accounts (
+    name: Oracle APEX Accounts
+    type: oracleApexAccounts
+)

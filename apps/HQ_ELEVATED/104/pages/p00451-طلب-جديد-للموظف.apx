@@ -1,0 +1,123 @@
+page 451 (
+    name: طلب جديد للموظف
+    alias: طلب-جديد-للموظف
+    title: طلب جديد للموظف
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region new (
+        name: اختر نوع الطلب
+        title: اختر نوع الطلب
+        type: staticContent
+        source {
+            htmlCode: "<style>.request-choice{direction:rtl;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;max-width:50rem;margin:0 auto;padding:.5rem}.request-choice__intro{grid-column:1/-1;display:grid;gap:.35rem;padding:.2rem .2rem .45rem;color:#344054;font-size:1.15rem;font-weight:700}.request-choice__intro-hint{color:#667085;font-size:.87rem;font-weight:400}.request-choice__card{display:flex;align-items:center;gap:1rem;min-height:6rem;padding:1rem 1.1rem;border:1px solid #dce5f0;border-radius:1rem;background:linear-gradient(145deg,#fff,#f7faff);color:#1f2937;text-decoration:none!important;box-shadow:0 2px 8px rgba(31,55,85,.06);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.request-choice__card:hover,.request-choice__card:focus-visible{transform:translateY(-2px);border-color:#7aa7df;background:#fff;box-shadow:0 8px 20px rgba(31,75,130,.12);outline:none}.request-choice__icon{display:grid;place-items:center;flex:0 0 3rem;width:3rem;height:3rem;border-radius:.85rem;background:#edf4ff;color:#2863a6;font-size:1.3rem}.request-choice__body{display:grid;gap:.3rem}.request-choice__title{font-size:1.05rem;font-weight:700}.request-choice__hint{color:#667085;font-size:.85rem;line-height:1.5}.request-choice__arrow{margin-inline-start:auto;color:#7b8794;font-size:1.1rem}@media(max-width:640px){.request-choice{grid-template-columns:1fr}}</style><div dir=\"rtl\" class=\"request-choice\"><div class=\"request-choice__intro\"><span>اختر نوع الطلب</span><span class=\"request-choice__intro-hint\">يمكنك بدء طلب جديد من الاختيارات التالية</span></div><a class=\"request-choice__card\" href=\"f?p=115:13:&APP_SESSION.\"><span class=\"request-choice__icon fa fa-calendar-check-o\" aria-hidden=\"true\"></span><span class=\"request-choice__body\"><span class=\"request-choice__title\">طلب إجازة</span><span class=\"request-choice__hint\">سجل أيام إجازتك بسهولة</span></span><span class=\"request-choice__arrow fa fa-angle-left\" aria-hidden=\"true\"></span></a><a class=\"request-choice__card\" href=\"f?p=115:45:&APP_SESSION.\"><span class=\"request-choice__icon fa fa-clock-o\" aria-hidden=\"true\"></span><span class=\"request-choice__body\"><span class=\"request-choice__title\">طلب إذن</span><span class=\"request-choice__hint\">حدد وقت الإذن وسببه</span></span><span class=\"request-choice__arrow fa fa-angle-left\" aria-hidden=\"true\"></span></a><a class=\"request-choice__card\" href=\"f?p=115:25:&APP_SESSION.\"><span class=\"request-choice__icon fa fa-map-marker\" aria-hidden=\"true\"></span><span class=\"request-choice__body\"><span class=\"request-choice__title\">طلب مأمورية</span><span class=\"request-choice__hint\">أنشئ طلب مأمورية عمل</span></span><span class=\"request-choice__arrow fa fa-angle-left\" aria-hidden=\"true\"></span></a><a class=\"request-choice__card\" href=\"f?p=115:55:&APP_SESSION.\"><span class=\"request-choice__icon fa fa-hourglass-half\" aria-hidden=\"true\"></span><span class=\"request-choice__body\"><span class=\"request-choice__title\">طلب عمل ساعات إضافية</span><span class=\"request-choice__hint\">أضف ساعات العمل الإضافية</span></span><span class=\"request-choice__arrow fa fa-angle-left\" aria-hidden=\"true\"></span></a></div>"
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    pageItem P451_EMP_ID (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @new
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P451_NEW (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @new
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P451_NEW_1 (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @new
+            slot: regionBody
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_selected_date DATE;
+                BEGIN
+                    IF :P451_NEW IS NULL THEN
+                        raise_application_error(-20001, 'تاريخ التقويم غير صالح. ارجع إلى التقويم واختر اليوم مرة أخرى.');
+                    END IF;
+                    BEGIN
+                        l_selected_date := TO_DATE(
+                            :P451_NEW,
+                            'FXYYYY-MM-DD HH:MI:SS AM',
+                            'NLS_DATE_LANGUAGE=ARABIC'
+                        );
+                    EXCEPTION
+                        WHEN OTHERS THEN
+                            BEGIN
+                                l_selected_date := TO_DATE(
+                                    :P451_NEW,
+                                    'FXYYYY-MM-DD HH:MI:SS AM',
+                                    'NLS_DATE_LANGUAGE=AMERICAN'
+                                );
+                            EXCEPTION
+                                WHEN OTHERS THEN
+                                    raise_application_error(-20001, 'تاريخ التقويم غير صالح. ارجع إلى التقويم واختر اليوم مرة أخرى.');
+                            END;
+                    END;
+                    :P451_NEW_1 := TO_CHAR(l_selected_date, 'YYYY-MM-DD');
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 194683348772125220
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P451_NEW
+        }
+    )
+
+)

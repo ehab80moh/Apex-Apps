@@ -1,0 +1,1385 @@
+page 15 (
+    name: بيانات الاجازات
+    alias: ABS-DATA
+    title: &APP_TEXT$VACATION_DATA.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+        cssClasses: eprom-history-dialog
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        executeWhenPageLoads:
+            ```javascript-browser
+            apex.jQuery(function() {
+                var $tab = apex.jQuery('a[href="#APPROVED_REP"]');
+                if ($tab.length) {
+                    $tab.trigger('click');
+                }
+            });
+            ```
+    }
+    css {
+        inline:
+            ```css
+            .t-Region-headerItems--buttons, .t-Region-headerItems--title {
+                flex-direction: column;
+            }
+            
+            /* Modal Dialog Header - Dark Navy Blue */
+            .t-Dialog-header,
+            .ui-dialog-titlebar {
+                background: #1b365d !important;
+                border-bottom: 2px solid #0f172a !important;
+                padding: 0.65rem 1.1rem !important;
+            }
+            .t-Dialog-title,
+            .ui-dialog-title {
+                color: #ffffff !important;
+                font-size: 1.15rem !important;
+                font-weight: 800 !important;
+                text-align: center !important;
+                width: 100% !important;
+            }
+            .ui-button.ui-dialog-titlebar-close {
+                color: #ffffff !important;
+                filter: brightness(0) invert(1) !important;
+            }
+            
+            /* RDS Tabs Bar */
+            .apex-rds {
+                border-bottom: 2px solid #cbd5e1 !important;
+                margin-bottom: 1.5rem !important;
+                display: flex !important;
+                gap: 0.5rem !important;
+                padding: 0 !important;
+            }
+            .apex-rds-item a {
+                border-radius: 8px 8px 0 0 !important;
+                font-weight: 800 !important;
+                font-size: 0.92rem !important;
+                padding: 0.6rem 1.15rem !important;
+                color: #475569 !important;
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                border-bottom: none !important;
+                transition: all 0.2s ease !important;
+            }
+            .apex-rds-item.apex-rds-selected a,
+            .apex-rds-item a.apex-rds-selected {
+                color: #0284c7 !important;
+                background: #ffffff !important;
+                border-color: #cbd5e1 !important;
+                border-top: 3px solid #0284c7 !important;
+                box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04) !important;
+            }
+            
+            /* Vacation Summary Cards Grid (Exact 3 Cards from Mockup) */
+            .eprom-vacation-cards {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr 1fr !important;
+                gap: 1.25rem !important;
+                margin: 0.5rem 0 1.5rem 0 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .eprom-vcard {
+                border-radius: 10px !important;
+                padding: 1.5rem 1rem !important;
+                text-align: center !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+                box-sizing: border-box !important;
+                min-height: 120px !important;
+                transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+            }
+            .eprom-vcard:hover {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08) !important;
+            }
+            
+            /* Annual (Blue) */
+            .eprom-vcard--annual {
+                background-color: #dbeafe !important;
+                border: 1.5px solid #93c5fd !important;
+            }
+            .eprom-vcard--annual .eprom-vcard-title {
+                color: #1e3a8a !important;
+            }
+            .eprom-vcard--annual .eprom-vcard-value {
+                color: #0f172a !important;
+            }
+            
+            /* Casual (Mint Green) */
+            .eprom-vcard--casual {
+                background-color: #d1fae5 !important;
+                border: 1.5px solid #6ee7b7 !important;
+            }
+            .eprom-vcard--casual .eprom-vcard-title {
+                color: #064e3b !important;
+            }
+            .eprom-vcard--casual .eprom-vcard-value {
+                color: #0f172a !important;
+            }
+            
+            /* Rest Hours (Amber) */
+            .eprom-vcard--rest {
+                background-color: #fef3c7 !important;
+                border: 1.5px solid #fcd34d !important;
+            }
+            .eprom-vcard--rest .eprom-vcard-title {
+                color: #78350f !important;
+            }
+            .eprom-vcard--rest .eprom-vcard-value {
+                color: #0f172a !important;
+            }
+            
+            .eprom-vcard-title {
+                font-size: 1.05rem !important;
+                font-weight: 700 !important;
+                margin-bottom: 0.6rem !important;
+                line-height: 1.3 !important;
+            }
+            .eprom-vcard-value {
+                font-size: 1.9rem !important;
+                font-weight: 900 !important;
+                line-height: 1 !important;
+                letter-spacing: -0.5px !important;
+            }
+            
+            /* Zero out table styles for CARDS_SUMMARY report */
+            #CARDS_SUMMARY,
+            #CARDS_SUMMARY .t-Report,
+            #CARDS_SUMMARY .t-Report-wrap,
+            #CARDS_SUMMARY .t-Report-tableWrap,
+            #CARDS_SUMMARY table.t-Report-report {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            #CARDS_SUMMARY thead {
+                display: none !important;
+            }
+            #CARDS_SUMMARY td {
+                background: transparent !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+            
+            /* Table Grid Styling */
+            .t-Report-report {
+                width: 100% !important;
+                border-collapse: separate !important;
+                border-spacing: 0 !important;
+                border: 1.5px solid #cbd5e1 !important;
+                border-radius: 8px !important;
+                overflow: hidden !important;
+                background: #ffffff !important;
+            }
+            .t-Report-report th {
+                background: #f1f5f9 !important;
+                color: #0f172a !important;
+                font-weight: 800 !important;
+                font-size: 0.92rem !important;
+                padding: 0.65rem 0.75rem !important;
+                border-bottom: 2px solid #cbd5e1 !important;
+                border-left: 1px solid #e2e8f0 !important;
+                text-align: center !important;
+            }
+            .t-Report-report th:last-child {
+                border-left: none !important;
+            }
+            .t-Report-report td {
+                padding: 0.65rem 0.75rem !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+                border-left: 1px solid #e2e8f0 !important;
+                font-size: 0.9rem !important;
+                font-weight: 600 !important;
+                color: #334155 !important;
+                text-align: center !important;
+                vertical-align: middle !important;
+            }
+            .t-Report-report td:last-child {
+                border-left: none !important;
+            }
+            .t-Report-report tr:nth-child(even) td {
+                background-color: #fafafa !important;
+            }
+            .t-Report-report tr:hover td {
+                background-color: #f1f5f9 !important;
+            }
+            
+            /* Status Pill */
+            .badge-status--approved {
+                display: inline-block !important;
+                padding: 3px 20px !important;
+                border-radius: 9999px !important;
+                background-color: #dcfce7 !important;
+                color: #15803d !important;
+                border: 1.5px solid #22c55e !important;
+                font-weight: 800 !important;
+                font-size: 0.95rem !important;
+            }
+            
+            /* Action Cancel Link */
+            .action-cancel-btn {
+                display: inline-block !important;
+                color: #dc2626 !important;
+                font-weight: 800 !important;
+                font-size: 1rem !important;
+                cursor: pointer !important;
+                text-decoration: underline !important;
+                transition: color 0.2s ease !important;
+            }
+            .action-cancel-btn:hover {
+                color: #991b1b !important;
+            }
+            
+            body.eprom-history-dialog .t-Dialog-title {
+                font-size: 1.05rem !important;
+            }
+            body.eprom-history-dialog .t-Region-title {
+                font-size: 0.92rem !important;
+            }
+            body.eprom-history-dialog .t-Report-wrap {
+                overflow-x: auto;
+            }
+            body.eprom-history-dialog .t-Report-report {
+                font-size: 0.88rem !important;
+            }
+            body.eprom-history-dialog .t-Report-report th {
+                font-size: 0.84rem !important;
+                padding: 0.55rem 0.65rem !important;
+                line-height: 1.35;
+            }
+            body.eprom-history-dialog .t-Report-report td {
+                padding: 0.55rem 0.65rem !important;
+                line-height: 1.4;
+            }
+            body.eprom-history-dialog .apex-rds {
+                gap: 0.35rem !important;
+                margin-bottom: 1rem !important;
+            }
+            body.eprom-history-dialog .apex-rds-item a {
+                font-size: 0.9rem !important;
+                padding: 0.5rem 0.85rem !important;
+            }
+            @media (max-width: 640px) {
+                .eprom-vacation-cards {
+                    grid-template-columns: 1fr !important;
+                    gap: 0.65rem !important;
+                }
+                .eprom-vcard {
+                    min-height: 92px !important;
+                    padding: 1rem 0.75rem !important;
+                }
+                body.eprom-history-dialog .t-Report-report th,
+                body.eprom-history-dialog .t-Report-report td {
+                    white-space: nowrap;
+                }
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region approved-leaves (
+        name: "تم إعتمادها "
+        title: &APP_TEXT$IT_HAS_BEEN_APPROVED.
+        type: staticContent
+        layout {
+            sequence: 20
+            parentRegion: @hrf-leaves
+            slot: subRegions
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: APPROVED_REP
+            regionDisplaySelector: true
+        }
+    )
+
+    region approved-report (
+        name: تقرير المعتمدة
+        title: &APP_TEXT$IT_HAS_BEEN_APPROVED.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH leave_details AS (
+                    SELECT 
+                        LEAVE_TYPE,
+                        From_Date,
+                        To_Date,
+                        Updated_By,
+                        Approved,
+                        request_id,
+                        CASE
+                            WHEN (delete_approved IS NULL OR delete_approved <> 0)
+                                 AND SYSDATE <= central.XXAPEX_SS_VALIDATIONS.GET_CUT_DATE(TO_DATE(From_Date), EMP_ID)
+                            THEN 'الغاء_الاجازة'
+                            ELSE ''
+                        END AS delete_text,
+                        central.xxapex_general.get_absence_num_of_days(From_Date, To_Date, :EMP_ROTATION) AS d_COUNT
+                    FROM 
+                        epromhq.HRF_EMP_LEAVE_REQUEST
+                    WHERE 
+                        EMP_ID = :APP_USER
+                        AND Approved = 1
+                        AND NVL(delete_approved, 0) <> 1
+                        AND EXTRACT(YEAR FROM From_Date) = EXTRACT(YEAR FROM SYSDATE))
+                SELECT 
+                    LEAVE_TYPE,
+                    From_Date,
+                    To_Date,
+                    Updated_By,
+                    Approved,
+                    request_id,
+                    delete_text,
+                    d_COUNT
+                FROM 
+                    leave_details
+                    order by From_Date desc
+                ```
+        }
+        layout {
+            sequence: 20
+            parentRegion: @approved-leaves
+            slot: subRegions
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: APPROVED_GRID
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+                #DEFAULT#
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            lazyLoading: true
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_REQUESTS_IN_THIS_STATUS.
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column DELETE_TEXT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 110
+            }
+        )
+
+        column DERIVED$01 (
+            reportColumnQueryId: 6
+            derivedColumn: Y
+            type: link
+            heading {
+                heading: &APP_TEXT$CANCEL.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: otherApp
+                    app: 115
+                    page: 15
+                    items: {
+                        P15_REQUEST_ID: #REQUEST_ID#
+                        P15_LEAVE_TYPE: #LEAVE_TYPE#
+                        P15_FROM_DATE: #FROM_DATE#
+                        P15_TO_DATE: #TO_DATE#
+                    }
+                }
+                linkText: <span class="action-cancel-btn">#DELETE_TEXT#</span>
+            }
+            sorting {
+                sortable: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column D_COUNT (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FROM_DATE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column LEAVE_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$TYPE_OF_VACATION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @copy-of-leave-types
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column REQUEST_ID (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column TO_DATE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    region auto-cancelled-leaves (
+        name: تم الالغاء لتأخر المدير الاعتماد فى شهر الطلب
+        title: ملغاة تلقائياً
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select LEAVE_TYPE, From_Date, To_Date,Updated_By,Approved,To_Date -From_Date +1
+                 from epromhq.HRF_EMP_LEAVE_REQUEST
+                 where EMP_ID = :APP_USER
+                 and approved = 4
+                and nvl(delete_approved,0)<>1
+                  AND EXTRACT(YEAR FROM From_Date) = EXTRACT(YEAR FROM SYSDATE)
+                ```
+        }
+        layout {
+            sequence: 50
+            parentRegion: @hrf-leaves
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+                #DEFAULT#
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            lazyLoading: true
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_REQUESTS_IN_THIS_STATUS.
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column FROM_DATE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column LEAVE_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$TYPE_OF_VACATION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @copy-of-leave-types
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column TO_DATE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column TO_DATE-FROM_DATE+1 (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    region hrf-leaves (
+        name: hrf_leaves
+        title: &APP_TEXT$HRFLEAVES.
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region pending-leaves (
+        name: "قيد الإعتماد "
+        title: &APP_TEXT$UNDER_APPROVAL.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select LEAVE_TYPE, From_Date, To_Date,Updated_By,Approved,
+                'الغاء الاجازة ' delete_text
+                ,substr(task_ids,INSTR(task_ids, '>', -1)+1) task_id --last task
+                 ,central.xxapex_general.get_absence_num_of_days(From_Date,to_date, :EMP_ROTATION) AS d_COUNT
+                ,decode( nvl(delete_approved,9999),0,'display:none;','' )  css_hide
+                 from epromhq.HRF_EMP_LEAVE_REQUEST
+                 where EMP_ID = :APP_USER
+                 and (approved = 0  OR nvl(delete_approved,1) = 0)
+                order by From_Date Asc
+                ```
+        }
+        layout {
+            sequence: 15
+            parentRegion: @hrf-leaves
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+                #DEFAULT#
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            lazyLoading: true
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_REQUESTS_IN_THIS_STATUS.
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column CSS_HIDE (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 130
+            }
+        )
+
+        column DELETE_TEXT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column DERIVED$01 (
+            reportColumnQueryId: 6
+            derivedColumn: Y
+            type: link
+            heading {
+                heading: &APP_TEXT$CANCEL.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: otherApp
+                    app: 115
+                    page: 16
+                    items: {
+                        P16_LEAVE_TYPE: #LEAVE_TYPE#
+                        P16_FROM_DATE: #FROM_DATE#
+                        P16_TO_DATE: #TO_DATE#
+                        P16_TASK_ID: #TASK_ID#
+                    }
+                }
+                linkText: <div class="u-danger-text " style="#CSS_HIDE#">#DELETE_TEXT#</div>
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column D_COUNT (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FROM_DATE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column LEAVE_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$TYPE_OF_VACATION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @copy-of-leave-types
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column TASK_ID (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 120
+            }
+        )
+
+        column TO_DATE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 75
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    region region-display-selector (
+        name: Region Display Selector
+        title: &APP_TEXT$REGION_DISPLAY_SELECTOR.
+        type: regionDisplaySelector
+        layout {
+            sequence: 10
+            parentRegion: @hrf-leaves
+            slot: subRegions
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        settings {
+            includeShowAll: false
+            rememberSelection: false
+        }
+    )
+
+    region rejected-leaves (
+        name: "تم رفضها "
+        title: &APP_TEXT$IT_WAS_REJECTED.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select LEAVE_TYPE, From_Date, To_Date,Updated_By,Approved,  To_Date -From_Date +1
+                 from epromhq.HRF_EMP_LEAVE_REQUEST
+                 where EMP_ID = :APP_USER
+                 and approved = 2
+                and nvl(delete_approved,0)<>1
+                  AND EXTRACT(YEAR FROM From_Date) = EXTRACT(YEAR FROM SYSDATE)
+                ```
+        }
+        layout {
+            sequence: 40
+            parentRegion: @hrf-leaves
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+                #DEFAULT#
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            lazyLoading: true
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_REQUESTS_IN_THIS_STATUS.
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column FROM_DATE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column LEAVE_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$TYPE_OF_VACATION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @copy-of-leave-types
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column TO_DATE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column TO_DATE-FROM_DATE+1 (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    region total-summary (
+        name: اجمالى
+        title: &APP_TEXT$TOTAL.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH leave_details AS (
+                    SELECT 
+                        LEAVE_TYPE,
+                        central.xxapex_general.get_absence_num_of_days(From_Date, To_Date, :EMP_ROTATION) AS d_COUNT
+                    FROM 
+                        epromhq.HRF_EMP_LEAVE_REQUEST
+                    WHERE 
+                        EMP_ID = :APP_USER
+                        AND Approved = 1
+                        AND NVL(delete_approved, 0) <> 1
+                        AND EXTRACT(YEAR FROM From_Date) = EXTRACT(YEAR FROM SYSDATE)),
+                totals AS (
+                    SELECT 
+                        NVL(SUM(CASE WHEN LEAVE_TYPE = 'H' THEN d_COUNT ELSE 0 END), 0) AS annual_days,
+                        NVL(SUM(CASE WHEN LEAVE_TYPE = 'C' THEN d_COUNT ELSE 0 END), 0) AS casual_days,
+                        NVL(SUM(CASE WHEN LEAVE_TYPE = 'RH' THEN d_COUNT ELSE 0 END), 0) AS rest_hours
+                    FROM leave_details)
+                SELECT 
+                    '<div class="eprom-vacation-cards">' ||
+                    '  <div class="eprom-vcard eprom-vcard--annual">' ||
+                    '    <div class="eprom-vcard-title">إجازة اعتيادية / سنوي (Annual)</div>' ||
+                    '    <div class="eprom-vcard-value">' || annual_days || ' يوم</div>' ||
+                    '  </div>' ||
+                    '  <div class="eprom-vcard eprom-vcard--casual">' ||
+                    '    <div class="eprom-vcard-title">إجازة عارضة (Casual)</div>' ||
+                    '    <div class="eprom-vcard-value">' || casual_days || ' أيام</div>' ||
+                    '  </div>' ||
+                    '  <div class="eprom-vcard eprom-vcard--rest">' ||
+                    '    <div class="eprom-vcard-title">ساعات راحة (Rest Hours)</div>' ||
+                    '    <div class="eprom-vcard-value">' || rest_hours || ' ساعات</div>' ||
+                    '  </div>' ||
+                    '</div>' AS cards_html
+                FROM totals;
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @approved-leaves
+            slot: subRegions
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: CARDS_SUMMARY
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+
+        column CARDS_HTML (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NBSP.
+            }
+            layout {
+                sequence: 10
+            }
+            sorting {
+                sortable: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+    )
+
+    dynamicAction dialog-closed-approved (
+        name: dialog_closed_approved
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @approved-report
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if ( this.data.successMessage ) {
+                      apex.message.showPageSuccess(this.data.successMessage.text);
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @approved-report
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-cards (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @total-summary
+            }
+            execution {
+                sequence: 40
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction dialog-closed-unapproved (
+        name: dialog_closed_unapproved
+        execution {
+            sequence: 20
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @pending-leaves
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if ( this.data.successMessage ) {
+                      apex.message.showPageSuccess(this.data.successMessage.text);
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @pending-leaves
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

@@ -1,0 +1,907 @@
+workflow GENERIC_APPROVAL_WF (
+    name: GENERIC_APPROVAL_WF
+    title: GENERIC_APPROVAL_WF
+
+    parameter P_EMP_ID (
+        label {
+            label: P_EMP_ID
+        }
+        validation {
+            required: true
+        }
+    )
+
+    parameter P_EMP_NAME (
+        label {
+            label: P_EMP_NAME
+        }
+    )
+
+    parameter P_REQUEST_ID (
+        label {
+            label: P_REQUEST_ID
+        }
+    )
+
+    parameter P_REQUEST_SOURCE (
+        label {
+            label: P_REQUEST_SOURCE
+        }
+    )
+
+    parameter P_REQUEST_TITLE (
+        label {
+            label: P_REQUEST_TITLE
+        }
+    )
+
+    parameter P_REQUEST_TYPE_ID (
+        label {
+            label: P_REQUEST_TYPE_ID
+        }
+        validation {
+            required: true
+        }
+    )
+
+    parameter P_RES (
+        label {
+            label: P_RES
+        }
+        parameter {
+            direction: out
+        }
+        comments {
+            comments: approved or rejected
+        }
+    )
+
+    version GENERIC_APPROVAL_WF (
+        settings {
+            state: inactive
+        }
+
+        activity approval-task (
+            name: Approval Task
+            type: humanTaskCreate
+            settings {
+                initiatorItem: P_EMP_ID
+            }
+            humanTask {
+                definition: @approval-task
+                taskIdItem: V_TASK_ID
+                detailsPkItem: P_REQUEST_ID
+            }
+            overrides {
+                subject: &P_REQUEST_TITLE. - &P_EMP_NAME. (&P_EMP_ID.)
+                initiatorCanComplete: true
+            }
+            result {
+                outcome: TASK_OUTCOME
+                owner: APPROVER
+            }
+            layout {
+                sequence: 20
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1140,\"y\":840},\"z\":2}"
+            }
+
+            connection (
+                name: Approved
+                activity {
+                    to: @check-approval-outcome
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"50.003%\",\"dy\":\"16.679%\",\"rotate\":true}},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            parameter (
+                name: @T_EMP_ID
+                value {
+                    type: item
+                    item: P_EMP_ID
+                }
+            )
+
+            parameter (
+                name: @T_EMP_NAME
+                value {
+                    type: item
+                    item: P_EMP_NAME
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_ID
+                value {
+                    type: item
+                    item: P_REQUEST_ID
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_TYPE_ID
+                value {
+                    type: item
+                    item: P_REQUEST_TYPE_ID
+                }
+            )
+
+            parameter (
+                name: @T_STEP
+                value {
+                    type: item
+                    item: V_STEP
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_SOURCE
+                value {
+                    type: item
+                    item: P_REQUEST_SOURCE
+                }
+            )
+
+        )
+
+        activity approved (
+            name: Check Next Approval Step
+            type: switch
+            condition {
+                conditionType: functionBody
+                plsqlFunctionBody:
+                    ```plsql
+                    DECLARE
+                        l_next_seq NUMBER;
+                    BEGIN
+                        l_next_seq := central.GET_NEXT_APPR_SEQ(
+                            P_EMP_ID      => :P_EMP_ID,
+                            P_REQ_TYPE_ID => :P_REQUEST_TYPE_ID,
+                            P_CURRENT_SEQ => TO_NUMBER(:V_STEP)
+                        );
+                    
+                        IF  NVL(l_next_seq, 0) > 0 THEN
+                            RETURN TRUE;
+                        ELSE
+                            RETURN FALSE;
+                        END IF;
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 40
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1130,\"y\":1090},\"z\":3}"
+            }
+            comments {
+                comments: يعني لو يوجد Sequence جديد في جدول الاعتمادات، يرجع لنفس Activity رقم 1 ويعمل Task جديدة للـ approver التالي.
+            }
+
+            connection (
+                name: True
+                condition {
+                    when: true
+                }
+                activity {
+                    to: @create-approval-log
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"9.095%\",\"dy\":\"16.679%\",\"rotate\":true}},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"45.455%\",\"dy\":\"66.667%\",\"rotate\":true}},\"vertices\":[],\"z\":4,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            connection (
+                name: False
+                condition {
+                    when: false
+                }
+                activity {
+                    to: @update-request-as-approved
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":-10,\"dy\":0},\"name\":\"right\"},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"45.455%\",\"dy\":\"33.333%\",\"rotate\":true}},\"vertices\":[],\"z\":11,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity check-approval-outcome (
+            name: Check Task Outcome
+            type: switch
+            switch {
+                type: checkWorkflowVar
+            }
+            compare {
+                compareVar: TASK_OUTCOME
+            }
+            layout {
+                sequence: 120
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1130,\"y\":960},\"z\":20}"
+            }
+
+            connection (
+                name: APPROVED
+                execution {
+                    sequence: 10
+                }
+                condition {
+                    operator: =
+                    value: APPROVED
+                }
+                activity {
+                    to: @approved
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"50.003%\",\"dy\":\"99.981%\",\"rotate\":true}},\"target\":{\"args\":{\"dx\":\"50.003%\",\"dy\":\"16.679%\",\"rotate\":true},\"name\":\"topLeft\"},\"vertices\":[],\"z\":21,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            connection (
+                name: REJECTED
+                execution {
+                    sequence: 20
+                }
+                condition {
+                    operator: =
+                    value: REJECTED
+                }
+                activity {
+                    to: @update-request-as-rejected
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"100%\",\"dy\":\"50%\",\"rotate\":true}},\"target\":{\"args\":{\"dx\":\"50%\",\"dy\":\"33.333%\",\"rotate\":true},\"name\":\"topLeft\"},\"vertices\":[],\"z\":22,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity create-approval-log (
+            name: Create Approval Log
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                        l_next_seq NUMBER;
+                    BEGIN
+                       -- 1. Create/Update master 1-row log for the workflow
+                       GEN_WF_LOG_PKG.CAPTURE_WORKFLOW_LOG(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                       
+                       -- 2. Capture any initial human tasks generated on start
+                       GEN_WF_LOG_PKG.CAPTURE_ALL_WF_TASKS(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                    
+                    --calc  step
+                    
+                        -- raise_application_error(-20111,:P_EMP_ID|| '------'|| :P_REQUEST_TYPE_ID || '---------' || :V_STEP);
+                    
+                        l_next_seq := central.GET_NEXT_APPR_SEQ(
+                            P_EMP_ID      => :P_EMP_ID,
+                            P_REQ_TYPE_ID => :P_REQUEST_TYPE_ID,
+                            P_CURRENT_SEQ => TO_NUMBER(:V_STEP)
+                        );
+                    
+                    
+                    :V_STEP := TO_CHAR(l_next_seq);
+                    
+                    
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 90
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":840,\"y\":840},\"z\":12}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @approval-task
+                }
+                advanced {
+                    diagram: "{\"source\":{},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"0%\",\"dy\":\"50%\",\"rotate\":true}},\"vertices\":[],\"z\":13,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity new_1 (
+            name: END_REJECT
+            type: workflowEnd
+            endState {
+                endState: terminated
+            }
+            layout {
+                sequence: 80
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1820,\"y\":960},\"z\":10}"
+            }
+        )
+
+        activity new_2 (
+            name: END_APPROVE
+            type: workflowEnd
+            layout {
+                sequence: 160
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1830,\"y\":1090},\"z\":30}"
+            }
+        )
+
+        activity start_1 (
+            name: Start
+            type: workflowStart
+            layout {
+                sequence: 10
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":920,\"y\":730}}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @create-approval-log
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"50%\",\"dy\":\"0%\",\"rotate\":true}},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity update-request-as-approved (
+            name: Update Request As Approved
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                       GEN_WF_LOG_PKG.CAPTURE_WORKFLOW_LOG(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                       GEN_WF_LOG_PKG.CAPTURE_ALL_WF_TASKS(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                       :P_RES := :TASK_OUTCOME;
+                    
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 140
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1450,\"y\":1090},\"z\":24}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @new_2
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"bottom\",\"args\":{\"dx\":0,\"dy\":-10}},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"50%\",\"dy\":\"66.667%\",\"rotate\":true}},\"vertices\":[],\"z\":31,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity update-request-as-rejected (
+            name: Update Request As Rejected
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                       GEN_WF_LOG_PKG.CAPTURE_WORKFLOW_LOG(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                       GEN_WF_LOG_PKG.CAPTURE_ALL_WF_TASKS(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                    
+                    
+                       :P_RES := :TASK_OUTCOME;
+                    END;
+                    
+                    ```
+            }
+            layout {
+                sequence: 150
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1460,\"y\":960},\"z\":27}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @new_1
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"95.455%\",\"dy\":\"50%\",\"rotate\":true}},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"33.333%\",\"dy\":\"50%\",\"rotate\":true}},\"vertices\":[],\"z\":29,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        variable APPROVER (
+            label {
+                label: Approver
+            }
+            value {
+                type: item
+                item: P_APPROVER
+            }
+        )
+
+        variable TASK_OUTCOME (
+            label {
+                label: TASK_OUTCOME
+            }
+            value {
+                type: item
+                item: TASK_OUTCOME
+            }
+        )
+
+        variable V_STEP (
+            label {
+                label: V_STEP
+            }
+            value {
+                type: staticValue
+                staticValue: 0
+            }
+        )
+
+        variable V_TASK_ID (
+            label {
+                label: V_TASK_ID
+            }
+        )
+
+        participant (
+            name: New
+            type: admin
+            value {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select 1825 from dual
+                    union
+                    select 3199 from dual
+                    union
+                    select 1837 from dual
+                    
+                    ```
+            }
+        )
+
+    )
+
+    version GENERIC_APPROVAL_WF_1 (
+        settings {
+            state: active
+        }
+
+        activity approval-task (
+            name: Approval Task
+            type: humanTaskCreate
+            settings {
+                initiatorItem: P_EMP_ID
+            }
+            humanTask {
+                definition: @approval-task
+                taskIdItem: V_TASK_ID
+                detailsPkItem: P_REQUEST_ID
+            }
+            overrides {
+                subject: &P_REQUEST_TITLE. - &P_EMP_NAME. (&P_EMP_ID.)
+                initiatorCanComplete: true
+            }
+            result {
+                outcome: TASK_OUTCOME
+                owner: APPROVER
+            }
+            layout {
+                sequence: 20
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1140,\"y\":840},\"z\":2}"
+            }
+
+            connection (
+                name: Approved
+                activity {
+                    to: @check-approval-outcome
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"50.003%\",\"dy\":\"16.679%\",\"rotate\":true}},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            parameter (
+                name: @T_EMP_ID
+                value {
+                    type: item
+                    item: P_EMP_ID
+                }
+            )
+
+            parameter (
+                name: @T_EMP_NAME
+                value {
+                    type: item
+                    item: P_EMP_NAME
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_ID
+                value {
+                    type: item
+                    item: P_REQUEST_ID
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_SOURCE
+                value {
+                    type: item
+                    item: P_REQUEST_SOURCE
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_TYPE_ID
+                value {
+                    type: item
+                    item: P_REQUEST_TYPE_ID
+                }
+            )
+
+            parameter (
+                name: @T_STEP
+                value {
+                    type: item
+                    item: V_STEP
+                }
+            )
+
+        )
+
+        activity approved (
+            name: Check Next Approval Step
+            type: switch
+            condition {
+                conditionType: functionBody
+                plsqlFunctionBody:
+                    ```plsql
+                    DECLARE
+                        l_next_seq NUMBER;
+                    BEGIN
+                        l_next_seq := central.GET_NEXT_APPR_SEQ(
+                            P_EMP_ID      => :P_EMP_ID,
+                            P_REQ_TYPE_ID => :P_REQUEST_TYPE_ID,
+                            P_CURRENT_SEQ => TO_NUMBER(:V_STEP)
+                        );
+                    
+                        IF  NVL(l_next_seq, 0) > 0 THEN
+                            RETURN TRUE;
+                        ELSE
+                            RETURN FALSE;
+                        END IF;
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 30
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1130,\"y\":1090},\"z\":3}"
+            }
+            comments {
+                comments: يعني لو يوجد Sequence جديد في جدول الاعتمادات، يرجع لنفس Activity رقم 1 ويعمل Task جديدة للـ approver التالي.
+            }
+
+            connection (
+                name: True
+                condition {
+                    when: true
+                }
+                activity {
+                    to: @create-approval-log
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"9.095%\",\"dy\":\"16.679%\",\"rotate\":true}},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"45.455%\",\"dy\":\"66.667%\",\"rotate\":true}},\"vertices\":[],\"z\":4,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            connection (
+                name: False
+                condition {
+                    when: false
+                }
+                activity {
+                    to: @update-request-as-approved
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":-10,\"dy\":0},\"name\":\"right\"},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"45.455%\",\"dy\":\"33.333%\",\"rotate\":true}},\"vertices\":[],\"z\":11,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity check-approval-outcome (
+            name: Check Task Outcome
+            type: switch
+            switch {
+                type: checkWorkflowVar
+            }
+            compare {
+                compareVar: TASK_OUTCOME
+            }
+            layout {
+                sequence: 60
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1130,\"y\":960},\"z\":20}"
+            }
+
+            connection (
+                name: APPROVED
+                execution {
+                    sequence: 10
+                }
+                condition {
+                    operator: =
+                    value: APPROVED
+                }
+                activity {
+                    to: @approved
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"50.003%\",\"dy\":\"99.981%\",\"rotate\":true}},\"target\":{\"args\":{\"dx\":\"50.003%\",\"dy\":\"16.679%\",\"rotate\":true},\"name\":\"topLeft\"},\"vertices\":[],\"z\":21,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            connection (
+                name: REJECTED
+                execution {
+                    sequence: 20
+                }
+                condition {
+                    operator: =
+                    value: REJECTED
+                }
+                activity {
+                    to: @update-request-as-rejected
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"100%\",\"dy\":\"50%\",\"rotate\":true}},\"target\":{\"args\":{\"dx\":\"50%\",\"dy\":\"33.333%\",\"rotate\":true},\"name\":\"topLeft\"},\"vertices\":[],\"z\":22,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity create-approval-log (
+            name: Create Approval Log
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                        l_next_seq NUMBER;
+                    BEGIN
+                       -- 1. Create/Update master 1-row log for the workflow
+                       GEN_WF_LOG_PKG.CAPTURE_WORKFLOW_LOG(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                       
+                       -- 2. Capture any initial human tasks generated on start
+                       GEN_WF_LOG_PKG.CAPTURE_ALL_WF_TASKS(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                    
+                    --calc  step
+                    
+                        -- raise_application_error(-20111,:P_EMP_ID|| '------'|| :P_REQUEST_TYPE_ID || '---------' || :V_STEP);
+                    
+                        l_next_seq := central.GET_NEXT_APPR_SEQ(
+                            P_EMP_ID      => :P_EMP_ID,
+                            P_REQ_TYPE_ID => :P_REQUEST_TYPE_ID,
+                            P_CURRENT_SEQ => TO_NUMBER(:V_STEP)
+                        );
+                    
+                    
+                    :V_STEP := TO_CHAR(l_next_seq);
+                    
+                    
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 50
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":840,\"y\":840},\"z\":12}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @approval-task
+                }
+                advanced {
+                    diagram: "{\"source\":{},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"0%\",\"dy\":\"50%\",\"rotate\":true}},\"vertices\":[],\"z\":13,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity new_1 (
+            name: END_REJECT
+            type: workflowEnd
+            endState {
+                endState: terminated
+            }
+            layout {
+                sequence: 40
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1820,\"y\":960},\"z\":10}"
+            }
+        )
+
+        activity new_2 (
+            name: END_APPROVE
+            type: workflowEnd
+            layout {
+                sequence: 90
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1830,\"y\":1090},\"z\":30}"
+            }
+        )
+
+        activity start_1 (
+            name: Start
+            type: workflowStart
+            layout {
+                sequence: 10
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":920,\"y\":730}}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @create-approval-log
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"50%\",\"dy\":\"0%\",\"rotate\":true}},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity update-request-as-approved (
+            name: Update Request As Approved
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                       GEN_WF_LOG_PKG.CAPTURE_WORKFLOW_LOG(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                       GEN_WF_LOG_PKG.CAPTURE_ALL_WF_TASKS(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                       :P_RES := :TASK_OUTCOME;
+                    
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 70
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1450,\"y\":1090},\"z\":24}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @new_2
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"bottom\",\"args\":{\"dx\":0,\"dy\":-10}},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"50%\",\"dy\":\"66.667%\",\"rotate\":true}},\"vertices\":[],\"z\":31,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity update-request-as-rejected (
+            name: Update Request As Rejected
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                       GEN_WF_LOG_PKG.CAPTURE_WORKFLOW_LOG(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                       GEN_WF_LOG_PKG.CAPTURE_ALL_WF_TASKS(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                    
+                    
+                       :P_RES := :TASK_OUTCOME;
+                    END;
+                    
+                    ```
+            }
+            layout {
+                sequence: 80
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1460,\"y\":960},\"z\":27}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @new_1
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"95.455%\",\"dy\":\"50%\",\"rotate\":true}},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"33.333%\",\"dy\":\"50%\",\"rotate\":true}},\"vertices\":[],\"z\":29,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        variable APPROVER (
+            label {
+                label: Approver
+            }
+        )
+
+        variable TASK_OUTCOME (
+            label {
+                label: TASK_OUTCOME
+            }
+            value {
+                type: item
+                item: TASK_OUTCOME
+            }
+        )
+
+        variable V_STEP (
+            label {
+                label: V_STEP
+            }
+            value {
+                type: staticValue
+                staticValue: 0
+            }
+        )
+
+        variable V_TASK_ID (
+            label {
+                label: V_TASK_ID
+            }
+        )
+
+        participant (
+            name: New
+            type: admin
+            value {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select 1825 from dual
+                    union
+                    select 3199 from dual
+                    union
+                    select 1837 from dual
+                    
+                    ```
+            }
+        )
+
+    )
+
+)

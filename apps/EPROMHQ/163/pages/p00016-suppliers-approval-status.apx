@@ -1,0 +1,457 @@
+page 16 (
+    name: Suppliers Approval Status
+    alias: SUPPLIERS-APPROVAL-STATUS
+    title: Suppliers Approval Status
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region suppliers-approval-status (
+        name: Suppliers Approval Status
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT
+                    s.company_name,
+                    s.applay_as,
+                    REPLACE(s.status, '_', ' ') AS status,
+                    q.supplier_id,
+                    q.current_role,
+                    q.assigned_empno,
+                    e.emp_name,
+                    q.last_route_date
+                FROM (
+                    SELECT
+                        a.supplier_id,
+                
+                        /* ==========================================
+                           CURRENT ROLE
+                           Handle old rejection history using dates
+                           ========================================== */
+                        CASE
+                            /* Rejection newer than Procurement approval */
+                            WHEN (
+                                   a.technical_decision = 'REJECT'
+                                   AND a.technical_date > a.procurement_date
+                                 )
+                              OR (
+                                   a.financial_decision = 'REJECT'
+                                   AND a.financial_date > a.procurement_date
+                                 )
+                              OR (
+                                   a.legal_decision = 'REJECT'
+                                   AND a.legal_date > a.procurement_date
+                                 )
+                            THEN 'PROC'
+                
+                            /* Procurement approved; TECH not yet reviewed
+                               after the latest Procurement approval */
+                            WHEN a.procurement_decision = 'APPROVE'
+                             AND (
+                                    a.technical_date IS NULL
+                                 OR a.technical_date <= a.procurement_date
+                                 OR a.technical_decision IS NULL
+                                 )
+                            THEN 'TECH'
+                
+                            /* TECH approved after Procurement approval */
+                            WHEN a.technical_decision = 'APPROVE'
+                             AND a.technical_date > a.procurement_date
+                             AND (
+                                    a.financial_date IS NULL
+                                 OR a.financial_date <= a.technical_date
+                                 OR a.financial_decision IS NULL
+                                 )
+                            THEN 'FIN'
+                
+                            /* FIN approved after TECH approval */
+                            WHEN a.financial_decision = 'APPROVE'
+                             AND a.technical_date > a.procurement_date
+                             AND a.financial_date > a.technical_date
+                             AND (
+                                    a.legal_date IS NULL
+                                 OR a.legal_date <= a.financial_date
+                                 OR a.legal_decision IS NULL
+                                 )
+                            THEN 'LEGAL'
+                
+                            /* All stages approved in the current cycle */
+                            WHEN a.legal_decision = 'APPROVE'
+                             AND a.legal_date > a.financial_date
+                             AND a.financial_date > a.technical_date
+                             AND a.technical_date > a.procurement_date
+                            THEN 'FULLY APPROVED'
+                
+                        END AS current_role,
+                
+                        /* ==========================================
+                           ASSIGNED EMPLOYEE
+                           ========================================== */
+                        CASE
+                            WHEN (
+                                   a.technical_decision = 'REJECT'
+                                   AND a.technical_date > a.procurement_date
+                                 )
+                              OR (
+                                   a.financial_decision = 'REJECT'
+                                   AND a.financial_date > a.procurement_date
+                                 )
+                              OR (
+                                   a.legal_decision = 'REJECT'
+                                   AND a.legal_date > a.procurement_date
+                                 )
+                            THEN a.procurement_by
+                
+                            WHEN a.procurement_decision = 'APPROVE'
+                             AND (
+                                    a.technical_date IS NULL
+                                 OR a.technical_date <= a.procurement_date
+                                 OR a.technical_decision IS NULL
+                                 )
+                            THEN a.technical_empno
+                
+                            WHEN a.technical_decision = 'APPROVE'
+                             AND a.technical_date > a.procurement_date
+                             AND (
+                                    a.financial_date IS NULL
+                                 OR a.financial_date <= a.technical_date
+                                 OR a.financial_decision IS NULL
+                                 )
+                            THEN a.financial_by
+                
+                            WHEN a.financial_decision = 'APPROVE'
+                             AND a.technical_date > a.procurement_date
+                             AND a.financial_date > a.technical_date
+                             AND (
+                                    a.legal_date IS NULL
+                                 OR a.legal_date <= a.financial_date
+                                 OR a.legal_decision IS NULL
+                                 )
+                            THEN a.legal_by
+                
+                            ELSE NULL
+                        END AS assigned_empno,
+                
+                        /* ==========================================
+                           LAST ROUTE DATE
+                           ========================================== */
+                        CASE
+                            WHEN (
+                                   a.technical_decision = 'REJECT'
+                                   AND a.technical_date > a.procurement_date
+                                 )
+                              OR (
+                                   a.financial_decision = 'REJECT'
+                                   AND a.financial_date > a.procurement_date
+                                 )
+                              OR (
+                                   a.legal_decision = 'REJECT'
+                                   AND a.legal_date > a.procurement_date
+                                 )
+                            THEN a.procurement_date
+                
+                            WHEN a.procurement_decision = 'APPROVE'
+                             AND (
+                                    a.technical_date IS NULL
+                                 OR a.technical_date <= a.procurement_date
+                                 OR a.technical_decision IS NULL
+                                 )
+                            THEN a.procurement_date
+                
+                            WHEN a.technical_decision = 'APPROVE'
+                             AND a.technical_date > a.procurement_date
+                             AND (
+                                    a.financial_date IS NULL
+                                 OR a.financial_date <= a.technical_date
+                                 OR a.financial_decision IS NULL
+                                 )
+                            THEN a.technical_date
+                
+                            WHEN a.financial_decision = 'APPROVE'
+                             AND a.technical_date > a.procurement_date
+                             AND a.financial_date > a.technical_date
+                             AND (
+                                    a.legal_date IS NULL
+                                 OR a.legal_date <= a.financial_date
+                                 OR a.legal_decision IS NULL
+                                 )
+                            THEN a.financial_date
+                
+                            WHEN a.legal_decision = 'APPROVE'
+                            THEN a.legal_date
+                
+                        END AS last_route_date
+                
+                    FROM sup_supplier_approvals a
+                ) q
+                
+                JOIN sup_suppliers s
+                    ON s.supplier_id = q.supplier_id
+                
+                LEFT JOIN xxapex_hr_emp_data e
+                    ON e.emp_number = q.assigned_empno
+                
+                ORDER BY
+                    q.last_route_date DESC NULLS LAST,
+                    s.company_name;
+                 
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: No data found.
+            whenMoreDataFound: The maximum row count for this report is #MAX_ROW_COUNT# rows.  Please apply a filter to reduce the number of records in your query.
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 245924580015083817
+        }
+
+        column APPLAY_AS (
+            type: plainText
+            heading {
+                heading: Applay As
+            }
+            layout {
+                sequence: 2
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column ASSIGNED_EMPNO (
+            type: plainText
+            heading {
+                heading: Assigned Emp no.
+            }
+            layout {
+                sequence: 42
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column COMPANY_NAME (
+            type: plainText
+            heading {
+                heading: Company Name
+            }
+            layout {
+                sequence: 1
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: A
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column CURRENT_ROLE (
+            type: plainText
+            heading {
+                heading: Current Role
+            }
+            layout {
+                sequence: 32
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column EMP_NAME (
+            type: plainText
+            heading {
+                heading: Employee Name
+            }
+            layout {
+                sequence: 52
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column LAST_ROUTE_DATE (
+            type: plainText
+            heading {
+                heading: Assigned Date
+            }
+            layout {
+                sequence: 62
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH24:MI
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: J
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column STATUS (
+            type: plainText
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 72
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column SUPPLIER_ID (
+            type: hidden
+            heading {
+                heading: Supplier Id
+            }
+            layout {
+                sequence: 22
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: Suppliers Approval Status
+        }
+
+        savedReport 2459295 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn APPLAY_AS (
+                sequence: 2
+            )
+
+            displayColumn ASSIGNED_EMPNO (
+                sequence: 5
+            )
+
+            displayColumn COMPANY_NAME (
+                sequence: 1
+            )
+
+            displayColumn CURRENT_ROLE (
+                sequence: 4
+            )
+
+            displayColumn EMP_NAME (
+                sequence: 6
+            )
+
+            displayColumn SUPPLIER_ID (
+                sequence: 3
+            )
+
+        )
+
+    )
+
+)

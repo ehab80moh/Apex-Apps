@@ -1,0 +1,217 @@
+page 20000 (
+    name: Settings
+    alias: SETTINGS
+    title: &APP_TEXT$SETTINGS_PAGE.
+    pageGroup: @user-settings
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @drawer
+        templateOptions: [
+            #DEFAULT#
+            t-Dialog--noPadding
+            js-dialog-class-t-Drawer--pullOutEnd
+            js-dialog-class-t-Drawer--sm
+        ]
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    help {
+        helpText: &APP_TEXT$HELP_TEXT_3.
+    }
+    config {
+        buildOption: @feature-user-settings
+    }
+
+    region dynamic-prefs (
+        name: dynamic prefs
+        title: &APP_TEXT$DYNAMIC_PREFS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                
+                
+                
+                
+                SELECT
+                    CASE
+                        WHEN :FSP_LANGUAGE_PREFERENCE = 'en-us' THEN
+                            CASE
+                                WHEN p.pref_name = 'الاشتراك في رسائل ال SMS' THEN 'Subscribe to SMS messages'
+                                WHEN p.pref_name = 'اظهار التعليمات العامة مرة اخري' THEN 'Show general instructions'
+                                ELSE ''  -- Default value if `p.pref_name` does not match
+                            END
+                        ELSE p.pref_name
+                    END AS list_title,
+                
+                    'fa ' || p.icon AS ICON_CLASS,
+                
+                    CASE
+                        WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%' THEN p.val
+                        ELSE
+                            CASE
+                                WHEN p.val = 'yes' THEN 'نعم'
+                                WHEN p.val = 'no' THEN 'لا'
+                                ELSE ''  -- Default value if `p.val` is neither 'yes' nor 'no'
+                            END
+                    END AS LIST_BADGE,
+                
+                    '' AS list_text,
+                
+                    APEX_PAGE.GET_URL (
+                        p_application => 104,
+                        p_page        => 20020,
+                        p_items       => 'P20020_PREF_ID,P20020_PREF_NAME,P20020_VAL',
+                        p_values      => p.PREF_ID || ',' ||
+                                        CASE
+                                            WHEN :FSP_LANGUAGE_PREFERENCE = 'en-us' THEN
+                                                CASE
+                                                    WHEN p.pref_name = 'الاشتراك في رسائل ال SMS' THEN 'Subscribe to SMS messages'
+                                                    WHEN p.pref_name = 'اظهار التعليمات العامة مرة اخري' THEN 'Show general instructions'
+                                                    ELSE ''  -- Default value if `p.pref_name` does not match
+                                                END
+                                            ELSE p.pref_name
+                                        END || ',' ||
+                                        p.val
+                    ) AS link
+                
+                FROM central.emp_prefs_v p
+                WHERE emp_id = :APP_USER;
+                
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @media-list
+            templateOptions: [
+                #DEFAULT#
+                t-MediaList--showBadges
+                u-colors
+                t-MediaList--stack
+                t-MediaList--large force-fa-lg
+            ]
+        }
+
+        column ICON_CLASS (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ICON_CLASS.
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column LINK (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LINK.
+            }
+            layout {
+                sequence: 130
+            }
+        )
+
+        column LIST_BADGE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LIST_BADGE.
+            }
+            layout {
+                sequence: 110
+            }
+        )
+
+        column LIST_TEXT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LIST_TEXT.
+            }
+            layout {
+                sequence: 150
+            }
+        )
+
+        column LIST_TITLE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LIST_TITLE.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+    )
+
+    region settings (
+        name: Settings
+        title: &APP_TEXT$SETTINGS.
+        type: list
+        source {
+            list: @user-settings
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            listTemplate: @media-list
+            templateOptions: [
+                #DEFAULT#
+                t-MediaList--showBadges
+                u-colors
+                t-MediaList--large force-fa-lg
+                t-MediaList--horizontal
+            ]
+        }
+    )
+
+    region الإعدادات (
+        name: الإعدادات
+        title: &APP_TEXT$SETTINGS.
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @hero
+            templateOptions: [
+                #DEFAULT#
+                t-HeroRegion--hideIcon
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+    )
+
+)

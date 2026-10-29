@@ -1,0 +1,424 @@
+page 9991 (
+    name: Reg (sign up).
+    alias: REG
+    title: Reg.
+    appearance {
+        pageTemplate: @/login
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region supplier-sign-up (
+        name: Supplier Sign Up
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @/login
+            templateOptions: #DEFAULT#
+        }
+        image {
+            fileUrl: #APP_FILES#SUP.jpg
+        }
+    )
+
+    pageItem P9991_COMPANY_NAME (
+        type: textField
+        label {
+            label: Company Name
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @supplier-sign-up
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P9991_CONTACT_NAME (
+        type: textField
+        label {
+            label: Contact Name
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @supplier-sign-up
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P9991_EMAIL (
+        type: textField
+        label {
+            label: EMAIL
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @supplier-sign-up
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P9991_MOBILE (
+        type: textField
+        label {
+            label: MOBILE
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @supplier-sign-up
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P9991_SUP_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @supplier-sign-up
+            slot: regionBody
+        }
+    )
+
+    button submit (
+        buttonName: Submit
+        label: Submit
+        layout {
+            sequence: 60
+            region: @supplier-sign-up
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--primary
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button terms (
+        buttonName: Terms
+        label: Terms & Conditions
+        layout {
+            sequence: 70
+            region: @supplier-sign-up
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--pill
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 8
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        advanced {
+            htmlDomId: instructions_btn
+        }
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 10
+        }
+        when {
+            event: ready
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if (!sessionStorage.getItem("terms_shown")) {
+                        // Open the Terms modal
+                        $("#instructions_btn").trigger("click");
+                    
+                        // Mark that terms were shown
+                        sessionStorage.setItem("terms_shown", "Y");
+                    }
+                    ```
+            }
+            execution {
+                sequence: 20
+            }
+        )
+
+        action native-javascript-code-2 (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    //put in dynamic action aupage stload
+                    
+                    async function subscribeOnLoad() {
+                    
+                    const hasPushSubscription = await apex.pwa.hasPushSubscription();
+                    console.log(hasPushSubscription);
+                    if(!hasPushSubscription){
+                    if(Notification.permission!='denied'){
+                         apex.pwa.subscribePushNotifications();
+                    }else{
+                        apex.message.showPageSuccess('Start Registration.');
+                    }
+                    }
+                    
+                    }
+                    
+                    
+                    subscribeOnLoad();
+                    
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    validation email (
+        name: email
+        execution {
+            sequence: 30
+        }
+        validation {
+            type: itemMatchesRegexp
+            item: P9991_EMAIL
+            regexp: "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        }
+        error {
+            errorMessage:
+                ```
+                برجاء كتابة الايميل بشكل صحيح 
+                test@example.com
+                ```
+            associatedItem: @P9991_EMAIL
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+    validation mobile-registered (
+        name: Mobile registered
+        execution {
+            sequence: 20
+        }
+        validation {
+            type: functionBodyReturningBoolean
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_count number;
+                begin
+                    select count(*)
+                      into l_count
+                      from sup_suppliers
+                     where headoff_mobile = :P9991_MOBILE;
+                
+                    -- if a record exists, return false (validation fails)
+                    if l_count > 0 then
+                        return false;
+                    else
+                        return true;
+                    end if;
+                exception
+                    when others then
+                        -- if something unexpected happens, fail safe
+                        return false;
+                end;
+                ```
+        }
+        error {
+            errorMessage: This mobile number is already registered. Please use a different one.
+            associatedItem: @P9991_MOBILE
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+    validation mobile-validation-11-number-start-from (
+        name: mobile validation 11 number start from 01
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: itemMatchesRegexp
+            item: P9991_MOBILE
+            regexp: "^01\\d{9}$"
+            alwaysExecute: true
+        }
+        error {
+            errorMessage: "&{INCORRECT_PHONE_NUMBER_FORMAT}."
+            associatedItem: @P9991_MOBILE
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+    process clear (
+        name: clear
+        type: clearSessionState
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 165877212520060225
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P9991_SUP_SUPPLIER_ID := :SUP_SUPPLIER_ID  ;
+                
+                :P9991_COMPANY_NAME := :sup_company_name ;
+                
+                :P9991_MOBILE  := :sup_mobile ;
+                
+                
+                ```
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 165877723151063519
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    process save-and-otp (
+        name: SAVE_AND_OTP
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                /*
+                declare
+                  l_id number;
+                begin
+                  insert into sup_suppliers(COMPANY_NAME, CONTACT_PERSON, HEADOFF_MOBILE, HEADOFF_EMAIL, status)
+                  values (:p9991_company_name, :p9991_contact_name, :p9991_mobile, :p9991_email, 'PENDING')
+                  returning supplier_id into l_id;
+                
+                  sup_otp_pkg.generate_and_send_otp(l_id, :p9991_mobile);
+                
+                  :P4_SUPPLIER_ID := l_id; -- store for next page
+                end;
+                */
+                declare
+                  l_id number;
+                  l_company varchar2(150);
+                  l_mobile varchar2(11);
+                begin
+                  insert into sup_suppliers(COMPANY_NAME, CONTACT_PERSON, HEADOFF_MOBILE, HEADOFF_EMAIL, status)
+                  values (:p9991_company_name, :p9991_contact_name, :p9991_mobile, :p9991_email, 'PENDING')
+                  returning supplier_id into l_id ;
+                
+                
+                
+                select COMPANY_NAME ,HEADOFF_MOBILE
+                into l_company, l_mobile
+                from sup_suppliers
+                where supplier_id = l_id ;
+                  -- Generate and send OTP
+                  sup_otp_pkg.generate_and_send_otp(l_id, :p9991_mobile);
+                
+                  -- store Supplier ID for next page
+                  :SUP_SUPPLIER_ID := l_id;
+                  :SUP_COMPANY_NAME := l_company;
+                  :SUP_MOBILE := l_mobile;
+                end;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 165873653496027405
+        }
+    )
+
+    branch (
+        name: redirect
+        execution {
+            sequence: 20
+        }
+        behavior {
+            target: {
+                page: 4
+                items: {
+                    P4_COMPANY_NAME: &SUP_COMPANY_NAME.
+                    P4_HEADOFF_MOBILE: &SUP_MOBILE.
+                    P4_SUPPLIER_ID: &SUP_SUPPLIER_ID.
+                }
+            }
+        }
+    )
+
+)

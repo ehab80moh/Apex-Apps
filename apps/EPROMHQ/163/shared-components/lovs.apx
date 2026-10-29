@@ -1,0 +1,28 @@
+lov employee-numbers (
+    name: EMPLOYEE NUMBERS
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select emp_name || ' -- '||emp_number DESCRIPTION,emp_number from xxapex_hr_emp_data
+            union all select null DESCRIPTION, null emp_number from dual
+            ```
+    }
+    columnMapping {
+        return: EMP_NUMBER
+        display: DESCRIPTION
+        defaultSort: EMP_NUMBER
+    }
+)
+
+lov sup-suppliers-company-name (
+    name: SUP_SUPPLIERS.COMPANY_NAME
+    source {
+        tableName: SUP_SUPPLIERS
+    }
+    columnMapping {
+        return: SUPPLIER_ID
+        display: COMPANY_NAME
+        defaultSort: COMPANY_NAME
+    }
+)

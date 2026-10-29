@@ -1,0 +1,219 @@
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "HQ_ELEVATED"."ITR_TEAM_QUEUE_PKG" AS
+
+    PROCEDURE ENQUEUE_REQUEST (
+        P_REQUEST_ID IN NUMBER,
+        P_TEAM_ID    IN NUMBER
+    ) AS
+        L_IMPORTANCE       ITR_TEAM_QUEUES.IMPORTANCE%TYPE;
+        L_QUEUE_ID         ITR_TEAM_QUEUES.QUEUE_ID%TYPE;
+        L_ACTIVE_ITEM_ID   ITR_TEAM_QUEUE_ITEMS.QUEUE_ITEM_ID%TYPE;
+        L_ACTIVE_QUEUE_ID  ITR_TEAM_QUEUE_ITEMS.QUEUE_ID%TYPE;
+        L_POSITION         ITR_TEAM_QUEUE_ITEMS.QUEUE_POSITION%TYPE;
+    BEGIN
+        IF P_TEAM_ID IS NULL THEN
+            RAISE_APPLICATION_ERROR(-20101, 'A team is required to enqueue an IT request.');
+        END IF;
+
+        SELECT LOWER(CRITICALITY)
+          INTO L_IMPORTANCE
+          FROM ITR_REQUESTS
+         WHERE REQUEST_ID = P_REQUEST_ID;
+
+        IF L_IMPORTANCE NOT IN ('urgent', 'normal') THEN
+            RAISE_APPLICATION_ERROR(-20102, 'The IT request has an invalid importance value.');
+        END IF;
+
+        BEGIN
+            MERGE INTO ITR_TEAM_QUEUES TARGET
+            USING (
+                SELECT P_TEAM_ID TEAM_ID, L_IMPORTANCE IMPORTANCE
+                  FROM DUAL
+            ) SOURCE
+               ON (TARGET.TEAM_ID = SOURCE.TEAM_ID AND TARGET.IMPORTANCE = SOURCE.IMPORTANCE)
+            WHEN MATCHED THEN
+                UPDATE SET TARGET.UPDATED_DATE = SYSDATE
+            WHEN NOT MATCHED THEN
+                INSERT (TEAM_ID, IMPORTANCE, ACTIVE_COUNT, CREATED_DATE, UPDATED_DATE)
+                VALUES (SOURCE.TEAM_ID, SOURCE.IMPORTANCE, 0, SYSDATE, SYSDATE);
+        EXCEPTION
+            WHEN DUP_VAL_ON_INDEX THEN
+                NULL; -- a concurrent session created the bucket first; the SELECT below will find it
+        END;
+
+        SELECT QUEUE_ID
+          INTO L_QUEUE_ID
+          FROM ITR_TEAM_QUEUES
+         WHERE TEAM_ID = P_TEAM_ID
+           AND IMPORTANCE = L_IMPORTANCE
+         FOR UPDATE;
+
+        BEGIN
+            SELECT QUEUE_ITEM_ID, QUEUE_ID
+              INTO L_ACTIVE_ITEM_ID, L_ACTIVE_QUEUE_ID
+              FROM ITR_TEAM_QUEUE_ITEMS
+             WHERE REQUEST_ID = P_REQUEST_ID
+               AND QUEUE_STATUS NOT IN ('COMPLETED', 'CANCELLED')
+             FOR UPDATE;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                L_ACTIVE_ITEM_ID := NULL;
+                L_ACTIVE_QUEUE_ID := NULL;
+        END;
+
+        SELECT NVL(MAX(QUEUE_POSITION), 0) + 1
+          INTO L_POSITION
+          FROM ITR_TEAM_QUEUE_ITEMS
+         WHERE QUEUE_ID = L_QUEUE_ID
+           AND QUEUE_STATUS NOT IN ('COMPLETED', 'CANCELLED')
+           AND QUEUE_ITEM_ID != NVL(L_ACTIVE_ITEM_ID, -1);
+
+        IF L_ACTIVE_QUEUE_ID = L_QUEUE_ID THEN
+            UPDATE ITR_TEAM_QUEUE_ITEMS
+               SET QUEUE_STATUS = 'TEAM_PENDING',
+                   TEAM_ID = P_TEAM_ID,
+                   QUEUE_POSITION = L_POSITION,
+                   ASSIGNED_TO = NULL,
+                   ASSIGNED_DATE = NULL,
+                   COMPLETED_DATE = NULL
+             WHERE QUEUE_ITEM_ID = L_ACTIVE_ITEM_ID;
+            RETURN;
+        END IF;
+
+        IF L_ACTIVE_ITEM_ID IS NOT NULL THEN
+            UPDATE ITR_TEAM_QUEUE_ITEMS
+               SET QUEUE_STATUS = 'CANCELLED',
+                   COMPLETED_DATE = SYSDATE
+             WHERE QUEUE_ITEM_ID = L_ACTIVE_ITEM_ID;
+
+            UPDATE ITR_TEAM_QUEUES
+               SET ACTIVE_COUNT = GREATEST(ACTIVE_COUNT - 1, 0),
+                   UPDATED_DATE = SYSDATE
+             WHERE QUEUE_ID = L_ACTIVE_QUEUE_ID;
+        END IF;
+
+        INSERT INTO ITR_TEAM_QUEUE_ITEMS (
+            QUEUE_ID,
+            REQUEST_ID,
+            TEAM_ID,
+            QUEUE_STATUS,
+            QUEUE_POSITION,
+            ENQUEUED_DATE
+        ) VALUES (
+            L_QUEUE_ID,
+            P_REQUEST_ID,
+            P_TEAM_ID,
+            'TEAM_PENDING',
+            L_POSITION,
+            SYSDATE
+        );
+
+        UPDATE ITR_TEAM_QUEUES
+           SET ACTIVE_COUNT = ACTIVE_COUNT + 1,
+               UPDATED_DATE = SYSDATE
+         WHERE QUEUE_ID = L_QUEUE_ID;
+    END ENQUEUE_REQUEST;
+
+    PROCEDURE ASSIGN_REQUEST_TO_MEMBER (
+        P_REQUEST_ID IN NUMBER,
+        P_TEAM_ID    IN NUMBER,
+        P_USERNAME   IN VARCHAR2
+    ) AS
+        L_REQUEST_TEAM_ID ITR_REQUESTS.ASSIGNED_TEAM_ID%TYPE;
+        L_QUEUE_ITEM_ID   ITR_TEAM_QUEUE_ITEMS.QUEUE_ITEM_ID%TYPE;
+    BEGIN
+        SELECT ASSIGNED_TEAM_ID
+          INTO L_REQUEST_TEAM_ID
+          FROM ITR_REQUESTS
+         WHERE REQUEST_ID = P_REQUEST_ID
+         FOR UPDATE;
+
+        IF L_REQUEST_TEAM_ID IS NULL OR L_REQUEST_TEAM_ID <> P_TEAM_ID THEN
+            RAISE_APPLICATION_ERROR(-20103, 'The queue team does not match the request team.');
+        END IF;
+
+        BEGIN
+            SELECT 1
+              INTO L_QUEUE_ITEM_ID
+              FROM ITR_TEAM_MEMBERS
+             WHERE TEAM_ID = P_TEAM_ID
+               AND USERNAME = P_USERNAME;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE_APPLICATION_ERROR(-20104, 'The selected member does not belong to the request team.');
+        END;
+
+        SELECT QUEUE_ITEM_ID
+          INTO L_QUEUE_ITEM_ID
+          FROM ITR_TEAM_QUEUE_ITEMS
+         WHERE REQUEST_ID = P_REQUEST_ID
+           AND QUEUE_STATUS NOT IN ('COMPLETED', 'CANCELLED')
+         FOR UPDATE;
+
+        UPDATE ITR_TEAM_QUEUE_ITEMS
+           SET ASSIGNED_TO = P_USERNAME,
+               QUEUE_STATUS = 'MEMBER_ASSIGNED',
+               ASSIGNED_DATE = SYSDATE,
+               COMPLETED_DATE = NULL
+         WHERE QUEUE_ITEM_ID = L_QUEUE_ITEM_ID;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20105, 'The IT request is not present in an active team queue.');
+    END ASSIGN_REQUEST_TO_MEMBER;
+
+    PROCEDURE HOLD_REQUEST (
+        P_REQUEST_ID IN NUMBER
+    ) AS
+        L_QUEUE_ITEM_ID ITR_TEAM_QUEUE_ITEMS.QUEUE_ITEM_ID%TYPE;
+    BEGIN
+        SELECT QUEUE_ITEM_ID
+          INTO L_QUEUE_ITEM_ID
+          FROM ITR_TEAM_QUEUE_ITEMS
+         WHERE REQUEST_ID = P_REQUEST_ID
+           AND QUEUE_STATUS NOT IN ('COMPLETED', 'CANCELLED')
+         FOR UPDATE;
+
+        UPDATE ITR_TEAM_QUEUE_ITEMS
+           SET QUEUE_STATUS = 'ON_HOLD',
+               ASSIGNED_TO = NULL,
+               ASSIGNED_DATE = NULL
+         WHERE QUEUE_ITEM_ID = L_QUEUE_ITEM_ID;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            NULL;
+    END HOLD_REQUEST;
+
+    PROCEDURE CLOSE_REQUEST (
+        P_REQUEST_ID IN NUMBER,
+        P_STATUS     IN VARCHAR2 DEFAULT 'COMPLETED'
+    ) AS
+        L_QUEUE_ITEM_ID ITR_TEAM_QUEUE_ITEMS.QUEUE_ITEM_ID%TYPE;
+        L_QUEUE_ID      ITR_TEAM_QUEUE_ITEMS.QUEUE_ID%TYPE;
+    BEGIN
+        IF P_STATUS NOT IN ('COMPLETED', 'CANCELLED') THEN
+            RAISE_APPLICATION_ERROR(-20106, 'An IT queue item can only be closed or cancelled.');
+        END IF;
+
+        SELECT QUEUE_ITEM_ID, QUEUE_ID
+          INTO L_QUEUE_ITEM_ID, L_QUEUE_ID
+          FROM ITR_TEAM_QUEUE_ITEMS
+         WHERE REQUEST_ID = P_REQUEST_ID
+           AND QUEUE_STATUS NOT IN ('COMPLETED', 'CANCELLED')
+         FOR UPDATE;
+
+        UPDATE ITR_TEAM_QUEUE_ITEMS
+           SET QUEUE_STATUS = P_STATUS,
+               COMPLETED_DATE = SYSDATE
+         WHERE QUEUE_ITEM_ID = L_QUEUE_ITEM_ID;
+
+        UPDATE ITR_TEAM_QUEUES
+           SET ACTIVE_COUNT = GREATEST(ACTIVE_COUNT - 1, 0),
+               UPDATED_DATE = SYSDATE
+         WHERE QUEUE_ID = L_QUEUE_ID;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            NULL;
+    END CLOSE_REQUEST;
+  END ITR_TEAM_QUEUE_PKG;
+
+/

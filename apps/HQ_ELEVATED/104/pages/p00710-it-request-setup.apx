@@ -1,0 +1,183 @@
+page 710 (
+    name: IT Request Setup
+    alias: IT-REQUEST-SETUP
+    title: IT Request Setup
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    security {
+        authorizationScheme: @it-request-setup-admin
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region setup-actions (
+        name: IT Request Setup Areas
+        type: staticContent
+        source {
+            htmlCode: <p>Manage teams, request types, and configuration health.</p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region setup-health (
+        name: Setup Health
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery: select 'Teams' as area, to_char(count(*)) as total from ITR_TEAMS union all select 'Team members', to_char(count(*)) from ITR_TEAM_MEMBERS union all select 'Request types', to_char(count(*)) from ITR_REQUEST_TYPES union all select 'Teams missing leader/coordinator', to_char(count(*)) from (select t.id from ITR_TEAMS t left join ITR_TEAM_MEMBERS tm on tm.team_id = t.id and upper(tm.role) in ('LEADER','COORDINATOR') group by t.id having count(tm.id) = 0) order by 1
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: rowRangesXToYNoPagination
+        }
+        messages {
+            whenNoDataFound: No data found
+        }
+
+        column AREA (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Area
+                alignment: center
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column TOTAL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Total
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+        )
+
+    )
+
+    button manage-request-types (
+        buttonName: MANAGE-REQUEST-TYPES
+        label: Manage Request Types
+        layout {
+            sequence: 20
+            region: @setup-actions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 715
+                clearCache: 715
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button manage-teams (
+        buttonName: MANAGE-TEAMS
+        label: Manage Teams
+        layout {
+            sequence: 10
+            region: @setup-actions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 711
+                clearCache: 711
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button setup-validation (
+        buttonName: SETUP-VALIDATION
+        label: Setup Validation
+        layout {
+            sequence: 30
+            region: @setup-actions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 719
+                clearCache: 719
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+)

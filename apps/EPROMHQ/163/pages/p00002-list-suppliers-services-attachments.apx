@@ -1,0 +1,449 @@
+page 2 (
+    name: List Suppliers/services/Attachments
+    alias: LIST-SUPPLIERS-SERVICES-ATTACHMENTS
+    title: List Suppliers/services/Attachments
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region list-suppliers-services-attachments (
+        name: List Suppliers/services/Attachments
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select ss.supplier_id,
+                       ss.supplier_registered_no,
+                       ss.company_name,
+                       ss.applay_as,
+                       ss.status,
+                       ser.categories_products,
+                       ss.is_new,
+                
+                       APEX_PAGE.GET_URL (
+                           p_page   => 3,
+                           p_items  => 'P3_SUPPLIER_ID,P3_COMPANY_NAME',
+                           p_values => ss.supplier_id || ',' || ss.company_name ) as download_link   ,
+                    APEX_PAGE.GET_URL (
+                    p_page   => 26,
+                    p_items  => 'P26_SUPPLIER_ID',
+                    p_values => ss.supplier_id
+                    -- ,p_plain_url => true
+                ) 
+                 as contacts_link
+                from sup_suppliers ss
+                left join ( 
+                    select s.supplier_id,
+                           -- XMLAGG returns a CLOB to handle massive strings
+                           RTRIM(XMLAGG(XMLELEMENT(e, category || ' - ' || product || ' - ' || general_info, ' | ').EXTRACT('//text()') 
+                           ORDER BY category, product, general_info).GETCLOBVAL(), ' | ') as categories_products
+                    from sup_services s
+                    group by s.supplier_id
+                ) ser
+                on ss.supplier_id = ser.supplier_id
+                where ( ss.status in ('APPROVED')
+                     or ss.status like '%APPROV%')
+                order by
+                    case
+                        when ss.status = 'APPROVED' then 1
+                  
+                        else 2
+                    end
+                -- select  ss.supplier_id,
+                --         ss.supplier_registered_no,
+                --         ss.company_name,
+                --         ss.applay_as,
+                --         ss.status,
+                --         /*ser.categories_products*/ '' categories_products,
+                --         ss.is_new,
+                --         APEX_PAGE.GET_URL (
+                --             p_page   =>3,
+                --             p_items  => 'P3_SUPPLIER_ID,p3_applay_as',
+                --             p_values => ss.supplier_id || ',' || ss.applay_as )
+                    
+                --         as download_link
+                -- from   sup_suppliers ss
+                --   left join ( select s.supplier_id,
+                --                 listagg(category || ' - ' || product || ' - '||general_info, ' | ')
+                --                   within group (order by category, product,general_info) as categories_products
+                --          from   sup_services s
+                --          group by s.supplier_id
+                --        ) ser
+                --         on  ss.supplier_id = ser.supplier_id;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        link {
+            linkColumn: singleRowView
+            linkIcon: <span role="img" aria-label="Single View" class="fa fa-edit" title="Single View"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: No data found.
+            whenMoreDataFound: The maximum row count for this report is #MAX_ROW_COUNT# rows.  Please apply a filter to reduce the number of records in your query.
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 138541401394794009
+        }
+
+        column APPLAY_AS (
+            type: plainText
+            heading {
+                heading: Apply As
+            }
+            layout {
+                sequence: 31
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column CATEGORIES_PRODUCTS (
+            type: plainText
+            heading {
+                heading: Categories Products
+            }
+            layout {
+                sequence: 81
+            }
+            source {
+                dataType: CLOB
+            }
+            columnFilter {
+                type: none
+            }
+            advanced {
+                endUserAlias: J
+            }
+            enableUsersTo {
+                sort: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column COMPANY_NAME (
+            type: plainText
+            heading {
+                heading: Company Name
+            }
+            layout {
+                sequence: 21
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column CONTACTS_LINK (
+            type: link
+            heading {
+                heading: Contacts Link
+            }
+            layout {
+                sequence: 91
+            }
+            link {
+                target: {
+                    type: url
+                    url: #CONTACTS_LINK#
+                }
+                linkText: <span class="fa fa-address-book" title="View Contacts"></span>
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column DOWNLOAD_LINK (
+            type: link
+            heading {
+                heading: Download Attachments
+                alternativeLabel: Download Attachments
+                alignment: center
+            }
+            layout {
+                sequence: 61
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: url
+                    url: #DOWNLOAD_LINK#
+                }
+                linkText: <span role="img" aria-label="Edit" class="fa fa-download" title="Download All Attachments"></span>
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+            }
+        )
+
+        column IS_NEW (
+            type: plainText
+            heading {
+                heading: Is New
+            }
+            layout {
+                sequence: 71
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column STATUS (
+            type: plainText
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 41
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column SUPPLIER_ID (
+            type: hidden
+            heading {
+                heading: Supplier Id
+            }
+            layout {
+                sequence: 1
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column SUPPLIER_REGISTERED_NO (
+            type: plainText
+            heading {
+                heading: Registered No
+            }
+            layout {
+                sequence: 11
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: List Suppliers/services/Attachments
+        }
+
+        savedReport 1385439 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn APPLAY_AS (
+                sequence: 2
+            )
+
+            displayColumn CATEGORIES_PRODUCTS (
+                sequence: 5
+            )
+
+            displayColumn COMPANY_NAME (
+                sequence: 1
+            )
+
+            displayColumn CONTACTS_LINK (
+                sequence: 4
+            )
+
+            displayColumn DOWNLOAD_LINK (
+                sequence: 3
+            )
+
+        )
+
+    )
+
+    dynamicAction refresh (
+        name: REFRESH
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosecanceldialog
+            selectionType: region
+            region: @list-suppliers-services-attachments
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @list-suppliers-services-attachments
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_zip blob;
+                begin
+                    -- create a temporary zip BLOB
+                    dbms_lob.createtemporary(l_zip, true);
+                
+                    -- add all attachments for the supplier
+                    for rec in (
+                        select file_name, file_content
+                        from sup_suppliers_attaches
+                        where supplier_id = :SUPPLIER_ID
+                    ) loop
+                        if rec.file_content is not null 
+                           and dbms_lob.getlength(rec.file_content) > 0 then
+                            apex_zip.add_file(
+                                p_zipped_blob => l_zip,
+                                p_file_name   => rec.file_name,
+                                p_content     => rec.file_content
+                            );
+                        end if;
+                    end loop;
+                
+                    -- finish zip
+                    apex_zip.finish(l_zip);
+                
+                    -- send to browser
+                    sys.htp.init;
+                    owa_util.mime_header('application/zip', false);
+                    htp.p('Content-Disposition: attachment; filename="supplier_'||:SUPPLIER_ID||'_attachments.zip"');
+                    owa_util.http_header_close;
+                    wpg_docload.download_file(l_zip);
+                
+                    apex_application.g_unrecoverable_error := true;
+                end;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 135399918427219640
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+)

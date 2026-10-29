@@ -1,0 +1,130 @@
+dataLoadDefinition upload_credit (
+    name: Upload_CREDIT
+    target {
+        type: collection
+        name: CREDIT_COL
+        loadingMethod: replace
+    }
+    dataProfile {
+        name: Upload_CREDIT
+        format: xlsx
+    }
+    advanced {
+        encoding: utf-8
+        defaultXlsxSheetName: sheet1.xml
+    }
+
+    dataProfileColumn c (
+        columnName: C001
+        source {
+            sequence: 10
+            dataType: varchar2
+            primaryKey: true
+        }
+        parsing {
+            selector: EMP_ID
+        }
+    )
+
+    dataProfileColumn c-2 (
+        columnName: C002
+        source {
+            sequence: 20
+            dataType: varchar2
+        }
+        parsing {
+            selector: ANNUAL_ENTITELMENT
+        }
+    )
+
+    dataProfileColumn c-3 (
+        columnName: C003
+        source {
+            sequence: 30
+            dataType: varchar2
+        }
+        parsing {
+            selector: CASUAL_ENTITELMENT
+        }
+    )
+
+    dataProfileColumn c-4 (
+        columnName: C004
+        source {
+            sequence: 40
+            dataType: varchar2
+        }
+        parsing {
+            selector: ACCRUED_LAST_YEAR
+        }
+    )
+
+    dataProfileColumn c-5 (
+        columnName: C005
+        source {
+            sequence: 50
+            dataType: varchar2
+        }
+        parsing {
+            selector: CUT_H_BALANCE
+        }
+    )
+
+    dataProfileColumn c-6 (
+        columnName: C008
+        source {
+            sequence: 80
+            dataType: varchar2
+        }
+        parsing {
+            selector: REST_HRS_BALANCE
+        }
+    )
+
+    dataProfileColumn c-7 (
+        columnName: C007
+        source {
+            sequence: 70
+            dataType: varchar2
+        }
+        parsing {
+            selector: CASUAL_BALANCE
+        }
+    )
+
+    dataProfileColumn c-8 (
+        columnName: C006
+        source {
+            sequence: 60
+            dataType: varchar2
+        }
+        parsing {
+            selector: ANNUAL_BALANCE
+        }
+    )
+
+    dataProfileColumn c-9 (
+        columnName: C009
+        source {
+            sequence: 90
+            dataType: varchar2
+        }
+        parsing {
+            selector: CURRENTLY_PROJECT
+        }
+    )
+
+    dataProfileColumn d (
+        columnName: D001
+        source {
+            sequence: 100
+            dataType: date
+        }
+        parsing {
+            selector: DATE_UNTIL
+            formatMask: DD/MM/YYYY
+            hasTimeZone: false
+        }
+    )
+
+)

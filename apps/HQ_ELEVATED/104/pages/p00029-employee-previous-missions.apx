@@ -1,0 +1,1030 @@
+page 29 (
+    name: بيانات المهمات السابقة
+    alias: EMPLOYEE-PREVIOUS-MISSIONS
+    title: &APP_TEXT$MISSION_DATA.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+        cssClasses: eprom-history-dialog
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            body.eprom-history-dialog .t-Dialog-header,
+            body.eprom-history-dialog .ui-dialog-titlebar {
+                padding: 0.6rem 0.95rem !important;
+            }
+            body.eprom-history-dialog .t-Dialog-title,
+            body.eprom-history-dialog .ui-dialog-title {
+                font-size: 1rem !important;
+                line-height: 1.35 !important;
+                font-weight: 700 !important;
+            }
+            body.eprom-history-dialog .t-Region-title {
+                font-size: 0.92rem !important;
+                line-height: 1.35;
+            }
+            body.eprom-history-dialog .t-Region-body {
+                padding: 0.65rem 0.8rem;
+            }
+            body.eprom-history-dialog .apex-rds {
+                gap: 0.35rem !important;
+                margin-bottom: 0.85rem !important;
+            }
+            body.eprom-history-dialog .apex-rds-item a {
+                padding: 0.5rem 0.8rem !important;
+                font-size: 0.9rem !important;
+                line-height: 1.35;
+            }
+            body.eprom-history-dialog .t-Report-wrap {
+                overflow-x: auto;
+            }
+            body.eprom-history-dialog .t-Report-report {
+                font-size: 0.88rem !important;
+            }
+            body.eprom-history-dialog .t-Report-report th {
+                padding: 0.55rem 0.65rem !important;
+                font-size: 0.84rem !important;
+                line-height: 1.35;
+            }
+            body.eprom-history-dialog .t-Report-report td {
+                padding: 0.5rem 0.65rem !important;
+                line-height: 1.4;
+            }
+            body.eprom-history-dialog .t-Report-report a:focus-visible,
+            body.eprom-history-dialog .apex-rds-item a:focus-visible {
+                outline: 2px solid #0e7490 !important;
+                outline-offset: 2px;
+            }
+            @media (max-width: 640px) {
+                body.eprom-history-dialog .t-Region-body {
+                    padding: 0.5rem;
+                }
+                body.eprom-history-dialog .t-Report-report th,
+                body.eprom-history-dialog .t-Report-report td {
+                    white-space: nowrap;
+                }
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region hrf-mission (
+        name: hrf_mission
+        title: &APP_TEXT$HRFMISSION.
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+    )
+
+    region region-display-selector (
+        name: Region Display Selector
+        title: &APP_TEXT$REGION_DISPLAY_SELECTOR.
+        type: regionDisplaySelector
+        layout {
+            sequence: 20
+            parentRegion: @hrf-mission
+            slot: subRegions
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        settings {
+            includeShowAll: false
+            rememberSelection: false
+        }
+    )
+
+    region تم-إعتمادها (
+        name: "تم إعتمادها "
+        title: &APP_TEXT$IT_HAS_BEEN_APPROVED.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT
+                    REQUEST_TYPE_ID,
+                   DESCRIPTION reason,
+                    from_date,
+                    to_date,
+                    updated_by,
+                    approved,
+                    request_id,
+                    CASE
+                        WHEN ( delete_approved IS NULL
+                               OR delete_approved <> 0 )
+                             and sysdate <= central.XXAPEX_SS_VALIDATIONS.GET_CUT_DATE(to_date(from_date),EMP_ID) 
+                             
+                             THEN
+                           'الغاء المهمة'
+                        ELSE
+                            ''
+                    END delete_text,
+                      To_Date -From_Date +1
+                FROM
+                    epromhq.HRF_EMP_MISSION_REQUEST
+                WHERE
+                        emp_id = :app_user
+                    AND approved = 1
+                    AND nvl(delete_approved, 0) <> 1
+                AND EXTRACT(YEAR FROM from_date) = EXTRACT(YEAR FROM SYSDATE)
+                    order by from_date desc
+                ```
+        }
+        layout {
+            sequence: 40
+            parentRegion: @hrf-mission
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            lazyLoading: true
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 210
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column DELETE_TEXT (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 140
+            }
+        )
+
+        column DERIVED$01 (
+            reportColumnQueryId: 6
+            derivedColumn: Y
+            type: link
+            heading {
+                heading: &APP_TEXT$CANCEL.
+                alignment: center
+            }
+            layout {
+                sequence: 230
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: otherApp
+                    app: 115
+                    page: 26
+                    items: {
+                        P26_REQUEST_ID: #REQUEST_ID#
+                        P26_MISSION_TYPE: #REQUEST_TYPE_ID#
+                        P26_FROM_DATE: #FROM_DATE#
+                        P26_TO_DATE: #TO_DATE#
+                        P26_REQUEST_TYPE_ID: #REQUEST_TYPE_ID##LEAVE_TYPE#
+                    }
+                }
+                linkText: <div class="x-danger-text ">#DELETE_TEXT#</div>
+            }
+            sorting {
+                sortable: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column FROM_DATE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 170
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REASON (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THE_REASON.
+                alignment: center
+            }
+            layout {
+                sequence: 150
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REQUEST_ID (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 130
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 220
+            }
+        )
+
+        column TO_DATE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 190
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TO_DATE-FROM_DATE+1 (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 160
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 200
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    region تم-الالغاء-لتأخر-المدير-الاعتماد-فى-شهر-الطلب (
+        name: تم الالغاء لتأخر المدير الاعتماد فى شهر الطلب
+        title: &APP_TEXT$THE_ACCREDITATION_WAS_CANCELED_DUE_TO_THE_DIRECTOR_S_DELAY_IN_THE_MONTH_OF_THE_REQUEST.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select request_type_id, From_Date, To_Date,Updated_By,Approved,   To_Date -From_Date +1
+                 from epromhq.hrf_emp_mission_request
+                 where EMP_ID = :APP_USER
+                 and approved = 4
+                and nvl(delete_approved,0)<>1
+                AND EXTRACT(YEAR FROM from_date) = EXTRACT(YEAR FROM SYSDATE)
+                ```
+        }
+        layout {
+            sequence: 100
+            parentRegion: @hrf-mission
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            lazyLoading: true
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column FROM_DATE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$TASK_TYPE.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @mission-types
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+        )
+
+        column TO_DATE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column TO_DATE-FROM_DATE+1 (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    region تم-رفضها (
+        name: "تم رفضها "
+        title: &APP_TEXT$IT_WAS_REJECTED.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select   
+                  DESCRIPTION reason,
+                    from_date,
+                    to_date,
+                    updated_by,
+                    approved,
+                    request_id,
+                      To_Date -From_Date +1
+                     from epromhq.HRF_EMP_MISSION_REQUEST
+                 where EMP_ID = :APP_USER
+                 and approved = 2
+                and nvl(delete_approved,0)<>1
+                AND EXTRACT(YEAR FROM from_date) = EXTRACT(YEAR FROM SYSDATE)
+                ```
+        }
+        layout {
+            sequence: 60
+            parentRegion: @hrf-mission
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            lazyLoading: true
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column FROM_DATE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REASON (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THE_REASON.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REQUEST_ID (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column TO_DATE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TO_DATE-FROM_DATE+1 (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    region قيد-الإعتماد (
+        name: "قيد الإعتماد "
+        title: &APP_TEXT$UNDER_APPROVAL.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select    
+                  
+                   DESCRIPTION reason,
+                    from_date,
+                    to_date,
+                    updated_by,
+                    approved,
+                    request_id,
+                    task_ids,
+                    REQUEST_TYPE_ID,
+                    To_Date -From_Date +1,
+                    decode( nvl(delete_approved,9999),0,'display:none;','' )  css_hide
+                     from epromhq.HRF_EMP_MISSION_REQUEST
+                 where EMP_ID = :APP_USER
+                And approved = 0
+                 and (approved = 0  OR nvl(delete_approved,1) = 0)
+                AND EXTRACT(YEAR FROM From_Date) = EXTRACT(YEAR FROM SYSDATE)
+                ```
+        }
+        layout {
+            sequence: 30
+            parentRegion: @hrf-mission
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            lazyLoading: true
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column CSS_HIDE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 110
+            }
+        )
+
+        column FROM_DATE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REASON (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THE_REASON.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REQUEST_ID (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column TASK_IDS (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$COLUMN_HEADING.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+            }
+            link {
+                target: {
+                    type: otherApp
+                    app: 115
+                    page: 27
+                    items: {
+                        P27_REQUEST_ID: #REQUEST_ID#
+                        P27_FROM_DATE: #FROM_DATE#
+                        P27_TO_DATE: #TO_DATE#
+                        P27_MISSION_TYPE: #REQUEST_TYPE_ID#
+                        P27_TASK_ID: #TASK_IDS#
+                    }
+                }
+                linkText: "&{CANCEL_TASK CSS_HIDE=#CSS_HIDE#}!RAW."
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column TO_DATE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TO_DATE-FROM_DATE+1 (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @تم-إعتمادها
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if ( this.data.successMessage ) {
+                    
+                      apex.message.showPageSuccess(this.data.successMessage.text);
+                    
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @تم-إعتمادها
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction new-2 (
+        name: New_1
+        execution {
+            sequence: 20
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @قيد-الإعتماد
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if ( this.data.successMessage ) {
+                    
+                      apex.message.showPageSuccess(this.data.successMessage.text);
+                    
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @قيد-الإعتماد
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

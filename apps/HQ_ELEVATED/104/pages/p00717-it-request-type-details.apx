@@ -1,0 +1,186 @@
+page 717 (
+    name: IT Request Type Details
+    alias: IT-REQUEST-TYPE-DETAILS
+    title: IT Request Type Details
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    security {
+        authorizationScheme: @it-request-setup-admin
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region request-type-details-report (
+        name: Request Type Details
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery: select d.id, d.title, d.descr, t.name as suggested_team from ITR_REQUEST_TYPE_DETAILS d left join ITR_TEAMS t on t.id = d.suggested_team_id where d.request_type_id = :P717_REQUEST_TYPE_ID order by d.title
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+        }
+        pagination {
+            type: rowRangesXToYNoPagination
+        }
+        messages {
+            whenNoDataFound: No data found
+        }
+
+        column DESCR (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Descr
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Id
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+            link {
+                target: {
+                    page: 718
+                    items: {
+                        P718_ID: #ID#
+                    }
+                }
+                linkText: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+            }
+        )
+
+        column SUGGESTED_TEAM (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Suggested Team
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Title
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+    )
+
+    pageItem P717_REQUEST_TYPE_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @request-type-details-report
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button new-detail (
+        buttonName: NEW-DETAIL
+        label: New Detail
+        layout {
+            sequence: 10
+            region: @request-type-details-report
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 718
+                items: {
+                    P718_REQUEST_TYPE_ID: &P717_REQUEST_TYPE_ID.
+                }
+                clearCache: 718
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction refresh-request-type-details-report-on-close (
+        name: Refresh on Dialog Close (request-type-details-report)
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @request-type-details-report
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @request-type-details-report
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

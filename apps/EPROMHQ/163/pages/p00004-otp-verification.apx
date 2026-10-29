@@ -1,0 +1,429 @@
+page 4 (
+    name: OTP_Verification
+    alias: OTP-VERIFICATION
+    title: OTP_Verification
+    appearance {
+        pageTemplate: @/login
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region new (
+        name: New
+        type: staticContent
+        layout {
+            sequence: 20
+            parentRegion: @otp
+            slot: subRegions
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+    )
+
+    region otp (
+        name: OTP
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/login
+            templateOptions: #DEFAULT#
+        }
+        image {
+            fileUrl: #APP_FILES#SUP.jpg
+        }
+    )
+
+    pageItem P4_COMPANY_NAME (
+        type: displayOnly
+        label {
+            label: Company Name
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @otp
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: request=Value
+            value: ehab
+        }
+    )
+
+    pageItem P4_HEADOFF_MOBILE (
+        type: displayOnly
+        label {
+            label: Mobile
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @otp
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P4_OTP_CODE (
+        type: textField
+        label {
+            label: Otp Code
+            alignment: left
+        }
+        settings {
+            submitWhenEnterPressed: true
+        }
+        layout {
+            sequence: 40
+            region: @otp
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 4
+        }
+    )
+
+    pageItem P4_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @otp
+            slot: regionBody
+        }
+    )
+
+    button resend-otp (
+        buttonName: RESEND_OTP
+        label: Resend OTP
+        layout {
+            sequence: 20
+            region: @new
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--warning
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button varify (
+        buttonName: VARIFY
+        label: Verify
+        layout {
+            sequence: 10
+            region: @new
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    validation new (
+        name: New
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: functionBodyReturningBoolean
+            plsqlFunctionBody:
+                ```plsql
+                DECLARE
+                  l_otp_id      SUP_OTPS.OTP_CODE%TYPE;
+                  l_attempts    SUP_OTPS.ATTEMPT_COUNT%TYPE;
+                  l_expires_on  SUP_OTPS.EXPIRES_ON%TYPE;
+                
+                  c_max_attempts CONSTANT PLS_INTEGER := 5; -- عدّلها لو عايز
+                BEGIN
+                  IF :P4_OTP_CODE IS NULL THEN
+                    apex_error.add_error(
+                      p_message          => 'من فضلك أدخل كود التحقق',
+                      p_display_location => apex_error.c_inline_in_notification
+                    );
+                    RETURN FALSE;
+                  END IF;
+                
+                  -- آخر سجل غير مستخدم يطابق الكود لهذا المورد
+                  SELECT otp_id, attempt_count, expires_on
+                    INTO l_otp_id, l_attempts, l_expires_on
+                    FROM (
+                      SELECT otp_id, attempt_count, expires_on
+                      FROM   EPROMHQ.SUP_OTPS
+                      WHERE  supplier_id = :P4_SUPPLIER_ID
+                        AND  otp_code    = :P4_OTP_CODE
+                        AND  used_flag   = 'N'
+                      ORDER BY created_on DESC
+                    )
+                   WHERE ROWNUM = 1;
+                
+                  -- صلاحية
+                  IF l_expires_on < SYSTIMESTAMP THEN
+                    apex_error.add_error(
+                      p_message          => 'انتهت صلاحية الكود، برجاء إعادة إرسال كود جديد',
+                      p_display_location => apex_error.c_inline_in_notification
+                    );
+                    RETURN FALSE;
+                  END IF;
+                
+                  -- عدد المحاولات
+                  IF l_attempts >= c_max_attempts THEN
+                    apex_error.add_error(
+                      p_message          => 'تم تجاوز عدد المحاولات المسموح به. برجاء إعادة إرسال كود جديد',
+                      p_display_location => apex_error.c_inline_in_notification
+                    );
+                    RETURN FALSE;
+                  END IF;
+                
+                  -- الكود صحيح وصالح
+                  RETURN TRUE;
+                
+                EXCEPTION
+                  WHEN NO_DATA_FOUND THEN
+                    apex_error.add_error(
+                      p_message          => 'الكود غير صحيح، برجاء المحاولة مرة أخرى أو إعادة إرسال كود جديد',
+                      p_display_location => apex_error.c_inline_in_notification
+                    );
+                    RETURN FALSE;
+                  WHEN OTHERS THEN
+                    apex_error.add_error(
+                      p_message          => SQLERRM,
+                      p_display_location => apex_error.c_inline_in_notification
+                    );
+                    RETURN FALSE;
+                END;
+                ```
+        }
+        error {
+            errorMessage: "&{INCORRECT_CODE}."
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process clear (
+        name: clear
+        type: clearSessionState
+        execution {
+            sequence: 10
+            point: afterFooter
+        }
+        advanced {
+            executionMappingIdentifier: 164851112245894018
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process new (
+        name: New
+        type: clearSessionState
+        clear {
+            type: items
+            items: P4_OTP_CODE
+        }
+        execution {
+            sequence: 10
+            point: afterHeader
+        }
+        advanced {
+            executionMappingIdentifier: 164386755957391720
+        }
+    )
+
+    process re-send (
+        name: Re-send
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                  l_mobile varchar2(50);
+                begin
+                  select headoff_mobile
+                    into l_mobile
+                    from sup_suppliers
+                   where supplier_id = :P4_SUPPLIER_ID;
+                
+                  sup_otp_pkg.generate_and_send_otp(:P4_SUPPLIER_ID, l_mobile);
+                --  apex_message.add_page_success_message('A new code has been sent.');
+                -- apex_application.g_print_success_message := 'A new code has been sent.';
+                end;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        successMessage {
+            successMessage: Create password.
+        }
+        error {
+            errorMessage: error
+        }
+        advanced {
+            executionMappingIdentifier: 164385319921391706
+        }
+        serverSideCondition {
+            whenButtonPressed: @resend-otp
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    process re-send-otp (
+        name: Re-send OTP
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                  l_mobile varchar2(50);
+                begin
+                  select headoff_mobile
+                    into l_mobile
+                    from sup_suppliers
+                   where supplier_id = :P4_SUPPLIER_ID;
+                
+                  sup_otp_pkg.generate_and_send_otp(:P4_SUPPLIER_ID, l_mobile);
+                --  apex_message.add_page_success_message('A new code has been sent.');
+                 apex_application.g_print_success_message := 'A new code has been sent.';
+                end;
+                ```
+        }
+        execution {
+            sequence: 30
+            point: afterSubmit
+        }
+        successMessage {
+            successMessage: re-send OTP
+        }
+        advanced {
+            executionMappingIdentifier: 164387312915391726
+        }
+        serverSideCondition {
+            whenButtonPressed: @resend-otp
+        }
+    )
+
+    process verify-otp (
+        name: Verify OTP
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                  l_ok  BOOLEAN;
+                  l_sms NUMBER;
+                BEGIN
+                  -- Validate OTP first
+                  l_ok := sup_otp_pkg.verify_otp(:P4_SUPPLIER_ID, :P4_OTP_CODE);
+                
+                  -- Safe select (never errors)
+                  SELECT NVL(MAX(attempt_count), 0)
+                    INTO l_sms
+                    FROM sup_otps
+                   WHERE supplier_id = :P4_SUPPLIER_ID
+                     AND used_flag = 'N';
+                
+                  -- Wrong OTP
+                  IF NOT l_ok THEN
+                    raise_application_error(
+                      -20001,
+                      'برجاء كتابة الكود بشكل صحيح'
+                    );
+                  END IF;
+                
+                  -- Too many attempts
+                  IF l_sms > 4 THEN
+                    raise_application_error(
+                      -20001,
+                      'برجاء كتابة الكود بشكل صحيح (اقصى عدد مرات المحاولة 4 مرات).'
+                    );
+                  END IF;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+            point: afterSubmit
+        }
+        successMessage {
+            successMessage: Mobile Verified Create Password.
+        }
+        advanced {
+            executionMappingIdentifier: 164385166889391704
+        }
+        serverSideCondition {
+            whenButtonPressed: @varify
+        }
+    )
+
+    branch (
+        name: Go To Page 7
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 7
+                items: {
+                    P7_COMPANY_NAME: &P4_COMPANY_NAME.
+                    P7_HEADOFF_MOBILE: &P4_HEADOFF_MOBILE.
+                    P7_SUPPLIER_ID: &P4_SUPPLIER_ID.
+                }
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @varify
+        }
+    )
+
+)

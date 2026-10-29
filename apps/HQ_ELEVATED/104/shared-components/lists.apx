@@ -1,0 +1,2038 @@
+list hr (
+    name: HR
+
+    entry time-sheet (
+        label: &APP_TEXT$TIME_SHEET.
+        icon {
+            imageIconCssClasses: fa-clock-o
+        }
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 54
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER in ( '3199','1837','1825','1168','867','1907') OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+    )
+
+    entry استيفاء-بيانات-الهيئة (
+        label: &APP_TEXT$COMPLETE_THE_AUTHORITY_S_DATA.
+        icon {
+            imageIconCssClasses: fa-file
+        }
+        layout {
+            sequence: 80
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 115
+                page: 31
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :app_user in (773,3775,3199,1837) OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+    )
+
+    entry التقييمات-السنوية (
+        label: &APP_TEXT$ANNUAL_EVALUATIONS.
+        icon {
+            imageIconCssClasses: fa-handshake-o
+        }
+        layout {
+            sequence: 5
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 205
+                page: 1
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                :APP_USER in ('3199','1837','995','1825','3775','1168','1295')
+                 OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+                ```
+        }
+    )
+
+    entry تعديل-الموافقات (
+        label: &APP_TEXT$MODIFY_APPROVALS.
+        icon {
+            imageIconCssClasses: "fa-building	"
+        }
+        layout {
+            sequence: 50
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/approval-and-workflow-manager/custom-setup?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                :APP_USER IN ('3199','1837','1825')
+                OR EXISTS (
+                    SELECT 1
+                    FROM central.apr_site_worker_priv
+                    WHERE emp_id = TO_NUMBER(:APP_USER)
+                )
+                 OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+                ```
+        }
+    )
+
+    entry رصيد-الاجازات (
+        label: &APP_TEXT$LEAVE_BALANCE.
+        icon {
+            imageIconCssClasses: fa-calendar-plus
+        }
+        layout {
+            sequence: 20
+        }
+        link {
+            target: {
+                page: 48
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER in ( '3199','1837','1825','1168','867','1907','3775') OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+    )
+
+    entry سلف-المدارس (
+        label: &APP_TEXT$PREDECESSORS_OF_SCHOOLS.
+        icon {
+            imageIconCssClasses: fa-accordion
+        }
+        layout {
+            sequence: 60
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 105
+                page: 45
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @hr-test
+        }
+    )
+
+    entry عرض-الطلبات-المعلقة (
+        label: &APP_TEXT$VIEW_PENDING_ORDERS.
+        icon {
+            imageIconCssClasses: fa-hourglass-half
+        }
+        layout {
+            sequence: 40
+        }
+        link {
+            target: {
+                page: 71
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER in ( '3199','1837','1825','1168','867','1907') OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+    )
+
+    entry عرض-تعديل-طلبات-موظفين-الشركة (
+        label: &APP_TEXT$OFFER_TO_MODIFY_COMPANY_EMPLOYEE_REQUESTS.
+        icon {
+            imageIconCssClasses: fa-ai-sparkle-generate-list
+        }
+        layout {
+            sequence: 70
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 115
+                page: 29
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER in ( '3199','1837','1825','1859','2766','3692','2278','1295','1168','3775','773') OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+    )
+
+    entry عرض-مرفقات-موظفين-الشركة (
+        label: &APP_TEXT$VIEW_COMPANY_EMPLOYEE_ATTACHMENTS.
+        icon {
+            imageIconCssClasses: fa-folder
+        }
+        layout {
+            sequence: 30
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 115
+                page: 23
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER in ( '3199','1837','1825','1859','2766','3692','2278','1295','1168','3775','773','3400') OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+    )
+
+)
+
+list it (
+    name: IT
+
+    entry department-center (
+        label: &APP_TEXT$DEPARTMENT_CENTER.
+        icon {
+            imageIconCssClasses: fa-hourglass-3
+        }
+        layout {
+            sequence: 40
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/departments-center/home?session=&SESSION.
+            }
+        }
+        security {
+            authorizationScheme: @it
+        }
+    )
+
+    entry inventory (
+        label: &APP_TEXT$INVENTORY.
+        icon {
+            imageIconCssClasses: fa-table
+        }
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/inventory111/home?session=&SESSION.
+            }
+        }
+        security {
+            authorizationScheme: @inventory-users
+        }
+    )
+
+    entry it-request (
+        label: &APP_TEXT$IT_SERVICE_REQUEST.
+        icon {
+            imageIconCssClasses: fa-ai-sparkle-generate-document
+        }
+        layout {
+            sequence: 4
+        }
+        link {
+            target: {
+                page: 700
+            }
+        }
+        security {
+            authorizationScheme: @it
+        }
+    )
+
+    entry it-request-setup (
+        label: IT Request Setup
+        icon {
+            imageIconCssClasses: fa-cogs
+        }
+        layout {
+            sequence: 70
+            parentEntry: @it-request
+        }
+        link {
+            target: {
+                page: 710
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry national-id-for-email (
+        label: &APP_TEXT$NATIONAL_ID_FOR_EMAIL.
+        icon {
+            imageIconCssClasses: fa-credit-card-front
+        }
+        layout {
+            sequence: 60
+        }
+        link {
+            target: {
+                page: 84
+            }
+        }
+        security {
+            authorizationScheme: @it
+        }
+    )
+
+    entry support (
+        label: &APP_TEXT$SUPPORT.
+        icon {
+            imageIconCssClasses: fa-user-headset
+        }
+        layout {
+            sequence: 30
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/support?session=&SESSION.
+            }
+        }
+        security {
+            authorizationScheme: @support-it
+        }
+    )
+
+    entry tasks (
+        label: &APP_TEXT$TASKS_1.
+        icon {
+            imageIconCssClasses: fa-suitcase
+        }
+        layout {
+            sequence: 20
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/tasks/home?session=&SESSION.
+            }
+        }
+        security {
+            authorizationScheme: @it
+        }
+    )
+
+    entry التقييمات-السنوية (
+        label: &APP_TEXT$ANNUAL_EVALUATIONS.
+        icon {
+            imageIconCssClasses: fa-handshake-o
+        }
+        layout {
+            sequence: 5
+        }
+        isCurrent {
+            type: expression
+            plsqlExpression: :APP_USER in ('3199','1837','995','1825');
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 205
+                page: 1
+            }
+        }
+        security {
+            authorizationScheme: @it
+        }
+    )
+
+    entry تعديل-الموافقات (
+        label: &APP_TEXT$MODIFY_APPROVALS.
+        icon {
+            imageIconCssClasses: fa-building
+        }
+        layout {
+            sequence: 50
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/approval-and-workflow-manager/custom-setup?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                BEGIN
+                RETURN :APP_USER in('1825','3455','3199') OR central.is_dev_or_super_n(:app_user) = 1;
+                END;
+                ```
+        }
+    )
+
+)
+
+list navigation-bar (
+    name: Navigation Bar
+
+    entry admin (
+        label: &APP_TEXT$ADMIN.
+        icon {
+            imageIconCssClasses: fa-gear
+        }
+        layout {
+            sequence: 490
+            parentEntry: @طلبات
+        }
+        link {
+            target: {
+                page: 300
+            }
+        }
+        security {
+            authorizationScheme: @admin
+        }
+    )
+
+    entry app-user (
+        label: &APP_USER.
+        icon {
+            imageIconCssClasses: fa-user
+        }
+        layout {
+            sequence: 200
+        }
+        link {
+            target: {
+                type: url
+                url: #
+            }
+        }
+        userDefinedAttributes {
+            2: has-username
+        }
+    )
+
+    entry en (
+        label: &APP_TEXT$EN.
+        icon {
+            imageIconCssClasses: fa-language
+        }
+        layout {
+            sequence: 2
+        }
+        link {
+            target: {
+                page: 51
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                nvl(APEX_UTIL.GET_SESSION_LANG,'ar-ae') <> 'en-us'
+                
+                ```
+        }
+    )
+
+    entry install-app (
+        label: &APP_TEXT$INSTALL_APP.
+        icon {
+            imageIconCssClasses: fa-cloud-download
+        }
+        layout {
+            sequence: 1
+        }
+        isCurrent {
+            type: always
+        }
+        link {
+            target: {
+                type: url
+                url: #
+            }
+        }
+        userDefinedAttributes {
+            2: a-pwaInstall
+        }
+    )
+
+    entry list_item (
+        label: ---
+        layout {
+            sequence: 90
+            parentEntry: @app-user
+        }
+        link {
+            target: {
+                type: url
+                url: separator
+            }
+        }
+    )
+
+    entry list_item-2 (
+        label: ---
+        layout {
+            sequence: 50
+            parentEntry: @app-user
+        }
+        link {
+            target: {
+                type: url
+                url: separator
+            }
+        }
+    )
+
+    entry medical-referral-requests (
+        label: &APP_TEXT$MEDICAL_REFERRAL_REQUESTS_TITLE.
+        icon {
+            imageIconCssClasses: fa-file-medical
+        }
+        layout {
+            sequence: 56
+            parentEntry: @طلبات
+        }
+        isCurrent {
+            type: pages
+            pages: 107
+        }
+        link {
+            target: {
+                page: 107
+            }
+        }
+        security {
+            authorizationScheme: @self-service-allowed
+        }
+    )
+
+    entry إعدادات (
+        label: &APP_TEXT$SETTINGS.
+        icon {
+            imageIconCssClasses: fa-gear
+        }
+        layout {
+            sequence: 11
+        }
+        link {
+            target: {
+                page: 20000
+            }
+        }
+        config {
+            buildOption: @feature-user-settings
+        }
+    )
+
+    entry الملف-الشخصي (
+        label: &APP_TEXT$PROFILE.
+        icon {
+            imageIconCssClasses: fa-address-card-o
+        }
+        layout {
+            sequence: 8
+        }
+        link {
+            target: {
+                page: 10
+            }
+        }
+        security {
+            authorizationScheme: @server-side-condetion-never
+        }
+    )
+
+    entry تسجيل-خروج (
+        label: &APP_TEXT$LOG_OUT.
+        icon {
+            imageIconCssClasses: fa-sign-out
+        }
+        layout {
+            sequence: 100
+            parentEntry: @app-user
+        }
+        link {
+            target: {
+                type: url
+                url: &LOGOUT_URL.
+            }
+        }
+    )
+
+    entry تنبيهات (
+        label: &APP_TEXT$ALERTS.
+        icon {
+            imageIconCssClasses: fa-bell
+        }
+        layout {
+            sequence: 40
+        }
+        link {
+            target: {
+                page: 2
+                action: resetPagination
+            }
+        }
+        userDefinedAttributes {
+            1: &NOT_COUNT.
+        }
+    )
+
+    entry طلبات (
+        label: &APP_TEXT$REQUESTS.
+        icon {
+            imageIconCssClasses: fa-check-square-o
+        }
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 45
+            }
+        }
+    )
+
+    entry طلبات-العلاقات-العامة (
+        label: &APP_TEXT$PUBLIC_RELATIONS_REQUESTS.
+        icon {
+            imageIconCssClasses: fa-accordion
+        }
+        layout {
+            sequence: 210
+            parentEntry: @طلبات
+        }
+        link {
+            target: {
+                page: 82
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :App_user in ('705','287')
+        }
+    )
+
+    entry طلبات-المرؤوسين (
+        label: &APP_TEXT$SUBORDINATES_REQUESTS.
+        icon {
+            imageIconCssClasses: fa-users
+        }
+        layout {
+            sequence: 30
+            parentEntry: @طلبات
+        }
+        link {
+            target: {
+                page: 200
+            }
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody: RETURN EPROMHQ.CHECK_APPROVER_EXISTS(:APP_USER) = 1;
+        }
+    )
+
+    entry طلباتي (
+        label: &APP_TEXT$MY_REQUESTS.
+        icon {
+            imageIconCssClasses: fa-file-user
+        }
+        layout {
+            sequence: 20
+            parentEntry: @طلبات
+        }
+        link {
+            target: {
+                page: 100
+            }
+        }
+    )
+
+    entry ع (
+        label: &APP_TEXT$LANGUAGE.
+        icon {
+            imageIconCssClasses: fa-language
+        }
+        layout {
+            sequence: 3
+        }
+        link {
+            target: {
+                page: 51
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: nvl(APEX_UTIL.GET_SESSION_LANG,'ar-ae') <> 'ar-ae'
+        }
+    )
+
+    entry عرض-الطلبات (
+        label: &APP_TEXT$VIEW_ORDERS.
+        icon {
+            imageIconCssClasses: fa-list-alt
+        }
+        layout {
+            sequence: 35
+            parentEntry: @طلبات
+        }
+        link {
+            target: {
+                page: 45
+            }
+        }
+        security {
+            authorizationScheme: @self-service-allowed
+        }
+    )
+
+)
+
+list navigation-menu (
+    name: Navigation Menu
+
+    entry administrators (
+        label: &APP_TEXT$ADMINISTRATORS.
+        icon {
+            imageIconCssClasses: fa-users
+        }
+        layout {
+            sequence: 2000
+        }
+        link {
+            target: {
+                page: 80
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :App_user in (3199,1825,1837) OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+        security {
+            authorizationScheme: @admin
+        }
+    )
+
+    entry attendance-requests-hub (
+        label: سجل الحضور والطلبات الموحد
+        icon {
+            imageIconCssClasses: fa-calendar-check-o
+        }
+        layout {
+            sequence: 95
+        }
+        link {
+            target: {
+                page: 450
+            }
+        }
+        security {
+            authorizationScheme: @it-and-others
+        }
+    )
+
+    entry claims-payables (
+        label: Claims Payables
+        icon {
+            imageIconCssClasses: fa-file-o
+        }
+        layout {
+            sequence: 2020
+        }
+        isCurrent {
+            type: pages
+            pages: 72
+        }
+        link {
+            target: {
+                page: 72
+            }
+        }
+    )
+
+    entry it-request-administration (
+        label: IT Request Administration
+        icon {
+            imageIconCssClasses: fa-headset
+        }
+        layout {
+            sequence: 1900
+        }
+        link {
+            target: {
+                page: 703
+            }
+        }
+        security {
+            authorizationScheme: @it-request-coordinator
+        }
+    )
+
+    entry it-request-setup (
+        label: Request Setup
+        icon {
+            imageIconCssClasses: fa-cogs
+        }
+        layout {
+            sequence: 30
+            parentEntry: @it-request-administration
+        }
+        link {
+            target: {
+                page: 710
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-request-setup-validation (
+        label: Setup Validation
+        icon {
+            imageIconCssClasses: fa-check-circle
+        }
+        layout {
+            sequence: 50
+            parentEntry: @it-request-setup
+        }
+        link {
+            target: {
+                page: 719
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-request-team-queue (
+        label: Team Queue
+        icon {
+            imageIconCssClasses: fa-list
+        }
+        layout {
+            sequence: 20
+            parentEntry: @it-request-administration
+        }
+        link {
+            target: {
+                page: 704
+            }
+        }
+        security {
+            authorizationScheme: @it
+        }
+    )
+
+    entry it-request-teams (
+        label: IT Teams
+        icon {
+            imageIconCssClasses: fa-users
+        }
+        layout {
+            sequence: 10
+            parentEntry: @it-request-setup
+        }
+        link {
+            target: {
+                page: 711
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-request-types (
+        label: Request Types
+        icon {
+            imageIconCssClasses: fa-list-alt
+        }
+        layout {
+            sequence: 30
+            parentEntry: @it-request-setup
+        }
+        link {
+            target: {
+                page: 715
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry medical-referral-requests-menu (
+        label: &APP_TEXT$MEDICAL_REFERRAL_REQUESTS_TITLE.
+        icon {
+            imageIconCssClasses: fa-notes-medical
+        }
+        layout {
+            sequence: 70
+            parentEntry: @طلباتي
+        }
+        isCurrent {
+            type: pages
+            pages: 107
+        }
+        link {
+            target: {
+                page: 107
+            }
+        }
+        security {
+            authorizationScheme: @self-service-allowed
+        }
+    )
+
+    entry sample-dashboard (
+        label: &APP_TEXT$SAMPLE_DASHBOARD.
+        icon {
+            imageIconCssClasses: fa-dashboard
+        }
+        layout {
+            sequence: 160
+        }
+        isCurrent {
+            type: pages
+            pages: 26
+        }
+        link {
+            target: {
+                page: 26
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    entry workflow-admin (
+        label: workflow admin
+        layout {
+            sequence: 2010
+            parentEntry: @administrators
+        }
+        link {
+            target: {
+                page: 901
+            }
+        }
+        security {
+            authorizationScheme: @admin
+        }
+    )
+
+    entry أخبار-الشركة (
+        label: &APP_TEXT$COMPANY_NEWS.
+        icon {
+            imageIconCssClasses: fa-newspaper-o
+        }
+        layout {
+            sequence: 840
+        }
+        link {
+            target: {
+                page: 53
+            }
+        }
+    )
+
+    entry إدارة-العلاقات-والخدمات-العامة (
+        label: &APP_TEXT$PUBLIC_RELATIONS_AND_SERVICES_DEPARTMENT.
+        icon {
+            imageIconCssClasses: fa-user
+        }
+        layout {
+            sequence: 1000
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 105
+                page: 1
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @public-relations
+        }
+    )
+
+    entry الأقارب (
+        label: &APP_TEXT$RELATIVES.
+        icon {
+            imageIconCssClasses: fa-user-heart
+        }
+        layout {
+            sequence: 30
+            parentEntry: @الملف-الشخصي
+        }
+        isCurrent {
+            type: pages
+            pages: 5
+        }
+        link {
+            target: {
+                page: 5
+            }
+        }
+    )
+
+    entry الاعتمادات (
+        label: &APP_TEXT$CREDITS.
+        icon {
+            imageIconCssClasses: fa-file-user
+        }
+        layout {
+            sequence: 820
+        }
+        link {
+            target: {
+                page: 40
+            }
+        }
+        security {
+            authorizationScheme: @erc-self-services
+        }
+    )
+
+    entry التقييمات-السنوية (
+        label: &APP_TEXT$ANNUAL_EVALUATIONS.
+        icon {
+            imageIconCssClasses: fa-scatter-chart
+        }
+        layout {
+            sequence: 1040
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 205
+                page: 205
+            }
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                  SELECT 1
+                  FROM apr.apr_emps e
+                  WHERE e.emp_id = :APP_USER
+                    AND EXISTS (
+                      SELECT 1
+                      FROM apr.apr_assignment_evaluators v
+                      WHERE v.evaluator_emp_rec_id = e.emp_rec_id
+                    )
+                ```
+        }
+    )
+
+    entry الخدمات-الذاتية (
+        label: &APP_TEXT$SELF_SERVICES.
+        icon {
+            imageIconCssClasses: fa-server-user
+        }
+        layout {
+            sequence: 50
+        }
+        link {
+            target: {
+                page: 4000
+            }
+        }
+        security {
+            authorizationScheme: @self-service-allowed
+        }
+    )
+
+    entry الدليل-الطبي (
+        label: &APP_TEXT$MEDICAL_GUIDE.
+        icon {
+            imageIconCssClasses: fa-map-markers-o
+        }
+        layout {
+            sequence: 120
+        }
+        isCurrent {
+            type: pages
+            pages: 7
+        }
+        link {
+            target: {
+                page: 7
+            }
+        }
+    )
+
+    entry الرئيسية (
+        label: &APP_TEXT$HOME.
+        icon {
+            imageIconCssClasses: fa-home
+        }
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 1
+            }
+        }
+    )
+
+    entry الملف-الشخصي (
+        label: &APP_TEXT$PROFILE.
+        icon {
+            imageIconCssClasses: fa-address-card-o
+        }
+        layout {
+            sequence: 20
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                10
+                4
+            ]
+        }
+        link {
+            target: {
+                page: 10
+            }
+        }
+        security {
+            authorizationScheme: @erc-self-services
+        }
+    )
+
+    entry الهيكل-الوظيفي (
+        label: &APP_TEXT$FUNCTIONAL_STRUCTURE.
+        icon {
+            imageIconCssClasses: fa-tree-org
+        }
+        layout {
+            sequence: 100
+        }
+        isCurrent {
+            type: always
+        }
+        link {
+            target: {
+                page: 12
+                action: resetPagination
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @erc-self-services
+        }
+    )
+
+    entry بيان-الحضور-والانصراف (
+        label: &APP_TEXT$STATEMENT_OF_ATTENDANCE_AND_DEPARTURE.
+        icon {
+            imageIconCssClasses: fa-check-square
+        }
+        layout {
+            sequence: 90
+        }
+        link {
+            target: {
+                page: 45
+            }
+        }
+        security {
+            authorizationScheme: @erc-self-services
+        }
+    )
+
+    entry بيانات-الأجازات (
+        label: &APP_TEXT$VACATION_DATA.
+        icon {
+            imageIconCssClasses: fa-umbrella
+        }
+        layout {
+            sequence: 40
+            parentEntry: @الملف-الشخصي
+        }
+        isCurrent {
+            type: pages
+            pages: 19
+        }
+        link {
+            target: {
+                page: 19
+            }
+        }
+        serverSideCondition {
+            type: item=value
+            item: SITE_CODE != 'EPROM_ESTYRINECS';
+            value: SQL
+        }
+    )
+
+    entry تعديل-المواقع-الطبية (
+        label: &APP_TEXT$EDITING_MEDICAL_WEBSITES.
+        icon {
+            imageIconCssClasses: fa-forms
+        }
+        layout {
+            sequence: 180
+            parentEntry: @الدليل-الطبي
+        }
+        isCurrent {
+            type: pages
+            pages: 8
+        }
+        link {
+            target: {
+                page: 8
+            }
+        }
+        security {
+            authorizationScheme: @medical-team
+        }
+    )
+
+    entry طلب-حجز-إقامة-فندقية (
+        label: &APP_TEXT$REQUEST_TO_BOOK_A_HOTEL_STAY.
+        icon {
+            imageIconCssClasses: fa-tasks
+            attributes: target="_blank"
+        }
+        layout {
+            sequence: 80
+            parentEntry: @الخدمات-الذاتية
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 105
+                page: 9
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    entry طلب-دعم-فني (
+        label: &APP_TEXT$REQUEST_TECHNICAL_SUPPORT.
+        icon {
+            imageIconCssClasses: fa-user-headset
+        }
+        layout {
+            sequence: 1030
+        }
+        link {
+            target: {
+                page: 74
+            }
+        }
+    )
+
+    entry طلب-دورة-تدريبية (
+        label: &APP_TEXT$REQUEST_A_TRAINING_COURSE.
+        icon {
+            imageIconCssClasses: fa-tasks
+        }
+        layout {
+            sequence: 90
+            parentEntry: @الخدمات-الذاتية
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 124
+                page: 9
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    entry طلبات-المرؤوسين (
+        label: &APP_TEXT$SUBORDINATES_REQUESTS.
+        icon {
+            imageIconCssClasses: fa-check-square
+        }
+        layout {
+            sequence: 76
+            parentEntry: @متابعة-الطلبات
+        }
+        link {
+            target: {
+                page: 200
+            }
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody: RETURN EPROMHQ.CHECK_APPROVER_EXISTS(:APP_USER) = 1;
+        }
+    )
+
+    entry طلباتي (
+        label: &APP_TEXT$MY_REQUESTS.
+        icon {
+            imageIconCssClasses: fa-check-square
+        }
+        layout {
+            sequence: 60
+            parentEntry: @متابعة-الطلبات
+        }
+        link {
+            target: {
+                page: 100
+            }
+        }
+    )
+
+    entry لديك-فكرة (
+        label: &APP_TEXT$DO_YOU_HAVE_AN_IDEA.
+        icon {
+            imageIconCssClasses: fa-lightbulb-o
+        }
+        layout {
+            sequence: 830
+        }
+        link {
+            target: {
+                page: 36
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @super-duper
+        }
+    )
+
+    entry متابعة-الطلبات (
+        label: &APP_TEXT$FOLLOW_UP_ON_ORDERS.
+        icon {
+            imageIconCssClasses: fa-list-ul
+        }
+        layout {
+            sequence: 60
+        }
+        security {
+            authorizationScheme: @request-view-allowed
+        }
+    )
+
+    entry متابعة-جميع-الطلبات (
+        label: &APP_TEXT$FOLLOW_UP_ON_ALL_ORDERS.
+        icon {
+            imageIconCssClasses: fa-check-square
+        }
+        layout {
+            sequence: 1020
+            parentEntry: @متابعة-الطلبات
+        }
+        link {
+            target: {
+                page: 61
+            }
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                EXISTS (
+                  SELECT 1 
+                  FROM central.xxapex_hr_emp_data 
+                  WHERE emp_number = :APP_USER 
+                    AND site_code <> 'EPROM_MIDOR'
+                )
+                
+                ```
+        }
+    )
+
+    entry متابعة-طلبات-إدارة-العلاقات-العامة (
+        label: &APP_TEXT$FOLLOW_UP_ON_REQUESTS_FROM_THE_PUBLIC_RELATIONS_DEPARTMENT.
+        layout {
+            sequence: 1010
+            parentEntry: @إدارة-العلاقات-والخدمات-العامة
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 105
+                page: 53
+            }
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                BEGIN
+                
+                RETURN :APP_USER in('3199', '1825', '705', '1837','1973') OR central.is_dev_or_super_n(:app_user) = 1;
+                END;
+                ```
+        }
+    )
+
+    entry مقترحات-للبوابة-الرقمية (
+        label: &APP_TEXT$PROPOSALS_FOR_THE_DIGITAL_PORTAL.
+        icon {
+            imageIconCssClasses: fa-tasks
+        }
+        layout {
+            sequence: 850
+        }
+        link {
+            target: {
+                page: 24
+            }
+        }
+    )
+
+    entry ملفات-هامة (
+        label: &APP_TEXT$IMPORTANT_FILES.
+        icon {
+            imageIconCssClasses: fa-file-check
+        }
+        layout {
+            sequence: 190
+        }
+        link {
+            target: {
+                page: 11
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+)
+
+list training-management (
+    name: Training Management
+
+    entry summer-training (
+        label: &APP_TEXT$TRAINING_MANAGEMENT_SUMMER.
+        icon {
+            imageIconCssClasses: fa-head-microchip
+        }
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/Training?session=&SESSION.
+            }
+        }
+        security {
+            authorizationScheme: @training-department
+        }
+    )
+
+    entry training-instructors (
+        label: &APP_TEXT$TRAINING_MANAGEMENT_INSTRUCTORS.
+        icon {
+            imageIconCssClasses: fa-users
+        }
+        layout {
+            sequence: 20
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/training-instructors/employees-directory?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :App_user in ('1964','3199','1837')
+        }
+    )
+
+)
+
+list user-apps (
+    name: user apps
+
+    entry committees (
+        label: &APP_TEXT$COMMITTEE_APPLICATION.
+        icon {
+            imageIconCssClasses: fa-users
+        }
+        layout {
+            sequence: 200
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/f?p=212:1:&APP_SESSION.
+            }
+        }
+    )
+
+    entry dash-board (
+        label: &APP_TEXT$DASH_BOARD.
+        icon {
+            imageIconCssClasses: fa-area-chart
+        }
+        layout {
+            sequence: 70
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/managers-dashboard/home?session=&SESSION.
+            }
+        }
+        security {
+            authorizationScheme: @managers-dashboard-users
+        }
+    )
+
+    entry tasks (
+        label: &APP_TEXT$TASKS.
+        icon {
+            imageIconCssClasses: fa-accordion
+        }
+        layout {
+            sequence: 180
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/TASK-MANAGEMENT-SYSTEM/1?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :app_user = 3199 OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+        security {
+            authorizationScheme: @it
+        }
+    )
+
+    entry إدارة-التدريب (
+        label: &APP_TEXT$TRAINING_MANAGEMENT.
+        icon {
+            imageIconCssClasses: fa-head-microchip
+        }
+        layout {
+            sequence: 120
+        }
+        link {
+            target: {
+                page: 95
+            }
+        }
+        security {
+            authorizationScheme: @training-management-access
+        }
+    )
+
+    entry إدارة-الشؤون-القانونية (
+        label: &APP_TEXT$LEGAL_AFFAIRS_DEPARTMENT.
+        icon {
+            imageIconCssClasses: fa-balance-scale
+        }
+        layout {
+            sequence: 125
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/legal-system/home?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER in ( '3199','1837','1825','1576','831','973','264','3704') OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+    )
+
+    entry إدارة-العلاقات-العامة-و-الخدمات-العامة (
+        label: &APP_TEXT$PUBLIC_RELATIONS_AND_PUBLIC_SERVICES_DEPARTMENT.
+        icon {
+            imageIconCssClasses: fa-building
+        }
+        layout {
+            sequence: 140
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/hotel-reservation/home?session=&SESSION.
+            }
+        }
+        security {
+            authorizationScheme: @public-relations
+        }
+    )
+
+    entry إدارة-الموارد-البشرية (
+        label: &APP_TEXT$HUMAN_RESOURCES_MANAGEMENT.
+        icon {
+            imageIconCssClasses: fa-users
+        }
+        layout {
+            sequence: 130
+        }
+        link {
+            target: {
+                page: 69
+            }
+        }
+        security {
+            authorizationScheme: @hr
+        }
+    )
+
+    entry إدارة-نظم-المعلومات (
+        label: &APP_TEXT$INFORMATION_SYSTEMS_MANAGEMENT.
+        icon {
+            imageIconCssClasses: fa-table
+        }
+        layout {
+            sequence: 115
+        }
+        link {
+            target: {
+                page: 73
+            }
+        }
+        security {
+            authorizationScheme: @iis-and-inventory
+        }
+    )
+
+    entry الادارة-الطبية-والحسابات-الطبية (
+        label: &APP_TEXT$MEDICAL_ADMINISTRATION_AND_MEDICAL_ACCOUNTS.
+        icon {
+            imageIconCssClasses: fa-medkit
+        }
+        layout {
+            sequence: 150
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/mis/1?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody: RETURN HQ_ELEVATED.has_page_access_med(:APP_USER);
+        }
+        comments {
+            comments: :APP_USER in ('3199','1837','1825','2898','3274','987','982','3752','1582','1970','1838','328','1900','777','1896','1995','925','1717','3441','3198','435','1390','1487','3441','3454','1198','1848','4137','1579') OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+    )
+
+    entry الادارة-المالية (
+        label: &APP_TEXT$FINANCIAL_MANAGEMENT.
+        icon {
+            imageIconCssClasses: fa-dollar
+        }
+        layout {
+            sequence: 160
+        }
+        link {
+            target: {
+                type: otherApp
+                app: 109
+                page: 1
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER in ( '3199','1837','3414','1857','1464') OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+    )
+
+    entry الخدمات-الذاتية (
+        label: &APP_TEXT$SELF_SERVICES.
+        icon {
+            imageIconCssClasses: fa-server-user
+        }
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 4000
+            }
+        }
+        security {
+            authorizationScheme: @self-service-allowed
+        }
+    )
+
+    entry الرحلات (
+        label: &APP_TEXT$TRIPS.
+        icon {
+            imageIconCssClasses: fa-umbrella
+        }
+        layout {
+            sequence: 20
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/vacations?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @vacations-team
+        }
+    )
+
+    entry الرسائل-القصيرة (
+        label: &APP_TEXT$SMS.
+        icon {
+            imageIconCssClasses: fa-ai-sparkle-message
+        }
+        layout {
+            sequence: 110
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/sms-portal/home?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER in ('1825','3199','1837','1183') OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+    )
+
+    entry الرسائل-القصيرة-للصرفيات (
+        label: &APP_TEXT$SMS_FOR_EXCHANGES.
+        icon {
+            imageIconCssClasses: fa-send-o
+        }
+        layout {
+            sequence: 90
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/sms-portal/payment-sms?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER in ( '1857')
+        }
+    )
+
+    entry العلاقات-العامة (
+        label: &APP_TEXT$PUBLIC_RELATIONS.
+        icon {
+            imageIconCssClasses: fa-table-edit
+        }
+        layout {
+            sequence: 15
+        }
+        link {
+            target: {
+                page: 44
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    entry تعديل-الموافقات (
+        label: &APP_TEXT$MODIFY_APPROVALS.
+        icon {
+            imageIconCssClasses: fa-building
+        }
+        layout {
+            sequence: 50
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/approval-and-workflow-manager/custom-setup?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @approval-team
+        }
+    )
+
+    entry تغيير-تعديل-الصور (
+        label: &APP_TEXT$CHANGE_EDIT_PHOTOS.
+        icon {
+            imageIconCssClasses: fa-image
+        }
+        layout {
+            sequence: 11
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/photo-upload/home?session=&SESSION.
+            }
+        }
+    )
+
+    entry سجل-الموردين-و-المقاولين (
+        label: &APP_TEXT$REGISTER_OF_SUPPLIERS_AND_CONTRACTORS.
+        icon {
+            imageIconCssClasses: fa-ai
+        }
+        layout {
+            sequence: 170
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/suppliers-contractors/11?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                :App_user in ('1463','3199','1837','252','1169','3704','1172','335','16',
+                '1832','249','274','3482','560','614','560','705','995','127','1921','1399','1223') OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+                ```
+        }
+    )
+
+    entry متابعة-طلبات-الموظفين-بدل-انتقال (
+        label: &APP_TEXT$FOLLOW_UP_ON_EMPLOYEE_REQUESTS_TRANSFER_ALLOWANCE.
+        icon {
+            imageIconCssClasses: fa-accordion
+        }
+        layout {
+            sequence: 190
+        }
+        link {
+            target: {
+                page: 86
+            }
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                    SELECT 1
+                    FROM central.APR_STATIC_APPROVAL_SITE
+                    WHERE EMP_NUMBER = :APP_USER
+                
+                ```
+        }
+    )
+
+    entry مرفقات-الموظف-و-الاقارب (
+        label: &APP_TEXT$EMPLOYEE_ATTACHMENTS_AND_RELATIVES.
+        icon {
+            imageIconCssClasses: fa-files-o
+        }
+        layout {
+            sequence: 12
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/hr-forms/relatives-attachments?session=&SESSION.
+            }
+        }
+    )
+
+    entry نماذج-الشئون-الإدارية (
+        label: &APP_TEXT$ADMINISTRATIVE_AFFAIRS_FORMS.
+        icon {
+            imageIconCssClasses: fa-clipboard-edit
+        }
+        layout {
+            sequence: 40
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/hr-forms?session=&SESSION.
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+)
+
+list user-interface (
+    name: User Interface
+    config {
+        buildOption: @feature-theme-style-selection
+    }
+
+    entry theme-style-selection (
+        label: &APP_TEXT$THEME_STYLE_SELECTION.
+        icon {
+            imageIconCssClasses: fa-paint-brush
+        }
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 10010
+                clearCache: 10010
+            }
+        }
+        userDefinedAttributes {
+            1: Set the default application look and feel
+        }
+    )
+
+)
+
+list user-settings (
+    name: User Settings
+    config {
+        buildOption: @feature-user-settings
+    }
+
+    entry list_item (
+        label: ----
+        layout {
+            sequence: 1
+            parentEntry: @تغيير-رقم-الهاتف
+        }
+        link {
+            target: {
+                type: url
+                url: separator
+            }
+        }
+        userDefinedAttributes {
+            4: has-username
+        }
+        security {
+            authorizationScheme: @for-test
+        }
+    )
+
+    entry إضافة-تغيير-البريد-الإلكتروني (
+        label: &APP_TEXT$ADD_CHANGE_EMAIL.
+        icon {
+            imageIconCssClasses: fa-envelope-edit
+        }
+        layout {
+            sequence: 5
+            subentriesList: @user-apps
+        }
+        link {
+            target: {
+                page: 43
+            }
+        }
+        userDefinedAttributes {
+            1: اضافه / تغيير البريد الإلكتروني الشخصي المرتبط بإستلام الايميلات الخاص بك.
+            2:
+                ```
+                <span class="badge badge-secondary">&PERSONAL_EMAIL.</span>
+                
+                ```
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    entry تعليمات-عامة (
+        label: &APP_TEXT$GENERAL_INSTRUCTIONS.
+        icon {
+            imageIconCssClasses: fa-question-circle-o
+        }
+        layout {
+            sequence: 99
+        }
+        link {
+            target: {
+                page: 49
+            }
+        }
+    )
+
+    entry تغيير-رقم-الهاتف (
+        label: &APP_TEXT$CHANGE_PHONE_NUMBER.
+        icon {
+            imageIconCssClasses: fa-phone
+        }
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 42
+            }
+        }
+        userDefinedAttributes {
+            1: تغيير رقم الهاتف المرتبط بالرسائل النصية إلى رقم آخر.
+            2:
+                ```
+                <span class="badge badge-secondary">&MOBILE.</span>
+                
+                ```
+        }
+    )
+
+    entry تغيير-كلمة-السر (
+        label: &APP_TEXT$CHANGE_PASSWORD.
+        icon {
+            imageIconCssClasses: fa-lock-password
+        }
+        layout {
+            sequence: 20
+        }
+        link {
+            target: {
+                page: 8888
+            }
+        }
+        userDefinedAttributes {
+            1: لتغيير كلمة السر برجاء اتباع الخطوات التالية.
+        }
+    )
+
+)

@@ -1,0 +1,94 @@
+app PORTAL (
+    name: Portal
+    version: "Release 1.0 [KELGEZAWY-2026-10-27r001]"
+    group: @portal-apps
+    logo {
+        type: image
+        imageUrl: #APP_FILES#epromlogo.png
+    }
+    navigation {
+        homeUrl: {
+            page: 1
+        }
+        loginUrl: {
+            page: LOGIN
+        }
+    }
+    navigationMenu {
+        listTemplate: @side-navigation-menu
+        templateOptions: [
+            js-defaultCollapsed
+            js-navCollapsed--hidden
+            t-TreeNav--styleA
+        ]
+        list: @navigation-menu
+    }
+    navigationBar {
+        list: @navigation-bar
+        listTemplate: @navigation-bar
+        templateOptions: #DEFAULT#
+    }
+    userInterface {
+        currentTheme: @universal-theme
+        globalPage: 0
+        addBuiltWithApexToFooter: false
+    }
+    appFormatMasks {
+        date: YYYY-MM-DD
+        timestamp: DS
+        timestampTimeZone: DS
+    }
+    javaScript {
+        fileUrls: [
+            #APP_FILES#lightbox.min.js
+            #WORKSPACE_FILES#closeMenu#MIN#.js
+            #APP_FILES#treeview_toggle#MIN#.js
+        ]
+    }
+    css {
+        fileUrls: #APP_FILES#lightbox.min.css
+    }
+    authentication {
+        scheme: @custom-emp-auth
+        publicUser: APEX_PUBLIC_USER
+    }
+    authorization {
+        scheme: @eprom-hq-auth
+    }
+    security {
+        runtimeApiUsage: modifyThisApp
+    }
+    sessionStateProtection {
+        checksumSalt: 0F86DDD59B59484700AD6207DCA7FC14F559BE7F10899DC4A554E5B3105F8C02
+    }
+    sessionManagement {
+        rejoinSessions: publicSessions
+        sessionStateCommits: immediate
+    }
+    globalization {
+        primaryLanguage: ar-ae
+        documentDirection: rightToLeft
+        translationMethod: textMessages
+        languageDerivedFrom: session
+    }
+    progressiveWebApp {
+        installable: true
+        display: browser
+        enablePushNotifications: true
+        pushNotificationsCredentials: @App_104_Push_Notifications_Credentials
+    }
+    runtime {
+        allowFeedback: true
+        accessibleReadOnlyItems: false
+    }
+    advanced {
+        passEcid: false
+    }
+
+    substitution APP_NAME (
+        value {
+            staticValue: &APP_TEXT$EEPROM_DIGITAL_PORTAL.
+        }
+    )
+
+)

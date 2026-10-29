@@ -1,0 +1,2081 @@
+page 111 (
+    name: Prescription Request
+    alias: PRESCRIPTION-REQUEST
+    title: &APP_TEXT$P111_PRESCRIPTION_REQUEST_TITLE.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+        cssClasses: prescription-request-dialog
+    }
+    dialog {
+        resizable: false
+    }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            (function () {
+                function readMonthlySelection() {
+                    var value = String(getClientManagedValue('P111_MONTHLY_MED_IDS') || '');
+                    return value.split(/[,:]/).map(function (item) {
+                        return item.trim();
+                    }).filter(Boolean);
+                }
+            
+                function getClientManagedValue(name) {
+                    if (window.apex && typeof apex.item === 'function') {
+                        return apex.item(name).getValue();
+                    }
+                    var element = document.getElementById(name);
+                    return element ? element.value : '';
+                }
+            
+                function setClientManagedValue(name, value) {
+                    if (window.apex && typeof apex.item === 'function') {
+                        apex.item(name).setValue(value);
+                    }
+                    var element = document.getElementById(name);
+                    if (element && element.value !== value) {
+                        element.value = value;
+                    }
+                }
+            
+                function writeMonthlySelection(values) {
+                    setClientManagedValue('P111_MONTHLY_MED_IDS', Array.from(new Set(values)).join(','));
+                }
+            
+                function readMonthlyNotes() {
+                    var notes = {};
+                    var value = String(getClientManagedValue('P111_MONTHLY_NOTES') || '');
+                    value.split(/\r?\n/).forEach(function (line) {
+                        var separator = line.indexOf('=');
+                        if (separator > 0) {
+                            var id = line.substring(0, separator).trim();
+                            if (id) {
+                                notes[id] = line.substring(separator + 1).trim();
+                            }
+                        }
+                    });
+                    return notes;
+                }
+            
+                function getMonthlyMedId(row) {
+                    var checkbox = row ? row.querySelector('.prescription-monthly-check') : null;
+                    var noteInput = row ? row.querySelector('.prescription-monthly-note') : null;
+                    var firstCell = row && row.cells ? row.cells[0] : null;
+                    return (checkbox && checkbox.getAttribute('data-monthly-med-id'))
+                        || (noteInput && noteInput.getAttribute('data-monthly-med-id'))
+                        || (firstCell ? firstCell.textContent.trim() : '');
+                }
+            
+                function updateMonthlyNotes() {
+                    var notes = readMonthlyNotes();
+                    monthlyRows().forEach(function (row) {
+                        var id = getMonthlyMedId(row);
+                        var input = row.querySelector('.prescription-monthly-note');
+                        if (!id || !input) {
+                            return;
+                        }
+                        if (input.value.trim()) {
+                            notes[id] = input.value.trim();
+                        } else {
+                            delete notes[id];
+                        }
+                    });
+                    setClientManagedValue('P111_MONTHLY_NOTES', Object.keys(notes).map(function (id) {
+                        return id + '=' + notes[id];
+                    }).join('\n'));
+                }
+            
+                function syncMonthlyNoteInputs() {
+                    var notes = readMonthlyNotes();
+                    monthlyRows().forEach(function (row) {
+                        var id = getMonthlyMedId(row);
+                        var input = row.querySelector('.prescription-monthly-note');
+                        if (!id || !input) {
+                            return;
+                        }
+                        if (document.activeElement !== input) {
+                            input.value = notes[id] || '';
+                        }
+                        if (input.getAttribute('data-note-bound') !== 'true') {
+                            input.setAttribute('data-note-bound', 'true');
+                        }
+                    });
+                }
+            
+                function monthlyRows() {
+                    var table = document.querySelector('#prescription_monthly_region .t-Report-report');
+                    return table ? Array.prototype.slice.call(table.querySelectorAll('tbody tr')) : [];
+                }
+            
+                function bindMonthlyCheckAll(checkAll) {
+                    if (!checkAll) {
+                        return;
+                    }
+                    checkAll.setAttribute('aria-label', apex.lang.getMessage('P111_SELECT_ALL_MEDICINES'));
+                    if (checkAll.getAttribute('data-monthly-bound') === 'true') {
+                        return;
+                    }
+                    checkAll.addEventListener('change', selectAllMonthly);
+                }
+            
+                function ensureMonthlyCheckAll() {
+                    var table = document.querySelector('#prescription_monthly_region .t-Report-report');
+                    var header = table ? table.querySelector('thead th') : null;
+                    if (!header) {
+                        return null;
+                    }
+            
+                    var checkAll = document.getElementById('prescription_monthly_check_all');
+                    var label = checkAll && checkAll.parentElement && checkAll.parentElement.tagName === 'LABEL'
+                        ? checkAll.parentElement
+                        : null;
+                    if (!label) {
+                        label = document.createElement('label');
+                        label.setAttribute('for', 'prescription_monthly_check_all');
+                        var labelText = document.createElement('span');
+                        labelText.textContent = apex.lang.getMessage('P111_MONTHLY_MEDICINES_REQUESTED');
+                        label.appendChild(labelText);
+                    }
+                    label.className = 'prescription-monthly-check-all';
+                    if (label.parentNode !== header) {
+                        header.insertBefore(label, header.firstChild);
+                    }
+            
+                    if (!checkAll) {
+                        checkAll = document.createElement('input');
+                        checkAll.id = 'prescription_monthly_check_all';
+                        checkAll.type = 'checkbox';
+                        label.insertBefore(checkAll, label.firstChild);
+                    }
+                    bindMonthlyCheckAll(checkAll);
+                    return checkAll;
+                }
+            
+                function formatMonthlyHeaders() {
+                    var table = document.querySelector('#prescription_monthly_region .t-Report-report');
+                    var headers = table ? table.querySelectorAll('thead th') : [];
+                    var beneficiaryHeading = headers.length > 4
+                        ? headers[4].querySelector('.t-Report-colHead')
+                        : null;
+                    if (!beneficiaryHeading || beneficiaryHeading.getAttribute('data-monthly-two-line') === 'true') {
+                        return;
+                    }
+                    beneficiaryHeading.textContent = '';
+                    var firstLine = document.createElement('span');
+                    firstLine.textContent = apex.lang.getMessage('P111_NAME');
+                    var secondLine = document.createElement('span');
+                    secondLine.textContent = apex.lang.getMessage('P111_BENEFICIARY');
+                    beneficiaryHeading.appendChild(firstLine);
+                    beneficiaryHeading.appendChild(secondLine);
+                    beneficiaryHeading.classList.add('prescription-two-line-heading');
+                    beneficiaryHeading.setAttribute('data-monthly-two-line', 'true');
+                }
+            
+                function updateMonthlySelection() {
+                    var values = monthlyRows().map(function (row) {
+                        var checkbox = row.querySelector('.prescription-monthly-check');
+                        return checkbox && checkbox.checked ? checkbox.getAttribute('data-monthly-med-id') : null;
+                    }).filter(Boolean);
+                    writeMonthlySelection(Array.from(new Set(values)));
+                    syncMonthlyCheckboxes();
+                }
+            
+                function selectAllMonthly(event) {
+                    monthlyRows().forEach(function (row) {
+                        var checkbox = row.querySelector('.prescription-monthly-check');
+                        if (checkbox) {
+                            checkbox.checked = event.target.checked;
+                        }
+                    });
+                    updateMonthlySelection();
+                }
+            
+                function syncMonthlyCheckboxes() {
+                    var selected = readMonthlySelection();
+                    var rows = monthlyRows();
+            
+                    rows.forEach(function (row) {
+                        var firstCell = row.cells && row.cells[0];
+                        if (!firstCell) {
+                            return;
+                        }
+            
+                        var monthlyMedId = getMonthlyMedId(row);
+                        if (!monthlyMedId) {
+                            return;
+                        }
+            
+                        var checkbox = firstCell.querySelector('.prescription-monthly-check');
+                        if (!checkbox) {
+                            checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.className = 'prescription-monthly-check';
+                            checkbox.setAttribute('aria-label', apex.lang.getMessage('P111_SELECT_MEDICINE_NUMBER') + monthlyMedId);
+                            firstCell.insertBefore(checkbox, firstCell.firstChild);
+                        }
+                        checkbox.setAttribute('data-monthly-med-id', monthlyMedId);
+                        if (checkbox.getAttribute('data-monthly-change-bound') !== 'true') {
+                            checkbox.addEventListener('change', updateMonthlySelection);
+                            checkbox.setAttribute('data-monthly-change-bound', 'true');
+                        }
+                        checkbox.checked = selected.indexOf(monthlyMedId) !== -1;
+                    });
+            
+                    var checkAll = ensureMonthlyCheckAll();
+                    if (checkAll) {
+                        var checkedCount = rows.filter(function (row) {
+                            var checkbox = row.querySelector('.prescription-monthly-check');
+                            return checkbox && checkbox.checked;
+                        }).length;
+                        checkAll.checked = rows.length > 0 && checkedCount === rows.length;
+                        checkAll.indeterminate = checkedCount > 0 && checkedCount < rows.length;
+                    }
+                    formatMonthlyHeaders();
+                    syncMonthlyNoteInputs();
+                    syncAttachmentRequirement();
+                }
+            
+                function monthlyAttachmentIsOptional() {
+                    return String(apex.item('P111_REQUEST_KIND').getValue() || '') === 'MONTHLY'
+                        && monthlyRows().length > 0;
+                }
+            
+                function syncAttachmentRequirement() {
+                    var container = document.getElementById('P111_ATTACHMENTS_CONTAINER');
+                    var optional = monthlyAttachmentIsOptional();
+                    if (!container) {
+                        return;
+                    }
+                    container.hidden = optional;
+                    container.setAttribute('aria-hidden', String(optional));
+                    container.classList.toggle('prescription-attachment-optional', optional);
+                }
+            
+                function getExtraMedicineSelections() {
+                    var rawValue = apex.item('P111_MED_ID').getValue();
+                    var values = (Array.isArray(rawValue) ? rawValue : String(rawValue || '').split(/[,:]/)).map(function (item) {
+                        return item.trim();
+                    }).filter(Boolean);
+                    var displayById = {};
+                    Array.prototype.forEach.call(document.querySelectorAll('#P111_MED_ID_CONTAINER .apex-item-multi-item[data-value]'), function (node) {
+                        var id = node.getAttribute('data-value');
+                        var label = node.querySelector('span') || node;
+                        if (id && label) {
+                            displayById[id] = label.textContent.replace(/\s+/g, ' ').trim();
+                        }
+                    });
+                    var displayInput = document.querySelector('#P111_MED_ID_CONTAINER input:not([type="hidden"])');
+                    var displayValues = displayInput ? String(displayInput.value || '').split(',').map(function (item) {
+                        return item.trim();
+                    }).filter(Boolean) : [];
+                    if (displayValues.length < values.length) {
+                        Array.prototype.forEach.call(document.querySelectorAll('#P111_MED_ID_CONTAINER [data-value], #P111_MED_ID_CONTAINER .apex-item-multi-value, #P111_MED_ID_CONTAINER .apex-item-popup-lov-token'), function (node) {
+                            var value = node.getAttribute('data-value') || node.textContent;
+                            if (value && displayValues.indexOf(value.trim()) === -1) {
+                                displayValues.push(value.trim());
+                            }
+                        });
+                    }
+            
+                    return values.map(function (id, index) {
+                        var displayPrefix = apex.lang.getMessage('P111_MEDICINE_NUMBER_PREFIX');
+                        if (!displayPrefix || displayPrefix === 'P111_MEDICINE_NUMBER_PREFIX') {
+                            displayPrefix = 'Medicine #';
+                        }
+                        return { id: id, name: displayPrefix + ' ' + id };
+                    });
+                }
+            
+                function getCurrentExtraValues() {
+                    var values = {};
+                    document.querySelectorAll('#prescription_extra_medicine_details .prescription-extra-row').forEach(function (row) {
+                        var id = row.getAttribute('data-med-id');
+                        var unit = row.querySelector('[data-field="unit"]');
+                        var quantity = row.querySelector('[data-field="quantity"]');
+                        if (id) {
+                            values[id] = {
+                                unit: unit ? unit.value : '',
+                                quantity: quantity ? quantity.value : '1'
+                            };
+                        }
+                    });
+                    return values;
+                }
+            
+                function getUnitOptions() {
+                    var unitItem = document.getElementById('P111_UNIT_ID');
+                    return unitItem ? Array.prototype.map.call(unitItem.options, function (option) {
+                        return { value: option.value, label: option.textContent };
+                    }) : [];
+                }
+            
+                function serializeExtraMedicineRows() {
+                    var lines = [];
+                    document.querySelectorAll('#prescription_extra_medicine_details .prescription-extra-row').forEach(function (row) {
+                        var medId = row.getAttribute('data-med-id');
+                        var unit = row.querySelector('[data-field="unit"]');
+                        var quantity = row.querySelector('[data-field="quantity"]');
+                        if (medId) {
+                            lines.push([medId, unit ? unit.value : '', quantity ? quantity.value : '1'].join('|'));
+                        }
+                    });
+                    apex.item('P111_EXTRA_MED_LINES').setValue(lines.join('\n'));
+                }
+            
+                function syncExtraMedicineRows() {
+                    var rowsContainer = document.getElementById('prescription_extra_rows');
+                    var detailsRegion = document.getElementById('prescription_extra_medicine_details');
+                    if (!rowsContainer || !detailsRegion) {
+                        return;
+                    }
+            
+                    var currentValues = getCurrentExtraValues();
+                    var selections = getExtraMedicineSelections();
+                    var unitOptions = getUnitOptions();
+                    rowsContainer.innerHTML = '';
+            
+                    if (!selections.length) {
+                        detailsRegion.hidden = true;
+                        var empty = document.createElement('div');
+                        empty.className = 'prescription-extra-empty';
+                            empty.textContent = apex.lang.getMessage('P111_EXTRA_MEDICINE_EMPTY');
+                        rowsContainer.appendChild(empty);
+                        serializeExtraMedicineRows();
+                        return;
+                    }
+            
+                    detailsRegion.hidden = false;
+                    selections.forEach(function (selection) {
+                        var saved = currentValues[selection.id] || {};
+                        var row = document.createElement('div');
+                        row.className = 'prescription-extra-row';
+                        row.setAttribute('data-med-id', selection.id);
+            
+                        var medicine = document.createElement('div');
+                        medicine.className = 'prescription-extra-row__medicine';
+                        var medicineLabel = document.createElement('span');
+                        medicineLabel.className = 'prescription-extra-row__caption';
+                            medicineLabel.textContent = apex.lang.getMessage('P111_MEDICINE');
+                        var medicineName = document.createElement('strong');
+                            medicineName.textContent = selection.name || (apex.lang.getMessage('P111_MEDICINE_NUMBER_PREFIX') + selection.id);
+                        medicine.appendChild(medicineLabel);
+                        medicine.appendChild(medicineName);
+                        row.appendChild(medicine);
+            
+                        var unitWrap = document.createElement('label');
+                        unitWrap.className = 'prescription-extra-row__field';
+                            unitWrap.textContent = apex.lang.getMessage('P111_UNIT');
+                        var unitSelect = document.createElement('select');
+                            unitSelect.setAttribute('aria-label', apex.lang.getMessage('P111_UNIT_FOR_MEDICINE') + ' ' + selection.name);
+                        var placeholder = document.createElement('option');
+                        placeholder.value = '';
+                            placeholder.textContent = apex.lang.getMessage('P111_SELECT_UNIT');
+                        unitSelect.appendChild(placeholder);
+                        unitOptions.forEach(function (option) {
+                            if (option.value) {
+                                var optionNode = document.createElement('option');
+                                optionNode.value = option.value;
+                                optionNode.textContent = option.label;
+                                unitSelect.appendChild(optionNode);
+                            }
+                        });
+                        unitSelect.value = saved.unit || '';
+                        if (!unitSelect.value && unitSelect.options.length > 1) {
+                            unitSelect.selectedIndex = 1;
+                        }
+                        unitWrap.appendChild(unitSelect);
+                        row.appendChild(unitWrap);
+            
+                        var quantityWrap = document.createElement('label');
+                        quantityWrap.className = 'prescription-extra-row__field';
+                            quantityWrap.textContent = apex.lang.getMessage('P111_QUANTITY');
+                        var quantityInput = document.createElement('input');
+                        quantityInput.type = 'number';
+                        quantityInput.min = '1';
+                        quantityInput.step = '1';
+                        quantityInput.inputMode = 'numeric';
+                        quantityInput.value = saved.quantity || '1';
+                            quantityInput.setAttribute('aria-label', apex.lang.getMessage('P111_QUANTITY_FOR_MEDICINE') + ' ' + selection.name);
+                        quantityWrap.appendChild(quantityInput);
+                        row.appendChild(quantityWrap);
+            
+                        unitSelect.addEventListener('change', serializeExtraMedicineRows);
+                        quantityInput.addEventListener('input', serializeExtraMedicineRows);
+                        rowsContainer.appendChild(row);
+                    });
+            
+                    serializeExtraMedicineRows();
+                }
+            
+                function scheduleExtraMedicineRowsSync() {
+                    syncExtraMedicineRows();
+                    window.setTimeout(syncExtraMedicineRows, 0);
+                    window.setTimeout(syncExtraMedicineRows, 150);
+                }
+            
+                function validateMonthlySelection() {
+                    var isMonthly = String(apex.item('P111_REQUEST_KIND').getValue() || '') === 'MONTHLY';
+                    var rows = monthlyRows();
+                    if (!isMonthly || !rows.length || readMonthlySelection().length) {
+                        return true;
+                    }
+                    if (window.apex && apex.message) {
+                        apex.message.clearErrors();
+                        apex.message.showErrors([{
+                            type: 'error',
+                            location: ['page'],
+                            message: apex.lang.getMessage('P111_MONTHLY_MEDICINE_REQUIRED'),
+                            unsafe: false
+                        }]);
+                    }
+                    return false;
+                }
+            
+                function openInstructions() {
+                    if (!validateMonthlySelection() || !validateAttachmentRequirement()) {
+                        return;
+                    }
+                    updateMonthlyNotes();
+                    serializeExtraMedicineRows();
+                    var dialog = document.getElementById('prescription_instructions_dialog');
+                    if (!dialog || !window.apex || !apex.jQuery) {
+                        return;
+                    }
+            
+                    var $dialog = apex.jQuery(dialog);
+                    if (!$dialog.hasClass('ui-dialog-content')) {
+                        $dialog.dialog({
+                            autoOpen: false,
+                            modal: true,
+                            width: 560,
+                            maxWidth: 'calc(100vw - 2rem)',
+                            dialogClass: 'prescription-instructions-dialog-ui',
+                            resizable: false,
+                            draggable: false,
+                            title: apex.lang.getMessage('P111_PRE_SUBMISSION_INSTRUCTIONS')
+                        });
+                    }
+            
+                    $dialog.dialog('open');
+                    apex.jQuery('#prescription_instructions_continue')
+                        .off('click.prescriptionInstructions')
+                        .on('click.prescriptionInstructions', function () {
+                            $dialog.dialog('close');
+                            apex.submit({ request: 'SUBMIT', showWait: true });
+                        });
+                    apex.jQuery('#prescription_instructions_back')
+                        .off('click.prescriptionInstructions')
+                        .on('click.prescriptionInstructions', function () {
+                            $dialog.dialog('close');
+                        });
+                }
+            
+                function validateAttachmentRequirement() {
+                    if (monthlyAttachmentIsOptional()) {
+                        return true;
+                    }
+                    var value = String(apex.item('P111_ATTACHMENTS').getValue() || '').trim();
+                    if (value) {
+                        return true;
+                    }
+                    if (window.apex && apex.message) {
+                        apex.message.clearErrors();
+                        apex.message.showErrors([{
+                            type: 'error',
+                            location: ['page'],
+                            message: apex.lang.getMessage('P111_ATTACHMENT_REQUIRED'),
+                            unsafe: false
+                        }]);
+                    }
+                    return false;
+                }
+            
+                function toggleMonthlySection() {
+                    var isMonthly = String(apex.item('P111_REQUEST_KIND').getValue() || '') === 'MONTHLY';
+                    var monthlyItems = ['P111_MONTHLY_MED_IDS', 'P111_MONTHLY_NOTES', 'prescription_monthly_toolbar', 'prescription_monthly_region'];
+            
+                    monthlyItems.forEach(function (itemName) {
+                        var container = document.getElementById(itemName + '_CONTAINER') || document.getElementById(itemName);
+                        if ((itemName === 'prescription_monthly_region' || itemName === 'prescription_monthly_toolbar') && container && container.closest) {
+                            container = container.closest('.t-Region') || container;
+                        }
+                        if (container) {
+                            container.hidden = !isMonthly;
+                            container.setAttribute('aria-hidden', String(!isMonthly));
+                        }
+                    });
+                    syncMonthlyCheckboxes();
+                    syncAttachmentRequirement();
+                }
+            
+                window.prescriptionRequestPage = {
+                    toggleMonthlySection: toggleMonthlySection,
+                    syncMonthlyCheckboxes: syncMonthlyCheckboxes,
+                    selectAllMonthly: selectAllMonthly,
+                    ensureMonthlyCheckAll: ensureMonthlyCheckAll,
+                    syncExtraMedicineRows: syncExtraMedicineRows,
+                    scheduleExtraMedicineRowsSync: scheduleExtraMedicineRowsSync,
+                    updateMonthlySelection: updateMonthlySelection,
+                    updateMonthlyNotes: updateMonthlyNotes,
+                    validateMonthlySelection: validateMonthlySelection,
+                    validateAttachmentRequirement: validateAttachmentRequirement,
+                    syncAttachmentRequirement: syncAttachmentRequirement,
+                    openInstructions: openInstructions
+                };
+            }());
+            ```
+        executeWhenPageLoads:
+            ```javascript-browser
+            (function () {
+                if (!document.documentElement.getAttribute('data-prescription-monthly-events-bound')) {
+                    document.addEventListener('input', function (event) {
+                        if (event.target.matches('.prescription-monthly-note')) {
+                            window.prescriptionRequestPage.updateMonthlyNotes();
+                        }
+                    });
+                    document.addEventListener('change', function (event) {
+                        if (event.target.matches('.prescription-monthly-note')) {
+                            window.prescriptionRequestPage.updateMonthlyNotes();
+                        }
+                    });
+                    document.documentElement.setAttribute('data-prescription-monthly-events-bound', 'true');
+                }
+                var requestKind = document.getElementById('P111_REQUEST_KIND');
+                if (requestKind) {
+                    requestKind.addEventListener('change', window.prescriptionRequestPage.toggleMonthlySection);
+                }
+                var monthlyCheckAll = document.getElementById('prescription_monthly_check_all');
+                if (monthlyCheckAll) {
+                    monthlyCheckAll.addEventListener('change', window.prescriptionRequestPage.selectAllMonthly);
+                    monthlyCheckAll.setAttribute('data-monthly-bound', 'true');
+                }
+                if (window.apex && apex.jQuery) {
+                    apex.jQuery(document).on('apexafterrefresh', '#prescription_monthly_region', window.prescriptionRequestPage.syncMonthlyCheckboxes);
+                    apex.jQuery('#P111_MED_ID')
+                        .off('.prescriptionExtraMedicine')
+                        .on('change.prescriptionExtraMedicine', window.prescriptionRequestPage.scheduleExtraMedicineRowsSync);
+                    apex.jQuery('#P111_MED_ID_CONTAINER')
+                        .off('.prescriptionExtraMedicine')
+                        .on('change.prescriptionExtraMedicine input.prescriptionExtraMedicine', window.prescriptionRequestPage.scheduleExtraMedicineRowsSync);
+                    apex.jQuery(document)
+                        .off('apexafterrefresh.prescriptionExtraMedicine', '#P111_MED_ID_CONTAINER')
+                        .on('apexafterrefresh.prescriptionExtraMedicine', '#P111_MED_ID_CONTAINER', window.prescriptionRequestPage.scheduleExtraMedicineRowsSync);
+                }
+                window.prescriptionRequestPage.toggleMonthlySection();
+                window.prescriptionRequestPage.scheduleExtraMedicineRowsSync();
+            }());
+            ```
+    }
+    css {
+        inline:
+            ```css
+            html, body, .t-Dialog-body {
+                overflow: hidden !important;
+            }
+            .prescription-request-dialog .t-Dialog-body {
+                padding: 0;
+                background: #f4f7fb;
+            }
+            .prescription-request-dialog .t-Dialog-header {
+                border-bottom: 0;
+                background: linear-gradient(135deg, #0f3b5c 0%, #176b87 100%);
+            }
+            .prescription-request-dialog .t-Dialog-header .ui-dialog-title {
+                color: #fff;
+                font-weight: 800;
+            }
+            .prescription-request-dialog .t-Dialog-header .ui-dialog-titlebar-close {
+                color: #fff;
+            }
+            .prescription-request-form,
+            .prescription-monthly-region {
+                margin: 1rem;
+                border: 1px solid #dbe5ef;
+                border-radius: 16px;
+                background: #fff;
+                box-shadow: 0 10px 28px rgba(15, 23, 42, .07);
+                overflow: hidden;
+            }
+            .prescription-request-form .t-Region-body,
+            .prescription-monthly-region .t-Region-body {
+                padding: 1rem;
+            }
+            .prescription-request-form .t-Region-header,
+            .prescription-monthly-region .t-Region-header {
+                border-bottom: 1px solid #e5edf5;
+                background: #fbfdff;
+            }
+            .prescription-request-form .t-Region-title,
+            .prescription-monthly-region .t-Region-title {
+                color: #123047;
+                font-weight: 800;
+            }
+            .prescription-intro {
+                display: flex;
+                align-items: flex-start;
+                gap: .85rem;
+                margin-bottom: 1rem;
+                padding: 1rem 1.1rem;
+                border: 1px solid #cfe4ef;
+                border-radius: 14px;
+                background: linear-gradient(135deg, #eef8fc 0%, #f8fbfd 100%);
+                color: #27445a;
+            }
+            .prescription-request-form .prescription-intro {
+                display: none !important;
+            }
+            .prescription-intro__icon {
+                display: grid;
+                flex: 0 0 2.75rem;
+                width: 2.75rem;
+                height: 2.75rem;
+                place-items: center;
+                border-radius: 12px;
+                background: #0e7490;
+                color: #fff;
+                font-size: 1.35rem;
+            }
+            .prescription-intro h2 {
+                margin: 0 0 .2rem;
+                color: #123047;
+                font-size: 1.05rem;
+                font-weight: 800;
+            }
+            .prescription-intro p {
+                margin: 0;
+                line-height: 1.7;
+            }
+            .prescription-steps {
+                display: flex;
+                flex-wrap: wrap;
+                gap: .45rem;
+                margin-top: .75rem;
+            }
+            .prescription-step {
+                display: inline-flex;
+                align-items: center;
+                gap: .35rem;
+                padding: .3rem .6rem;
+                border: 1px solid #cbd5e1;
+                border-radius: 999px;
+                background: #fff;
+                color: #64748b;
+                font-size: .78rem;
+                font-weight: 700;
+            }
+            .prescription-step b {
+                display: inline-grid;
+                width: 1.25rem;
+                height: 1.25rem;
+                place-items: center;
+                border-radius: 50%;
+                background: #e2e8f0;
+                color: #334155;
+                font-size: .72rem;
+            }
+            .prescription-step.is-active {
+                border-color: #99d7e7;
+                background: #f0fbfe;
+                color: #0e7490;
+            }
+            .prescription-step.is-active b {
+                background: #0e7490;
+                color: #fff;
+            }
+            .prescription-notice {
+                display: flex;
+                align-items: flex-start;
+                gap: .65rem;
+                margin-bottom: 1rem;
+                padding: .8rem 1rem;
+                border: 1px solid #f4c95d;
+                border-radius: 12px;
+                background: #fffbeb;
+                color: #854d0e;
+                line-height: 1.7;
+            }
+            .prescription-notice .t-Icon {
+                flex: 0 0 auto;
+                margin-top: .2rem;
+                color: #d97706;
+            }
+            .prescription-notice strong {
+                display: block;
+                margin-bottom: .15rem;
+                color: #713f12;
+            }
+            .prescription-request-form .t-Form-label {
+                color: #315568;
+                font-weight: 800;
+            }
+            .prescription-request-form .t-Form-helpText {
+                color: #64748b;
+                line-height: 1.55;
+            }
+            .prescription-request-form .t-Form-fieldContainer {
+                margin-bottom: .35rem;
+            }
+            .prescription-request-form .t-Form-inputContainer input,
+            .prescription-request-form .t-Form-inputContainer select,
+            .prescription-request-form .t-Form-inputContainer textarea {
+                border-radius: 10px;
+            }
+            .prescription-request-form #P111_MONTHLY_MED_IDS_CONTAINER {
+                padding: .75rem;
+                border: 1px solid #cfe4ef;
+                border-inline-start: 4px solid #0e7490;
+                border-radius: 12px;
+                background: #f8fcfe;
+            }
+            .prescription-request-form #P111_EMPLOYEE_NOTE {
+                min-height: 6rem;
+                resize: vertical;
+            }
+            .prescription-request-form #P111_ATTACHMENTS_CONTAINER {
+                margin-top: .35rem;
+                padding: .85rem;
+                border: 1px dashed #8eb7c8;
+                border-radius: 14px;
+                background: #f8fcfe;
+            }
+            .prescription-monthly-region .t-Report {
+                width: 100%;
+                overflow-x: auto;
+                border: 1px solid #dbe5ef;
+                border-radius: 12px;
+            }
+            .prescription-monthly-region .t-Report-report {
+                width: 100%;
+                margin-bottom: 0;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            .prescription-monthly-region .t-Report-colHead {
+                padding: .75rem .9rem;
+                border-bottom: 1px solid #c9d9e6;
+                background: #eef6fb;
+                color: #123047;
+                font-weight: 800;
+                text-align: start;
+                white-space: nowrap;
+            }
+            .prescription-monthly-region .t-Report-cell {
+                padding: .75rem .9rem;
+                border-bottom: 1px solid #e7eef5;
+                color: #27445a;
+                vertical-align: middle;
+            }
+            .prescription-monthly-region .t-Report-report tbody tr:last-child .t-Report-cell {
+                border-bottom: 0;
+            }
+            .prescription-monthly-region .t-Report-report tbody tr:nth-child(even) {
+                background: #f8fbfd;
+            }
+            .prescription-monthly-region .t-Report-report tbody tr:hover {
+                background: #eef8fc;
+            }
+            .prescription-monthly-region .t-Report-report {
+                min-width: 820px;
+            }
+            .prescription-monthly-region .t-Report-cell:last-child {
+                min-width: 15rem;
+            }
+            .prescription-monthly-region .t-Report-report thead th:first-child {
+                width: 8rem;
+                min-width: 8rem;
+                max-width: 8rem;
+                text-align: center;
+                vertical-align: middle;
+                white-space: normal;
+            }
+            .prescription-monthly-check-all {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: .45rem;
+                color: #123047;
+                font-size: .82rem;
+                font-weight: 800;
+                line-height: 1.35;
+                white-space: normal;
+                cursor: pointer;
+            }
+            .prescription-monthly-region .t-Report-report thead th:first-child .t-Report-colHead {
+                display: block;
+                margin-top: .2rem;
+                color: #315568;
+                font-weight: 800;
+                white-space: normal;
+            }
+            .prescription-monthly-region .t-Report-report thead th:nth-child(5),
+            .prescription-monthly-region .t-Report-report tbody td:nth-child(5) {
+                width: 7rem;
+                max-width: 7rem;
+                white-space: normal;
+                overflow-wrap: anywhere;
+                line-height: 1.3;
+            }
+            .prescription-two-line-heading {
+                display: inline-flex !important;
+                flex-direction: column;
+                align-items: center;
+                line-height: 1.2;
+                white-space: normal;
+            }
+            .prescription-monthly-check-all input {
+                width: 1.15rem;
+                height: 1.15rem;
+                margin: 0;
+                accent-color: #0e7490;
+            }
+            .prescription-monthly-note {
+                width: min(20rem, 100%);
+                min-height: 2.35rem;
+                padding: .4rem .6rem;
+                border: 1px solid #bfd0dd;
+                border-radius: 9px;
+                background: #fff;
+                color: #123047;
+            }
+            .prescription-monthly-note:focus {
+                border-color: #0e7490;
+                box-shadow: 0 0 0 3px rgba(14, 116, 144, .12);
+            }
+            .prescription-monthly-check {
+                width: 1.15rem;
+                height: 1.15rem;
+                margin-inline-end: .6rem;
+                accent-color: #0e7490;
+                vertical-align: middle;
+            }
+            .prescription-selection-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: .75rem;
+                margin: .75rem 1rem 0;
+                padding: .75rem 1rem;
+                border: 1px solid #cfe4ef;
+                border-radius: 12px;
+                background: #f8fcfe;
+                color: #315568;
+            }
+            .prescription-selection-toolbar label {
+                display: inline-flex;
+                align-items: center;
+                gap: .5rem;
+                color: #123047;
+                font-weight: 800;
+                cursor: pointer;
+            }
+            .prescription-selection-toolbar input {
+                width: 1.15rem;
+                height: 1.15rem;
+                accent-color: #0e7490;
+            }
+            .prescription-selection-toolbar span {
+                color: #64748b;
+                font-size: .86rem;
+            }
+            .prescription-extra-medicines,
+            .prescription-extra-details,
+            .prescription-instructions {
+                margin: 1rem;
+                border: 1px solid #dbe5ef;
+                border-radius: 16px;
+                background: #fff;
+                box-shadow: 0 10px 28px rgba(15, 23, 42, .07);
+                overflow: hidden;
+            }
+            .prescription-extra-medicines .t-Region-body,
+            .prescription-extra-details .t-Region-body,
+            .prescription-instructions .t-Region-body {
+                padding: 1rem;
+            }
+            .prescription-extra-medicines .t-Region-header,
+            .prescription-extra-details .t-Region-header,
+            .prescription-instructions .t-Region-header {
+                border-bottom: 1px solid #e5edf5;
+                background: #fbfdff;
+            }
+            .prescription-extra-medicines .t-Region-title,
+            .prescription-extra-details .t-Region-title,
+            .prescription-instructions .t-Region-title {
+                color: #123047;
+                font-weight: 800;
+            }
+            .prescription-instructions .prescription-notice:last-child {
+                margin-bottom: 0;
+            }
+            .prescription-instructions {
+                display: none;
+                margin: 0;
+                border: 0;
+                box-shadow: none;
+            }
+            .prescription-instructions .t-Region-header {
+                display: none;
+            }
+            .prescription-instructions-dialog-ui {
+                width: min(560px, calc(100vw - 2rem)) !important;
+                max-width: calc(100vw - 2rem);
+                border: 0;
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+            }
+            .prescription-instructions-dialog-ui .ui-dialog-titlebar {
+                border: 0;
+                background: linear-gradient(135deg, #0f3b5c 0%, #176b87 100%);
+            }
+            .prescription-instructions-dialog-ui .ui-dialog-title {
+                color: #fff;
+                font-weight: 800;
+            }
+            .prescription-instructions-dialog-ui .ui-dialog-titlebar-close {
+                color: #fff;
+            }
+            .prescription-instructions-dialog-ui .ui-dialog-content {
+                padding: 0;
+                background: #f4f7fb;
+            }
+            .prescription-instructions__body {
+                padding: 1rem;
+            }
+            .prescription-instructions__actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: .65rem;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid #dbe5ef;
+            }
+            .prescription-instructions__actions .t-Button {
+                min-width: 9rem;
+                border-radius: 999px;
+                font-weight: 800;
+            }
+            .prescription-extra-intro {
+                display: flex;
+                align-items: center;
+                gap: .55rem;
+                margin-bottom: .85rem;
+                padding: .7rem .85rem;
+                border: 1px solid #cfe4ef;
+                border-radius: 10px;
+                background: #f8fcfe;
+                color: #315568;
+                line-height: 1.6;
+            }
+            .prescription-extra-intro .t-Icon {
+                color: #0e7490;
+            }
+            .prescription-extra-medicines .t-Form-fieldContainer {
+                margin-bottom: 0;
+            }
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .t-Form-labelContainer {
+                position: static;
+                margin-bottom: .35rem;
+            }
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .t-Form-label {
+                position: static;
+                display: block;
+                margin: 0;
+                transform: none;
+            }
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .a-Button--popupLOV {
+                flex: 0 0 auto;
+                margin-inline-start: .35rem;
+            }
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER input,
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .a-Button {
+                border-radius: 10px;
+            }
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .apex-item-popup-lov {
+                min-height: 2.65rem;
+                border: 1px solid #bfd0dd;
+                background: #fff;
+            }
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .apex-item-checkbox,
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .checkbox_group {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: .65rem;
+            }
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .apex-item-group--rc {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: .65rem;
+                max-height: 18rem;
+                overflow-y: auto;
+                padding: .25rem;
+            }
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .apex-item-group--rc input + label {
+                display: flex;
+                align-items: center;
+                min-height: 2.75rem;
+                margin: 0;
+                padding: .55rem .7rem;
+                border: 1px solid #dbe5ef;
+                border-radius: 10px;
+                background: #f8fbfd;
+                cursor: pointer;
+            }
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .apex-item-group--rc input + label:hover {
+                border-color: #9ccddd;
+                background: #eef8fc;
+            }
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .apex-item-option {
+                min-height: 2.75rem;
+                padding: .55rem .7rem;
+                border: 1px solid #dbe5ef;
+                border-radius: 10px;
+                background: #f8fbfd;
+            }
+            .prescription-extra-medicines #P111_MED_ID_CONTAINER .apex-item-option:hover {
+                border-color: #9ccddd;
+                background: #eef8fc;
+            }
+            .prescription-extra-details[hidden] {
+                display: none;
+            }
+            .prescription-extra-rows {
+                display: grid;
+                gap: .75rem;
+            }
+            .prescription-extra-row {
+                display: grid;
+                grid-template-columns: minmax(0, 1.8fr) minmax(12rem, 1fr) minmax(8rem, .7fr);
+                align-items: end;
+                gap: .75rem;
+                padding: .8rem;
+                border: 1px solid #dbe5ef;
+                border-radius: 12px;
+                background: #f8fbfd;
+            }
+            .prescription-extra-row__medicine,
+            .prescription-extra-row__field {
+                display: flex;
+                flex-direction: column;
+                gap: .35rem;
+                color: #315568;
+                font-weight: 700;
+            }
+            .prescription-extra-row__medicine strong {
+                color: #123047;
+                font-size: .98rem;
+            }
+            .prescription-extra-row__caption {
+                color: #64748b;
+                font-size: .78rem;
+                font-weight: 600;
+            }
+            .prescription-extra-row__field select,
+            .prescription-extra-row__field input {
+                width: 100%;
+                min-height: 2.35rem;
+                padding: .4rem .6rem;
+                border: 1px solid #bfd0dd;
+                border-radius: 9px;
+                background: #fff;
+                color: #123047;
+            }
+            .prescription-extra-empty {
+                padding: 1rem;
+                border: 1px dashed #9ccddd;
+                border-radius: 12px;
+                background: #f8fcfe;
+                color: #64748b;
+                text-align: center;
+            }
+            .prescription-request-dialog #P111_UNIT_ID_CONTAINER,
+            .prescription-request-dialog #P111_QUANTITY_CONTAINER {
+                display: none;
+            }
+            .prescription-action-bar {
+                border-top: 1px solid #dbe5ef;
+                background: rgba(255, 255, 255, .96);
+                box-shadow: 0 -6px 18px rgba(15, 23, 42, .06);
+                backdrop-filter: blur(8px);
+            }
+            .prescription-action-bar .t-Button {
+                min-width: 9rem;
+                border-radius: 999px;
+                font-weight: 800;
+            }
+            .prescription-request-dialog :focus-visible {
+                outline: 3px solid rgba(14, 165, 233, .35);
+                outline-offset: 2px;
+            }
+            @media (max-width: 640px) {
+                .prescription-request-form,
+                .prescription-monthly-region {
+                    margin: .65rem;
+                    border-radius: 12px;
+                }
+                .prescription-request-form .t-Region-body,
+                .prescription-monthly-region .t-Region-body,
+                .prescription-extra-medicines .t-Region-body,
+                .prescription-extra-details .t-Region-body,
+                .prescription-instructions .t-Region-body {
+                    padding: .75rem;
+                }
+                .prescription-intro {
+                    padding: .85rem;
+                }
+                .prescription-action-bar .t-Button {
+                    min-width: 0;
+                    flex: 1 1 auto;
+                }
+                .prescription-selection-toolbar {
+                    align-items: flex-start;
+                    flex-direction: column;
+                    margin: .65rem;
+                }
+                .prescription-extra-medicines,
+                .prescription-extra-details,
+                .prescription-instructions {
+                    margin: .65rem;
+                    border-radius: 12px;
+                }
+                .prescription-instructions {
+                    margin: 0;
+                }
+                .prescription-instructions__actions {
+                    flex-direction: column;
+                }
+                .prescription-instructions__actions .t-Button {
+                    width: 100%;
+                }
+                .prescription-extra-row {
+                    grid-template-columns: 1fr;
+                }
+            }
+            ```
+    }
+    security {
+        authorizationScheme: @self-service-allowed
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region extra-medicine-details (
+        name: Additional medicine details
+        title: &APP_TEXT$P111_EXTRA_MEDICINES_SECTION_TITLE.
+        type: staticContent
+        source {
+            htmlCode: <div id="prescription_extra_rows" class="prescription-extra-rows" aria-live="polite"></div>
+        }
+        layout {
+            sequence: 50
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+            cssClasses: prescription-extra-details
+        }
+        advanced {
+            htmlDomId: prescription_extra_medicine_details
+        }
+    )
+
+    region extra-medicines (
+        name: Additional medicines
+        title: &APP_TEXT$P111_EXTRA_MEDICINES_TITLE.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="prescription-extra-intro" role="note">
+                    <span class="t-Icon fa fa-plus-circle" aria-hidden="true"></span>
+                    <span>&APP_TEXT$P111_EXTRA_MEDICINES_INTRO.</span>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+            cssClasses: prescription-extra-medicines
+        }
+    )
+
+    region monthly-medicines (
+        name: Monthly treatment
+        title: &APP_TEXT$P111_MONTHLY_MEDICINES_REGION_TITLE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select monthly_med_id, med_name, unt_name, quantity, relative_name,
+                       cast(null as varchar2(1000)) monthly_note
+                  from (
+                        select monthly_med_id,
+                               med_name,
+                               unt_name,
+                               quantity,
+                               relative_name,
+                               row_number() over (
+                                   partition by emp_id, monthly_med_id
+                                   order by last_pres_date desc nulls last,
+                                            last_pres_id desc nulls last,
+                                            relative_name,
+                                            med_name,
+                                            unt_name,
+                                            quantity
+                               ) monthly_row_num
+                          from med.emp_monthly_meds
+                         where emp_id = :P111_EMPLOYEE_NUMBER
+                           and (expiration_date is null or expiration_date >= trunc(sysdate))
+                       )
+                 where monthly_row_num = 1
+                 order by relative_name, med_name
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+            cssClasses: prescription-monthly-region
+        }
+        advanced {
+            htmlDomId: prescription_monthly_region
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$P111_NO_ACTIVE_MONTHLY_MEDICINES.
+        }
+
+        column MED_NAME (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P111_MEDICINE.
+            }
+            layout {
+                sequence: 20
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column MONTHLY_MED_ID (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P111_MEDICINE_NUMBER_FIELD.
+            }
+            layout {
+                sequence: 10
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column MONTHLY_NOTE (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P111_EMPLOYEE_NOTE_COLUMN.
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression: <input type="text" class="prescription-monthly-note" data-monthly-med-id="#MONTHLY_MED_ID#" maxlength="1000" placeholder="&APP_TEXT$P111_OPTIONAL_MEDICINE_NOTE." aria-label="&APP_TEXT$P111_MEDICINE_NOTE_ARIA. #MONTHLY_MED_ID#" />
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column QUANTITY (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P111_QUANTITY.
+            }
+            layout {
+                sequence: 40
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column RELATIVE_NAME (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P111_BENEFICIARY.
+            }
+            layout {
+                sequence: 50
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column UNT_NAME (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P111_UNIT.
+            }
+            layout {
+                sequence: 30
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region monthly-selection-toolbar (
+        name: Monthly medicine selection
+        title: &APP_TEXT$P111_MONTHLY_SELECTION_TITLE.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="prescription-selection-toolbar" role="group" aria-label="&APP_TEXT$P111_MONTHLY_SELECTION_ARIA.">
+                    <label for="prescription_monthly_check_all">
+                        <input id="prescription_monthly_check_all" type="checkbox" />
+                        <span>&APP_TEXT$P111_MONTHLY_MEDICINES_REQUESTED.</span>
+                    </label>
+                    <span class="prescription-monthly-instruction">&APP_TEXT$P111_MONTHLY_SELECTION_INSTRUCTION.</span>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @monthly-medicines
+            slot: subRegions
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: prescription_monthly_toolbar
+        }
+    )
+
+    region prescription-action-bar (
+        name: Actions
+        type: staticContent
+        layout {
+            sequence: 90
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+            cssClasses: prescription-action-bar
+        }
+    )
+
+    region prescription-instructions (
+        name: Prescription instructions
+        title: &APP_TEXT$P111_PRE_SUBMISSION_INSTRUCTIONS.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="prescription-instructions__body">
+                                    <div class="prescription-notice" role="note" aria-label="&APP_TEXT$P111_ATTACHMENT_INSTRUCTIONS_ARIA.">
+                        <span class="t-Icon fa fa-info-circle" aria-hidden="true"></span>
+                                        <div><strong>&APP_TEXT$P111_ATTACHMENT_INSTRUCTIONS_TITLE.</strong>&APP_TEXT$P111_ATTACHMENT_INSTRUCTIONS.</div>
+                    </div>
+                                    <div class="prescription-notice" role="note" aria-label="&APP_TEXT$P111_ORIGINAL_PRESCRIPTION_ARIA.">
+                        <span class="t-Icon fa fa-exclamation-triangle" aria-hidden="true"></span>
+                                        <div><strong>&APP_TEXT$P111_ORIGINAL_PRESCRIPTION_TITLE.</strong>&APP_TEXT$P111_ORIGINAL_PRESCRIPTION_INSTRUCTIONS.</div>
+                    </div>
+                    <div class="prescription-instructions__actions">
+                                        <button type="button" id="prescription_instructions_back" class="t-Button t-Button--noUI">&APP_TEXT$P111_EDIT_AGAIN.</button>
+                                        <button type="button" id="prescription_instructions_continue" class="t-Button t-Button--hot">&APP_TEXT$P111_CONTINUE_SUBMISSION. <span class="t-Icon fa fa-paper-plane" aria-hidden="true"></span></button>
+                    </div>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 60
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+            cssClasses: prescription-instructions
+        }
+        advanced {
+            htmlDomId: prescription_instructions_dialog
+        }
+    )
+
+    region prescription-intro (
+        name: Prescription request introduction
+        title: &APP_TEXT$P111_PRESCRIPTION_REQUEST_TITLE.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="prescription-intro" role="note" aria-label="&APP_TEXT$P111_PRESCRIPTION_REQUEST_TITLE.">
+                    <div class="prescription-intro__icon" aria-hidden="true"><span class="t-Icon fa fa-file-text-o"></span></div>
+                    <div>
+                        <h2>&APP_TEXT$P111_REQUEST_INTRO_TITLE.</h2>
+                        <p>&APP_TEXT$P111_REQUEST_INTRO_DESCRIPTION.</p>
+                        <div class="prescription-steps" aria-label="&APP_TEXT$P111_REQUEST_STEPS_ARIA.">
+                            <span class="prescription-step is-active"><b>1</b> &APP_TEXT$P111_STEP_INFORMATION.</span>
+                            <span class="prescription-step"><b>2</b> &APP_TEXT$P111_STEP_MEDICINES.</span>
+                            <span class="prescription-step"><b>3</b> &APP_TEXT$P111_STEP_ATTACHMENT.</span>
+                        </div>
+                    </div>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 5
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noBorder
+                t-Form--stretchInputs
+            ]
+            cssClasses: prescription-request-intro
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    region request-form (
+        name: Prescription request
+        title: &APP_TEXT$P111_PRESCRIPTION_REQUEST_TITLE.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                                <div class="prescription-intro" role="note" aria-label="&APP_TEXT$P111_PRESCRIPTION_REQUEST_TITLE.">
+                    <div class="prescription-intro__icon" aria-hidden="true"><span class="t-Icon fa fa-file-text-o"></span></div>
+                    <div>
+                                        <h2>&APP_TEXT$P111_REQUEST_INTRO_TITLE.</h2>
+                                        <p>&APP_TEXT$P111_REQUEST_INTRO_DESCRIPTION.</p>
+                                        <div class="prescription-steps" aria-label="&APP_TEXT$P111_REQUEST_STEPS_ARIA.">
+                                            <span class="prescription-step is-active"><b>1</b>&APP_TEXT$P111_STEP_INFORMATION.</span>
+                                            <span class="prescription-step"><b>2</b>&APP_TEXT$P111_STEP_MEDICINES.</span>
+                                            <span class="prescription-step"><b>3</b>&APP_TEXT$P111_STEP_ATTACHMENT.</span>
+                        </div>
+                    </div>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @awesome-region
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+            cssClasses: prescription-request-form
+        }
+    )
+
+    pageItem P111_ATTACHMENTS (
+        type: fileUpload
+        label {
+            label: &APP_TEXT$P111_ATTACHMENT_LABEL.
+            alignment: left
+        }
+        display {
+            displayAs: blockDropzone
+            dropzoneTitle: &APP_TEXT$P111_DROPZONE_TITLE.
+            dropzoneDesc: &APP_TEXT$P111_DROPZONE_DESCRIPTION.
+        }
+        storage {
+            type: appTempFiles
+            allowMultipleFiles: true
+            fileTypes: image/*,application/pdf
+            maxFileSize: 5120
+        }
+        layout {
+            sequence: 80
+            region: @request-form
+            slot: regionBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        help {
+            inlineHelpText: &APP_TEXT$P111_ATTACHMENT_HELP.
+        }
+    )
+
+    pageItem P111_BENEFICIARY_KEY (
+        type: selectList
+        label {
+            label: &APP_TEXT$P111_BENEFICIARY_LABEL.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery: select APEX_LANG.MESSAGE('P111_EMPLOYEE_SELF') display_value, 'SELF' return_value from dual union all select relative_name || ' - ' || relative_type, 'REL:' || relative_person_id from med.emp_relative_new where employee_number = :P111_EMPLOYEE_NUMBER and nvl(insured, 'N') = 'Y' and (end_date is null or end_date >= trunc(sysdate)) order by 1
+        }
+        layout {
+            sequence: 20
+            region: @request-form
+            slot: regionBody
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: static
+            staticValue: SELF
+        }
+        help {
+            inlineHelpText: &APP_TEXT$P111_BENEFICIARY_HELP.
+        }
+    )
+
+    pageItem P111_EMPLOYEE_NOTE (
+        type: textarea
+        label {
+            label: &APP_TEXT$P111_EMPLOYEE_NOTE_LABEL.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @request-form
+            slot: regionBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 99
+            height: 4
+        }
+        validation {
+            maxLength: 4000
+        }
+        help {
+            inlineHelpText: &APP_TEXT$P111_EMPLOYEE_NOTE_HELP.
+        }
+    )
+
+    pageItem P111_EMPLOYEE_NUMBER (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    pageItem P111_EXTRA_MED_LINES (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 65
+            slot: contentBody
+        }
+    )
+
+    pageItem P111_MED_ID (
+        type: popupLov
+        label {
+            label: &APP_TEXT$P111_EXTRA_MEDICINES_LABEL.
+            alignment: left
+        }
+        settings {
+            initialFetch: autoCurrentValue
+            fetchOnSearch: true
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery: select med_name display_value,id return_value from med.md_medicine_info order by med_name
+        }
+        multipleValues {
+            type: delimitedList
+            separator: ,
+        }
+        layout {
+            sequence: 10
+            region: @extra-medicines
+            slot: regionBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 99
+        }
+        help {
+            inlineHelpText: &APP_TEXT$P111_EXTRA_MEDICINES_HELP.
+        }
+    )
+
+    pageItem P111_MONTHLY_MED_IDS (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+    )
+
+    pageItem P111_MONTHLY_NOTES (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 35
+            slot: contentBody
+        }
+    )
+
+    pageItem P111_QUANTITY (
+        type: numberField
+        label {
+            label: &APP_TEXT$P111_QUANTITY.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @extra-medicines
+            slot: regionBody
+            columnSpan: 3
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        help {
+            inlineHelpText: &APP_TEXT$P111_QUANTITY_HELP.
+        }
+    )
+
+    pageItem P111_REQUEST_ID (
+        type: hidden
+        layout {
+            sequence: 110
+            slot: contentBody
+        }
+    )
+
+    pageItem P111_REQUEST_KIND (
+        type: selectList
+        label {
+            label: &APP_TEXT$P111_REQUEST_KIND_LABEL.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery: select APEX_LANG.MESSAGE('P111_REQUEST_KIND_ONE_TIME') display_value, 'ONE_TIME' return_value from dual union all select APEX_LANG.MESSAGE('P111_REQUEST_KIND_MONTHLY'), 'MONTHLY' from dual
+        }
+        layout {
+            sequence: 10
+            region: @request-form
+            slot: regionBody
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: static
+            staticValue: ONE_TIME
+        }
+        help {
+            inlineHelpText: &APP_TEXT$P111_REQUEST_KIND_HELP.
+        }
+    )
+
+    pageItem P111_UNIT_ID (
+        type: selectList
+        label {
+            label: &APP_TEXT$P111_UNIT_LABEL.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery: select unt_name display_value,id return_value from med.md_unit where nvl(is_archived,0)=0 order by ord,unt_name
+        }
+        layout {
+            sequence: 50
+            region: @extra-medicines
+            slot: regionBody
+            columnSpan: 3
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        help {
+            inlineHelpText: &APP_TEXT$P111_UNIT_HELP.
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$P111_CLOSE_BUTTON.
+        layout {
+            sequence: 20
+            region: @prescription-action-bar
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-times-circle-o
+        }
+        behavior {
+            action: triggerAction
+            executeValidations: false
+        }
+
+        triggerAction native-dialog-close (
+            action: closeDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button submit (
+        buttonName: SUBMIT
+        label: &APP_TEXT$P111_SUBMIT.
+        layout {
+            sequence: 10
+            region: @prescription-action-bar
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-paper-plane
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    dynamicAction show-prescription-instructions (
+        name: Show prescription instructions
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @submit
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode: window.prescriptionRequestPage.openInstructions();
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction toggle-monthly-section (
+        name: Toggle monthly medicines region
+        execution {
+            sequence: 20
+        }
+        when {
+            selectionType: items
+            items: P111_REQUEST_KIND
+        }
+        clientSideCondition {
+            type: item=value
+            item: P111_REQUEST_KIND
+            value: MONTHLY
+        }
+
+        action native-hide (
+            action: hide
+            affectedElements {
+                selectionType: region
+                region: @monthly-medicines
+            }
+            execution {
+                sequence: 20
+                fireWhenEventResultIs: false
+            }
+        )
+
+        action native-show (
+            action: show
+            affectedElements {
+                selectionType: region
+                region: @monthly-medicines
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    validation monthly-selection-required (
+        name: Monthly medicine selection required
+        execution {
+            sequence: 10
+        }
+        validation {
+            language: sql
+            sqlExpression:
+                ```sql
+                (
+                    nvl(:P111_REQUEST_KIND, 'ONE_TIME') <> 'MONTHLY'
+                    or not exists (
+                        select 1
+                          from med.emp_monthly_meds
+                         where emp_id = :P111_EMPLOYEE_NUMBER
+                           and (expiration_date is null or expiration_date >= trunc(sysdate))
+                    )
+                    or trim(:P111_MONTHLY_MED_IDS) is not null
+                )
+                ```
+        }
+        error {
+            errorMessage: &APP_TEXT$P111_MONTHLY_MEDICINE_REQUIRED.
+            associatedItem: @P111_MONTHLY_MED_IDS
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+    process submit-prescription-request (
+        name: Submit prescription request
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_request_id number;
+                    l_workflow_id number;
+                    l_item_id number;
+                    l_attachment_id number;
+                    l_names apex_t_varchar2;
+                    l_file apex_application_temp_files%rowtype;
+                    l_ids apex_t_varchar2;
+                    l_notes apex_t_varchar2;
+                    l_extra_lines apex_t_varchar2;
+                    l_extra_parts apex_t_varchar2;
+                    l_note varchar2(1000);
+                    l_equals pls_integer;
+                    l_active_monthly_count number;
+                    l_approver_list varchar2(240);
+                    function p111_parse_payload_number(
+                        p_value varchar2,
+                        p_field_label varchar2,
+                        p_allow_decimal boolean default false
+                    ) return number is
+                        l_value varchar2(1000);
+                        l_pattern varchar2(100);
+                    begin
+                        l_value := translate(regexp_replace(p_value, '(^[[:space:]]+)|([[:space:]]+$)', ''), '٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹', '01234567890123456789');
+                        if p_allow_decimal then
+                            l_value := replace(replace(l_value, '٫', '.'), ',','.');
+                            l_pattern := '^[0-9]{1,38}([.][0-9]{1,12})?$';
+                        else
+                            l_pattern := '^[0-9]{1,38}$';
+                        end if;
+                        if l_value is null or not regexp_like(l_value, l_pattern) or length(replace(l_value, '.', '')) > 38 then
+                            raise_application_error(-20212, APEX_LANG.MESSAGE('P111_MEDICINE_PAYLOAD_INVALID') || ' ' || p_field_label || ' ' || APEX_LANG.MESSAGE('P111_NUMERIC_INPUT_SUFFIX'));
+                        end if;
+                        return to_number(l_value, '99999999999999999999999999999999999999D999999999999', 'NLS_NUMERIC_CHARACTERS=''.,''');
+                    exception
+                        when value_error then
+                            raise_application_error(-20212, APEX_LANG.MESSAGE('P111_MEDICINE_PAYLOAD_INVALID') || ' ' || p_field_label || ' ' || APEX_LANG.MESSAGE('P111_NUMERIC_INPUT_SUFFIX'));
+                    end p111_parse_payload_number;
+                begin
+                    central.apr_med_site_approval_pkg.ensure_route(
+                        p_emp_number => :P111_EMPLOYEE_NUMBER,
+                        p_request_type_id => 202,
+                        p_actor => :APP_USER,
+                        p_approver_list => l_approver_list
+                    );
+                    med.md_pres_request_pkg.create_request(:APP_USER,:P111_EMPLOYEE_NUMBER,:P111_REQUEST_KIND,:P111_BENEFICIARY_KEY,null,:P111_EMPLOYEE_NOTE,l_request_id);
+                    if :P111_MONTHLY_MED_IDS is not null then
+                        l_ids:=apex_string.split(replace(:P111_MONTHLY_MED_IDS,' ',''),',');
+                        for i in 1..l_ids.count loop
+                            l_note:=null;
+                            if :P111_MONTHLY_NOTES is not null then
+                                l_notes:=apex_string.split(:P111_MONTHLY_NOTES,chr(10));
+                                for n in 1..l_notes.count loop
+                                    l_equals:=instr(l_notes(n),'=');
+                                    if l_equals>1 and trim(substr(l_notes(n),1,l_equals-1))=trim(l_ids(i)) then l_note:=trim(substr(l_notes(n),l_equals+1)); exit; end if;
+                                end loop;
+                            end if;
+                            if trim(l_ids(i)) is not null then med.md_pres_request_pkg.add_item(l_request_id,:APP_USER,null,null,null,p111_parse_payload_number(l_ids(i),APEX_LANG.MESSAGE('P111_MEDICINE_NUMBER_FIELD')),l_note,l_item_id); end if;
+                        end loop;
+                    end if;
+                    if :P111_EXTRA_MED_LINES is not null then
+                        l_extra_lines:=apex_string.split(:P111_EXTRA_MED_LINES,chr(10));
+                        for i in 1..l_extra_lines.count loop
+                            if trim(l_extra_lines(i)) is not null then
+                                l_extra_parts:=apex_string.split(l_extra_lines(i),'|');
+                                if l_extra_parts.count >= 1 and trim(l_extra_parts(1)) is not null then
+                                    med.md_pres_request_pkg.add_item(
+                                        l_request_id,
+                                        :APP_USER,
+                                        p111_parse_payload_number(l_extra_parts(1),APEX_LANG.MESSAGE('P111_MEDICINE_NUMBER_FIELD')),
+                                        case when l_extra_parts.count >= 2 and trim(l_extra_parts(2)) is not null then p111_parse_payload_number(l_extra_parts(2),APEX_LANG.MESSAGE('P111_UNIT_FIELD')) end,
+                                        case when l_extra_parts.count >= 3 and trim(l_extra_parts(3)) is not null then p111_parse_payload_number(l_extra_parts(3),APEX_LANG.MESSAGE('P111_QUANTITY_FIELD'),true) end,
+                                        null,
+                                        null,
+                                        l_item_id
+                                    );
+                                end if;
+                            end if;
+                        end loop;
+                    elsif :P111_MED_ID is not null then
+                        l_extra_lines:=apex_string.split(replace(:P111_MED_ID,':',','),',');
+                        for i in 1..l_extra_lines.count loop
+                            if trim(l_extra_lines(i)) is not null then
+                                med.md_pres_request_pkg.add_item(
+                                    l_request_id,
+                                    :APP_USER,
+                                    p111_parse_payload_number(l_extra_lines(i),APEX_LANG.MESSAGE('P111_MEDICINE_NUMBER_FIELD')),
+                                    case when :P111_UNIT_ID is not null then p111_parse_payload_number(:P111_UNIT_ID,APEX_LANG.MESSAGE('P111_UNIT_FIELD')) end,
+                                    case when :P111_QUANTITY is not null then p111_parse_payload_number(:P111_QUANTITY,APEX_LANG.MESSAGE('P111_QUANTITY_FIELD'),true) else 1 end,
+                                    null,
+                                    null,
+                                    l_item_id
+                                );
+                            end if;
+                        end loop;
+                    end if;
+                    if :P111_ATTACHMENTS is not null then
+                        l_names:=apex_string.split(:P111_ATTACHMENTS,':');
+                        for i in 1..l_names.count loop
+                            select * into l_file from apex_application_temp_files where name=l_names(i);
+                            med.md_pres_request_pkg.attach_file(l_request_id,:APP_USER,l_file.filename,l_file.mime_type,l_file.blob_content,'CAMERA',l_attachment_id);
+                        end loop;
+                    end if;
+                    select count(*)
+                      into l_active_monthly_count
+                      from med.emp_monthly_meds
+                     where emp_id=:P111_EMPLOYEE_NUMBER
+                       and (expiration_date is null or expiration_date>=trunc(sysdate));
+                    begin
+                        med.md_pres_request_pkg.submit_request(
+                            l_request_id,
+                            :APP_USER,
+                            case when upper(:P111_REQUEST_KIND)='MONTHLY' and l_active_monthly_count>0 then 'Y' else 'N' end
+                        );
+                    exception
+                        when others then
+                            if sqlcode=-20211 then
+                                raise_application_error(-20211,APEX_LANG.MESSAGE('P111_ATTACHMENT_VALIDATION_ERROR'));
+                            end if;
+                            raise;
+                    end;
+                
+                    l_workflow_id := apex_workflow.start_workflow(
+                        p_application_id => 104,
+                        p_static_id => 'GENERIC_APPROVAL_WF',
+                        p_parameters => apex_workflow.t_workflow_parameters(
+                            1 => apex_workflow.t_workflow_parameter(static_id=>'P_REQUEST_ID',string_value=>to_char(l_request_id)),
+                            2 => apex_workflow.t_workflow_parameter(static_id=>'P_REQUEST_SOURCE',string_value=>'MED.MD_PRES_REQUEST'),
+                            3 => apex_workflow.t_workflow_parameter(static_id=>'P_REQUEST_TITLE',string_value=>APEX_LANG.MESSAGE('P111_PRESCRIPTION_REQUEST_WORKFLOW_TITLE')),
+                            4 => apex_workflow.t_workflow_parameter(static_id=>'P_REQUEST_TYPE_ID',string_value=>'202'),
+                            5 => apex_workflow.t_workflow_parameter(static_id=>'P_EMP_ID',string_value=>:P111_EMPLOYEE_NUMBER),
+                            6 => apex_workflow.t_workflow_parameter(static_id=>'P_EMP_NAME',string_value=>central.get_emp_name(:P111_EMPLOYEE_NUMBER))
+                        ),
+                        p_initiator => :P111_EMPLOYEE_NUMBER,
+                        p_detail_pk => to_char(l_request_id)
+                    );
+                    med.md_pres_request_pkg.attach_workflow(l_request_id,l_workflow_id);
+                    :P111_REQUEST_ID:=l_request_id;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 64377011828241181
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+    branch (
+        name: Open prescription request details
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 112
+                items: {
+                    P112_REQUEST_ID: &P111_REQUEST_ID.
+                }
+            }
+        }
+    )
+
+)

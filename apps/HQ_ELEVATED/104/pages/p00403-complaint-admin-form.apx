@@ -1,0 +1,845 @@
+page 403 (
+    name: complaint_admin_form
+    alias: COMPLAINT-ADMIN-FORM
+    title: &APP_TEXT$COMPLAINTADMINFORM.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @drawer
+        templateOptions: [
+            #DEFAULT#
+            js-dialog-class-t-Drawer--pullOutEnd
+        ]
+    }
+    dialog {
+        chained: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region complaint-admin-form (
+        name: complaint_admin_form
+        title: &APP_TEXT$COMPLAINTADMINFORM.
+        type: form
+        source {
+            location: localDatabase
+            tableName: CMPL_COMPLAINTS
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    region files (
+        name: FILES
+        title: &APP_TEXT$FILES.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select ATTACHMENT_ID,
+                       COMPLAINT_ID,
+                       FILE_NAME,
+                       MIME_TYPE,
+                      dbms_lob.getlength(FILE_BLOB) FILE_BLOB,
+                       UPLOADED_AT
+                  from CMPL_ATTACHMENTS
+                 where COMPLAINT_ID = :P403_COMPLAINT_ID
+                ```
+        }
+        layout {
+            sequence: 20
+            parentRegion: @ملفات-الادله
+            slot: regionBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NOTHING.
+        }
+
+        column ATTACHMENT_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column COMPLAINT_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column FILE_BLOB (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$DOWNLOAD.
+            }
+            layout {
+                sequence: 50
+            }
+            blobAttributes {
+                tableName: CMPL_ATTACHMENTS
+                blobColumn: FILE_BLOB
+                primaryKeyColumn1: ATTACHMENT_ID
+                mimeTypeColumn: MIME_TYPE
+                filenameColumn: FILE_NAME
+                lastUpdatedColumn: UPLOADED_AT
+            }
+        )
+
+        column FILE_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FILE_NAME.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column MIME_TYPE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TYPE.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column UPLOADED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+    )
+
+    region ملفات-الادله (
+        name: ملفات الادله
+        title: &APP_TEXT$EVIDENCE_FILES.
+        type: staticContent
+        layout {
+            sequence: 170
+            parentRegion: @complaint-admin-form
+            slot: regionBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--accent1
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    pageItem P403_ACCEPT_CONTACT (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$CONSENT_TO_CONTACT.
+            alignment: left
+        }
+        settings {
+            basedOn: lov
+            sendOnPageSubmit: false
+        }
+        lov {
+            type: sharedComponent
+            lov: @yes-no-0-1-ar-en
+        }
+        layout {
+            sequence: 100
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: ACCEPT_CONTACT
+            dataType: number
+        }
+    )
+
+    pageItem P403_ACTION_TAKEN_OR_RESP_DEPT (
+        type: textarea
+        label {
+            label: &APP_TEXT$WHAT_WAS_DONE.
+            alignment: left
+        }
+        layout {
+            sequence: 220
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        validation {
+            valueRequired: true
+            maxLength: 1000
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: ACTION_TAKEN_OR_RESP_DEPT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P403_CATEGORY_ID (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$CATEGORY.
+            alignment: left
+        }
+        settings {
+            basedOn: lov
+            sendOnPageSubmit: false
+        }
+        lov {
+            type: sharedComponent
+            lov: @cmpl-categories-name-ar-en
+        }
+        layout {
+            sequence: 50
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: CATEGORY_ID
+            dataType: number
+        }
+    )
+
+    pageItem P403_COMPLAINT_DATE (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$DATE_OF_COMPLAINT.
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 20
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: COMPLAINT_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P403_COMPLAINT_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @complaint-admin-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: COMPLAINT_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P403_CREATED_AT (
+        type: hidden
+        layout {
+            sequence: 140
+            region: @complaint-admin-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: CREATED_AT
+            dataType: date
+        }
+    )
+
+    pageItem P403_CREATED_BY (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$CONSTRUCTOR.
+            alignment: left
+        }
+        settings {
+            basedOn: lov
+        }
+        lov {
+            type: sharedComponent
+            lov: @employee-numbers
+        }
+        layout {
+            sequence: 40
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: CREATED_BY
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: item=value
+            item: P403_HIDE_IDENTITY_FLAG
+            value: 0
+        }
+    )
+
+    pageItem P403_DESCRIPTION_AR (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$DESCRIPTION.
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 80
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: DESCRIPTION_AR
+            dataType: clob
+        }
+        sessionState {
+            dataType: clob
+        }
+    )
+
+    pageItem P403_DESCRIPTION_EN (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @complaint-admin-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: DESCRIPTION_EN
+            dataType: clob
+        }
+        sessionState {
+            dataType: clob
+        }
+    )
+
+    pageItem P403_EMAIL (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$INCLINATION.
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 120
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P403_EVIDENCE_CHECK (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$SUPPORTING_EVIDENCE.
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 160
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: EVIDENCE_CHECK
+            dataType: varchar2
+        }
+    )
+
+    pageItem P403_HIDE_IDENTITY_FLAG (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$HIDE_IDENTITY.
+            alignment: left
+        }
+        settings {
+            basedOn: lov
+            sendOnPageSubmit: false
+        }
+        lov {
+            type: sharedComponent
+            lov: @yes-no-0-1-ar-en
+        }
+        layout {
+            sequence: 30
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: HIDE_IDENTITY_FLAG
+            dataType: number
+        }
+    )
+
+    pageItem P403_PHONE (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$PHONE.
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 110
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: PHONE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P403_RECEIVED_BY (
+        type: textField
+        label {
+            label: &APP_TEXT$RECEIVED_BY.
+            alignment: left
+        }
+        layout {
+            sequence: 180
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: RECEIVED_BY
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    pageItem P403_RECEIVED_DATE (
+        type: hidden
+        layout {
+            sequence: 190
+            region: @complaint-admin-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: RECEIVED_DATE
+            dataType: date
+        }
+        default {
+            type: expression
+            plsqlExpression: sysdate
+        }
+    )
+
+    pageItem P403_REFERENCE_NO (
+        type: textField
+        label {
+            label: &APP_TEXT$REFERENCE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 210
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 100
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: REFERENCE_NO
+            dataType: varchar2
+        }
+    )
+
+    pageItem P403_STATUS_CODE (
+        type: selectList
+        label {
+            label: &APP_TEXT$THE_CONDITION.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @cmpl-status-lov-name-ar
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 200
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: STATUS_CODE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P403_SUBCATEGORY_ID (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$SUBCATEGORY.
+            alignment: left
+        }
+        settings {
+            basedOn: lov
+            sendOnPageSubmit: false
+        }
+        lov {
+            type: sharedComponent
+            lov: @cmpl-subcategories-name-ar-en-full
+        }
+        layout {
+            sequence: 60
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: SUBCATEGORY_ID
+            dataType: number
+        }
+    )
+
+    pageItem P403_SUBCATEGORY_TEXT (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$SUBCATEGORY.
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 70
+            region: @complaint-admin-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: SUBCATEGORY_TEXT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P403_UPDATED_AT (
+        type: hidden
+        layout {
+            sequence: 150
+            region: @complaint-admin-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: UPDATED_AT
+            dataType: date
+        }
+        default {
+            type: expression
+            plsqlExpression: sysdate
+        }
+    )
+
+    pageItem P403_UPDATED_BY (
+        type: hidden
+        layout {
+            sequence: 230
+            region: @complaint-admin-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @complaint-admin-form
+            column: UPDATED_BY
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$SAVE.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P403_COMPLAINT_ID
+        }
+    )
+
+    validation new (
+        name: New
+        execution {
+            sequence: 10
+        }
+        validation {
+            plsqlExpression: :P403_STATUS_CODE <> 'NEW'
+        }
+        error {
+            errorMessage: &APP_TEXT$MUST_CHANGE_STATUS.
+            associatedItem: @P403_STATUS_CODE
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 240256037775530486
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process initialize-form-complaint-admin-form (
+        name: Initialize form complaint_admin_form
+        type: formInitialization
+        formRegion: @complaint-admin-form
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 240255259482530485
+        }
+    )
+
+    process process-form-complaint-admin-form (
+        name: Process form complaint_admin_form
+        type: formAutoRowProcessing
+        formRegion: @complaint-admin-form
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 240255612834530486
+        }
+    )
+
+)

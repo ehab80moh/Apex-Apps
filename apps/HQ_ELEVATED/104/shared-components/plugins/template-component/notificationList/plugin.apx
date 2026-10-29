@@ -1,0 +1,60 @@
+plugin notificationList (
+    name: notification list
+    staticId: NOTIFICATION_LIST
+    templateComponent {
+        availableAs: report
+        partial:
+            ```html
+            {if APEX$IS_LAZY_LOADING/}
+              <div></div>
+            {else/}
+                <td colspan="2" class="notification-center__content" data-seen="#SEEN#" data-status="#STATUS#">
+                    <a class="notification-center__link" href="{if PAGE_URL/}#PAGE_URL#{else/}#{endif/}">
+                        <span class="notification-center__avatar-wrap">
+                            {if IMAGE_HASH/}
+                            <img class="notification-center__avatar"
+                                 src="/apex/hq_elevated/app/employee-images/#IMAGE_HASH#"
+                                 alt="صورة صاحب التنبيه"
+                                 loading="lazy"
+                                 decoding="async"
+                                 onerror="this.onerror=null;this.hidden=true;this.style.display='none';this.setAttribute('aria-hidden','true');var fallback=this.nextElementSibling;if(fallback){fallback.hidden=false;}">
+                            <span class="notification-center__avatar notification-center__avatar--fallback" hidden aria-label="لا توجد صورة للموظف"><span class="fa fa-user" aria-hidden="true"></span></span>
+                            {else/}
+                            <span class="notification-center__avatar notification-center__avatar--fallback" aria-label="لا توجد صورة للموظف"><span class="fa fa-user" aria-hidden="true"></span></span>
+                            {endif/}
+                            <span class="notification-center__unread-dot" aria-label="غير مقروءة"></span>
+                        </span>
+                        <span class="notification-center__copy">
+                            <span class="notification-center__title">#LINE1#</span>
+                            <span class="notification-center__body">#LINE2#</span>
+                            <span class="notification-center__meta">
+                                <span class="notification-center__status #STATUS_CLASS#">#STATUS#</span>
+                                {if INITIATOR/}<span class="notification-center__initiator">#INITIATOR#</span>{endif/}
+                            </span>
+                        </span>
+                    </a>
+                </td>
+                <td class="notification-center__date">#DATE#</td>
+            {endif/}
+            ```
+        reportBody:
+            ```html
+                <div class="notification-center__list" role="region" aria-label="التنبيهات">
+                    <table class="notification-center__table">
+                        <thead class="notification-center__visually-hidden">
+                            <tr><th colspan="2">التنبيه</th><th>التاريخ</th></tr>
+                        </thead>
+                        <tbody>#APEX$ROWS#</tbody>
+                    </table>
+                </div>
+            ```
+        reportRow: <tr #APEX$ROW_IDENTIFICATION# class="notification-center__row">#APEX$PARTIAL#</tr>
+        numberOfLazyLoadingSkeletons: 3
+    }
+    component {
+        standardAttributes: regionTemplateAttr
+    }
+    information {
+        version: 1.4
+    }
+)

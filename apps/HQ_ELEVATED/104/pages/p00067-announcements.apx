@@ -1,0 +1,379 @@
+page 67 (
+    name: الاعلانات
+    alias: ANNOUNCEMENTS
+    title: &APP_TEXT$ADVERTISEMENTS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            
+            
+            .t-Cards {
+              padding-left: 0 !important;
+              padding-right: 0 !important;
+              margin-left: 0 !important;
+              margin-right: 0 !important;
+              grid-template-columns: 1fr !important; 
+            }
+            
+            
+            .a-CardView-item,
+            .a-CardView-fullLink,
+            .a-CardView {
+              width: 100% !important;
+              max-width: 100% !important;
+              flex: 1 1 100% !important;
+              display: block !important;
+            }
+            
+            
+            .t-Cards,
+            .a-CardView-items--float {
+              display: grid !important;
+              grid-template-columns: 1fr !important;  
+              gap: 1.5rem;
+              padding: 0 !important;
+            }
+            
+            
+            ```
+    }
+    htmlHeader {
+        pageHtmlBodyAttribute:
+            ```
+            /* 🧱 الكارت نفسه */
+            .a-CardView-item,
+            .a-CardView-fullLink,
+            .a-CardView {
+              width: 100% !important;
+              max-width: 100% !important;
+              flex: 1 1 100% !important;
+            }
+            
+            /* 🎯 المنطقة كلها تتحول لصف واحد */
+            .t-Cards,
+            .a-CardView-items--float {
+              display: grid !important;
+              grid-template-columns: 1fr !important;  /* واحد فقط في كل صف */
+              gap: 1.5rem;
+              padding: 0 !important;
+            }
+            
+            /* ✅ شيل أي قيود عرض من صور أو محتوى */
+            .a-CardView-media,
+            .a-CardView-mediaImg {
+              max-width: 100% !important;
+              height: auto !important;
+              display: block !important;
+              object-fit: cover !important;
+            }
+            
+            /* اختياري: توسيط المحتوى جوه الكارت */
+            .a-CardView {
+              margin: auto !important;
+            }
+            
+            .u-RTL .a-CardView-items--float .a-CardView-item[
+              width: 100% !important;
+              max-width: 100% !important;
+              flex: 1 1 100% !important;
+            ]
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        title: &APP_TEXT$BREADCRUMB.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region الاعلانات (
+        name: الاعلانات
+        title: &APP_TEXT$ADVERTISEMENTS.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                SELECT
+                  IMAGE_ANNOUNCEMENT AS CARD_ICON,
+                
+                  TITEL_ANNOUNCEMENT AS CARD_TITLE,
+                
+                   '...' || SUBSTR(BODY, 1, 300)  AS CARD_TEXT,
+                
+                  TO_CHAR(CREATED_AT, 'DD Month YYYY', 'NLS_DATE_LANGUAGE=ARABIC') AS CARD_SUBTEXT,
+                
+                  apex_page.get_url(
+                    p_page        => 70,
+                    p_items       => 'P70_ID',
+                    p_values      => ID
+                  ) AS CARD_LINK
+                ,id
+                FROM EPROMHQ.PORTAL_ANNOUNCEMENT
+                WHERE EXPIRE_DATE IS NULL OR EXPIRE_DATE > SYSDATE
+                ORDER BY CREATED_AT DESC;
+                
+                ```
+            pageItemsToSubmit: P67_IMAGE_URL
+        }
+        layout {
+            sequence: 21
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--leftLabels
+                t-Form--labelsAbove
+                t-Region-orderBy--center
+            ]
+        }
+        componentAppearance {
+            layout: float
+        }
+        card {
+            primaryKeyColumn1: ID
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <p style="text-align: left; font-size: 1.25rem; font-weight: bold; color: #111827;">
+                  &CARD_TITLE.
+                </p>
+                
+                ```
+        }
+        subtitle {
+            advancedFormatting: true
+            htmlExpression: "&{SUB_TITLE_HTML_EXPR CARD_SUBTEXT=&CARD_SUBTEXT.}!RAW."
+        }
+        body {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                
+                <p style="text-align: left; font-size: 0.875rem; color: #888;">
+                &CARD_TITLE.
+                </p>
+                
+                ```
+        }
+        secondaryBody {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <p style="text-align: left; font-size: 0.875rem; color: #888;">
+                &CARD_TEXT.
+                </p>
+                
+                ```
+        }
+        iconAndBadge {
+            iconSource: iconClassColumn
+            iconColumn: CARD_ICON
+            iconCssClasses: fa-flag-pennant
+            iconPosition: top
+        }
+        media {
+            source: blobColumn
+            blobColumn: CARD_ICON
+            position: first
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 70
+                    items: {
+                        P70_ID: &ID.
+                    }
+                }
+            }
+        )
+
+        action action-2 (
+            label: &APP_TEXT$EDIT_THE_ANNOUNCEMENT.
+            layout {
+                sequence: 20
+            }
+            behavior {
+                target: {
+                    page: 68
+                    items: {
+                        P68_ID: &ID.
+                    }
+                }
+            }
+        )
+
+    )
+
+    pageItem P67_IMAGE_URL (
+        type: displayImage
+        label {
+            label: &APP_TEXT$IMAGE_URL.
+            alignment: left
+        }
+        settings {
+            basedOn: blobColSql
+            sqlQuery:
+                ```sql
+                SELECT IMAGE_ANNOUNCEMENT
+                FROM EPROMHQ.PORTAL_ANNOUNCEMENT
+                WHERE ID = 3;
+                
+                ```
+        }
+        layout {
+            sequence: 41
+            slot: body
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P67_ORDER_BY (
+        type: selectList
+        label {
+            label: &APP_TEXT$ORDER_BY.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Titel Announcement;TITEL_ANNOUNCEMENT,Body;BODY,Image Announcement;IMAGE_ANNOUNCEMENT
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @الاعلانات
+            slot: sortOrder
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        default {
+            type: static
+            staticValue: TITEL_ANNOUNCEMENT
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    button add-announcement (
+        buttonName: ADD_ANNOUNCEMENT
+        label: &APP_TEXT$ADD_NEW_ANNOUNCEMENT.
+        layout {
+            sequence: 11
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 68
+                anchor: :&SESSION.::&DEBUG.:::
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        security {
+            authorizationScheme: @super-duper
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                  l_blob BLOB;
+                BEGIN
+                  SELECT IMAGE_ANNOUNCEMENT
+                  INTO l_blob
+                  FROM EPROMHQ.PORTAL_ANNOUNCEMENT;
+                
+                  owa_util.mime_header('image/jpeg', FALSE);
+                  htp.p('Content-length: ' || dbms_lob.getlength(l_blob));
+                  owa_util.http_header_close;
+                  wpg_docload.download_file(l_blob);
+                  apex_application.stop_apex_engine;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 38942633400638439
+        }
+    )
+
+)

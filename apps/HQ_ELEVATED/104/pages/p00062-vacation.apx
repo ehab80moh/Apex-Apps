@@ -1,0 +1,866 @@
+page 62 (
+    name: Vacation
+    alias: VACATION
+    title: &APP_TEXT$VACATION.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        fileUrls: https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.2/lottie.min.js
+        executeWhenPageLoads:
+            ```javascript-browser
+            var vac =document.getElementById('vacations');
+            lottie.loadAnimation({
+              container: vac, // the dom element that will contain the animation
+              renderer: 'svg',
+              loop: true,
+              autoplay: true,
+              path: 'https://assets7.lottiefiles.com/private_files/lf30_vdqgavca.json' // the path to the animation json
+            });
+            
+            
+            
+            
+            
+            // if(localStorage.getItem('audioAllowed') === 'true') {
+            //     var audio = new Audio('https://www.soundjay.com/nature/sounds/ocean-wave-01.mp3');
+            //     audio.play();
+            // }
+            ```
+    }
+    css {
+        inline:
+            ```css
+            .btn-red {
+              background-color: #e74c3c; 
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              font-size: 16px;
+              font-weight: bold;
+              border-radius: 8px;
+              cursor: pointer;
+              transition: background-color 0.3s ease, transform 0.3s ease;
+            }
+            
+            
+            .btn-red:hover {
+              background-color: #c0392b; 
+              transform: scale(1.05); 
+            }
+            
+            .btn-green {
+              background-color: #27ae60; 
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              font-size: 16px;
+              font-weight: bold;
+              border-radius: 8px;
+              cursor: pointer;
+              transition: background-color 0.3s ease, transform 0.3s ease;
+            }
+            
+            
+            .btn-green:hover {
+              background-color: #1e8449; 
+              transform: scale(1.05); 
+            }
+            
+            
+            .btn-navy {
+              background-color: #2c3e50; 
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              font-size: 16px;
+              font-weight: bold;
+              border-radius: 8px;
+              cursor: pointer;
+              transition: background-color 0.3s ease, transform 0.3s ease;
+            }
+            
+            
+            .btn-navy:hover {
+              background-color: #1a252f; 
+              transform: scale(1.05);
+            }
+            
+            .btn-yellow {
+              background-color: #f1c40f; 
+              color: black; 
+              border: none;
+              padding: 10px 20px;
+              font-size: 16px;
+              font-weight: bold;
+              border-radius: 8px;
+              cursor: pointer;
+              transition: background-color 0.3s ease, transform 0.3s ease;
+            }
+            
+            
+            .btn-yellow:hover {
+              background-color: #d4ac0d; 
+              transform: scale(1.05);
+            }
+            
+            
+            #P62_TRIP_ID_CONTAINER{
+                display: none;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region available-trips (
+        name: available trips
+        title: &APP_TEXT$AVAILABLE_TRIPS.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select t.*,
+                nvl(a.application_status,'p')  application_status,a.SUMMER_APPLICATION_ID
+                  from EPROMHQ.vac_trips t 
+                 left join EPROMHQ.VAC_SUMMER_APPLICATIONS a  on t.trip_id = a.trip_id
+                 and a.EMP_ID = :APP_USER
+                where
+                 sysdate between t.application_start_date and t.application_end_date
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+            column: 4
+            columnSpan: 6
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            layout: horizontal
+        }
+        title {
+            column: TRIP_NAME
+        }
+        subtitle {
+            advancedFormatting: true
+            htmlExpression: "&{SUBMISSION_IS_OPEN_TO_APPLICATION_END_DATE APPLICATION_END_DATE=&APPLICATION_END_DATE.}."
+        }
+        body {
+            advancedFormatting: true
+            htmlExpression: &APP_TEXT$BODY_HTML_EXPR!RAW.
+        }
+
+        action action (
+            label: &APP_TEXT$UNIT_SPECIFICATIONS_PRICES_AND_PRESENTATION.
+            layout {
+                sequence: 20
+            }
+            behavior {
+                type: redirectOtherApp
+                target: {
+                    app: 117
+                    page: 6
+                    items: {
+                        P6_TRIP_ID: &TRIP_ID.
+                    }
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-eye
+                cssClasses: btn-green
+            }
+            serverSideCondition {
+                type: itemIsNotInColonDelimitedList
+                item: APPLICATION_STATUS
+                list: [
+                    D
+                    A
+                ]
+            }
+        )
+
+        action action-2 (
+            label: &APP_TEXT$SUBMIT_THE_APPLICATION.
+            layout {
+                sequence: 40
+            }
+            behavior {
+                type: redirectOtherApp
+                target: {
+                    app: 117
+                    page: 101
+                    items: {
+                        P101_TRIP_ID: &TRIP_ID.
+                    }
+                    clearCache: [
+                        101
+                        102
+                        103
+                    ]
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-notebook
+                hot: true
+                cssClasses: btn-navy
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        action action-3 (
+            label: &APP_TEXT$VIEW_WISHES.
+            layout {
+                sequence: 30
+            }
+            behavior {
+                type: redirectOtherApp
+                target: {
+                    app: 117
+                    page: 8
+                    items: {
+                        P8_TRIP_ID: &TRIP_ID.
+                        P8_EMP_ID: &APP_USER.
+                        P8_ENABLE_REMOVE: N
+                    }
+                    request: Noedit
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-search
+                cssClasses: btn-yellow
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select emp_id from EPROMHQ.vac_emp_wishes
+                    where emp_id=:App_user
+                    ```
+            }
+            comments {
+                comments:
+                    ```
+                    APPLICATION_STATUS
+                    D
+                    item=value
+                    ```
+            }
+        )
+
+        action action-4 (
+            label: &APP_TEXT$PRESENTING_TO_OTHERS.
+            layout {
+                sequence: 50
+            }
+            behavior {
+                type: redirectOtherApp
+                target: {
+                    app: 117
+                    page: 2
+                    items: {
+                        P2_TRIP_ID: &TRIP_ID.
+                    }
+                }
+            }
+            appearance {
+                cssClasses: btn-yellow
+            }
+            serverSideCondition {
+                type: never
+            }
+            security {
+                authorizationScheme: @copy-of-admin
+            }
+        )
+
+        action action-5 (
+            label: &APP_TEXT$VIEW_THE_AD.
+            layout {
+                sequence: 10
+            }
+            behavior {
+                type: redirectOtherApp
+                target: {
+                    app: 117
+                    page: 5
+                    anchor: :&SESSION.::&DEBUG.:::
+                }
+            }
+            appearance {
+                cssClasses: btn-red
+            }
+        )
+
+    )
+
+    region الاستمارات-السابقة (
+        name: الاستمارات السابقة
+        title: &APP_TEXT$PREVIOUS_FORMS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                SELECT 
+                    a.EMP_ID,
+                    a.TRIP_ID,
+                    a.NEED_TRANSPORTATION,
+                    NVL(h.HISTORY, 'لا يوجد ') AS HISTORY,
+                    a.EMP_MOBILE,
+                    a.EMP_WHATS,
+                    a.CREATED_BY,
+                    a.SUMMER_APPLICATION_ID,
+                    a.APPLICATION_STATUS,
+                    a.CREATED_AT,
+                        CASE 
+                        WHEN (SYSDATE BETWEEN t.APPLICATION_START_DATE AND t.APPLICATION_END_DATE) and a.APPLICATION_STATUS <> 'A' THEN
+                            '<span class="t-Icon fa fa-trash delete-note" aria-hidden="true"></span>'
+                        ELSE 
+                            'لا يمكن حذف الاستمارة قبل الحصول على موافقة المدير.'
+                            
+                    END AS REMOVE
+                FROM 
+                    EPROMHQ.VAC_SUMMER_APPLICATIONS a
+                LEFT JOIN 
+                 
+                    EPROMHQ.VAC_HISTORY h 
+                    ON h.EMP_ID = a.EMP_ID
+                JOIN  
+                    EPROMHQ.VAC_TRIPS t 
+                    ON t.TRIP_ID = a.TRIP_ID
+                WHERE 
+                    a.EMP_ID = :APP_USER 
+                    AND TRIM(NVL(a.EMP_MOBILE, '')) IS NOT NULL
+                    AND TRIM(NVL(a.EMP_WHATS, '')) IS NOT NULL
+                    AND LENGTH(TRIM(a.EMP_MOBILE)) > 0
+                    AND LENGTH(TRIM(a.EMP_WHATS)) > 0
+                
+                ORDER BY 
+                    a.SUMMER_APPLICATION_ID DESC;
+                
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_FORMS_SUBMITTED.
+        }
+
+        column APPLICATION_STATUS (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$FORM_STATUS.
+                alignment: center
+            }
+            lov {
+                type: staticValues
+                staticValues: STATIC2: تم تأشير المدير للدخول في قرعة المصيف;D,قيد الانتظار;P,قيد الاعتماد;A,تم رفض الطلب;X
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_THE_REQUEST_WAS_CREATED.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column CREATED_BY (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column DERIVED$01 (
+            reportColumnQueryId: 10
+            derivedColumn: Y
+            type: link
+            heading {
+                heading: &APP_TEXT$DESIRES.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: otherApp
+                    app: 117
+                    page: 8
+                    items: {
+                        P8_EMP_ID: #EMP_ID#
+                        P8_TRIP_ID: #TRIP_ID#
+                        P8_ENABLE_REMOVE: N
+                    }
+                    request: Noedit
+                }
+                linkText: <img src="#IMAGE_PREFIX#app_ui/img/icons/apex-edit-view.png" class="apex-edit-view" alt="">
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EMP_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EMP_MOBILE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PHONE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EMP_WHATS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WHATSAPP_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column HISTORY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_BENEFIT.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column NEED_TRANSPORTATION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column REMOVE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$SCAN_THE_FORM.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: url
+                    url: javascript:void(null);
+                }
+                linkText: #REMOVE#
+                linkAttributes: data-id="#SUMMER_APPLICATION_ID#"
+            }
+            sorting {
+                sortable: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column SUMMER_APPLICATION_ID (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 120
+            }
+        )
+
+        column TRIP_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_JOURNEY.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @vac-trip-trip-name
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    pageItem P62_D_APPLICATION_ID (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: body
+        }
+    )
+
+    pageItem P62_TRIP_ID (
+        type: textField
+        label {
+            label: &APP_TEXT$NEW.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            slot: body
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    dynamicAction remove-row (
+        name: Remove Row
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: .delete-note
+        }
+
+        action native-clear (
+            action: clear
+            affectedElements {
+                selectionType: items
+                items: P62_D_APPLICATION_ID
+            }
+            execution {
+                sequence: 40
+                fireOnInit: false
+            }
+        )
+
+        action native-confirm (
+            action: confirm
+            settings {
+                title: &APP_TEXT$WITHDRAW_THE_FORM.
+                message: &APP_TEXT$ARE_YOU_SURE_TO_WITHDRAW_THE_FORM_AND_CLEAR_THE_DESIRES.
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                        v_trip_id NUMBER;
+                        v_emp_id  NUMBER;
+                    BEGIN
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    BEGIN
+                      FOR C IN (
+                        SELECT 
+                          a.ID,
+                          a.TASK_ID,
+                          s.APPLICATION_STATUS,
+                          s.SUMMER_APPLICATION_ID
+                        FROM epromhq.vac_summer_approvals a
+                        JOIN epromhq.vac_summer_applications s
+                          ON a.SUMMER_APPLICATION_ID = s.SUMMER_APPLICATION_ID
+                        WHERE s.summer_application_id = :p62_d_application_id
+                      ) LOOP
+                    
+                        IF c.APPLICATION_STATUS <> 'D' and C.TASK_ID IS NOT NULL THEN
+                          BEGIN
+                            apex_human_task.cancel_task(
+                              p_task_id => C.TASK_ID
+                            );
+                        UPDATE epromhq.vac_summer_approvals
+                        SET STATE = 2,
+                            STATE_DATE = SYSDATE
+                        WHERE ID = C.ID;
+                        
+                          EXCEPTION
+                            WHEN OTHERS THEN
+                            null;
+                          END;
+                        END IF;
+                    
+                    
+                    
+                      END LOOP;
+                    
+                      DELETE FROM epromhq.vac_summer_applications
+                      WHERE summer_application_id = :P62_d_application_id;
+                    
+                      DELETE FROM epromhq.VAC_EMP_WISHES
+                      WHERE EMP_ID = :APP_user;
+                    
+                      COMMIT;
+                    
+                    END;
+                    END;
+                    
+                    ```
+                itemsToSubmit: P62_D_APPLICATION_ID
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @available-trips
+            }
+            execution {
+                sequence: 60
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-2 (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @الاستمارات-السابقة
+            }
+            execution {
+                sequence: 50
+                fireOnInit: false
+            }
+        )
+
+        action native-set-value (
+            action: setValue
+            settings {
+                type: jsExpression
+                jsExpression: $(this.triggeringElement).parent().data('id')
+            }
+            affectedElements {
+                selectionType: items
+                items: P62_D_APPLICATION_ID
+            }
+            execution {
+                sequence: 20
+            }
+        )
+
+    )
+
+    dynamicAction set-item (
+        name: Set item
+        execution {
+            sequence: 20
+        }
+        when {
+            event: ready
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    window.apply=function(trip_id){
+                    //    console.log(trip_id);
+                        apex.item("P62_TRIP_ID").setValue(trip_id);
+                    apex.submit("APPLY");
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    validation validate-wishes (
+        name: validate wishes
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                v_cnt number;
+                begin
+                    select count(WISH_ID) cnt
+                    into v_cnt 
+                    from epromhq.VAC_EMP_WISHES
+                     where EMP_ID = :App_user;
+                     
+                     if v_cnt <3 then
+                        return 'يجب ان يتم اختيار 3 رغبات أولاً';
+                     else
+                        return '';
+                     end if;
+                
+                 end;
+                ```
+        }
+        serverSideCondition {
+            type: request=Value
+            value: APPLY
+        }
+    )
+
+    branch (
+        name: 101
+        execution {
+            sequence: 10
+            point: processing
+        }
+        behavior {
+            target: {
+                type: otherApp
+                app: 117
+                page: 101
+                items: {
+                    P101_TRIP_ID: &P62_TRIP_ID.
+                }
+                clearCache: [
+                    101
+                    102
+                    103
+                ]
+            }
+        }
+        serverSideCondition {
+            type: request=Value
+            value: APPLY
+        }
+    )
+
+)

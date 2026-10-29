@@ -1,0 +1,239 @@
+page 6 (
+    name: Verify Mobile
+    alias: VERIFY-MOBILE
+    title: Verify Mobile
+    appearance {
+        pageTemplate: @/login
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: bodyHeader
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region mobile-verification (
+        name: Mobile Verification
+        title: Mobile Verification
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/login
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P6_COMPANY_NAME (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @mobile-verification
+            slot: regionBody
+        }
+    )
+
+    pageItem P6_HEADOFF_MOBILE (
+        type: textField
+        label {
+            label: "Enter Mobile Number "
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @mobile-verification
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            valuePlaceholder: Mobile
+        }
+    )
+
+    pageItem P6_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @mobile-verification
+            slot: regionBody
+        }
+    )
+
+    button verify-mobile (
+        buttonName: VERIFY_MOBILE
+        label: Verify Mobile
+        layout {
+            sequence: 40
+            region: @mobile-verification
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process check-mobile-and-redirect (
+        name: CHECK_MOBILE_AND_REDIRECT
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_supplier sup_suppliers%rowtype;
+                BEGIN
+                    -- Fetch supplier by mobile
+                    SELECT *
+                      INTO l_supplier
+                      FROM sup_suppliers
+                     WHERE headoff_mobile = :P6_MOBILE;
+                
+                    -- Set page 6 values
+                    :P6_SUPPLIER_ID  := l_supplier.supplier_id;
+                    :P6_COMPANY_NAME := l_supplier.company_name;
+                
+                    -- Generate OTP for this supplier
+                    sup_otp_pkg.generate_and_send_otp(
+                        p_supplier_id => l_supplier.supplier_id,
+                        p_mobile      => l_supplier.headoff_mobile
+                    );
+                
+                    -- Redirect to Page 4 with supplier info
+                    apex_util.redirect_url(
+                        'f?p='||:APP_ID||':4:'||:APP_SESSION||':NO::' ||
+                        'P4_SUPPLIER_ID,P4_COMPANY_NAME,P4_HEADOFF_MOBILE:' ||
+                        :P6_SUPPLIER_ID || ',' ||
+                        :P6_COMPANY_NAME || ',' ||
+                        l_supplier.headoff_mobile
+                    );
+                
+                EXCEPTION
+                    WHEN NO_DATA_FOUND THEN
+                        apex_error.add_error(
+                            p_message          => 'Mobile number not found or sign up',
+                            p_display_location => apex_error.c_inline_in_notification
+                        );
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 172279952221327118
+        }
+        serverSideCondition {
+            whenButtonPressed: @verify-mobile
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    process find-supplier-and-generate-otp (
+        name: Find Supplier and Generate OTP
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_supplier sup_suppliers%rowtype;
+                BEGIN
+                    -- Check if mobile exists
+                    SELECT *
+                      INTO l_supplier
+                      FROM sup_suppliers
+                     WHERE headoff_mobile = :P6_HEADOFF_MOBILE;
+                
+                    -- Assign values to hidden items
+                    :P6_SUPPLIER_ID  := l_supplier.supplier_id;
+                    :P6_COMPANY_NAME := l_supplier.company_name;
+                    :P6_HEADOFF_MOBILE := l_supplier.headoff_mobile;
+                
+                    -- Generate and send OTP
+                    sup_otp_pkg.generate_and_send_otp(
+                        p_supplier_id => l_supplier.supplier_id,
+                        p_mobile      => l_supplier.headoff_mobile
+                    );
+                
+                EXCEPTION
+                    WHEN NO_DATA_FOUND THEN
+                        apex_error.add_error(
+                            p_message          => 'Mobile number not found.',
+                            p_display_location => apex_error.c_inline_in_notification
+                        );
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+            point: afterSubmit
+        }
+        advanced {
+            executionMappingIdentifier: 172280277161327121
+        }
+        serverSideCondition {
+            whenButtonPressed: @verify-mobile
+        }
+    )
+
+    branch (
+        name: Redirect To OTP Page
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 4
+                items: {
+                    P4_HEADOFF_MOBILE: &P6_HEADOFF_MOBILE.
+                    P4_COMPANY_NAME: &P6_COMPANY_NAME.
+                    P4_SUPPLIER_ID: &P6_SUPPLIER_ID.
+                }
+                request: ehab
+            }
+        }
+    )
+
+)

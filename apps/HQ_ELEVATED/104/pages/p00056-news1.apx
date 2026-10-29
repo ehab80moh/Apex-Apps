@@ -1,0 +1,116 @@
+page 56 (
+    name: الخبر
+    alias: NEWS1
+    title: &APP_TEXT$THE_NEWS.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .wpb_gallery_slidesflickity_static_height_style .nectar-flickity.instace-68a31138a7f35:not(.masonry) .flickity-slider .cell img {
+                    height: auto!important;
+                }
+            
+            img {
+                width: -webkit-fill-available; 
+                height: auto!important;
+            }
+            
+            .t-AVPList {
+                display: flex; 
+                justify-content: space-evenly; 
+            }
+            
+            .t-AVPList-label {
+                display: none; 
+            }
+            
+            .t-AVPList--leftAligned .t-AVPList-value, .t-AVPList--rightAligned .t-AVPList-label {
+                width: 100% !important;
+            }
+            
+            
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region الخبر (
+        name: الخبر
+        title: &APP_TEXT$THE_NEWS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select "id",
+                       TITLE,
+                       IMAGE,
+                       BODY,
+                       APEX$SYNC_STEP_STATIC_ID,
+                       APEX$ROW_SYNC_TIMESTAMP
+                  from WP_NEWS
+                  where "id" =:P56_NEWS_ID
+                ```
+            pageItemsToSubmit: P56_NEWS_ID
+        }
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+        pagination {
+            partialPageRefresh: false
+        }
+        componentAdvanced {
+            stripHtml: true
+        }
+
+        column BODY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: richText
+            heading {
+                heading: &APP_TEXT$BODY.
+            }
+            layout {
+                sequence: 40
+            }
+            settings {
+                format: html
+            }
+        )
+
+    )
+
+    pageItem P56_NEWS_ID (
+        type: hidden
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+    )
+
+)

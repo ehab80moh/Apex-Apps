@@ -1,0 +1,17 @@
+actionPosition avatarLink (
+    name: Avatar Link
+    staticId: AVATAR_LINK
+    sequence: 10
+)
+
+actionPosition titleLink (
+    name: Title Link
+    staticId: TITLE_LINK
+    sequence: 25
+)
+
+actionPosition userNameLink (
+    name: User Name Link
+    staticId: USER_NAME_LINK
+    sequence: 15
+)

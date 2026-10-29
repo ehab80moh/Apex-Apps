@@ -1,0 +1,117 @@
+page 719 (
+    name: IT Request Setup Validation
+    alias: IT-REQUEST-SETUP-VALIDATION
+    title: IT Request Setup Validation
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    security {
+        authorizationScheme: @it-request-setup-admin
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region setup-validation-report (
+        name: Configuration Issues
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery: select 'TEAM' as issue_type, t.id as record_id, t.name as entity_name, 'Team has no LEADER or COORDINATOR member' as issue_description from ITR_TEAMS t left join ITR_TEAM_MEMBERS tm on tm.team_id = t.id and upper(tm.role) in ('LEADER','COORDINATOR') group by t.id, t.name having count(tm.id) = 0 union all select 'REQUEST_TYPE' as issue_type, t.id as record_id, t.name as entity_name, 'Request type has no request details' as issue_description from ITR_REQUEST_TYPES t left join ITR_REQUEST_TYPE_DETAILS d on d.request_type_id = t.id group by t.id, t.name having count(d.id) = 0 order by issue_type, entity_name
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+        }
+        pagination {
+            type: rowRangesXToYNoPagination
+        }
+        messages {
+            whenNoDataFound: No data found
+        }
+
+        column ENTITY_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Entity Name
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column ISSUE_DESCRIPTION (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Issue Description
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column ISSUE_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Issue Type
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column RECORD_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Record Id
+                alignment: end
+            }
+            layout {
+                sequence: 20
+                columnAlignment: end
+            }
+        )
+
+    )
+
+)

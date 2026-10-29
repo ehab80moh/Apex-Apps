@@ -1,0 +1,133 @@
+page 11 (
+    name: ملفات هامة
+    alias: IMPORTANT-FILES
+    title: &APP_TEXT$IMPORTANT_FILES.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region imp-files (
+        name: imp files
+        title: &APP_TEXT$IMP_FILES.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select "DOC_ID","DOCUMENT_NAME","DOCUMENT_DESCRIPTION",sys.dbms_lob.getlength("DOC")"DOC","DOC_TYPE"
+                from CENTRAL.XXAPEX_GENERAL_DOCUMENT
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+                t-Region-orderBy--center
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        performance {
+            lazyLoading: true
+        }
+
+        column DOC (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$FILE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            appearance {
+                viewFileAs: inline
+                downloadText: <b> تحميل </b>
+            }
+            blobAttributes {
+                tableOwner: CENTRAL
+                tableName: XXAPEX_GENERAL_DOCUMENT
+                blobColumn: DOC
+                primaryKeyColumn1: DOC_ID
+                filenameColumn: FILE_NAMEE
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column DOCUMENT_DESCRIPTION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FILE_DESCRIPTION.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column DOCUMENT_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FILE_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column DOC_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+    )
+
+)

@@ -1,0 +1,410 @@
+page 64 (
+    name: طلبات التدريب الصيفى
+    alias: SUMMER-TRAINING-REQUESTS
+    title: &APP_TEXT$SUMMER_TRAINING_APPLICATIONS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region طلبات-التدريب-الصيفى (
+        name: طلبات التدريب الصيفى
+        title: &APP_TEXT$SUMMER_TRAINING_APPLICATIONS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select "ID","FULL_NAME","NATIONAL_ID","RESIDENCE_ADDRESS","WHATSAPP_NUMBER","PROGRAM_TYPE","RELATIVES_IN_SERVICE","CREATED_BY","CREATED_AT",sys.dbms_lob.getlength("ENROLLMENT_PROOF_FILE")"ENROLLMENT_PROOF_FILE",sys.dbms_lob.getlength("NATIONAL_ID_IMG")"NATIONAL_ID_IMG",sys.dbms_lob.getlength("RELATIVES_DOCS_FILE")"RELATIVES_DOCS_FILE", COLLEGE,
+                SPECIALIZATION,
+                COLLEGE_YEAR
+                from "EPROMHQ"."TRN_APPLICANTS_DATA"
+                where created_by = :APP_USER
+                
+                order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 21
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--staticRowColors
+                t-Report--rowHighlight
+                t-Report--hideNoPagination
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        performance {
+            maxRowsToProcess: 500
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_REQUESTS.
+        }
+
+        column COLLEGE (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$COLLEGE.
+                alignment: center
+            }
+            layout {
+                sequence: 27
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COLLEGE_YEAR (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THE_BAND.
+                alignment: center
+            }
+            layout {
+                sequence: 47
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CREATION_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 17
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: DD-MON-RRRR
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column CREATED_BY (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 57
+            }
+        )
+
+        column DERIVED$01 (
+            reportColumnQueryId: 16
+            derivedColumn: Y
+            type: link
+            heading {
+                heading: &APP_TEXT$NBSP.
+                alignment: center
+            }
+            layout {
+                sequence: 97
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    page: 66
+                    items: {
+                        P66_ID: #ID#
+                        P66_EMP_ID: #CREATED_BY#
+                    }
+                    anchor: :&SESSION.::&DEBUG.:::
+                }
+                linkText: <span class="t-Icon fa fa-trash delete-note" aria-hidden="true"></span>
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column ENROLLMENT_PROOF_FILE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$ENROLLMENT_PROOF_FILE.
+            }
+            layout {
+                sequence: 67
+            }
+            blobAttributes {
+                tableName: TRN_APPLICANTS_DATA
+                blobColumn: ENROLLMENT_PROOF_FILE
+                primaryKeyColumn1: ID
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 2
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 0
+            }
+        )
+
+        column NATIONAL_ID (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NATIONAL_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 3
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column NATIONAL_ID_IMG (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$NATIONAL_ID_IMG.
+            }
+            layout {
+                sequence: 77
+            }
+            blobAttributes {
+                tableName: TRN_APPLICANTS_DATA
+                blobColumn: NATIONAL_ID_IMG
+                primaryKeyColumn1: ID
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column PROGRAM_TYPE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PROGRAM.
+                alignment: center
+            }
+            layout {
+                sequence: 6
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column RELATIVES_DOCS_FILE (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$RELATIVES_DOCS_FILE.
+            }
+            layout {
+                sequence: 87
+            }
+            blobAttributes {
+                tableName: TRN_APPLICANTS_DATA
+                blobColumn: RELATIVES_DOCS_FILE
+                primaryKeyColumn1: ID
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column RELATIVES_IN_SERVICE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$KIND_OF_KINSHIP.
+                alignment: center
+            }
+            layout {
+                sequence: 7
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column RESIDENCE_ADDRESS (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PLACE_OF_RESIDENCE.
+                alignment: center
+            }
+            layout {
+                sequence: 4
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column SPECIALIZATION (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$SPECIALIZATION.
+                alignment: center
+            }
+            layout {
+                sequence: 37
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column WHATSAPP_NUMBER (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WHATSAPP_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 5
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    button new-request (
+        buttonName: new_request
+        label: &APP_TEXT$NEW_ORDER.
+        layout {
+            sequence: 10
+            region: @طلبات-التدريب-الصيفى
+            slot: copy
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+                t-Button--gapLeft
+                t-Button--gapRight
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 63
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction close (
+        name: close
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @طلبات-التدريب-الصيفى
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @طلبات-التدريب-الصيفى
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

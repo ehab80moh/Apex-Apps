@@ -1,0 +1,140 @@
+page 114 (
+    name: Prescription Attachment
+    alias: PRESCRIPTION-ATTACHMENT
+    title: &APP_TEXT$P114_PAGE_TITLE.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+        cssClasses: prescription-attachment-dialog
+    }
+    dialog {
+        resizable: false
+    }
+    security {
+        authorizationScheme: @self-service-allowed
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region attachment-form (
+        name: Attachment form
+        title: &APP_TEXT$P114_ATTACHMENT_TITLE.
+        type: staticContent
+        source {
+            htmlCode: <div class="t-Alert t-Alert--warning">&APP_TEXT$P114_ATTACHMENT_HELP.</div>
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P114_ATTACHMENTS (
+        type: fileUpload
+        label {
+            label: &APP_TEXT$P114_PRESCRIPTION_FILE.
+            alignment: left
+        }
+        display {
+            displayAs: blockDropzone
+            dropzoneTitle: &APP_TEXT$P114_DROPZONE_TITLE.
+            dropzoneDesc: &APP_TEXT$P114_DROPZONE_DESCRIPTION.
+        }
+        storage {
+            type: appTempFiles
+            allowMultipleFiles: true
+            fileTypes: image/*,application/pdf
+            maxFileSize: 5120
+        }
+        layout {
+            sequence: 20
+            region: @attachment-form
+            slot: regionBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P114_NOTE (
+        type: textarea
+        label {
+            label: &APP_TEXT$P114_NOTE.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @attachment-form
+            slot: regionBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P114_REQUEST_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+    )
+
+    button upload (
+        buttonName: UPLOAD
+        label: &APP_TEXT$P114_SAVE_ATTACHMENT.
+        layout {
+            sequence: 40
+            region: @attachment-form
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process save-attachment (
+        name: Save prescription attachment
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_names apex_t_varchar2;
+                    l_file apex_application_temp_files%rowtype;
+                    l_attachment_id number;
+                begin
+                    if :P114_ATTACHMENTS is null then raise_application_error(-20410,APEX_LANG.MESSAGE('P114_ATTACHMENT_REQUIRED')); end if;
+                    l_names:=apex_string.split(:P114_ATTACHMENTS,':');
+                    for i in 1..l_names.count loop
+                        select * into l_file from apex_application_temp_files where name=l_names(i);
+                        med.md_pres_request_pkg.attach_file(:P114_REQUEST_ID,:APP_USER,l_file.filename,l_file.mime_type,l_file.blob_content,'CAMERA',l_attachment_id);
+                    end loop;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 64383770647241185
+        }
+        serverSideCondition {
+            whenButtonPressed: @upload
+        }
+    )
+
+)

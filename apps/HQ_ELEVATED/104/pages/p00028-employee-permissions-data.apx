@@ -1,0 +1,1322 @@
+page 28 (
+    name: بيانات إذون الموظف
+    alias: EMPLOYEE-PERMISSIONS-DATA
+    title: &APP_TEXT$PERMISSION_DATA.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+        cssClasses: eprom-history-dialog
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            body.eprom-history-dialog .t-Dialog-header,
+            body.eprom-history-dialog .ui-dialog-titlebar {
+                padding: 0.6rem 0.95rem !important;
+            }
+            body.eprom-history-dialog .t-Dialog-title,
+            body.eprom-history-dialog .ui-dialog-title {
+                font-size: 1rem !important;
+                line-height: 1.35 !important;
+                font-weight: 700 !important;
+            }
+            body.eprom-history-dialog .t-Region-title {
+                font-size: 0.92rem !important;
+                line-height: 1.35;
+            }
+            body.eprom-history-dialog .t-Region-body {
+                padding: 0.65rem 0.8rem;
+            }
+            body.eprom-history-dialog .apex-rds {
+                gap: 0.35rem !important;
+                margin-bottom: 0.85rem !important;
+            }
+            body.eprom-history-dialog .apex-rds-item a {
+                padding: 0.5rem 0.8rem !important;
+                font-size: 0.9rem !important;
+                line-height: 1.35;
+            }
+            body.eprom-history-dialog .t-Report-wrap {
+                overflow-x: auto;
+            }
+            body.eprom-history-dialog .t-Report-report {
+                font-size: 0.88rem !important;
+            }
+            body.eprom-history-dialog .t-Report-report th {
+                padding: 0.55rem 0.65rem !important;
+                font-size: 0.84rem !important;
+                line-height: 1.35;
+            }
+            body.eprom-history-dialog .t-Report-report td {
+                padding: 0.5rem 0.65rem !important;
+                line-height: 1.4;
+            }
+            body.eprom-history-dialog .t-Report-report a:focus-visible,
+            body.eprom-history-dialog .apex-rds-item a:focus-visible {
+                outline: 2px solid #0e7490 !important;
+                outline-offset: 2px;
+            }
+            @media (max-width: 640px) {
+                body.eprom-history-dialog .t-Region-body {
+                    padding: 0.5rem;
+                }
+                body.eprom-history-dialog .t-Report-report th,
+                body.eprom-history-dialog .t-Report-report td {
+                    white-space: nowrap;
+                }
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region hrf-permissions (
+        name: hrf_permissions
+        title: &APP_TEXT$HRFPERMISSIONS.
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region region-display-selector (
+        name: Region Display Selector
+        title: &APP_TEXT$REGION_DISPLAY_SELECTOR.
+        type: regionDisplaySelector
+        layout {
+            sequence: 10
+            parentRegion: @hrf-permissions
+            slot: subRegions
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        settings {
+            includeShowAll: false
+            rememberSelection: false
+        }
+    )
+
+    region تم-إعتمادها (
+        name: "تم إعتمادها "
+        title: &APP_TEXT$IT_HAS_BEEN_APPROVED.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                
+                WITH PermissionData AS (
+                    SELECT
+                        permission_type,
+                        reason,
+                        from_hour,
+                        to_hour,
+                        TO_CHAR(from_hour, 'HH24:MI') AS F_HOUR,
+                        TO_CHAR(to_hour, 'HH24:MI') AS T_HOUR,
+                        permission_date,
+                        TO_CHAR(permission_date, 'MM/DD/YYYY') AS p_DATE,
+                        updated_by,
+                        approved,
+                        request_id,
+                        CASE
+                            WHEN (delete_approved IS NULL OR delete_approved <> 0) 
+                                 AND SYSDATE <= central.XXAPEX_SS_VALIDATIONS.GET_CUT_DATE(TO_DATE(permission_date), emp_id) 
+                            THEN
+                                'الغاء الاذن'
+                            ELSE
+                                ''
+                        END AS delete_text,
+                        ROUND((to_hour - from_hour) * 24, 2) AS duration,
+                        TO_CHAR(TRUNC((to_hour - from_hour) * 24), 'FM00') || ':' || 
+                        LPAD(TO_CHAR(TRUNC(MOD((to_hour - from_hour) * 24 * 60, 60))), 2, '0') AS formatted_duration
+                    FROM
+                        epromhq.hrf_emp_permission_request
+                    WHERE
+                        emp_id = :app_user
+                        AND approved = 1
+                        AND NVL(delete_approved, 0) <> 1
+                        AND EXTRACT(YEAR FROM permission_date) = EXTRACT(YEAR FROM SYSDATE)
+                )
+                SELECT *
+                FROM PermissionData
+                ORDER BY
+                p_DATE DESC,
+                    TRUNC(duration),  
+                    LPAD(TO_CHAR(TRUNC(MOD(duration * 60, 60))), 2, '0');
+                
+                ```
+        }
+        layout {
+            sequence: 20
+            parentRegion: @hrf-permissions
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        reportLayout {
+            numberOfRows: 20
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            lazyLoading: true
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_PREVIOUS_REQUESTS.
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 120
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column DELETE_TEXT (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$CANCEL.
+                alignment: center
+            }
+            layout {
+                sequence: 130
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: otherApp
+                    app: 115
+                    page: 42
+                    items: {
+                        P42_REQUEST_ID: #REQUEST_ID#
+                        P42_PERMISSION_TYPE: #PERMISSION_TYPE#
+                        P42_FROM_HOUR: #F_HOUR#
+                        P42_PERMISSION_DATE: #P_DATE#
+                        P42_REASON: #REASON#
+                        P42_TO_HOUR: #T_HOUR#
+                    }
+                }
+                linkText: <div class="u-danger-text ">#DELETE_TEXT#</div>
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column DERIVED$01 (
+            reportColumnQueryId: 6
+            derivedColumn: Y
+            type: hidden
+            layout {
+                sequence: 140
+            }
+            security {
+                authorizationScheme: @33318982090746440
+            }
+        )
+
+        column DURATION (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column FORMATTED_DURATION (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_HOURS.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FROM_HOUR (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_THE_HOUR.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: HH24:MI
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column F_HOUR (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 150
+            }
+        )
+
+        column PERMISSION_DATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PERMISSION_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: fmDay, fmDD fmMonth, YYYY
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column PERMISSION_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$PERMISSION_TYPE.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @permission-types
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column P_DATE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 170
+            }
+        )
+
+        column REASON (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REASON_FOR_PERMISSION.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REQUEST_ID (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column TO_HOUR (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$UNTIL_NOW.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: HH24:MI
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column T_HOUR (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 160
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    region تم-الالغاء-لتأخر-المدير-الاعتماد-فى-شهر-الطلب (
+        name: تم الالغاء لتأخر المدير الاعتماد فى شهر الطلب
+        title: &APP_TEXT$THE_ACCREDITATION_WAS_CANCELED_DUE_TO_THE_DIRECTOR_S_DELAY_IN_THE_MONTH_OF_THE_REQUEST.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select permission_type, from_hour, to_hour,Updated_By,Approved,PERMISSION_DATE,last_approval_date, ROUND((to_hour - from_hour) * 24, 2) AS duration
+                 from epromhq.hrf_emp_permission_request
+                 where EMP_ID = :APP_USER
+                 and approved = 4
+                    AND EXTRACT(YEAR FROM permission_date) = EXTRACT(YEAR FROM SYSDATE)
+                and nvl(delete_approved,0)<>1
+                ```
+        }
+        layout {
+            sequence: 60
+            parentRegion: @hrf-permissions
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+                t-Report--stretch
+            ]
+        }
+        performance {
+            lazyLoading: true
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_PREVIOUS_REQUESTS.
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column DURATION (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_HOURS.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+        )
+
+        column FROM_HOUR (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_THE_HOUR.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: HH24:MI
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LAST_APPROVAL_DATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_THE_APPLICATION_WAS_APPROVED.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column PERMISSION_DATE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PERMISSION_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: fmDay, fmDD fmMonth, YYYY
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column PERMISSION_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$EAR_TYPE.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @permission-types
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TO_HOUR (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$UNTIL_NOW.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: HH24:MI
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    region تم-رفضها (
+        name: "تم رفضها "
+        title: &APP_TEXT$IT_WAS_REJECTED.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select     permission_type,
+                    reason,
+                    from_hour,
+                    to_hour,
+                    permission_date
+                
+                ,Updated_By,Approved,
+                ROUND((to_hour - from_hour) * 24, 2) AS duration
+                 from epromhq.HRF_EMP_permission_REQUEST
+                 where EMP_ID = :APP_USER
+                 and approved = 2
+                     AND EXTRACT(YEAR FROM permission_date) = EXTRACT(YEAR FROM SYSDATE)
+                
+                and nvl(delete_approved,0)<>1
+                ```
+        }
+        layout {
+            sequence: 50
+            parentRegion: @hrf-permissions
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        performance {
+            lazyLoading: true
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_PREVIOUS_REQUESTS.
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column DURATION (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_HOURS.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FROM_HOUR (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_THE_HOUR.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: HH24:MI
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column PERMISSION_DATE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PERMISSION_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: fmDay, fmDD fmMonth, YYYY
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column PERMISSION_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$PERMISSION_TYPE.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @permission-types
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column REASON (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REASON_FOR_PERMISSION.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column TO_HOUR (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$UNTIL_NOW.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: HH24:MI
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    region قيد-الإعتماد (
+        name: "قيد الإعتماد "
+        title: &APP_TEXT$UNDER_APPROVAL.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                
+                WITH PermissionData AS (
+                    SELECT
+                        permission_type,
+                        reason,
+                        from_hour,
+                        to_hour,
+                        TO_CHAR(from_hour, 'HH24:MI') AS F_HOUR,
+                        TO_CHAR(to_hour, 'HH24:MI') AS T_HOUR,
+                        permission_date,
+                        TO_CHAR(permission_date, 'MM/DD/YYYY') AS p_DATE,
+                        updated_by,
+                        approved,
+                        request_id,
+                        CASE
+                            WHEN (delete_approved IS NULL OR delete_approved <> 0) 
+                                 AND SYSDATE <= central.XXAPEX_SS_VALIDATIONS.GET_CUT_DATE(TO_DATE(permission_date), emp_id) 
+                            THEN
+                                'الغاء الاذن'
+                            ELSE
+                                ''
+                        END AS delete_text,
+                        ROUND((to_hour - from_hour) * 24, 2) AS duration,
+                        TO_CHAR(TRUNC((to_hour - from_hour) * 24), 'FM00') || ':' || 
+                        LPAD(TO_CHAR(TRUNC(MOD((to_hour - from_hour) * 24 * 60, 60))), 2, '0') AS formatted_duration,
+                        substr(task_ids,INSTR(task_ids, '>', -1)+1) task_id --last task
+                    FROM
+                        epromhq.hrf_emp_permission_request
+                    WHERE
+                        EMP_ID = :APP_USER
+                 and (approved = 0  OR nvl(delete_approved,1) = 0)
+                
+                )
+                SELECT *
+                FROM PermissionData
+                ORDER BY
+                p_DATE Asc,
+                    TRUNC(duration),  
+                    LPAD(TO_CHAR(TRUNC(MOD(duration * 60, 60))), 2, '0')
+                
+                ```
+        }
+        layout {
+            sequence: 19
+            parentRegion: @hrf-permissions
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        reportLayout {
+            numberOfRows: 20
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        performance {
+            lazyLoading: true
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_PREVIOUS_REQUESTS.
+        }
+
+        column APPROVED (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @request-status
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column DELETE_TEXT (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$CANCEL.
+                alignment: center
+            }
+            layout {
+                sequence: 120
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: otherApp
+                    app: 115
+                    page: 44
+                    items: {
+                        P44_TASK_ID: #TASK_ID#
+                        P44_PERMISSION_TYPE: #PERMISSION_TYPE#
+                        P44_FROM_HOUR: #F_HOUR#
+                        P44_PERMISSION_DATE: #PERMISSION_DATE#
+                        P42_REASON: #REASON#
+                        P44_TO_HOUR: #T_HOUR#
+                    }
+                }
+                linkText: <div class="u-danger-text " style="#CSS_HIDE#">#DELETE_TEXT#</div>
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column DURATION (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column FORMATTED_DURATION (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_HOURS.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FROM_HOUR (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_THE_HOUR.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: HH24:MI
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column F_HOUR (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 130
+            }
+        )
+
+        column PERMISSION_DATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PERMISSION_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column PERMISSION_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$PERMISSION_TYPE.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @permission-types
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column P_DATE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 150
+            }
+        )
+
+        column REASON (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REASON_FOR_PERMISSION.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column REQUEST_ID (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 160
+            }
+        )
+
+        column TASK_ID (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 170
+            }
+        )
+
+        column TO_HOUR (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$UNTIL_NOW.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: HH24:MI
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column T_HOUR (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 140
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_UPDATED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @تم-إعتمادها
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if ( this.data.successMessage ) {
+                    
+                      apex.message.showPageSuccess(this.data.successMessage.text);
+                    
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @تم-إعتمادها
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction new-2 (
+        name: New_1
+        execution {
+            sequence: 20
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @قيد-الإعتماد
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if ( this.data.successMessage ) {
+                    
+                      apex.message.showPageSuccess(this.data.successMessage.text);
+                    
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @قيد-الإعتماد
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

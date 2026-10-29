@@ -1,0 +1,6 @@
+appGroup portal-apps (
+    name: portal apps
+    comments {
+        comments: apps made and session shared by portal
+    }
+)

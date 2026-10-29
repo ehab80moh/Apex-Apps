@@ -1,0 +1,130 @@
+page 110 (
+    name: Medical Referral Attachment
+    alias: MEDICAL-REFERRAL-ATTACHMENT
+    title: Medical Referral Attachment
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    security {
+        authorizationScheme: mustNotBePublicUser
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P110_ATTACHMENT_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P110_DISPOSITION (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: body
+        }
+        default {
+            type: static
+            staticValue: INLINE
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P110_TASK_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: body
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    process download-medical-referral-attachment (
+        name: Download medical referral attachment
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_blob      BLOB;
+                    l_filename  VARCHAR2(512);
+                    l_mime      VARCHAR2(255);
+                BEGIN
+                    IF MED.MD_REFERAL_EXT_PKG.ATTACHMENT_ALLOWED(
+                           P_ATTACHMENT_ID => :P110_ATTACHMENT_ID,
+                           P_APP_USER      => :APP_USER,
+                           P_TASK_ID       => :P110_TASK_ID
+                       ) <> 'Y' THEN
+                        RAISE_APPLICATION_ERROR(-20055, 'Attachment access is not allowed');
+                    END IF;
+                
+                    SELECT original_filename, mime_type
+                      INTO l_filename, l_mime
+                      FROM med.md_referal_attachment
+                     WHERE attachment_id = :P110_ATTACHMENT_ID;
+                
+                    l_blob := MED.MD_REFERAL_EXT_PKG.ATTACHMENT_BLOB(
+                        P_ATTACHMENT_ID => :P110_ATTACHMENT_ID,
+                        P_APP_USER      => :APP_USER,
+                        P_TASK_ID       => :P110_TASK_ID
+                    );
+                
+                    owa_util.mime_header(NVL(l_mime, 'application/octet-stream'), FALSE);
+                    htp.p('Content-length: ' || DBMS_LOB.GETLENGTH(l_blob));
+                    htp.p('Content-Disposition: ' ||
+                          CASE WHEN :P110_DISPOSITION = 'DOWNLOAD' THEN 'attachment' ELSE 'inline' END ||
+                          '; filename="' ||
+                          REPLACE(l_filename, '"', '') || '"');
+                    owa_util.http_header_close;
+                    wpg_docload.download_file(l_blob);
+                    apex_application.stop_apex_engine;
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 58707945521439205
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P110_ATTACHMENT_ID
+        }
+    )
+
+)

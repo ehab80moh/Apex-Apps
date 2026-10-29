@@ -1,0 +1,941 @@
+page 81 (
+    name: التحكم في حساب الموظف
+    alias: ADMIN-AUTH
+    title: &APP_TEXT$EMPLOYEE_ACCOUNT_CONTROL.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .t-AVPList-value img {
+                border: 0;
+                width: 8rem;
+            }
+            
+            
+            ```
+    }
+    security {
+        authorizationScheme: @33318982090746440
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region اضافه-تأكيد-الدخول (
+        name: اضافه تأكيد الدخول
+        title: &APP_TEXT$ADD_LOGIN_CONFIRMATION.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                SELECT
+                    c.EMP_NUMBER,
+                    e.emp_id,
+                    e.mobile,
+                    e.comp_email,
+                    e.mobile_confirmed
+                FROM
+                    CENTRAL.EMP_AUTH_VIEW c
+                JOIN
+                    central.emp_contact e ON c.emp_number = e.emp_id
+                WHERE
+                    c.EMP_NUMBER = :P81_EMP_ID;
+                
+                ```
+        }
+        layout {
+            sequence: 100
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_USER_FOUND_PLEASE_CREATE_FROM_THE_BUTTON.
+        }
+
+        column COMP_EMAIL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$COMP_EMAIL.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column EMP_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMP_ID.
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMP_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column MOBILE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MOBILE.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column MOBILE_CONFIRMED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MOBILE_CONFIRMED.
+                alignment: end
+            }
+            layout {
+                sequence: 50
+                columnAlignment: end
+            }
+        )
+
+    )
+
+    region تفاصيل-حساب-الدخول (
+        name: تفاصيل حساب الدخول
+        title: &APP_TEXT$LOGIN_ACCOUNT_DETAILS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_NUMBER,
+                       EMP_NAME,
+                       SYS.dbms_lob.getlength(IMAGE) AS img,
+                       PASSWORD_CHANGED,
+                       EMP_POSITION_NAME,
+                       PROJECT,
+                       EGPC_EMAIL,
+                       SITE_CODE,
+                       RESET_CODE,
+                       MOBILE,
+                       RESET_CODE_EXPIRE,
+                       OTP,
+                       OTP_COUNT,
+                       COMP_EMAIL,
+                       MOBILE_CONFIRMED,
+                       EMP_ROTATION,
+                       LAST_LOGIN_DATE,
+                       LAST_SESSION_ID,
+                       LAST_DEVICE_TYPE,
+                       LAST_OS_NAME
+                  from CENTRAL.EMP_ADMIN_VIEW
+                 where emp_number = :P81_EMP_ID
+                ```
+            pageItemsToSubmit: P81_EMP_ID
+        }
+        layout {
+            sequence: 90
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_USER_FOUND_PLEASE_CREATE_FROM_THE_BUTTON.
+        }
+
+        column COMP_EMAIL (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 150
+            }
+        )
+
+        column EGPC_EMAIL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EGPC_EMAIL.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column EMP_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMP_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMP_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column EMP_POSITION_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMP_POSITION_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column EMP_ROTATION (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMP_ROTATION.
+            }
+            layout {
+                sequence: 130
+            }
+        )
+
+        column IMG (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: displayImage
+            heading {
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+            blobAttributes {
+                tableOwner: CENTRAL
+                tableName: EMP_ADMIN_VIEW
+                blobColumn: IMAGE
+                primaryKeyColumn1: EMP_NUMBER
+            }
+        )
+
+        column LAST_DEVICE_TYPE (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_DEVICE_TYPE.
+            }
+            layout {
+                sequence: 190
+            }
+        )
+
+        column LAST_LOGIN_DATE (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_LOGIN_DATE.
+            }
+            layout {
+                sequence: 170
+            }
+            appearance {
+                formatMask: DD-MM-YYYY HH:MI PM
+            }
+        )
+
+        column LAST_OS_NAME (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_OS_NAME.
+            }
+            layout {
+                sequence: 200
+            }
+        )
+
+        column LAST_SESSION_ID (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LAST_SESSION_ID.
+            }
+            layout {
+                sequence: 180
+            }
+        )
+
+        column MOBILE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 140
+            }
+        )
+
+        column MOBILE_CONFIRMED (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MOBILE_CONFIRMED.
+                alignment: end
+            }
+            layout {
+                sequence: 160
+                columnAlignment: end
+            }
+        )
+
+        column OTP (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OTP_MOBILE.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column OTP_COUNT (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$OTP_COUNT.
+                alignment: center
+            }
+            layout {
+                sequence: 120
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column PASSWORD_CHANGED (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PASSWORD_CHANGED.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+        column PROJECT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PROJECT.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column RESET_CODE (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$RESET_CODE.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+            }
+        )
+
+        column RESET_CODE_EXPIRE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$RESET_CODE_EXPIRE.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column SITE_CODE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$SITE_CODE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+    )
+
+    pageItem P81_COMP_EMAIL (
+        type: textField
+        label {
+            label: &APP_TEXT$COMPANY_EMAIL.
+            alignment: left
+        }
+        settings {
+            subtype: email
+        }
+        layout {
+            sequence: 30
+            region: @اضافه-تأكيد-الدخول
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P81_EMP_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+    )
+
+    pageItem P81_MAIL_SELECT (
+        type: textField
+        label {
+            label: &APP_TEXT$MAIL.
+            alignment: left
+        }
+        layout {
+            sequence: 300
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P81_MOBILE (
+        type: textField
+        label {
+            label: &APP_TEXT$MOBILE.
+            alignment: left
+        }
+        settings {
+            subtype: phone
+        }
+        layout {
+            sequence: 20
+            region: @اضافه-تأكيد-الدخول
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P81_PERSONAL_EMAIL (
+        type: textField
+        label {
+            label: &APP_TEXT$PERSONAL_EMAIL.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @اضافه-تأكيد-الدخول
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    button add (
+        buttonName: Add
+        label: &APP_TEXT$ADD.
+        layout {
+            sequence: 80
+            region: @اضافه-تأكيد-الدخول
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-address-book-o
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button create-user (
+        buttonName: CREATE_USER
+        label: &APP_TEXT$CREATE_USER.
+        layout {
+            sequence: 60
+            slot: contentBody
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-blind
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: noRowsReturned
+            sqlQuery:
+                ```sql
+                select *
+                  from CENTRAL.EMP_AUTH_VIEW
+                 where  emp_number = :P81_EMP_ID
+                ```
+        }
+    )
+
+    button delete-user (
+        buttonName: Delete_user
+        label: &APP_TEXT$DELETE_USER.
+        layout {
+            sequence: 70
+            slot: contentBody
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--iconLeft
+            ]
+            icon: fa-blind
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select *
+                  from CENTRAL.EMP_AUTH_VIEW
+                 where  emp_number = :P81_EMP_ID
+                ```
+        }
+    )
+
+    button send-password-reset-mail (
+        buttonName: SEND_PASSWORD_RESET_MAIL
+        label: &APP_TEXT$SEND_PASSWORD_RESET_MAIL.
+        layout {
+            sequence: 300
+            slot: contentBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$SURE.
+        }
+    )
+
+    button unlock-user (
+        buttonName: UNLOCK_USER
+        label: &APP_TEXT$UNLOCK_USER.
+        layout {
+            sequence: 80
+            slot: contentBody
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process clear (
+        name: Clear
+        type: clearSessionState
+        execution {
+            sequence: 10
+            point: afterRegions
+        }
+        advanced {
+            executionMappingIdentifier: 7598649242161431
+        }
+    )
+
+    process create-account-on-central-emp-contact (
+        name: Create account on central.emp_contact
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                SELECT MOBILE, COMP_EMAIL, PERSONAL_EMAIL 
+                INTO :P81_MOBILE,:P81_COMP_EMAIL,:P81_PERSONAL_EMAIL
+                 FROM CENTRAL.EMP_CONTACT WHERE EMP_ID = :P81_EMP_ID;
+                    EXCEPTION WHEN NO_DATA_FOUND THEN
+                 NULL;
+                 END;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 13436214816683517
+        }
+    )
+
+    process create-user (
+        name: CREATE_USER
+        type: invokeApi
+        invoke {
+            type: plsqlProcedureOrFunction
+            owner: CENTRAL
+            procedureOrFunction: CREATE_USER
+        }
+        execution {
+            sequence: 40
+        }
+        successMessage {
+            successMessage: &APP_TEXT$USER_CREATED_.
+        }
+        error {
+            errorMessage: &APP_TEXT$ERROR_CREATEING_USER_.
+        }
+        advanced {
+            executionMappingIdentifier: 7598842299161433
+        }
+        serverSideCondition {
+            whenButtonPressed: @create-user
+        }
+
+        parameter p_emp_id (
+            value {
+                type: item
+                item: P81_EMP_ID
+            }
+            advanced {
+                displaySequence: 10
+            }
+        )
+
+    )
+
+    process create-user-2 (
+        name: create user
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                  l_emp_id   CENTRAL.EMP_CRIDS.EMP_ID%TYPE := :P81_EMP_ID;
+                  l_new_pass VARCHAR2(20) := LPAD(TRUNC(DBMS_RANDOM.VALUE(0, 99999999)), 8, '0');
+                  l_exists   NUMBER;
+                BEGIN
+                  SELECT COUNT(*) INTO l_exists
+                  FROM CENTRAL.EMP_CRIDS
+                  WHERE emp_id = l_emp_id;
+                
+                  IF l_exists = 0 THEN
+                    INSERT INTO CENTRAL.EMP_CRIDS (emp_id, pass, password_changed)
+                    VALUES (l_emp_id, l_new_pass, 'N');
+                
+                  END IF;
+                
+                EXCEPTION
+                  WHEN DUP_VAL_ON_INDEX THEN
+                    NULL;
+                  WHEN OTHERS THEN
+                    apex_error.add_error(
+                      p_message          => 'Error while creating credentials: '||SQLERRM,
+                      p_display_location => apex_error.c_inline_in_notification
+                    );
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 136077179039759606
+        }
+        serverSideCondition {
+            whenButtonPressed: @create-user
+        }
+    )
+
+    process delete-user (
+        name: delete_user
+        type: invokeApi
+        invoke {
+            type: plsqlProcedureOrFunction
+            owner: CENTRAL
+            procedureOrFunction: DELETE_USER
+        }
+        execution {
+            sequence: 50
+        }
+        successMessage {
+            successMessage: &APP_TEXT$USER_CREATED_.
+        }
+        error {
+            errorMessage: &APP_TEXT$ERROR_CREATEING_USER_.
+        }
+        advanced {
+            executionMappingIdentifier: 13436383587683518
+        }
+        serverSideCondition {
+            whenButtonPressed: @delete-user
+        }
+
+        parameter p_emp_id (
+            value {
+                type: item
+                item: P81_EMP_ID
+            }
+            advanced {
+                displaySequence: 10
+            }
+        )
+
+    )
+
+    process merge-into-central-emp-contact (
+        name: MERGE INTO CENTRAL.EMP_CONTACT
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                MERGE INTO CENTRAL.EMP_CONTACT e
+                USING (SELECT * FROM DUAL) s
+                ON (e.EMP_ID = :P81_EMP_ID)
+                WHEN MATCHED THEN
+                  UPDATE SET
+                
+                    e.MOBILE = :P81_MOBILE,
+                    e.COMP_EMAIL = :P81_COMP_EMAIL,
+                    e.PERSONAL_EMAIL = :P81_PERSONAL_EMAIL
+                WHEN NOT MATCHED THEN
+                  INSERT (EMP_ID, MOBILE, COMP_EMAIL, PERSONAL_EMAIL)
+                  VALUES (:P81_EMP_ID, :P81_MOBILE, :P81_COMP_EMAIL, :P81_PERSONAL_EMAIL);
+                
+                
+                ```
+        }
+        execution {
+            sequence: 70
+        }
+        successMessage {
+            successMessage: "&{THAT_BEEN_ADD_TO_EMP_P81EMPID_NUMBER_P81MOBILE P81_EMP_ID=&P81_EMP_ID. P81_MOBILE=&P81_MOBILE.}."
+        }
+        advanced {
+            executionMappingIdentifier: 13434782350683502
+        }
+        serverSideCondition {
+            whenButtonPressed: @add
+        }
+    )
+
+    process send-reset-mail (
+        name: SEND RESET MAIL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                Declare 
+                v_code varchar2(20);
+                v_emp_name varchar2(99);
+                begin
+                
+                  v_code := central.SET_EMP_REST_CODE(
+                    P_EMP_ID => :P81_EMP_ID
+                  );
+                
+                select emp_name
+                into v_emp_name
+                           from central.xxapex_hr_emp_data
+                          where emp_number = :P81_EMP_ID
+                          AND (
+                TRIM(COMP_EMAIL) = TRIM(:P81_MAIL_SELECT)
+                OR TRIM(PAY_EMAIL) = TRIM(:P81_MAIL_SELECT)
+                          )
+                          ;
+                
+                    apex_mail.send (
+                        p_from               => 'apex@eprom.com.eg',
+                        p_to                 => :P81_MAIL_SELECT,
+                        p_template_static_id => 'PASSWORD_RESET',
+                        p_placeholders       => '{' ||
+                        '    "EMP_NAME":' || apex_json.stringify( v_emp_name ) ||
+                        '   ,"EMP_ID":'   || apex_json.stringify( :P81_EMP_ID ) ||
+                        '   ,"NEW_PASS":' || apex_json.stringify( v_code ) ||
+                        '}' );
+                
+                
+                end;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        successMessage {
+            successMessage: &APP_TEXT$SENT_MAIL_TO_USER_SUCCESS_.
+        }
+        error {
+            errorMessage: &APP_TEXT$ERROR_SENDING_MAIL_WRONG_EMAIL_OR_OTHER_ERROR.
+        }
+        advanced {
+            executionMappingIdentifier: 7598211562161427
+        }
+        serverSideCondition {
+            whenButtonPressed: @send-password-reset-mail
+        }
+    )
+
+    process unlock-user (
+        name: UNLOCK USER
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    DELETE FROM CENTRAL.LOGIN_AUTH_LOG 
+                    WHERE ROWID IN (
+                        SELECT ROWID 
+                        FROM CENTRAL.LOGIN_AUTH_LOG 
+                        WHERE USERNAME = :P81_EMP_ID
+                        ORDER BY LOGIN_DATE DESC -- Assuming there is a column like LOG_DATE to determine the order of rows
+                        FETCH FIRST 10 ROWS ONLY
+                    );
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 69752803619175246
+        }
+        serverSideCondition {
+            whenButtonPressed: @unlock-user
+        }
+    )
+
+)

@@ -1,0 +1,261 @@
+page 47 (
+    name: تعليمات عامة
+    alias: GENERAL-INSTRUCTIONS
+    title: &APP_TEXT$GENERAL_INSTRUCTIONS.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: [
+            #DEFAULT#
+            t-PageBody--noContentPadding
+        ]
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            #ins_reg {
+              width: 100%;
+              max-width: 1960px;
+              margin: 0 auto;
+              
+              box-sizing: border-box;
+              overflow-x: hidden;
+            }
+            
+            #ins_reg img {
+              max-width: 100%;
+              height: auto;
+              display: block;
+              margin: 0 auto;
+            }
+            
+            .ui-dialog--apex.t-Dialog-page--standard,
+            .ui-dialog--apex.t-Dialog-page--wizard {
+              overflow-x: hidden !important;
+            }
+            
+            
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+    )
+
+    region page_plug (
+        name: .
+        title: &APP_TEXT$TITLE.
+        type: staticContent
+        source {
+            htmlCode: "&{PLUG_SOURCE_3 APP_FILES=#APP_FILES#}!RAW."
+        }
+        layout {
+            sequence: 41
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--accent1
+                t-Region--hiddenOverflow
+                t-Form--slimPadding
+            ]
+        }
+        serverSideCondition {
+            type: never
+        }
+        comments {
+            comments:
+                ```
+                select * from central.EMP_LANG
+                where emp_id = :app_user 
+                and LANG = 'en-us'
+                ```
+        }
+    )
+
+    region page_plug-2 (
+        name: .
+        title: &APP_TEXT$TITLE.
+        type: staticContent
+        source {
+            htmlCode: "&{PLUG_SOURCE_4 APP_FILES=#APP_FILES# APP_FILES=#APP_FILES#}!RAW."
+        }
+        layout {
+            sequence: 51
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--accent1
+                t-Region--hiddenOverflow
+                t-Form--slimPadding
+            ]
+        }
+        advanced {
+            htmlDomId: ins_reg
+        }
+        serverSideCondition {
+            type: never
+        }
+        comments {
+            comments:
+                ```
+                select * from central.EMP_LANG
+                where emp_id = :app_user 
+                and LANG = 'ar-ae'
+                
+                -- SELECT COALESCE(
+                --          MAX(CASE WHEN lang = 'en-us' THEN 'en-us' END),
+                --          'ar-ae'
+                --        ) AS lang
+                -- FROM central.emp_lang
+                -- WHERE emp_id = :APP_USER;
+                ```
+        }
+    )
+
+    region page_plug-3 (
+        name: .
+        title: &APP_TEXT$TITLE.
+        type: staticContent
+        source {
+            htmlCode: "&{PLUG_SOURCE_5 APP_FILES=#APP_FILES# APP_FILES=#APP_FILES#}!RAW."
+        }
+        layout {
+            sequence: 61
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P47_DONT_SHOW (
+        type: checkbox
+        label {
+            label: &APP_TEXT$NOT_SHOWING_UP_AGAIN.
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            checkedValue: 1
+            uncheckedValue: 0
+        }
+        layout {
+            sequence: 21
+            region: @new
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--xlarge
+                margin-left-sm
+                t-Form-fieldContainer--boldDisplay
+            ]
+        }
+    )
+
+    button close (
+        buttonName: Close
+        label: &APP_TEXT$DONE.
+        layout {
+            sequence: 31
+            region: @new
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--gapTop
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-close (
+            action: closeDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    dynamicAction on-change (
+        name: ON CHANGE
+        execution {
+            sequence: 20
+        }
+        when {
+            selectionType: items
+            items: P47_DONT_SHOW
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                        pref_val VARCHAR2(9);
+                        v_Return number;
+                    BEGIN
+                        IF :P47_DONT_SHOW = 1 THEN
+                            pref_val := 'no';
+                        ELSE
+                            pref_val := 'yes';
+                        END IF;
+                    
+                         v_Return := central.PREF_PKG.SET_PREF(
+                        P_EMP_ID => :App_user,
+                        P_PREF_ID => 41,
+                        P_VAL => pref_val
+                      );
+                    
+                    
+                    
+                    END;
+                    
+                    ```
+                itemsToSubmit: P47_DONT_SHOW
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

@@ -1,0 +1,484 @@
+page 9999 (
+    name: Login Page
+    alias: LOGIN
+    title: Suppliers/Contractors - Log In
+    appearance {
+        pageTemplate: @/login
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    javaScript {
+        executeWhenPageLoads: $("#instructions_btn").hide();
+    }
+    css {
+        inline:
+            ```css
+            html, body {
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+            
+            body.t-PageBody--login {
+                min-height: 100vh;
+                min-width: 100vw;
+            
+                background-image: url("#APP_FILES#login_bg.jpg") !important;
+                background-size: cover !important;        /* ✅ auto-fit width & height */
+                background-position: center center !important;
+                background-repeat: no-repeat !important;
+                background-attachment: fixed !important;
+            }
+            
+            ```
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region suppliers-contractors-registration (
+        name: Suppliers / Contractors Registration
+        title: Suppliers / Contractors Registration
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/login
+            templateOptions: #DEFAULT#
+        }
+        image {
+            fileUrl: #APP_FILES#icons/app-icon-512.png
+        }
+    )
+
+    pageItem P9999_PASSWORD (
+        type: password
+        label {
+            label: Password
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @suppliers-contractors-registration
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/hidden
+            templateOptions: #DEFAULT#
+            icon: fa-key
+            width: 40
+            valuePlaceholder: Password
+        }
+        validation {
+            maxLength: 100
+        }
+        advanced {
+            customAttributes: autocomplete="current-password"
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P9999_REMEMBER (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @suppliers-contractors-registration
+            slot: regionBody
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: apex_authentication.persistent_cookies_enabled
+        }
+    )
+
+    pageItem P9999_USERNAME (
+        type: textField
+        label {
+            label: Phone Number
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @suppliers-contractors-registration
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/hidden
+            templateOptions: #DEFAULT#
+            icon: fa-user
+            width: 40
+            valuePlaceholder: Phone Number
+        }
+        validation {
+            maxLength: 100
+        }
+        advanced {
+            customAttributes: autocomplete="username"
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    button forgot-change-password (
+        buttonName: FORGOT_CHANGE_PASSWORD
+        label: Forget / Change Password
+        layout {
+            sequence: 60
+            region: @suppliers-contractors-registration
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--link
+            ]
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: f?p=&APP_ID.:6:&SESSION.::&DEBUG.:::
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button login (
+        buttonName: LOGIN
+        label: Log In
+        layout {
+            sequence: 40
+            region: @suppliers-contractors-registration
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button new (
+        buttonName: New
+        label: Terms & Conditions
+        layout {
+            sequence: 40
+            region: @suppliers-contractors-registration
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 8
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        advanced {
+            htmlDomId: instructions_btn
+        }
+    )
+
+    button sing-up (
+        buttonName: sing_Up
+        label: Sign Up (Create Account)
+        layout {
+            sequence: 50
+            region: @suppliers-contractors-registration
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--primary
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 9991
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 10
+        }
+        when {
+            event: ready
+        }
+        config {
+            buildOption: @commented-out
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    //put in dynamic action aupage stload
+                    
+                    async function subscribeOnLoad() {
+                    
+                    const hasPushSubscription = await apex.pwa.hasPushSubscription();
+                    console.log(hasPushSubscription);
+                    if(!hasPushSubscription){
+                    if(Notification.permission!='denied'){
+                         apex.pwa.subscribePushNotifications();
+                    }else{
+                        apex.message.showPageSuccess('Start Registration.');
+                    }
+                    }
+                    
+                    }
+                    
+                    
+                    subscribeOnLoad();
+                    
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        action native-javascript-code-2 (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if (!sessionStorage.getItem("terms_shown")) {
+                        // Open the Terms modal
+                        $("#instructions_btn").trigger("click");
+                    
+                        // Mark that terms were shown
+                        sessionStorage.setItem("terms_shown", "Y");
+                    }
+                    
+                    ```
+            }
+            execution {
+                sequence: 20
+            }
+        )
+
+    )
+
+    process clear-page-s-cache (
+        name: Clear Page(s) Cache
+        type: clearSessionState
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 123405280599707749
+        }
+    )
+
+    process get-username-cookie (
+        name: Get Username Cookie
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P9999_USERNAME := apex_authentication.get_login_username_cookie;
+                :P9999_REMEMBER := case when :P9999_USERNAME is not null then 'Y' end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 123404836079707749
+        }
+    )
+
+    process login (
+        name: Login
+        type: invokeApi
+        invoke {
+            package: APEX_AUTHENTICATION
+            procedureOrFunction: LOGIN
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 123401479377707746
+        }
+
+        parameter p_password (
+            value {
+                type: item
+                item: P9999_PASSWORD
+            }
+            advanced {
+                displaySequence: 2
+            }
+        )
+
+        parameter p_set_persistent_auth (
+            parameter {
+                dataType: boolean
+                hasDefault: true
+            }
+            value {
+                type: apiDefault
+            }
+            advanced {
+                displaySequence: 3
+            }
+        )
+
+        parameter p_username (
+            value {
+                type: item
+                item: P9999_USERNAME
+            }
+            advanced {
+                displaySequence: 1
+            }
+        )
+
+    )
+
+    process set-supplier-id (
+        name: "SET SUPPLIER ID "
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                  l_supplier_id number;
+                begin
+                  select supplier_id
+                    into l_supplier_id
+                    from sup_suppliers
+                   where headoff_mobile = :P9999_USERNAME;
+                
+                  :SUP_SUPPLIER_ID := l_supplier_id;
+                
+                exception
+                  when no_data_found then
+                    -- User authenticated but not registered as supplier
+                    --:SUP_SUPPLIER_ID := null;
+                    apex_error.add_error(
+                  p_message          => 'Mobile number or password are incorrect.',
+                  p_display_location => apex_error.c_inline_with_field,
+                  p_page_item_name   => 'P9999_USERNAME'
+                );
+                --raise apex_application.stop_apex_engine;
+                end;
+                
+                -- declare
+                --   l_supplier_id number;
+                -- begin
+                --   select supplier_id
+                --     into l_supplier_id
+                --     from sup_suppliers
+                --    where headoff_mobile = :P9999_USERNAME;
+                
+                --   :SUP_SUPPLIER_ID := l_supplier_id;  
+                -- end;
+                ----------------------
+                -- declare
+                --   l_supplier_id number;
+                -- begin
+                --   select supplier_id
+                --     into l_supplier_id
+                --     from sup_suppliers
+                --    where headoff_mobile = :P9999_USERNAME;
+                
+                --   :SUP_SUPPLIER_ID := l_supplier_id;
+                
+                -- exception
+                --   when no_data_found then
+                --     apex_error.add_error(
+                --         p_message          => 'You are not registered as a supplier.',
+                --         p_display_location => apex_error.c_inline_in_notification
+                --     );
+                --    -- raise apex_application.stop_apex_engine;
+                -- end;
+                
+                
+                ```
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 164389043542391743
+        }
+    )
+
+    process set-username-cookie (
+        name: Set Username Cookie
+        type: invokeApi
+        invoke {
+            package: APEX_AUTHENTICATION
+            procedureOrFunction: SEND_LOGIN_USERNAME_COOKIE
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 123403332337707748
+        }
+        serverSideCondition {
+            type: never
+        }
+
+        parameter p_consent (
+            parameter {
+                dataType: boolean
+            }
+            value {
+                type: item
+                item: P9999_REMEMBER
+            }
+            advanced {
+                displaySequence: 2
+            }
+        )
+
+        parameter p_username (
+            value {
+                type: expression
+                plsqlExpression: lower( :P9999_USERNAME )
+            }
+            advanced {
+                displaySequence: 1
+            }
+        )
+
+    )
+
+)

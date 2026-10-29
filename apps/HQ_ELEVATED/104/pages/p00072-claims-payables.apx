@@ -1,0 +1,1980 @@
+page 72 (
+    name: Claims Payables
+    alias: CLAIMS-PAYABLES
+    title: Claims Payables
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            // document.addEventListener("DOMContentLoaded", function() {
+            //   const sidebar = document.getElementById("rightSidebar");
+            //   const toggleButton = document.getElementById("toggleSidebar");
+            
+            //   if (sidebar && toggleButton) {
+            //     toggleButton.addEventListener("click", function() {
+            //       sidebar.classList.toggle("active");
+            //     });
+            //   }
+            // });
+            function getCheckedValues() {
+                var values = [];
+                $(".row_checkbox:checked").each(function () {
+                    values.push($(this).val());
+                });
+                console.log(values); // just to check in browser console
+                $s("P202_SELECTED_IDS", values.join(",")); // save into APEX item
+            }
+            
+            // Toggle all children when header checkbox is clicked
+            $(document).on("change", "#select_all", function () {
+                $(".row_checkbox").prop("checked", this.checked);
+                getCheckedValues();
+            });
+            
+            // Update header checkbox and values when any row is clicked
+            $(document).on("change", ".row_checkbox", function () {
+                if (!this.checked) {
+                    $("#select_all").prop("checked", false);
+                } else if ($(".row_checkbox:checked").length === $(".row_checkbox").length) {
+                    $("#select_all").prop("checked", true);
+                }
+                getCheckedValues();
+            });
+            
+            
+            function updateLockButtonState() {
+                var claimId = apex.item("P72_MD_CLAIM_ID").getValue();
+            
+                $("#lock_button").prop("disabled", !claimId);
+            }
+            
+            $(document).on("change", "#P72_MD_CLAIM_ID", function () {
+                updateLockButtonState();
+            });
+            
+            $(document).ready(function () {
+                updateLockButtonState();
+            });
+            
+            $(document)
+                .off("click.lockClaim", "#lock_button")
+                .on("click.lockClaim", "#lock_button", function (e) {
+                    e.preventDefault();
+            
+                    var claimId = apex.item("P72_MD_CLAIM_ID").getValue();
+            
+                    if (!claimId) {
+                        updateLockButtonState();
+                        return;
+                    }
+            
+                    apex.message.confirm(
+                        "Are you sure you want to lock this claim? This action will mark the claim as locked.",
+                        function (confirmed) {
+                            if (!confirmed) {
+                                return;
+                            }
+            
+                            apex.server.process(
+                                "LOCK_MD_CLAIM",
+                                {
+                                    x01: claimId
+                                },
+                                {
+                                    dataType: "json",
+            
+                                    success: function (response) {
+                                        if (response.success) {
+                                            apex.message.showPageSuccess(
+                                                response.message
+                                            );
+            
+                                            $("#lock_button")
+                                                .prop("disabled", true)
+                                                .text("Locked");
+                                        } else {
+                                            apex.message.alert(response.message);
+                                        }
+                                    },
+            
+                                    error: function () {
+                                        apex.message.alert(
+                                            "An error occurred while locking the claim."
+                                        );
+                                    }
+                                }
+                            );
+                        },
+                        {
+                            title: "Confirm Claim Lock",
+                            style: "danger",
+                            confirmLabel: "Lock Claim",
+                            cancelLabel: "Cancel"
+                        }
+                    );
+                });
+            
+            ```
+        executeWhenPageLoads:
+            ```javascript-browser
+            $(document).on("keydown", function(e) {
+              if (e.key === "Backspace") {
+                var el = document.activeElement;
+                el.value="";
+              }
+            });
+            
+            
+            function highlightEditedRow() {
+                var editedId = apex.item("P202_HIGHLIGHT_ID").getValue();
+                var report$ = $("#Claim_Person_details");
+            
+                // Remove highlight from the previously edited row
+                report$
+                    .find("tr.last-edited-row")
+                    .removeClass("last-edited-row");
+            
+                if (!editedId) {
+                    return;
+                }
+            
+                // Find the edit link with the matching row ID
+                report$
+                    .find(".js-edit-row")
+                    .filter(function () {
+                        return String($(this).attr("data-row-id")) === String(editedId);
+                    })
+                    .first()
+                    .closest("tr")
+                    .addClass("last-edited-row");
+            }
+            
+            
+            apex.gPageContext$
+                .off("apexafterclosedialog.highlightRow")
+                .on("apexafterclosedialog.highlightRow", function (event, data) {
+            
+                    if (
+                        data &&
+                        String(data.dialogPageId) === "203" &&
+                        data.P203_ID
+                    ) {
+                        apex.item("P202_HIGHLIGHT_ID").setValue(
+                            data.P203_ID
+                        );
+            
+                        highlightEditedRow();
+                    }
+                });
+            
+            
+                $("#Claim_Person_details")
+                .off("apexafterrefresh.highlightEditedRow")
+                .on("apexafterrefresh.highlightEditedRow", function () {
+                    highlightEditedRow();
+                });
+            ```
+    }
+    css {
+        inline:
+            ```css
+            /* #toggleSidebar .t-Button {
+              flex: 0 0 auto;         
+              white-space: nowrap;  
+              padding: 10px 18px;
+              background: linear-gradient(135deg, #082b52, #166abe);
+              color: #fff !important;
+              font-size: 14px;
+              font-weight: 600;
+              border: none;
+              border-radius: 8px;
+              box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+              transition: all 0.2s ease-in-out;
+              cursor: pointer;
+            }
+            
+            #toggleSidebar .t-Button:hover {
+              background: linear-gradient(135deg, #5aa0f2, #4689d0);
+              transform: translateY(-2px);
+              box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+            } */
+            
+            /* ===== Base Style (applies to all buttons) ===== */
+             #toggleSidebar .t-Button.btn-pdf,
+             #toggleSidebar .t-Button.btn-excel {
+              flex: 0 0 auto;         
+              white-space: nowrap;  
+              padding: 10px 18px;
+              color: #fff !important;
+              font-size: 14px;
+              font-weight: 600;
+              border: none;
+              border-radius: 8px;
+              box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+              transition: all 0.2s ease-in-out;
+              cursor: pointer;
+            }
+            
+            /* ===== Toggle Button (Blue) ===== */
+             #toggleSidebar .t-Button.btn-pdf {
+              background: var(--ut-palette-primary);
+            }
+            
+             #toggleSidebar .t-Button.btn-pdf:hover {
+              background: var(--ut-palette-primary);
+              opacity: 0.9;
+              transform: translateY(-2px);
+              box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+            }
+            
+            /* ===== Excel Download Button (Green) ===== */
+             #toggleSidebar .t-Button.btn-excel {
+              background: var(--ut-palette-success); /* Excel-inspired green */
+            }
+            
+             #toggleSidebar .t-Button.btn-excel:hover {
+              background: var(--ut-palette-success);
+              opacity: 0.9;
+              transform: translateY(-2px);
+              box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+            }
+            
+            
+            /* Collapsible right sidebar */
+            #rightSidebar {
+              position: fixed;
+              top: 0;
+              right: -300px; 
+              width: 300px;
+              height: 100%;
+              background-color: var(--a-gv-background-color);
+              box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+              transition: right 0.3s ease;
+              z-index: 1050; 
+              padding: 15px;
+              
+            }
+            
+            /* When active */
+            #rightSidebar.active {
+              right: 0;
+            }
+            
+            /* Optional: style for the toggle button */
+            #toggleSidebar,#details,#totals ,#special_limit{
+              /* position: fixed;
+              top: 20px;
+              right: 20px;
+              z-index: 1100; */
+            background: var(--a-gv-background-color);
+            border: 1px solid var(--a-gv-border-color);
+            border-radius: 8px;
+            }
+            .big-font {
+                font-weight: 600;
+                 color:  #0f172a !important;
+            }
+            
+            
+            #import_btn,.custom-edit-button {
+                background-color: var(--ut-palette-warning) !important;
+                border-color: var(--ut-palette-warning) !important;
+                color: var(--ut-palette-warning-contrast) !important;
+                font-weight: 700 !important;
+                box-shadow: 0 2px 4px rgba(180, 83, 9, 0.15) !important;
+                border-radius: 6px !important;
+            }
+            #import_btn:hover,.custom-edit-button:hover {
+                background-color: var(--ut-palette-warning) !important;
+                border-color: var(--ut-palette-warning) !important;
+                opacity: 0.9;
+                transform: translateY(-1px) !important;
+            }
+            #details, #totals,
+            #details table,#totals table,  
+            #details .t-Report,#totals .t-Report {
+                width: 100% !important;
+            }
+            #details table td,#totals table td, 
+            #details table th,#totals table th {
+                padding-top: 3px;   /* small space above text */
+            }
+            
+            
+            #Claim_Person_details .a-IRR-table tbody tr.last-edited-row > td {
+                background-color: #fff3cd !important;
+            }
+            
+            #Claim_Person_details .a-IRR-table tbody tr.last-edited-row > td:first-child {
+                box-shadow: inset 5px 0 0 #f0ad4e;
+            }
+            
+            #lock_button:disabled {
+                opacity: 0.45 !important;
+                cursor: not-allowed !important;
+                box-shadow: none !important;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region all-totals (
+        name: All Totals
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                -- SELECT 
+                --     NVL(SUM(cps.COVERED),0)     AS "TOTAL_COVERED",
+                --     NVL(SUM(cps.NOT_COVERED),0) AS "TOTAL_NOT_COVERED",
+                --     NVL(SUM(cps.COVERED),0) + NVL(SUM(cps.NOT_COVERED),0) AS "GRAND_TOTAL",
+                --     NVL(NVL(c.Amount,0) - (NVL(SUM(cps.COVERED),0) + NVL(SUM(cps.NOT_COVERED),0)),0) AS "Total amount - Grand Total = " 
+                -- FROM MED.MD_CLAIM c
+                -- JOIN MED.MD_CLAIM_PERSON_SUMMARY cps
+                --     ON c.ID = cps.MD_CLAIM_ID
+                -- WHERE c.ID = :P202_MD_CLAIM_ID
+                -- group by c.Amount;
+                SELECT 
+                    ROUND(NVL(SUM(cps.COVERED), 0), 2) AS "TOTAL_COVERED",
+                    ROUND(NVL(SUM(cps.NOT_COVERED), 0), 2) AS "TOTAL_NOT_COVERED",
+                    ROUND(
+                        NVL(SUM(cps.COVERED), 0) + NVL(SUM(cps.NOT_COVERED), 0),
+                        2
+                    ) AS "GRAND_TOTAL",
+                    ROUND(
+                        NVL(c.Amount, 0)
+                        - ( NVL(SUM(cps.COVERED), 0) + NVL(SUM(cps.NOT_COVERED), 0) ),
+                        2
+                    ) AS "Total amount - Grand Total ="
+                FROM MED.MD_CLAIM c
+                JOIN MED.MD_CLAIM_PERSON_SUMMARY cps
+                    ON c.ID = cps.MD_CLAIM_ID
+                WHERE c.ID = :P72_MD_CLAIM_ID
+                GROUP BY c.Amount;
+                
+                ```
+            pageItemsToSubmit: P72_MD_CLAIM_ID
+        }
+        layout {
+            sequence: 60
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+            ]
+            cssClasses: big-font
+        }
+        advanced {
+            htmlDomId: totals
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+
+        column GRAND_TOTAL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Grand Total
+                alignment: end
+            }
+            layout {
+                sequence: 30
+                columnAlignment: end
+            }
+        )
+
+        column TOTAL_COVERED (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Total Covered
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+        )
+
+        column TOTAL_NOT_COVERED (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Total Not Covered
+                alignment: end
+            }
+            layout {
+                sequence: 20
+                columnAlignment: end
+            }
+        )
+
+        column "Total amount - Grand Total =" (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Total Amount - Grand Total =
+                alignment: end
+            }
+            layout {
+                sequence: 40
+                columnAlignment: end
+            }
+        )
+
+    )
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region claim-details (
+        name: Claim Details
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 
+                    c.ID,
+                     c.CLAIM_NO  AS "Claim Number:",
+                    c.INVOICE_NUMBER AS "Invoice Number:", -- because the md prescription's full_name is null if the presc from monthly medicine , don't know why 
+                    c.SUPPLIER_ID AS "Supplier:",
+                    c.AMOUNT AS "Total Amount:",
+                    c.FROM_DATE AS "From:",
+                    c.TO_DATE AS "to:"
+                FROM MED.MD_CLAIM c
+                WHERE c.ID = :P72_MD_CLAIM_ID;
+                
+                
+                
+                ```
+            pageItemsToSubmit: P72_MD_CLAIM_ID
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--showIcon
+                t-Region--removeHeader js-removeLandmark
+                t-Region--accent1
+                t-Region--scrollBody
+            ]
+            cssClasses: big-font
+            icon: fa-clipboard-search
+        }
+        advanced {
+            htmlDomId: details
+        }
+        componentAppearance {
+            templateType: predefined
+            template: verticalReport
+            showNullValuesAs: N/A
+        }
+
+        column "Claim Number:" (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Claim Number:
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column From: (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: From:
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Id
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+        )
+
+        column "Invoice Number:" (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Invoice Number:
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column Supplier: (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Supplier:
+                alignment: end
+            }
+            layout {
+                sequence: 40
+                columnAlignment: end
+            }
+        )
+
+        column "Total Amount:" (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Total Amount:
+                alignment: end
+            }
+            layout {
+                sequence: 50
+                columnAlignment: end
+            }
+        )
+
+        column to: (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: To:
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+    )
+
+    region claim-person-details (
+        name: Claim Person details
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH claim_year AS (
+                    SELECT distinct EXTRACT(YEAR FROM invoice_date) AS claim_year
+                    FROM med.md_claim_person_summary
+                    WHERE md_claim_id = :P72_MD_CLAIM_ID
+                )
+                ,p AS (
+                    SELECT  a.person_id,
+                            pgm.segment2 AS project_name,
+                            a.assignment_id,
+                            a.effective_start_date,
+                            a.effective_end_date
+                    FROM med.hr_per_all_assignments_f a
+                    LEFT JOIN med.hr_pay_people_groups pgm
+                        ON pgm.people_group_id = a.people_group_id
+                    LEFT JOIN med.hr_per_periods_of_service ps
+                        ON ps.person_id = a.person_id
+                       AND ps.leaving_reason IN ('R','D','XX-14')
+                       CROSS JOIN claim_year cy
+                    WHERE a.effective_end_date >= TO_DATE('01-01-' || cy.claim_year, 'DD-MM-YYYY')
+                      AND a.effective_start_date <= TO_DATE('31-12-' || cy.claim_year, 'DD-MM-YYYY')
+                      AND (ps.actual_termination_date IS NULL
+                           OR a.effective_start_date < ps.actual_termination_date)
+                      AND a.person_id IS NOT NULL
+                
+                UNION ALL
+                
+                      SELECT
+                            p.person_id,
+                            'Dead',
+                            NULL,
+                            MAX(ppl.effective_start_date),
+                            MAX(ppl.effective_end_date)
+                        FROM (
+                                SELECT 
+                                    a.person_id,
+                                    pgm.segment2 AS project_name,
+                                    ROW_NUMBER() OVER (
+                                        PARTITION BY a.person_id 
+                                        ORDER BY a.effective_end_date DESC
+                                    ) rn
+                                FROM med.hr_per_all_assignments_f a
+                                LEFT JOIN med.hr_pay_people_groups pgm
+                                    ON pgm.people_group_id = a.people_group_id
+                            ) p
+                        JOIN med.hr_per_periods_of_service ps
+                            ON ps.person_id = p.person_id
+                        JOIN med.hr_per_all_people_f ppl
+                            ON ppl.person_id = p.person_id
+                        WHERE p.rn = 1
+                          AND ps.leaving_reason = 'D'
+                          group by p.person_id, p.project_name
+                
+                
+                    UNION ALL
+                
+                    SELECT
+                        ae.person_id,
+                        'EX-EMPLOYEE',
+                        NULL,
+                        MIN(ae.effective_start_date),
+                        MAX(ae.effective_end_date)
+                    FROM med.hr_per_all_people_f ae
+                    LEFT JOIN med.hr_per_periods_of_service ps
+                        ON ps.person_id = ae.person_id
+                       AND ps.leaving_reason IN ('R','XX-14')
+                       CROSS JOIN claim_year cy
+                    WHERE ae.effective_end_date >= TO_DATE('01-01-' || cy.claim_year,'DD-MM-YYYY')
+                      AND ae.effective_start_date <= TO_DATE('31-12-' || cy.claim_year,'DD-MM-YYYY')
+                      AND ps.actual_termination_date IS NOT NULL 
+                      AND ps.actual_termination_date <= TO_DATE('31-12-' || cy.claim_year,'DD-MM-YYYY')
+                      AND ae.effective_start_date >= ps.actual_termination_date
+                    GROUP BY ae.person_id
+                ),
+                t AS (
+                    SELECT *
+                    FROM (
+                        SELECT employee_number,
+                               person_id,
+                               full_name,
+                               ROW_NUMBER() OVER (
+                                   PARTITION BY employee_number
+                                   ORDER BY effective_end_date DESC
+                               ) rn
+                        FROM med.hr_per_all_people_f
+                    )
+                    WHERE rn = 1
+                ),
+                e as(
+                SELECT 
+                    t.employee_number,
+                    MAX(REGEXP_REPLACE(TRIM(t.full_name), '\s+', ' ')) AS employee_name,
+                    p.project_name,
+                    p.person_id,
+                    p.assignment_id,
+                    p.effective_start_date,
+                    p.effective_end_date
+                FROM p
+                JOIN t ON t.person_id = p.person_id
+                GROUP BY
+                    t.employee_number,
+                    p.project_name,
+                    p.person_id,
+                    p.assignment_id,
+                    p.effective_start_date,
+                    p.effective_end_date
+                ORDER BY t.employee_number
+                )
+                SELECT
+                ROW_NUMBER() OVER (ORDER BY cps.id) AS row_no,
+                -- '<input type="checkbox" class="row_checkbox" value="' || cps.ID || '"/>' AS SELECT_ROW,
+                    cps.ID,
+                    CASE
+                        WHEN cps.clinic_id IS NOT NULL THEN cps.clinic_id
+                        ELSE cps.employee_number
+                    END AS employee_number,
+                
+                    CASE
+                        WHEN cps.clinic_id IS NOT NULL THEN c.project_name
+                        ELSE NVL(
+                            REGEXP_REPLACE(TRIM(t.full_name), '\s+', ' '),
+                            'No Name'
+                        )
+                    END AS employee_name,
+                
+                    /* Clinic project if Clinic ID exists,
+                       otherwise use the employee's project based on invoice date */
+                    CASE
+                        WHEN cps.clinic_id IS NOT NULL THEN c.project_name
+                        ELSE NVL(e.project_name, 'Undefined')
+                    END AS project,
+                    ROUND(cps.covered, 2) AS covered,
+                    nvl(cps.not_covered,0) AS "Not covered",
+                    cps.support,
+                    cps.invoice_date,
+                    l.lookup_name AS patient_type_name,
+                    cps.notes
+                --    '<span class="t-Button t-Button--warning t-Button--small custom-edit-button" title="Edit">
+                --        <span class="t-Icon fa fa-edit"></span>
+                --     </span>' AS edit_icon
+                -- CASE
+                --     WHEN EXISTS (
+                --         SELECT 1
+                --         FROM MED.MD_USER_ROLES ur
+                --         WHERE ur.USER_ID = TO_NUMBER(:MED_APP_USER_ID)
+                --           AND ur.ROLE_ID = 1
+                --     ) or (EXISTS (
+                --         SELECT 1
+                --         FROM MED.MD_CLAIM mc
+                --         WHERE mc.ID = cps.md_claim_id
+                --           AND mc.CREATED_BY = TO_NUMBER(:MED_APP_USER_ID)
+                --     )
+                --     AND yc.CLOSE_AT IS NULL)
+                --     THEN
+                --         -- disabled button
+                --          '<span class="t-Button t-Button--warning t-Button--small custom-edit-button" title="Edit">
+                --            <span class="t-Icon fa fa-edit"></span>
+                --         </span>'
+                --     ELSE
+                --         -- normal enabled button
+                --         ''
+                -- END AS edit_icon
+                
+                    
+                FROM med.md_claim_person_summary cps
+                LEFT JOIN t
+                       ON t.employee_number = cps.employee_number
+                
+                LEFT JOIN e
+                       ON e.employee_number = cps.employee_number
+                       and trunc(cps.invoice_date) between e.effective_start_date and e.effective_end_date
+                LEFT JOIN med.md_lookup l
+                       ON l.id = cps.patient_type
+                /* Clinic integration */
+                LEFT JOIN med.clinics c
+                    ON c.clinic_id = cps.clinic_id
+                LEFT JOIN med.hr_per_contact_relationships rp
+                       ON rp.contact_person_id = cps.person_id
+                LEFT JOIN med.apps_hr_lookups hr
+                       ON hr.lookup_code = rp.contact_type
+                LEFT JOIN MED.MD_YEAR_CONTROL yc
+                       ON yc.CLAIM_YEAR = EXTRACT(YEAR FROM cps.invoice_date)
+                WHERE cps.md_claim_id = :P72_MD_CLAIM_ID
+                ORDER BY cps.id
+                
+                ```
+            pageItemsToSubmit: P72_MD_CLAIM_ID
+        }
+        layout {
+            sequence: 90
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: Claim_Person_details
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        advanced {
+            savedReportMappingIdentifier: 58794034751554950
+        }
+
+        column COVERED (
+            type: plainText
+            heading {
+                heading: Covered
+                alignment: end
+            }
+            layout {
+                sequence: 70
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column EMPLOYEE_NAME (
+            type: plainText
+            heading {
+                heading: Employee Name
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            type: plainText
+            heading {
+                heading: Employee Number
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column ID (
+            type: plainText
+            heading {
+                heading: Id
+                alignment: end
+            }
+            layout {
+                sequence: 30
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column INVOICE_DATE (
+            type: plainText
+            heading {
+                heading: Invoice Date
+            }
+            layout {
+                sequence: 100
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column NOTES (
+            type: plainText
+            heading {
+                heading: Notes
+            }
+            layout {
+                sequence: 120
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column "Not covered" (
+            type: plainText
+            heading {
+                heading: Not Covered
+                alignment: end
+            }
+            layout {
+                sequence: 80
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column PATIENT_TYPE_NAME (
+            type: plainText
+            heading {
+                heading: Patient Type Name
+            }
+            layout {
+                sequence: 110
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        column PROJECT (
+            type: plainText
+            heading {
+                heading: Project
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column ROW_NO (
+            type: plainText
+            heading {
+                heading: Row No
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column SUPPORT (
+            type: plainText
+            heading {
+                heading: Support
+                alignment: end
+            }
+            layout {
+                sequence: 90
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn COVERED (
+                sequence: 6
+            )
+
+            displayColumn EMPLOYEE_NAME (
+                sequence: 4
+            )
+
+            displayColumn EMPLOYEE_NUMBER (
+                sequence: 3
+            )
+
+            displayColumn ID (
+                sequence: 2
+            )
+
+            displayColumn INVOICE_DATE (
+                sequence: 9
+            )
+
+            displayColumn NOTES (
+                sequence: 11
+            )
+
+            displayColumn "Not covered" (
+                sequence: 7
+            )
+
+            displayColumn PATIENT_TYPE_NAME (
+                sequence: 10
+            )
+
+            displayColumn PROJECT (
+                sequence: 5
+            )
+
+            displayColumn ROW_NO (
+                sequence: 1
+            )
+
+            displayColumn SUPPORT (
+                sequence: 8
+            )
+
+        )
+
+    )
+
+    region midor-reports (
+        name: MIDOR Reports
+        type: staticContent
+        layout {
+            sequence: 80
+            slot: body
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent6
+                js-headingLevel-6
+                t-Region--scrollBody
+                margin-top-md
+            ]
+        }
+        advanced {
+            htmlDomId: toggleSidebar
+        }
+    )
+
+    pageItem P72_BTN_VALUE (
+        type: hidden
+        layout {
+            sequence: 40
+            slot: body
+        }
+    )
+
+    pageItem P72_CLAIM_NUMBER (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+    )
+
+    pageItem P72_MD_CLAIM_ID (
+        type: selectOne
+        label {
+            label: Claim Number
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select claim_no, id
+                from med.md_claim
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    button midor-extension-payables-excel (
+        buttonName: MIDOR_Extension_Payables_(Excel)
+        label: MIDOR Extension Payables (Excel)
+        layout {
+            sequence: 60
+            region: @midor-reports
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            cssClasses: btn-excel
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: btnCex
+        }
+    )
+
+    button midor-extension-payables-pdf (
+        buttonName: MIDOR_EXTENSION_Payables_(PDF)
+        label: MIDOR Extension Payables (pdf)
+        layout {
+            sequence: 50
+            region: @midor-reports
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            cssClasses: btn-pdf
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: btnC
+        }
+    )
+
+    button midor-over-payables-excel (
+        buttonName: MIDOR_OVER_Payables_(Excel)
+        label: MIDOR OVER Payables (Excel)
+        layout {
+            sequence: 40
+            region: @midor-reports
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            cssClasses: btn-excel
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: btnBex
+        }
+    )
+
+    button midor-over-payables-pdf (
+        buttonName: MIDOR_OVER_Payables_(PDF)
+        label: Midor Over Payables (pdf)
+        layout {
+            sequence: 30
+            region: @midor-reports
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            cssClasses: btn-pdf
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: btnB
+        }
+    )
+
+    button midor-payable-excel (
+        buttonName: MIDOR_Payable_(Excel)
+        label: MIDOR Payables (Excel)
+        layout {
+            sequence: 20
+            region: @midor-reports
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            cssClasses: btn-excel
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: btnAex
+        }
+    )
+
+    button midor-payable-pdf (
+        buttonName: MIDOR_Payable_(PDF)
+        label: Midor Payable (pdf)
+        layout {
+            sequence: 10
+            region: @midor-reports
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            cssClasses: btn-pdf
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: btnA
+        }
+    )
+
+    button new (
+        buttonName: lock
+        label: Lock
+        layout {
+            sequence: 30
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--warning
+                t-Button--stretch
+                t-Button--gapTop
+            ]
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: lock_button
+        }
+    )
+
+    button outside-midor-and-midor-over-new (
+        buttonName: OUTSIDE_MIDOR_AND_MIDOR_OVER_NEW
+        label: Outside MIDOR / MIDOR Over
+        layout {
+            sequence: 110
+            region: @midor-reports
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            cssClasses: btn-pdf
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: btnE
+        }
+    )
+
+    button outside-midor-not-covered-new (
+        buttonName: OUTSIDE_MIDOR_NOT_COVERED_NEW
+        label: Outside MIDOR Not Covered
+        layout {
+            sequence: 120
+            region: @midor-reports
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            cssClasses: btn-pdf
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: btnF
+        }
+    )
+
+    button outside-midor-payable-excel (
+        buttonName: Outside_MIDOR_Payable_(Excel)
+        label: Outside MIDOR Payables (Excel)
+        layout {
+            sequence: 90
+            region: @midor-reports
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            cssClasses: btn-excel
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: btnDex
+        }
+    )
+
+    button outside-midor-payables-pdf (
+        buttonName: OUTSIDE_MIDOR_Payables_(PDF)
+        label: Outside MIDOR Payables (pdf)
+        layout {
+            sequence: 70
+            region: @midor-reports
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            cssClasses: btn-pdf
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: btnD
+        }
+    )
+
+    dynamicAction aop-set-1-excel (
+        name: AOP SET 1 EXCEL
+        execution {
+            sequence: 20
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: #btnAex, #btnBex, #btnCex
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode: NULL;
+                itemsToSubmit: [
+                    P72_BTN_VALUE
+                    P72_MD_CLAIM_ID
+                ]
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    var btnId = this.triggeringElement.id;
+                    var valueToSend;
+                    
+                    if (btnId === "btnAex") {
+                        valueToSend = "MIDOR";
+                    }
+                    else if (btnId === "btnBex") {
+                        valueToSend = "MIDOR - OVER";
+                    }
+                    else if (btnId === "btnCex") {
+                        valueToSend = "MIDOR - EXTENSION";
+                    }
+                    
+                    apex.item("P72_BTN_VALUE").setValue(valueToSend);
+                    
+                    ```
+            }
+            affectedElements {
+                selectionType: items
+                items: P72_BTN_VALUE
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action plugin-be-apexrnd-aop-da (
+            action: plugin/ucApexOfficePrintAopDa
+            settings {
+                templateType: filenameWithPathRelativeToAopServer
+                templateSource3: C:\aop_24_2\reports\claims_details_payables.xlsx
+                dataType: plSqlFunctionReturningJson
+                dataSource2: RETURN med.REP_AOP_FINANCE_PKG.GET_FINANCE_PAYABLES(p_claim_id => :P72_MD_CLAIM_ID, p_btn_value => :P72_BTN_VALUE);
+                initPlSqlCode: aop_api_pkg.g_output_filename := 'مطالبة -- Claim' ||'('||'&P72_BTN_VALUE.' ||')';
+                outputType: excelXlsx
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction aop-set-1-pdf (
+        name: AOP SET 1 PDF
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: #btnA, #btnB, #btnC
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode: NULL;
+                itemsToSubmit: [
+                    P72_BTN_VALUE
+                    P72_MD_CLAIM_ID
+                ]
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    var btnId = this.triggeringElement.id;
+                    var valueToSend;
+                    
+                    if (btnId === "btnA") {
+                        valueToSend = "MIDOR";
+                    }
+                    else if (btnId === "btnB") {
+                        valueToSend = "MIDOR - OVER";
+                    }
+                    else if (btnId === "btnC") {
+                        valueToSend = "MIDOR - EXTENSION";
+                    }
+                    
+                    apex.item("P72_BTN_VALUE").setValue(valueToSend);
+                    
+                    ```
+            }
+            affectedElements {
+                selectionType: items
+                items: P72_BTN_VALUE
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action plugin-be-apexrnd-aop-da (
+            action: plugin/ucApexOfficePrintAopDa
+            settings {
+                templateType: filenameWithPathRelativeToAopServer
+                templateSource3: C:\aop_24_2\reports\claims_details_simple.xlsx
+                dataType: plSqlFunctionReturningJson
+                dataSource2:
+                    ```plsql
+                    RETURN med.REP_AOP_FINANCE_PKG.GET_FINANCE_PAYABLES(p_claim_id => :P72_MD_CLAIM_ID, p_btn_value => :P72_BTN_VALUE);
+                    
+                    
+                    ```
+                initPlSqlCode: aop_api_pkg.g_output_filename := 'مطالبة -- Claim' ||'('||'&P72_BTN_VALUE.' ||')';
+                outputType: pdfPdf
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction aop-set-2-excel (
+        name: AOP SET 2 EXCEL
+        execution {
+            sequence: 50
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: #btnDex,#btnEex,#btnFex
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode: NULL;
+                itemsToSubmit: [
+                    P72_BTN_VALUE
+                    P72_MD_CLAIM_ID
+                ]
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    var btnId = this.triggeringElement.id;
+                    var valueToSend;
+                    
+                    if (btnId === "btnDex") {
+                        valueToSend = "EXCLUDE_MIDOR";
+                    }
+                    else if (btnId === "btnEex") {
+                        valueToSend = "EXCLUDE_MIDOR_INCLUDE_OVER";
+                    }
+                    else if (btnId === "btnFex") {
+                        valueToSend = "EXCLUDE_MIDOR_NOT_COVERED";
+                    }
+                    apex.item("P72_BTN_VALUE").setValue(valueToSend);
+                    
+                    ```
+            }
+            affectedElements {
+                selectionType: items
+                items: P72_BTN_VALUE
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action plugin-be-apexrnd-aop-da (
+            action: plugin/ucApexOfficePrintAopDa
+            settings {
+                templateType: filenameWithPathRelativeToAopServer
+                templateSource3: C:\aop_24_2\reports\claims_details_payables.xlsx
+                dataType: plSqlFunctionReturningJson
+                dataSource2: RETURN med.REP_AOP_FINANCE_PKG.GET_FINANCE_PAYABLES(p_claim_id => :P72_MD_CLAIM_ID, p_btn_value => :P72_BTN_VALUE);
+                initPlSqlCode: aop_api_pkg.g_output_filename := 'مطالبة -- Claim' ||'('||'&P72_BTN_VALUE.' ||')';
+                outputType: excelXlsx
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction aop-set-2-pdf (
+        name: AOP SET 2 PDF
+        execution {
+            sequence: 30
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: #btnD,#btnE
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode: NULL;
+                itemsToSubmit: [
+                    P72_BTN_VALUE
+                    P72_MD_CLAIM_ID
+                ]
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    var btnId = this.triggeringElement.id;
+                    var valueToSend;
+                    
+                    if (btnId === "btnD") {
+                        valueToSend = "EXCLUDE_MIDOR";
+                    }
+                    else if (btnId === "btnE") {
+                        valueToSend = "EXCLUDE_MIDOR_INCLUDE_OVER";
+                    }
+                    apex.item("P72_BTN_VALUE").setValue(valueToSend);
+                    
+                    ```
+            }
+            affectedElements {
+                selectionType: items
+                items: P72_BTN_VALUE
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action plugin-be-apexrnd-aop-da (
+            action: plugin/ucApexOfficePrintAopDa
+            settings {
+                templateType: filenameWithPathRelativeToAopServer
+                templateSource3: C:\aop_24_2\reports\claims_details.xlsx
+                dataType: plSqlFunctionReturningJson
+                dataSource2: RETURN med.REP_AOP_FINANCE_PKG.GET_FINANCE_PAYABLES(p_claim_id => :P202_MD_CLAIM_ID, p_btn_value => :P202_BTN_VALUE);
+                initPlSqlCode: aop_api_pkg.g_output_filename := 'مطالبة -- Claim' ||'('||'&P202_BTN_VALUE.' ||')';
+                outputType: pdfPdf
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction aop-set-2-pdf-outside-midor-not-covered (
+        name: AOP SET 2 PDF OutSide Midor Not Covered
+        execution {
+            sequence: 40
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: #btnF
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode: NULL;
+                itemsToSubmit: [
+                    P72_BTN_VALUE
+                    P72_MD_CLAIM_ID
+                ]
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    var btnId = this.triggeringElement.id;
+                    var valueToSend;
+                    if (btnId === "btnF") {
+                        valueToSend = "EXCLUDE_MIDOR_NOT_COVERED";
+                    }
+                    apex.item("P202_BTN_VALUE").setValue(valueToSend);
+                    
+                    ```
+            }
+            affectedElements {
+                selectionType: items
+                items: P72_BTN_VALUE
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action plugin-be-apexrnd-aop-da (
+            action: plugin/ucApexOfficePrintAopDa
+            settings {
+                templateType: filenameWithPathRelativeToAopServer
+                templateSource3: C:\aop_24_2\reports\claims_details_notcovered_outside_midor.xlsx
+                dataType: plSqlFunctionReturningJson
+                dataSource2: RETURN med.REP_AOP_FINANCE_PKG.GET_FINANCE_PAYABLES(p_claim_id => :P72_MD_CLAIM_ID, p_btn_value => :P72_BTN_VALUE);
+                initPlSqlCode: aop_api_pkg.g_output_filename := 'مطالبة -- Claim' ||'('||'&P72_BTN_VALUE.' ||')';
+                outputType: pdfPdf
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 70
+        }
+        when {
+            selectionType: items
+            items: P72_MD_CLAIM_ID
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @claim-details
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh_1 (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @all-totals
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-show (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @claim-person-details
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction region-refresh (
+        name: REGION REFRESH
+        execution {
+            sequence: 60
+        }
+        when {
+            event: apexafterclosecanceldialog
+            selectionType: region
+            region: @claim-person-details
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode: apex.region("totals").refresh();
+            }
+            affectedElements {
+                selectionType: region
+                region: @claim-person-details
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @claim-person-details
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process lock-md-claim (
+        name: LOCK_MD_CLAIM
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    v_claim_id     NUMBER;
+                    v_employee_person_id  NUMBER;
+                    v_lock_flag    NUMBER;
+                BEGIN
+                    IF apex_application.g_x01 IS NULL THEN
+                        apex_json.open_object;
+                        apex_json.write('success', FALSE);
+                        apex_json.write('message', 'Please select a claim first.');
+                        apex_json.close_object;
+                
+                    ELSIF :APP_USER IS NULL and :med_app_user_id IS NULL THEN
+                        apex_json.open_object;
+                        apex_json.write('success', FALSE);
+                        apex_json.write(
+                            'message',
+                            'Employee ID is missing. The claim was not locked.'
+                        );
+                        apex_json.close_object;
+                
+                    ELSE
+                        v_claim_id := TO_NUMBER(apex_application.g_x01);
+                        v_employee_person_id := nvl(TO_NUMBER(:APP_USER),:med_app_user_id);
+                
+                        UPDATE MED.MD_CLAIM
+                           SET LOCK_FLAG = 1,
+                               LOCKED_BY = v_employee_person_id,
+                               LOCKED_AT = SYSDATE
+                         WHERE ID = v_claim_id
+                           AND NVL(LOCK_FLAG, 0) = 0;
+                
+                        IF SQL%ROWCOUNT = 1 THEN
+                            apex_json.open_object;
+                            apex_json.write('success', TRUE);
+                            apex_json.write('message', 'Claim locked successfully.');
+                            apex_json.close_object;
+                        ELSE
+                            BEGIN
+                                SELECT NVL(LOCK_FLAG, 0)
+                                  INTO v_lock_flag
+                                  FROM MED.MD_CLAIM
+                                 WHERE ID = v_claim_id;
+                
+                                apex_json.open_object;
+                                apex_json.write('success', FALSE);
+                
+                                IF v_lock_flag = 1 THEN
+                                    apex_json.write(
+                                        'message',
+                                        'This claim is already locked.'
+                                    );
+                                ELSE
+                                    apex_json.write(
+                                        'message',
+                                        'The claim could not be locked.'
+                                    );
+                                END IF;
+                
+                                apex_json.close_object;
+                
+                            EXCEPTION
+                                WHEN NO_DATA_FOUND THEN
+                                    apex_json.open_object;
+                                    apex_json.write('success', FALSE);
+                                    apex_json.write('message', 'Claim not found.');
+                                    apex_json.close_object;
+                            END;
+                        END IF;
+                    END IF;
+                
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        apex_json.open_object;
+                        apex_json.write('success', FALSE);
+                        apex_json.write(
+                            'message',
+                            'Unable to lock the claim: ' || SQLERRM
+                        );
+                        apex_json.close_object;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 82166800351809625
+        }
+    )
+
+)

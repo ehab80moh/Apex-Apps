@@ -1,0 +1,551 @@
+page 115 (
+    name: الاشتراك في اليوم الرياضي
+    alias: SPORTS-DAY
+    title: الاشتراك في اليوم الرياضي
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+        cssClasses: sports-day-page
+    }
+    dialog {
+        width: 940
+        height: 830
+        chained: false
+    }
+    javaScript {
+        fileUrls: #APP_FILES#sports-day.js
+    }
+    css {
+        inline:
+            ```css
+            .sports-day-page .sports-cancel-button{color:#a32929;border:1px solid #dfabab;background:#fff}
+            .sports-day-page{background:#f3f6fa;color:#183449}
+            .sports-day-page .t-Dialog-body{padding:20px;background:#f3f6fa}
+            .sports-day-page .t-Region{border:1px solid #e2e8f0;border-radius:16px;box-shadow:0 3px 12px #102c4210;overflow:hidden;margin-bottom:16px}
+            .sports-day-page .t-Region-header{background:#fff;border:0;padding:8px 8px 0}
+            .sports-day-page .t-Region-title{font-size:17px;font-weight:750;color:#173a4e}
+            .sports-day-page .t-Region-body{padding:16px 20px}
+            .sports-day-page .t-Dialog-footer{background:#fff;border-top:1px solid #e2e8f0;padding:12px 20px}
+            .sports-day-page .t-Button{border-radius:10px;font-weight:700;padding:11px 20px;min-height:44px}
+            .sports-day-page .t-Button--hot{background:#087d70;border-color:#087d70;color:#fff}
+            .sports-day-page .sports-hero-region{background:transparent;border:0;box-shadow:none;overflow:visible}
+            .sports-hero{position:relative;overflow:hidden;border-radius:18px;padding:24px 28px;background:linear-gradient(120deg,#102d49,#0f625f);color:#fff;box-shadow:0 9px 24px #0c38472b}
+            .sports-hero:after{content:'2026';position:absolute;inset-inline-end:18px;top:7px;font-size:100px;line-height:1;font-weight:900;opacity:.065;pointer-events:none;direction:ltr}
+            .sports-hero h2{font-size:27px;line-height:1.4;font-weight:800;margin:3px 0 8px;color:#fff}
+            .sports-eyebrow{font-size:11px;letter-spacing:2px;opacity:.7;margin:0;direction:ltr;text-align:start}
+            .sports-hero-intro{font-size:14px;margin:0 0 15px;color:#d5ecec;line-height:1.8}
+            .sports-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+            .sports-meta span{display:inline-flex;gap:6px;align-items:center;font-size:12px;background:#ffffff14;border:1px solid #ffffff20;border-radius:7px;padding:6px 10px}
+            .sports-meta .fa{opacity:.85}
+            .sports-pdf-button{min-height:44px;display:inline-flex;align-items:center;gap:9px;position:relative;z-index:1;background:#fff;border:0;border-radius:9px;color:#164859;font:inherit;font-weight:750;font-size:13px;padding:11px 16px;cursor:pointer;box-shadow:0 3px 9px #001e2924}
+            .sports-pdf-button:hover{background:#e8faf4}
+            .sports-pdf-button:focus-visible{outline:3px solid #6ee7c1;outline-offset:3px}
+            #sports-pdf-panel[hidden]{display:none!important}
+            #sports-pdf-panel{margin-top:16px;background:#fff;border:1px solid #dbe4ed;border-radius:14px;padding:14px}
+            .sports-document-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;font-size:13px;color:#567180}
+            .sports-document-tools a{color:#08786c;font-weight:750;text-decoration:none}
+            .sports-pdf-page{display:block;width:100%;height:auto;border-radius:7px}
+            .sports-section-hint{color:#647c8a;font-size:13px;line-height:1.7;margin:0 0 8px}
+            .sports-day-page #P115_GAMES_CONTAINER{margin-bottom:0}
+            .sports-day-page #P115_GAMES_LABEL{font-size:12px;color:#647c8a}
+            #P115_GAMES{width:100%;flex:1 1 100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:5px}
+            #P115_GAMES .apex-item-option{width:100%;position:relative;background:#f8fafc;border:1px solid #dce5ec;border-radius:12px;transition:background .15s,border-color .15s,box-shadow .15s;min-width:0}
+            #P115_GAMES .apex-item-option:hover{border-color:#65b6a8;background:#f0faf7}
+            #P115_GAMES .apex-item-option:has(input:checked){border-color:#158c78;background:#eaf9f3;box-shadow:0 0 0 1px #158c78}
+            #P115_GAMES .apex-item-option:focus-within{outline:2px solid #3189b4;outline-offset:2px}
+            #P115_GAMES label.u-checkbox{display:flex;align-items:center;min-height:74px;width:100%;box-sizing:border-box;padding:12px 38px 12px 16px;font-size:14px;font-weight:700;line-height:1.5;cursor:pointer}
+            #P115_GAMES .apex-item-option:has(input[value=FOOTBALL]){order:1}
+            #P115_GAMES .apex-item-option:has(input[value=TABLE_TENNIS]){order:2}
+            #P115_GAMES .apex-item-option:has(input[value=BEACH_BALL]){order:3}
+            #P115_GAMES .apex-item-option:has(input[value=RUN_100M]){order:4}
+            #P115_GAMES .apex-item-option:has(input[value=TUG_OF_WAR]){order:5}
+            .sports-note{padding:10px 14px;background:#fff8e8;border:1px solid #f1d89f;border-radius:10px;color:#775618;font-size:13px;line-height:1.8;margin:0 0 12px}
+            .sports-ok{background:#eaf8f0;border-color:#b8e0ca;color:#21603f}
+            .sports-id-grid{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;margin:10px 0 0}
+            .sports-id-thumb{display:flex;flex-direction:column;gap:5px;text-align:center;text-decoration:none;border:1px solid #dce5ec;border-radius:10px;background:#f8fafc;padding:8px;color:#3a5e71;font-size:12px;max-width:180px}
+            .sports-id-thumb:hover{border-color:#148576;background:#f0faf7}
+            .sports-id-thumb img{width:145px;height:91px;object-fit:contain;border-radius:5px;background:#fff}
+            .sports-day-page .sports-card-upload{border-style:dashed;background:#fbfdff}
+            .sports-day-page .sports-card-upload .t-Region-header{background:#fbfdff}
+            .sports-day-page .sports-card-upload .t-Region-title{font-size:14px;color:#567180}
+            .sports-day-page .t-Form-label{font-weight:650}
+            @media(max-width:650px){.sports-day-page .t-Dialog-body{padding:12px}.sports-hero{padding:20px}.sports-hero h2{font-size:23px}#P115_GAMES{grid-template-columns:repeat(2,minmax(0,1fr))}#P115_GAMES label.u-checkbox{font-size:13px;padding-inline-end:36px}.sports-meta{gap:6px}.sports-day-page .t-Region-body{padding:14px}}
+            @media(max-width:380px){#P115_GAMES{grid-template-columns:1fr}}
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region card-preview (
+        name: بطاقة الرقم القومي
+        title: بطاقة الرقم القومي
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                begin
+                  return epromhq.sports_day_pkg.card_html;
+                end;
+                ```
+        }
+        layout {
+            sequence: 15
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region card-upload (
+        name: استكمال صور البطاقة
+        title: استكمال صور البطاقة
+        type: staticContent
+        source {
+            htmlCode: <div id="sports-selected-preview" class="sports-id-grid" aria-live="polite"></div>
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+            cssClasses: sports-card-upload
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: not epromhq.sports_day_pkg.card_complete
+        }
+    )
+
+    region content (
+        name: اختيار الألعاب
+        title: اختر لعبة أو أكثر
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region registration-status (
+        name: حالة الاشتراك
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                begin
+                  return epromhq.sports_day_pkg.registration_html;
+                end;
+                ```
+        }
+        layout {
+            sequence: 7
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region sports-document (
+        name: إعلان اليوم الرياضي
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="sports-hero">
+                  <p class="sports-eyebrow">SPORTS DAY 2026</p>
+                  <h2>يوم رياضي يجمعنا</h2>
+                  <p class="sports-hero-intro">اختار ألعابك وشارك زملاءك يومًا من النشاط والمنافسة.</p>
+                  <div class="sports-meta">
+                    <span><i class="fa fa-calendar" aria-hidden="true"></i>31 أكتوبر 2026</span>
+                    <span><i class="fa fa-clock-o" aria-hidden="true"></i>10 صباحًا</span>
+                    <span><i class="fa fa-map-marker" aria-hidden="true"></i>ميناء الحمراء البترولي</span>
+                  </div>
+                  <button type="button" id="sports-toggle-pdf" class="sports-pdf-button" aria-expanded="false" aria-controls="sports-pdf-panel"><i class="fa fa-file-pdf-o" aria-hidden="true"></i><span id="sports-pdf-button-label">عرض إعلان اليوم الرياضي</span><i class="fa fa-angle-down" aria-hidden="true"></i></button>
+                </div>
+                <section id="sports-pdf-panel" aria-label="إعلان اليوم الرياضي" hidden>
+                  <div class="sports-document-tools"><span>إعلان اليوم الرياضي · صفحة واحدة</span><a href="#APP_FILES#sports-day-2026.pdf" target="_blank" rel="noopener">فتح ملف PDF الأصلي <i class="fa fa-external-link" aria-hidden="true"></i></a></div>
+                  <a href="#APP_FILES#sports-day-2026.pdf" target="_blank" rel="noopener"><img class="sports-pdf-page" src="#APP_FILES#sports-day-2026-preview.png" alt="إعلان اليوم الرياضي 2026 - معاينة صفحة PDF الوحيدة"></a>
+                </section>
+                ```
+        }
+        layout {
+            sequence: 5
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+            cssClasses: sports-hero-region
+        }
+    )
+
+    pageItem P115_ATTACH1 (
+        type: fileUpload
+        label {
+            label: وجه البطاقة
+            alignment: left
+        }
+        storage {
+            type: appTempFiles
+            fileTypes: image/jpeg,image/png
+            maxFileSize: 5120
+        }
+        layout {
+            sequence: 10
+            region: @card-upload
+            slot: regionBody
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: not epromhq.sports_day_pkg.has_card_side(1)
+        }
+    )
+
+    pageItem P115_ATTACH2 (
+        type: fileUpload
+        label {
+            label: ظهر البطاقة
+            alignment: left
+        }
+        storage {
+            type: appTempFiles
+            fileTypes: image/jpeg,image/png
+            maxFileSize: 5120
+        }
+        layout {
+            sequence: 20
+            region: @card-upload
+            slot: regionBody
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: not epromhq.sports_day_pkg.has_card_side(2)
+        }
+    )
+
+    pageItem P115_GAMES (
+        type: checkboxGroup
+        label {
+            label: الألعاب المتاحة
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:كرة قدم;FOOTBALL,تنس طاولة;TABLE_TENNIS,الكرة الشاطئية;BEACH_BALL,100 متر جري;RUN_100M,شد الحبل;TUG_OF_WAR
+        }
+        layout {
+            sequence: 10
+            region: @content
+            slot: regionBody
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button cancel-registration (
+        buttonName: CANCEL_REGISTRATION
+        label: إلغاء الاشتراك
+        layout {
+            sequence: 15
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            templateOptions: #DEFAULT#
+            cssClasses: sports-cancel-button
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: هل تريد إلغاء اشتراكك في اليوم الرياضي؟ يمكنك الاشتراك مرة أخرى لاحقًا.
+            style: warning
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: epromhq.sports_day_pkg.is_registered
+        }
+    )
+
+    button close (
+        buttonName: CLOSE
+        label: إغلاق
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button register (
+        buttonName: REGISTER
+        label: حفظ الاشتراك
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: epromhq.sports_day_pkg.card_complete
+        }
+    )
+
+    button upload-id (
+        buttonName: UPLOAD_ID
+        label: حفظ صور البطاقة
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: not epromhq.sports_day_pkg.card_complete
+        }
+    )
+
+    dynamicAction close-dialog (
+        name: Close Dialog
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close
+        }
+
+        action native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    validation games-required (
+        name: اختيار لعبة
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: itemIsNotNull
+            item: P115_GAMES
+        }
+        error {
+            errorMessage: اختر لعبة واحدة على الأقل.
+            associatedItem: @P115_GAMES
+        }
+        serverSideCondition {
+            whenButtonPressed: @register
+        }
+    )
+
+    process cancel-sports-registration (
+        name: إلغاء اشتراك الموظف الحالي
+        type: executeCode
+        source {
+            plsqlCode: begin epromhq.sports_day_pkg.cancel_registration; :P115_GAMES := null; end;
+        }
+        execution {
+            sequence: 5
+        }
+        successMessage {
+            successMessage: تم إلغاء اشتراكك في اليوم الرياضي. يمكنك الاشتراك مرة أخرى لاحقًا.
+        }
+        advanced {
+            executionMappingIdentifier: 79427998523862698
+        }
+        serverSideCondition {
+            whenButtonPressed: @cancel-registration
+        }
+    )
+
+    process load-registration (
+        name: تحميل الاختيارات السابقة
+        type: executeCode
+        source {
+            plsqlCode: begin if :P115_GAMES is null then :P115_GAMES := epromhq.sports_day_pkg.saved_games; end if; end;
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 79216083428197965
+        }
+    )
+
+    process page (
+        name: تأكيد الاشتراك
+        type: closeDialog
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 79216189560197965
+        }
+        serverSideCondition {
+            whenButtonPressed: @register
+        }
+    )
+
+    process register-games (
+        name: تسجيل الألعاب
+        type: executeCode
+        source {
+            plsqlCode: begin epromhq.sports_day_pkg.register_games(:P115_GAMES); end;
+        }
+        execution {
+            sequence: 20
+        }
+        successMessage {
+            successMessage: تم حفظ اشتراكك في اليوم الرياضي بنجاح.
+        }
+        advanced {
+            executionMappingIdentifier: 79215985364197965
+        }
+        serverSideCondition {
+            whenButtonPressed: @register
+        }
+    )
+
+    process stream-sports-card (
+        name: عرض بطاقة الموظف الحالي
+        type: executeCode
+        source {
+            plsqlCode: begin epromhq.sports_day_pkg.download_card(case :REQUEST when 'SPORTS_CARD_FRONT' then 1 when 'SPORTS_CARD_BACK' then 2 end); end;
+        }
+        execution {
+            sequence: 1
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 79300514202388255
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SPORTS_CARD_FRONT,SPORTS_CARD_BACK
+        }
+    )
+
+    process upload-card (
+        name: رفع وجهي البطاقة
+        type: executeCode
+        source {
+            plsqlCode: begin epromhq.sports_day_pkg.upload_card(:P115_ATTACH1, :P115_ATTACH2); :P115_ATTACH1 := null; :P115_ATTACH2 := null; end;
+        }
+        execution {
+            sequence: 10
+        }
+        successMessage {
+            successMessage: تم رفع صورة بطاقتك بنجاح. يمكنك الآن تقديم الاشتراك بعد اكتمال الوجه والظهر.
+        }
+        error {
+            errorMessage: تعذر رفع الصور. تأكد من اختيار صورة JPEG أو PNG لكل جانب غير موجود، بحد أقصى 5 ميجابايت للصورة.
+        }
+        advanced {
+            executionMappingIdentifier: 79215806370197964
+        }
+        serverSideCondition {
+            whenButtonPressed: @upload-id
+        }
+    )
+
+    branch (
+        name: refresh-card-preview
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 115
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @upload-id
+        }
+    )
+
+    branch (
+        name: refresh-after-cancellation
+        execution {
+            sequence: 20
+        }
+        behavior {
+            target: {
+                page: 115
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @cancel-registration
+        }
+    )
+
+)

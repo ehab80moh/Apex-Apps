@@ -1,0 +1,292 @@
+page 501 (
+    name: surveys
+    alias: SURVEYS
+    title: &APP_TEXT$SURVEYS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        title: &APP_TEXT$BREADCRUMB.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region surveys (
+        name: surveys
+        title: &APP_TEXT$SURVEYS.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select SURVEY_ID,
+                       SURVEY_TITILE,
+                       DESCR,
+                       START_DATE,
+                       END_DATE
+                       ,'q' questions
+                  from EPROMHQ.GEN_SURVEYS
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 502
+                items: {
+                    P502_SURVEY_ID: \#SURVEY_ID#\
+                }
+                action: resetPagination
+            }
+            linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_DATA_FOUND_1.
+            whenMoreDataFound: "&{MAX_ROW_COUNT_MESSAGE MAX_ROW_COUNT=#MAX_ROW_COUNT#}."
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 98036403201854738
+        }
+
+        column DESCR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DESCR.
+            }
+            layout {
+                sequence: 3
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column END_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$END_DATE.
+            }
+            layout {
+                sequence: 5
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column QUESTIONS (
+            type: link
+            heading {
+                heading: &APP_TEXT$QUESTIONS.
+            }
+            layout {
+                sequence: 15
+            }
+            link {
+                target: {
+                    page: 503
+                    items: {
+                        P503_SURVEY_ID: #SURVEY_ID#
+                    }
+                }
+                linkText: <img src="#APEX_FILES#app_ui/img/icons/apex-edit-view.png" class="apex-edit-view" alt="">
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column START_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$START_DATE.
+            }
+            layout {
+                sequence: 4
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column SURVEY_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SURVEY_ID.
+            }
+            layout {
+                sequence: 0
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column SURVEY_TITILE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SURVEY_TITILE.
+            }
+            layout {
+                sequence: 2
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: &APP_TEXT$SURVEYS.
+        }
+
+        savedReport 980412 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn DESCR (
+                sequence: 3
+            )
+
+            displayColumn END_DATE (
+                sequence: 5
+            )
+
+            displayColumn QUESTIONS (
+                sequence: 6
+            )
+
+            displayColumn START_DATE (
+                sequence: 4
+            )
+
+            displayColumn SURVEY_ID (
+                sequence: 1
+            )
+
+            displayColumn SURVEY_TITILE (
+                sequence: 2
+            )
+
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$CREATE.
+        layout {
+            sequence: 10
+            region: @surveys
+            slot: rightOfInteractiveReportSearchBar
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 502
+                clearCache: 502
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction edit-report-dialog-closed (
+        name: Edit Report - Dialog Closed
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @surveys
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @surveys
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

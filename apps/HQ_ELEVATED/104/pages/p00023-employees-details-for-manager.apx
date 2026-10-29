@@ -1,0 +1,20 @@
+page 23 (
+    name: employees_details_for_manager
+    alias: EMPLOYEES-DETAILS-FOR-MANAGER
+    title: &APP_TEXT$EMPLOYEESDETAILSFORMANAGER.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+)

@@ -1,0 +1,283 @@
+page 18 (
+    name: تنبيهات الخدمات الذاتية
+    alias: SELF-SERVICE-ALERTS
+    title: &APP_TEXT$SELF_SERVICE_ALERTS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        title: &APP_TEXT$BREADCRUMB.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region تنبيهات-الخدمات-الذاتية (
+        name: تنبيهات الخدمات الذاتية
+        title: &APP_TEXT$SELF_SERVICE_ALERTS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select * from central.XXAPEX_SS_NOTIFICATIONS_V ts
+                where ts.step_status in (10,15)
+                
+                 AND (
+                    ( :APP_USER IN (
+                        SELECT
+                            column_value
+                        FROM
+                            TABLE ( apex_string.split(ts.approvals, ':') )
+                    ) ))
+                    or (
+                        ( :APP_USER IN (
+                        SELECT
+                            column_value
+                        FROM
+                            TABLE ( apex_string.split(ts.readers, ':') )
+                    ) ))
+                
+                    
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--hideHeader
+                t-Region--scrollBody
+            ]
+        }
+        reportLayout {
+            numberOfRows: 50
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--staticRowColors
+                t-Report--rowHighlight
+                t-Report--inline
+                t-Report--hideNoPagination
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        performance {
+            maxRowsToProcess: 500
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_DATA_FOUND.
+        }
+
+        column APPROVALS (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 38
+            }
+        )
+
+        column CREATION_DATE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$SUBMISSION_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 5
+                columnAlignment: center
+            }
+        )
+
+        column DERIVED$01 (
+            reportColumnQueryId: 11
+            derivedColumn: Y
+            type: link
+            heading {
+                heading: &APP_TEXT$ORDER_DETAILS.
+                alignment: center
+            }
+            layout {
+                sequence: 48
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    page: 17
+                    items: {
+                        P17_REQ_OWNER_EMP_NUMBER: #TRANSACTION_OWNER_EMP_NUMBER#
+                        P17_TRANSACTION_ID: #TRANSACTION_ID#
+                        P17_TRA_STEP_ID: #TRANSACTION_STEP_ID#
+                    }
+                }
+                linkText: <img src="#IMAGE_PREFIX#app_ui/img/icons/apex-edit-view.png" class="apex-edit-view" alt="">
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LAST_UPDATED_DATE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 4
+            }
+        )
+
+        column READERS (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 28
+            }
+        )
+
+        column REQUESTER_EMP_NUMBER (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICANT.
+                alignment: end
+            }
+            layout {
+                sequence: 2
+                columnAlignment: end
+            }
+        )
+
+        column REQUEST_APPROVAL_ID (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 98
+            }
+        )
+
+        column REQUEST_ID (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 88
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 78
+            }
+        )
+
+        column SEQ (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 68
+            }
+        )
+
+        column STATUS (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$STATUS.
+                alignment: center
+            }
+            layout {
+                sequence: 58
+            }
+        )
+
+        column STEP_STATUS (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ACCREDITATION_STATUS.
+                alignment: center
+            }
+            layout {
+                sequence: 8
+                columnAlignment: center
+            }
+        )
+
+        column TRANSACTION_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 6
+            }
+        )
+
+        column TRANSACTION_OWNER_EMP_NUMBER (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPLICANT_NUMBER.
+                alignment: end
+            }
+            layout {
+                sequence: 3
+                columnAlignment: end
+            }
+        )
+
+        column TRANSACTION_STEP_ID (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 7
+            }
+        )
+
+    )
+
+)

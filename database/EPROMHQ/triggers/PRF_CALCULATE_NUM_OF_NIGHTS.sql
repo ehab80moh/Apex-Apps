@@ -1,0 +1,16 @@
+
+  CREATE OR REPLACE EDITIONABLE TRIGGER "EPROMHQ"."PRF_CALCULATE_NUM_OF_NIGHTS"
+BEFORE INSERT or update ON prf_hotel_request
+FOR EACH ROW
+BEGIN
+  -- Check if both PR_CHECK_IN and PR_CHECK_OUT are not null
+  IF :NEW.PR_CHECK_IN IS NOT NULL AND :NEW.PR_CHECK_OUT IS NOT NULL THEN
+    -- Calculate the number of nights from PR_CHECK_IN and PR_CHECK_OUT
+    :NEW.NUMBER_OF_NIGHTS :=  (to_date(:NEW.PR_CHECK_OUT) - to_date(:NEW.PR_CHECK_IN)) + 1;
+  ELSE
+    -- Calculate the number of nights from CHECK_IN and CHECK_OUT
+    :NEW.NUMBER_OF_NIGHTS := (to_date(:NEW.CHECK_OUT) - to_date(:NEW.CHECK_IN)) + 1;
+  END IF;
+END;
+/
+ALTER TRIGGER "EPROMHQ"."PRF_CALCULATE_NUM_OF_NIGHTS" ENABLE;

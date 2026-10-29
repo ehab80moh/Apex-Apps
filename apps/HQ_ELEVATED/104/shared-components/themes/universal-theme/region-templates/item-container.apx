@@ -1,0 +1,129 @@
+regionTemplate item-container (
+    name: Item Container
+    templateClass: custom1
+    region {
+        template:
+            ```html
+            <div class="t-ItemContainer #REGION_CSS_CLASSES#" id="#REGION_STATIC_ID#" #REGION_LANDMARK_ATTRIBUTES# #REGION_ATTRIBUTES#>
+              <div class="t-ItemContainer-start">#BUTTON_START#</div>
+              <div class="t-ItemContainer-item">#BODY#</div>
+              <div class="t-ItemContainer-end">#BUTTON_END#</div>
+            </div>
+            ```
+    }
+    advanced {
+        identifier: ITEM_CONTAINER
+    }
+
+    templateOption stack-mobile (
+        name: Stack on Mobile
+        sequence: 1
+        appearance {
+            cssClasses: t-ItemContainer--stackMobile
+        }
+        advanced {
+            identifier: STACK_MOBILE
+        }
+    )
+
+    templateOption wrap-items (
+        name: Wrap Items
+        sequence: 2
+        appearance {
+            cssClasses: t-ItemContainer--wrap
+        }
+        advanced {
+            identifier: WRAP_ITEMS
+        }
+    )
+
+    templateOption alignment-center (
+        name: Center
+        group: @region/alignment
+        sequence: 11
+        appearance {
+            cssClasses: t-ItemContainer--alignCenter
+        }
+        advanced {
+            identifier: ALIGNMENT_CENTER
+        }
+    )
+
+    templateOption alignment-end (
+        name: End
+        group: @region/alignment
+        sequence: 12
+        appearance {
+            cssClasses: t-ItemContainer--alignEnd
+        }
+        advanced {
+            identifier: ALIGNMENT_END
+        }
+    )
+
+    templateOption alignment-start (
+        name: Start
+        group: @region/alignment
+        sequence: 10
+        appearance {
+            cssClasses: t-ItemContainer--alignStart
+        }
+        advanced {
+            identifier: ALIGNMENT_START
+        }
+    )
+
+    templateOption alignment-stretch (
+        name: Stretch
+        group: @region/alignment
+        sequence: 13
+        appearance {
+            cssClasses: t-ItemContainer--alignStretch
+        }
+        advanced {
+            identifier: ALIGNMENT_STRETCH
+        }
+    )
+
+    slot buttonEnd (
+        name: Button End
+        staticId: BUTTON_END
+        supports {
+            regions: false
+            buttons: true
+        }
+        gridLayout {
+            gridSupport: false
+        }
+    )
+
+    slot buttonStart (
+        name: Button Start
+        staticId: BUTTON_START
+        supports {
+            regions: false
+            buttons: true
+        }
+        gridLayout {
+            gridSupport: false
+        }
+    )
+
+    slot item (
+        name: Item
+        staticId: BODY
+        supports {
+            items: true
+            buttons: true
+        }
+        gridLayout {
+            gridSupport: false
+        }
+    )
+
+    slot subRegions (
+        name: Sub Regions
+        staticId: SUB_REGIONS
+    )
+
+)

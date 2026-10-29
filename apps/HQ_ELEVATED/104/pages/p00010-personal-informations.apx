@@ -1,0 +1,2214 @@
+page 10 (
+    name: "البيانات الشخصيه "
+    alias: PERSONAL-INFORMATIONS
+    title: &APP_TEXT$PERSONAL_DATA.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .ui-dialog.modal-dialog--pullout{
+               top: 0!important;
+            }
+            
+            /* ==========================================================================
+               EPROM Portal Page 10 - Modern Executive Theme (Matched with Page 1)
+               ========================================================================== */
+            
+            /* Page Background & Atmosphere */
+            body.t-PageBody {
+                background: 
+                    radial-gradient(circle at 10% 0%, rgba(15, 118, 110, 0.07), transparent 32rem),
+                    radial-gradient(circle at 90% 15%, rgba(14, 165, 233, 0.07), transparent 32rem),
+                    #f8fafc !important;
+            }
+            
+            /* Wrapper container for employee card */
+            .eprom-emp-card-wrapper {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                margin-block: 0.5rem 1.5rem !important;
+            }
+            
+            .eprom-emp-card-wrapper .t-Region-body {
+                padding: 0 !important;
+                background: transparent !important;
+            }
+            
+            .eprom-emp-card-wrapper .t-Region-bodyWrap {
+                background: transparent !important;
+                border: 0 !important;
+                box-shadow: none !important;
+            }
+            
+            /* --------------------------------------------------------------------------
+               Employee Profile Card (Desktop & Mobile)
+               -------------------------------------------------------------------------- */
+            .eprom-emp-card-region {
+                max-width: 880px;
+                margin-inline: auto;
+            }
+            
+            .eprom-emp-card-region .a-CardView-items {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .eprom-emp-card-region .a-CardView-item {
+                position: relative;
+                background: #ffffff !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 22px !important;
+                box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+                overflow: hidden !important;
+                transition: transform 0.25s ease, box-shadow 0.25s ease;
+            }
+            
+            .eprom-emp-card-region .a-CardView-item:hover {
+                box-shadow: 0 16px 38px rgba(15, 23, 42, 0.09) !important;
+            }
+            
+            /* Decorative corporate top accent gradient */
+            .eprom-emp-card-region .a-CardView-item::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 6px;
+                background: linear-gradient(90deg, #0f2744 0%, #0f766e 50%, #0284c7 100%);
+                z-index: 2;
+            }
+            
+            /* Layout for Employee Card Content (vertical, no dead space) */
+            .eprom-emp-card-region .a-CardView {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                padding: 1.15rem 1.6rem !important;
+                gap: 0.85rem !important;
+            }
+            
+            /* Avatar Photo Styling */
+            .eprom-emp-card-region .a-CardView-media,
+            .eprom-emp-card-region .a-CardView-mediaWrap {
+                flex: 0 0 110px !important;
+                width: 110px !important;
+                height: 110px !important;
+                min-width: 110px !important;
+                min-height: 110px !important;
+                max-width: 110px !important;
+                max-height: 110px !important;
+                padding: 0 !important;
+                margin: 0 auto !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: 50% !important;
+                background: transparent !important;
+                overflow: hidden !important;
+            }
+            
+            .eprom-emp-card-region .a-CardView-media img {
+                width: 110px !important;
+                height: 110px !important;
+                min-width: 110px !important;
+                min-height: 110px !important;
+                max-width: 110px !important;
+                max-height: 110px !important;
+                border-radius: 50% !important;
+                object-fit: cover !important;
+                border: 3px solid #11765b !important;
+                box-shadow: 0 0 0 3px #0f766e, 0 4px 14px rgba(15, 23, 42, 0.12) !important;
+                background-color: #f1f5f9;
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                transition: transform 0.25s ease;
+            }
+            
+            .eprom-emp-card-region .a-CardView-item:hover .a-CardView-media img {
+                transform: scale(1.04);
+            }
+            
+            /* Header & Text Content Area */
+            .eprom-emp-card-region .a-CardView-header,
+            .eprom-emp-card-region .a-CardView-mainContent {
+                flex: 0 1 auto !important;
+                width: 100% !important;
+                display: flex;
+                flex-direction: column;
+                gap: 0.4rem;
+                text-align: right;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            [dir="ltr"] .eprom-emp-card-region .a-CardView-header,
+            [dir="ltr"] .eprom-emp-card-region .a-CardView-mainContent {
+                text-align: left;
+            }
+            
+            /* Employee Name */
+            .eprom-card-name {
+                margin: 0;
+                font-size: 1.45rem;
+                font-weight: 800;
+                color: #0f172a;
+                line-height: 1.3;
+                letter-spacing: -0.01em;
+            }
+            
+            /* Badges / Chips row */
+            .eprom-card-chips {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.5rem;
+                margin-top: 0.25rem;
+            }
+            
+            .eprom-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                padding: 0.25rem 0.75rem;
+                border-radius: 999px;
+                font-size: 0.82rem;
+                font-weight: 700;
+                line-height: 1.2;
+            }
+            
+            .eprom-chip--role {
+                background: #f0fdfa;
+                color: #0f766e;
+                border: 1px solid #99f6e4;
+            }
+            
+            .eprom-chip--id {
+                background: #f8fafc;
+                color: #475569;
+                border: 1px solid #e2e8f0;
+            }
+            
+            /* Metadata items (Dept, Location, Email) */
+            .eprom-card-meta {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.5rem;
+                margin-top: 0.35rem;
+                color: #64748b;
+                font-size: 0.86rem;
+                line-height: 1.5;
+            }
+            
+            .eprom-meta-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+            }
+            
+            .eprom-meta-item .fa {
+                color: #0f766e;
+                font-size: 0.95rem;
+            }
+            
+            .eprom-meta-sep {
+                color: #cbd5e1;
+                font-weight: bold;
+            }
+            
+            /* Action Buttons Container - Side by Side */
+            .eprom-emp-card-region .a-CardView-actions {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 100% !important;
+                margin: 0.45rem 0 0 !important;
+                margin-inline-start: 0 !important;
+                flex-shrink: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .eprom-emp-card-region .a-CardView-actionsPrimary {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                flex-wrap: nowrap !important;
+                gap: 0.65rem !important;
+                justify-content: center !important;
+                width: 100% !important;
+            }
+            
+            .eprom-emp-card-region .a-CardView-button {
+                margin-bottom: 0 !important;
+            }
+            
+            .eprom-btn {
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 0.45rem !important;
+                padding: 0.55rem 1.15rem !important;
+                font-size: 0.88rem !important;
+                font-weight: 700 !important;
+                border-radius: 12px !important;
+                transition: all 0.2s ease !important;
+                cursor: pointer !important;
+                text-decoration: none !important;
+                white-space: nowrap !important;
+                width: auto !important;
+            }
+            
+            .eprom-btn--profile {
+                background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
+                border: 1px solid #0f766e !important;
+                color: #ffffff !important;
+                box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25) !important;
+            }
+            
+            .eprom-btn--profile:hover {
+                background: linear-gradient(135deg, #115e59 0%, #134e4a 100%) !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 16px rgba(15, 118, 110, 0.35) !important;
+                color: #ffffff !important;
+            }
+            
+            .eprom-btn--edit {
+                background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+                border: 1px solid #0284c7 !important;
+                color: #ffffff !important;
+                box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25) !important;
+            }
+            
+            .eprom-btn--edit:hover {
+                background: linear-gradient(135deg, #0369a1 0%, #075985 100%) !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35) !important;
+                color: #ffffff !important;
+            }
+            
+            /* Responsive Mobile Adjustments for Profile Card */
+            @media (max-width: 768px) {
+                .eprom-emp-card-region .a-CardView {
+                    flex-direction: column !important;
+                    text-align: center !important;
+                    padding: 1.25rem 1rem !important;
+                    gap: 0.75rem !important;
+                }
+            
+                .eprom-emp-card-region .a-CardView-media,
+                .eprom-emp-card-region .a-CardView-mediaWrap,
+                .eprom-emp-card-region .a-CardView-media img {
+                    width: 96px !important;
+                    height: 96px !important;
+                    min-width: 96px !important;
+                    min-height: 96px !important;
+                    max-width: 96px !important;
+                    max-height: 96px !important;
+                }
+            
+                .eprom-emp-card-region .a-CardView-header,
+                .eprom-emp-card-region .a-CardView-mainContent {
+                    align-items: center !important;
+                    text-align: center !important;
+                }
+            
+                .eprom-card-chips,
+                .eprom-card-meta {
+                    justify-content: center !important;
+                }
+            
+                .eprom-emp-card-region .a-CardView-actions,
+                .eprom-emp-card-region .a-CardView-actionsPrimary {
+                    margin-inline-start: 0 !important;
+                    width: 100% !important;
+                    display: flex !important;
+                    flex-direction: row !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                    flex-wrap: wrap !important;
+                    gap: 0.5rem !important;
+                    margin-top: 0.5rem !important;
+                }
+            
+                .eprom-emp-card-region .a-CardView-actionsPrimary .eprom-btn {
+                    flex: 1 1 calc(50% - 0.5rem) !important;
+                    min-width: 120px !important;
+                    padding: 0.5rem 0.6rem !important;
+                    font-size: 0.82rem !important;
+                    white-space: nowrap !important;
+                }
+            }
+            
+            /* --------------------------------------------------------------------------
+               Region Display Selector (Modern Pill Tabs)
+               -------------------------------------------------------------------------- */
+            .apex-rds-container {
+                max-width: 960px;
+                margin: 0.75rem auto 1.5rem !important;
+            }
+            
+            .apex-rds {
+                background: #ffffff !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 16px !important;
+                padding: 6px !important;
+                box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 6px !important;
+                justify-content: center !important;
+            }
+            
+            .apex-rds li {
+                border: none !important;
+                margin: 0 !important;
+            }
+            
+            .apex-rds-item a {
+                border-radius: 12px !important;
+                padding: 0.6rem 1.25rem !important;
+                font-weight: 700 !important;
+                font-size: 0.92rem !important;
+                color: #475569 !important;
+                transition: all 0.22s ease !important;
+                text-decoration: none !important;
+            }
+            
+            .apex-rds-item.apex-rds-selected a,
+            .apex-rds-item a:hover {
+                background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
+                color: #ffffff !important;
+                box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3) !important;
+            }
+            
+            /* --------------------------------------------------------------------------
+               Detail Regions & Report Panels
+               -------------------------------------------------------------------------- */
+            .p10-side-by-side-region {
+                max-width: none !important;
+                margin-inline: 0 !important;
+            }
+            
+            @media (max-width: 768px) {
+                .p10-side-by-side-region {
+                    grid-column: 1 / -1 !important;
+                    width: 100% !important;
+                    max-width: 960px !important;
+                    margin-inline: auto !important;
+                }
+            }
+            
+            .t-Region {
+                max-width: 960px;
+                margin-inline: auto !important;
+                background: #ffffff !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 20px !important;
+                box-shadow: 0 6px 24px rgba(15, 23, 42, 0.04) !important;
+                overflow: hidden !important;
+                margin-bottom: 1.5rem !important;
+                transition: box-shadow 0.25s ease;
+            }
+            
+            .t-Region:hover {
+                box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07) !important;
+            }
+            
+            /* Keep the employee-card host transparent; only the card itself is surfaced. */
+            .t-Region.eprom-emp-card-wrapper {
+                background: transparent !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                overflow: visible !important;
+            }
+            
+            .t-Region.eprom-emp-card-wrapper:hover {
+                box-shadow: none !important;
+            }
+            
+            .t-Region.eprom-emp-card-wrapper .t-Region-header,
+            .t-Region.eprom-emp-card-wrapper .t-Region-bodyWrap,
+            .t-Region.eprom-emp-card-wrapper .t-Region-body {
+                background: transparent !important;
+                border: 0 !important;
+                box-shadow: none !important;
+            }
+            
+            .t-Region-header {
+                background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%) !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+                padding: 1.15rem 1.6rem !important;
+            }
+            
+            .t-Region-title {
+                font-size: 1.25rem !important;
+                font-weight: 800 !important;
+                color: #0f2744 !important;
+                letter-spacing: -0.01em;
+            }
+            
+            .t-Region-headerIcon .t-Icon {
+                color: #0f766e !important;
+                font-size: 1.2rem !important;
+            }
+            
+            /* Value-Attribute Pairs */
+            .t-AVPList {
+                padding: 0.5rem 1.25rem !important;
+            }
+            
+            .t-AVPList-item {
+                padding: 0.9rem 0.5rem !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+            }
+            
+            .t-AVPList-label {
+                color: #64748b !important;
+                font-weight: 600 !important;
+                font-size: 0.92rem !important;
+            }
+            
+            .t-AVPList-value {
+                color: #0f172a !important;
+                font-weight: 700 !important;
+                font-size: 0.98rem !important;
+            }
+            
+            /* Report Tables (Telephones, Training, Qualifications, Addresses) */
+            .t-Report-report {
+                border-collapse: separate !important;
+                border-spacing: 0 !important;
+                width: 100% !important;
+                border-radius: 14px !important;
+                overflow: hidden !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+            
+            .t-Report-report th {
+                background: #f8fafc !important;
+                color: #334155 !important;
+                font-weight: 700 !important;
+                font-size: 0.88rem !important;
+                padding: 0.95rem 1.15rem !important;
+                border-bottom: 2px solid #0f766e !important;
+            }
+            
+            .t-Report-report td {
+                padding: 0.95rem 1.15rem !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+                color: #1e293b !important;
+                font-size: 0.92rem !important;
+            }
+            
+            .t-Report-report tbody tr:hover td {
+                background: #f0fdfa !important;
+            }
+            
+            .t-Report-report tbody tr:last-child td {
+                border-bottom: none !important;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region emp-card-desktop (
+        name: emp card desktop
+        title: &APP_TEXT$EMP_CARD_DESKTOP.
+        type: cards
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_EMP_DATA
+            whereClause: EMP_NUMBER = :APP_USER
+        }
+        layout {
+            sequence: 10
+            parentRegion: @emp-cards-mobile-and-desktop
+            slot: subRegions
+            column: 1
+            columnSpan: 12
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+                t-Region-orderBy--center
+            ]
+            cssClasses: [
+                hidden-sm-down
+                eprom-emp-card-region
+                eprom-emp-card-region--desktop
+            ]
+        }
+        componentAppearance {
+            layout: horizontal
+        }
+        card {
+            primaryKeyColumn1: EMP_NUMBER
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <div class="eprom-card-title-wrap">
+                    <h2 class="eprom-card-name">&EMP_NAME.</h2>
+                    <div class="eprom-card-chips">
+                        <span class="eprom-chip eprom-chip--role"><span class="fa fa-briefcase" aria-hidden="true"></span> &EXCEL_POS.</span>
+                        <span class="eprom-chip eprom-chip--id"><span class="fa fa-id-card-o" aria-hidden="true"></span> #&EMP_NUMBER.</span>
+                    </div>
+                </div>
+                ```
+        }
+        subtitle {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <div class="eprom-card-meta">
+                    <span class="eprom-meta-item"><span class="fa fa-building-o" aria-hidden="true"></span> &ORGANIZATION_NAME.</span>
+                    <span class="eprom-meta-sep">•</span>
+                    <span class="eprom-meta-item"><span class="fa fa-map-marker" aria-hidden="true"></span> &PROJECT.</span>
+                    <span class="eprom-meta-sep">•</span>
+                    <span class="eprom-meta-item"><span class="fa fa-envelope-o" aria-hidden="true"></span> &COMP_EMAIL.</span>
+                </div>
+                ```
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGE
+            position: first
+            appearance: square
+        }
+        performance {
+            lazyLoading: true
+        }
+
+        action action (
+            label: &APP_TEXT$RELATIVES.
+            layout {
+                sequence: 20
+            }
+            behavior {
+                target: {
+                    page: 5
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-user-heart
+                cssClasses: [
+                    eprom-btn
+                    eprom-btn--profile
+                ]
+            }
+        )
+
+        action action-2 (
+            label: &APP_TEXT$VACATION_DATA.
+            layout {
+                sequence: 30
+            }
+            behavior {
+                target: {
+                    page: 45
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-umbrella
+                cssClasses: [
+                    eprom-btn
+                    eprom-btn--profile
+                ]
+            }
+            serverSideCondition {
+                type: functionBody
+                plsqlFunctionBody:
+                    ```plsql
+                    DECLARE
+                      l_count NUMBER;
+                    BEGIN
+                    
+                     SELECT COUNT(*)
+                      INTO l_count
+                      FROM xxapex_hr_emp_Data
+                      WHERE emp_number = :APP_USER;
+                    
+                      RETURN l_count > 0;
+                    
+                    END;
+                    
+                    ```
+            }
+        )
+
+        action action-edit-data (
+            label: &APP_TEXT$REQUEST_TO_MODIFY_DATA.
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 57
+                    items: {
+                        P57_EMP_ID: &EMP_NUMBER.
+                    }
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-pencil-square-o
+                hot: true
+                cssClasses: [
+                    eprom-btn
+                    eprom-btn--edit
+                ]
+            }
+        )
+
+    )
+
+    region emp-card-mobile (
+        name: emp card mobile
+        title: &APP_TEXT$EMP_CARD_MOBILE.
+        type: cards
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_EMP_DATA
+            whereClause: EMP_NUMBER = :APP_USER
+        }
+        layout {
+            sequence: 20
+            parentRegion: @emp-cards-mobile-and-desktop
+            slot: subRegions
+            column: 1
+            columnSpan: 12
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+            ]
+            cssClasses: [
+                hidden-md-up
+                eprom-emp-card-region
+                eprom-emp-card-region--mobile
+            ]
+        }
+        card {
+            primaryKeyColumn1: EMP_NUMBER
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <div class="eprom-card-title-wrap">
+                    <h2 class="eprom-card-name">&EMP_NAME.</h2>
+                    <div class="eprom-card-chips">
+                        <span class="eprom-chip eprom-chip--role"><span class="fa fa-briefcase" aria-hidden="true"></span> &EXCEL_POS.</span>
+                        <span class="eprom-chip eprom-chip--id">#&EMP_NUMBER.</span>
+                    </div>
+                </div>
+                ```
+        }
+        subtitle {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <div class="eprom-card-meta">
+                    <span class="eprom-meta-item"><span class="fa fa-building-o" aria-hidden="true"></span> &ORGANIZATION_NAME.</span>
+                    <span class="eprom-meta-sep">•</span>
+                    <span class="eprom-meta-item"><span class="fa fa-map-marker" aria-hidden="true"></span> &PROJECT.</span>
+                </div>
+                ```
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGE
+            position: first
+            appearance: square
+        }
+        performance {
+            lazyLoading: true
+        }
+
+        action action (
+            label: &APP_TEXT$RELATIVES.
+            layout {
+                sequence: 20
+            }
+            behavior {
+                target: {
+                    page: 5
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-user-heart
+                cssClasses: [
+                    eprom-btn
+                    eprom-btn--profile
+                    t-Button--stretch
+                ]
+            }
+        )
+
+        action action-2 (
+            label: &APP_TEXT$VACATION_DATA.
+            layout {
+                sequence: 30
+            }
+            behavior {
+                target: {
+                    page: 45
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-umbrella
+                cssClasses: [
+                    eprom-btn
+                    eprom-btn--profile
+                    t-Button--stretch
+                ]
+            }
+        )
+
+        action action-edit-data (
+            label: &APP_TEXT$REQUEST_TO_MODIFY_DATA.
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 57
+                    items: {
+                        P57_EMP_ID: &EMP_NUMBER.
+                    }
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-pencil-square-o
+                hot: true
+                cssClasses: [
+                    eprom-btn
+                    eprom-btn--edit
+                    t-Button--stretch
+                ]
+            }
+        )
+
+    )
+
+    region emp-cards-mobile-and-desktop (
+        name: emp cards mobile and desktop
+        title: &APP_TEXT$EMP_CARDS_MOBILE_AND_DESKTOP.
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--removeHeader js-removeLandmark
+                t-Region--textContent
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+            cssClasses: eprom-emp-card-wrapper
+        }
+    )
+
+    region hidden-form (
+        name: Hidden form
+        title: &APP_TEXT$HIDDEN_FORM.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_EMP_DATA
+        }
+        layout {
+            sequence: 90
+            slot: body
+        }
+        appearance {
+            template: @inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-size600x400
+            ]
+        }
+    )
+
+    region البيانات-الشخصية (
+        name: "البيانات الشخصية "
+        title: &APP_TEXT$PERSONAL_DATA.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 
+                q.comments,
+                       EMP_NAME,
+                       NATIONAL_IDENTIFIER,
+                       EMP_DATE_OF_BIRTH,
+                       EMP_POSITION_NAME,
+                       SITE_CODE,
+                       ORGANIZATION_NAME,
+                       ASSIGNMENTS_DATE,
+                       REPLACE(GRADE_NAME,'EPROM.','') GRADE_NAME,
+                       PERMANENT_DATE,
+                       EXCEL_POS,
+                       PROJECT,
+                       BASIC_SALARY,
+                       EXP_DATE,
+                       SYS.dbms_lob.getlength(IMAGE) image,
+                       IMAGE_ID,
+                       COMP_EMAIL,
+                       PAY_EMAIL,
+                       EGPC_EMAIL,
+                       MAR_STAT,
+                       prim_address,
+                       a.town_or_city
+                  from CENTRAL.XXAPEX_HR_EMP_DATA D,
+                (select* from central.xxapex_hr_qualifications qq
+                    where 1=1 and qq.maon_or_not='Yes')q,
+                 (select* from central.XXAPEX_HR_EMP_ADDRESSES aa
+                  where 1=1 and aa.PRIMARY_ADD='Y') a
+                where EMP_NUMBER = :APP_USER
+                and q.employee_number (+) = d.emp_number
+                and a.employee_number (+) = d.emp_number
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--textContent
+                t-Region--scrollBody
+                t-Form--stretchInputs
+                margin-bottom-lg
+            ]
+            icon: fa-user
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        reportLayout {
+            numberOfRows: 1
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+            showNullValuesAs: -
+        }
+
+        column ASSIGNMENTS_DATE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 360
+            }
+        )
+
+        column BASIC_SALARY (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 410
+            }
+        )
+
+        column COMMENTS (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MAIN_QUALIFICATION.
+                alignment: center
+            }
+            layout {
+                sequence: 440
+            }
+        )
+
+        column COMP_EMAIL (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 180
+            }
+        )
+
+        column EGPC_EMAIL (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 200
+            }
+        )
+
+        column EMP_DATE_OF_BIRTH (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_OF_BIRTH.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column EMP_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column EMP_POSITION_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 330
+            }
+        )
+
+        column EXCEL_POS (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 390
+            }
+        )
+
+        column EXP_DATE (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 420
+            }
+        )
+
+        column GRADE_NAME (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 370
+            }
+        )
+
+        column IMAGE (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column IMAGE_ID (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 430
+            }
+        )
+
+        column MAR_STAT (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MARITAL_STATUS.
+                alignment: center
+            }
+            layout {
+                sequence: 320
+            }
+        )
+
+        column NATIONAL_IDENTIFIER (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NATIONAL_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column ORGANIZATION_NAME (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 350
+            }
+        )
+
+        column PAY_EMAIL (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$SALARY_STATEMENT_TRANSFER_EMAIL.
+                alignment: center
+            }
+            layout {
+                sequence: 190
+            }
+        )
+
+        column PERMANENT_DATE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 380
+            }
+        )
+
+        column PRIM_ADDRESS (
+            reportColumnQueryId: 21
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MAIN_TITLE.
+                alignment: center
+            }
+            layout {
+                sequence: 450
+            }
+        )
+
+        column PROJECT (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 400
+            }
+        )
+
+        column SITE_CODE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 340
+            }
+        )
+
+        column TOWN_OR_CITY (
+            reportColumnQueryId: 22
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CITY.
+                alignment: center
+            }
+            layout {
+                sequence: 460
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+    )
+
+    region البيانات-الشخصية-2 (
+        name: "البيانات الشخصية "
+        title: &APP_TEXT$PERSONAL_DATA.
+        type: staticContent
+        layout {
+            sequence: 30
+            parentRegion: @البيانات-الشخصية
+            slot: regionBody
+        }
+        appearance {
+            template: @hero
+            templateOptions: [
+                #DEFAULT#
+                t-HeroRegion--iconsCircle
+                t-Form--stretchInputs
+            ]
+            icon: fa-user
+        }
+    )
+
+    region البيانات-الوظيفية (
+        name: البيانات الوظيفية
+        title: &APP_TEXT$FUNCTIONAL_DATA.
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @البيانات-الوظيفية-2
+            slot: regionBody
+        }
+        appearance {
+            template: @hero
+            templateOptions: [
+                #DEFAULT#
+                t-HeroRegion--iconsCircle
+                t-Form--stretchInputs
+            ]
+            icon: fa-suitcase
+        }
+    )
+
+    region البيانات-الوظيفية-2 (
+        name: البيانات الوظيفية
+        title: &APP_TEXT$FUNCTIONAL_DATA.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 
+                emp_number,
+                       EMP_POSITION_NAME,
+                       SITE_CODE,
+                       ORGANIZATION_NAME,
+                       ASSIGNMENTS_DATE,
+                       GRADE_NAME,
+                       PERMANENT_DATE,
+                       EXCEL_POS,
+                       PROJECT,
+                       BASIC_SALARY,
+                       EXP_DATE,
+                JOB_DATE
+                  from CENTRAL.XXAPEX_HR_EMP_DATA
+                where EMP_NUMBER = :APP_USER
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--textContent
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+            icon: fa-suitcase
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        reportLayout {
+            numberOfRows: 1
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+
+        column ASSIGNMENTS_DATE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column BASIC_SALARY (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 130
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$JOB_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column EMP_POSITION_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$JOB.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column EXCEL_POS (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column EXP_DATE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 110
+            }
+        )
+
+        column GRADE_NAME (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$JOB_GRADE.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column JOB_DATE (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_OBTAINED.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column ORGANIZATION_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MANAGEMENT.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column PERMANENT_DATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$INSTALLATION_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column PROJECT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PROJECT.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column SITE_CODE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THE_SITE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+    )
+
+    region التليفونات (
+        name: التليفونات
+        title: &APP_TEXT$TELEPHONES.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select PERSON_ID,
+                       EMPLOYEE_NUMBER,
+                       FULL_NAME,
+                       TYPEE,
+                      replace(PHONE_NUMBER,' ','') PHONE_NUMBER,
+                       DATE_FROM,
+                       DATE_TO
+                  from CENTRAL.XXAPEX_HR_EMP_PHONES
+                 where EMPLOYEE_NUMBER=:APP_USER
+                ```
+        }
+        layout {
+            sequence: 60
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        reportLayout {
+            numberOfRows: 1
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: externalPaginationButtons
+        }
+
+        column DATE_FROM (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column DATE_TO (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column PERSON_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column PHONE_NUMBER (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PHONE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TYPEE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region السجلات-التدريبية (
+        name: السجلات التدريبية
+        title: &APP_TEXT$TRAINING_RECORDS.
+        type: classicReport
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_EMP_TRA_RECORDS
+            whereClause:
+                ```sql
+                Employee_number=:APP_USER
+                
+                ```
+        }
+        orderBy {
+            type: item
+            item: {
+                itemName: P10_ORDER_BY
+                orderBys: {
+                    COURSE_START_DATE: COURSE_START_DATE DESC
+                }
+            }
+        }
+        layout {
+            sequence: 80
+            slot: body
+            startNewRow: false
+            column: 7
+            columnSpan: 6
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+            cssClasses: p10-side-by-side-region
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        reportLayout {
+            numberOfRows: 10
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_TRAINING_RECORDS_RECORDED.
+        }
+
+        column COURSE_CENTER (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TRAINING_CENTER.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COURSE_END_DATE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$END_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COURSE_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$COURSE_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COURSE_START_DATE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$START_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column PERSON_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+    )
+
+    region العناوين (
+        name: العناوين
+        title: &APP_TEXT$TITLES.
+        type: classicReport
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_EMP_ADDRESSES
+            includeRowidColumn: true
+            whereClause:
+                ```sql
+                EMPLOYEE_NUMBER=:APP_USER
+                
+                ```
+        }
+        orderBy {
+            type: staticValue
+            orderByClause: primary_add desc
+        }
+        layout {
+            sequence: 50
+            slot: body
+            columnSpan: 6
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+                t-Report--hideNoPagination
+            ]
+        }
+
+        column ADDRESS_LINE1 (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FIRST_ADDRESS_LINE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column ADDRESS_LINE2 (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$SECOND_ADDRESS_LINE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COUNTRY (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THE_TOWN.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column PRIMARY_ADD (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$MAIN_TITLE.
+                alignment: center
+            }
+            lov {
+                type: staticValues
+                staticValues: STATIC:نعم;Y,لا;N
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REGION_1 (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$AREA.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TELEPHONE_NUMBER_1 (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column TOWN_OR_CITY (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CITY.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TRANS_CAT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+    )
+
+    region بيانات-المؤهلات (
+        name: بيانات المؤهلات
+        title: &APP_TEXT$QUALIFICATIONS_DATA.
+        type: classicReport
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_QUALIFICATIONS
+            whereClause: " EMPloyee_NUMBER = :APP_USER"
+        }
+        layout {
+            sequence: 70
+            slot: body
+            column: 1
+            columnSpan: 6
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+            cssClasses: p10-side-by-side-region
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        readOnly {
+            type: always
+        }
+        reportLayout {
+            numberOfRows: 4
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_REGISTERED_QUALIFICATIONS.
+        }
+
+        column AWARDED_DATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_OF_OBTAINING_THE_QUALIFICATION.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COMMENTS (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column GRADE_ATTAINED (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPRECIATION.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column MAON_OR_NOT (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$BASIC_QUALIFICATION.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME_OF_QUALIFICATION.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column QAUAL_DESC (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TYPE_OF_QUALIFICATION.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$SPECIALIZATION.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    pageItem P10_COMP_EMAIL (
+        type: hidden
+        layout {
+            sequence: 70
+            region: @hidden-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @hidden-form
+            column: COMP_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P10_EGPC_EMAIL (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$EGPC_EMAIL!RAW.
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @hidden-form
+            slot: regionBody
+            alignment: left
+        }
+        source {
+            formRegion: @hidden-form
+            column: EGPC_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P10_EMP_DATE_OF_BIRTH (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$DATE_OF_BIRTH!RAW.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @hidden-form
+            slot: regionBody
+            alignment: left
+        }
+        source {
+            formRegion: @hidden-form
+            column: EMP_DATE_OF_BIRTH
+            dataType: varchar2
+        }
+    )
+
+    pageItem P10_EMP_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$THE_NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @hidden-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        source {
+            formRegion: @hidden-form
+            column: EMP_NAME
+            dataType: varchar2
+            queryOnly: true
+        }
+    )
+
+    pageItem P10_EMP_NUMBER (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$EMPLOYEE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @hidden-form
+            slot: regionBody
+            alignment: left
+        }
+        source {
+            formRegion: @hidden-form
+            column: EMP_NUMBER
+            dataType: varchar2
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P10_IMAGE (
+        type: displayImage
+        label {
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @hidden-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @hidden-form
+            column: IMAGE
+            dataType: blob
+        }
+    )
+
+    pageItem P10_NATIONAL_IDENTIFIER (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$CARD_PASSPORT_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @hidden-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        source {
+            formRegion: @hidden-form
+            column: NATIONAL_IDENTIFIER
+            dataType: varchar2
+        }
+    )
+
+    pageItem P10_ORDER_BY (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @السجلات-التدريبية
+            slot: regionBody
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        default {
+            type: static
+            staticValue: COURSE_START_DATE
+        }
+    )
+
+    pageItem P10_PAY_EMAIL (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$SALARY_STATEMENT_TRANSFER_EMAIL!RAW.
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @hidden-form
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        source {
+            formRegion: @hidden-form
+            column: PAY_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    process pl-sql (
+        name: PL/SQL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                
+                begin
+                
+                :P10_EMP_NUMBER:=:APP_USER;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 4901400579652916
+        }
+    )
+
+)

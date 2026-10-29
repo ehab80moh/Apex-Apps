@@ -1,0 +1,75 @@
+page 94 (
+    name: DOWNLOAD_EPROM_INNOVATES_SUBMISSIONS
+    alias: DOWNLOAD-EPROM-INNOVATES-SUBMISSIONS
+    title: &APP_TEXT$DOWNLOAD_EPROM_INNOVATES_SUBMISSIONS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        formAutoComplete: false
+    }
+
+    pageItem P94_SUBMISSION_ID (
+        type: textField
+        label {
+            label: Submission Id
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            slot: body
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    button download (
+        buttonName: DOWNLOAD
+        label: Download
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction download (
+        name: DOWNLOAD
+        execution {
+            sequence: 10
+        }
+        when {
+            event: ready
+        }
+
+        action plugin-be-apexrnd-aop-da (
+            action: plugin/ucApexOfficePrintAopDa
+            settings {
+                templateType: filenameWithPathRelativeToAopServer
+                templateSource3: C:\aop_24_2\reports\eprom_innovates_submissions.docx
+                dataType: plSqlFunctionReturningJson
+                dataSource2: RETURN EPROM_INNOVATES_SUBMISSIONS_AOP.GET_IDEA_SUBMISSIONS_JSON(:P94_SUBMISSION_ID);
+                outputType: pdfPdf
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+)

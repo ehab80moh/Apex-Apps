@@ -1,0 +1,1938 @@
+workflow IT_REQUEST_WF (
+    name: IT_REQUEST_WF
+    title: IT Request Processing Workflow
+
+    parameter P_EMP_ID (
+        label {
+            label: P_EMP_ID
+        }
+    )
+
+    parameter P_EMP_NAME (
+        label {
+            label: P_EMP_NAME
+        }
+    )
+
+    parameter P_REQUEST_ID (
+        label {
+            label: P_REQUEST_ID
+        }
+    )
+
+    parameter P_REQUEST_TYPE_ID (
+        label {
+            label: P_REQUEST_TYPE_ID
+        }
+    )
+
+    parameter P_TITLE (
+        label {
+            label: P_TITLE
+        }
+    )
+
+    version IT_REQUEST_WF (
+        settings {
+            state: inactive
+        }
+
+        activity approval-required (
+            name: Check Approval Route
+            type: switch
+            condition {
+                conditionType: functionBody
+                plsqlFunctionBody:
+                    ```plsql
+                    DECLARE
+                        l_count NUMBER;
+                    BEGIN
+                        SELECT COUNT(*)
+                          INTO l_count
+                          FROM central.apr_approval_result_v
+                         WHERE request_type_id = 104
+                           AND emp_number = TO_NUMBER(:P_EMP_ID)
+                           AND approve_type = 'FYA'
+                           AND approver NOT IN ('-1', '-2');
+                        RETURN l_count > 0;
+                    EXCEPTION
+                        WHEN OTHERS THEN
+                            RETURN FALSE;
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 15
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":900,\"y\":110}}"
+            }
+
+            connection (
+                name: ApprovalRequired
+                condition {
+                    when: true
+                }
+                activity {
+                    to: @invoke-approval-sub-workflow
+                }
+            )
+
+            connection (
+                name: NoApprovalRoute
+                condition {
+                    when: false
+                }
+                activity {
+                    to: @update-request-approved
+                }
+            )
+
+        )
+
+        activity check-coordinator-outcome (
+            name: Check Coordinator Outcome
+            type: switch
+            condition {
+                conditionType: functionBody
+                plsqlFunctionBody:
+                    ```plsql
+                    DECLARE
+                        l_status NUMBER;
+                    BEGIN
+                        SELECT status
+                          INTO l_status
+                          FROM hq_elevated.itr_requests
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID);
+                    
+                        RETURN l_status = 100;
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            RETURN FALSE;
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 65
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1530,\"y\":670}}"
+            }
+
+            connection (
+                name: Assigned
+                condition {
+                    when: true
+                }
+                activity {
+                    to: @technician-execution-task
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            connection (
+                name: Completed
+                condition {
+                    when: false
+                }
+                activity {
+                    to: @update-request-closed
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity check-subwf-outcome (
+            name: Check Approval Sub-Workflow Outcome
+            type: switch
+            switch {
+                type: checkWorkflowVar
+            }
+            compare {
+                compareVar: V_APPROVAL_RES
+            }
+            layout {
+                sequence: 30
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":900,\"y\":350}}"
+            }
+
+            connection (
+                name: APPROVED
+                execution {
+                    sequence: 10
+                }
+                condition {
+                    operator: =
+                    value: APPROVED
+                }
+                activity {
+                    to: @update-request-approved
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"right\",\"args\":{\"dx\":-10,\"dy\":0}},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"22.727%\",\"dy\":\"33.333%\",\"rotate\":true}},\"vertices\":[],\"z\":2,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            connection (
+                name: REJECTED
+                execution {
+                    sequence: 20
+                }
+                condition {
+                    operator: =
+                    value: REJECTED
+                }
+                activity {
+                    to: @update-request-rejected
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"left\",\"args\":{\"dx\":10,\"dy\":0}},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"86.364%\",\"dy\":\"0%\",\"rotate\":true}},\"vertices\":[],\"z\":3,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity check-user-verify-outcome (
+            name: Check Requester Sign-Off Outcome
+            type: switch
+            condition {
+                conditionType: functionBody
+                plsqlFunctionBody:
+                    ```plsql
+                    declare
+                    v_Status number ;
+                    BEGIN
+                      select
+                          STATUS into v_Status
+                     from  ITR_REQUESTS where REQUEST_ID = :P_REQUEST_ID;
+                    
+                        IF v_status =150 THEN
+                            RETURN TRUE;
+                        ELSE
+                            RETURN FALSE;
+                        END IF;
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 85
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1150,\"y\":900}}"
+            }
+
+            connection (
+                name: Confirmed
+                condition {
+                    when: true
+                }
+                activity {
+                    to: @update-request-closed
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            connection (
+                name: Reopened
+                condition {
+                    when: false
+                }
+                activity {
+                    to: @update-request-reopened
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity coordinator-triage-task (
+            name: IT Coordinator Triage & Assignment
+            type: humanTaskCreate
+            settings {
+                initiatorItem: P_EMP_ID
+            }
+            humanTask {
+                definition: @gen-wf-action
+                taskIdItem: V_COORD_TASK_ID
+                detailsPkItem: P_REQUEST_ID
+            }
+            overrides {
+                subject: طلب إلى نظم المعلومات للتوجيه - &P_TITLE. من &P_EMP_NAME. (&P_EMP_ID.)
+            }
+            result {
+                outcome: V_COORD_OUTCOME
+                owner: V_COORD_OWNER
+            }
+            layout {
+                sequence: 60
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1150,\"y\":580}}"
+            }
+
+            connection (
+                name: CoordinatorOutcome
+                activity {
+                    to: @check-coordinator-outcome
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            parameter (
+                name: @T_ID
+                value {
+                    staticValue: ITR_COORDINATOR_TRIAGE
+                }
+            )
+
+            parameter (
+                name: @T_EMP_ID
+                value {
+                    type: item
+                    item: P_EMP_ID
+                }
+            )
+
+            parameter (
+                name: @T_EMP_NAME
+                value {
+                    type: item
+                    item: P_EMP_NAME
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_ID
+                value {
+                    type: item
+                    item: P_REQUEST_ID
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_SOURCE
+                value {
+                    staticValue: ITR:104:705
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_TYPE_ID
+                value {
+                    staticValue: 104
+                }
+            )
+
+            parameter (
+                name: @T_POTENTIAL_OWNERS
+                value {
+                    type: sqlQuery
+                    sqlQuery:
+                        ```sql
+                        SELECT COALESCE(
+                            (SELECT LISTAGG(worker_id, ':') WITHIN GROUP (ORDER BY worker_id)
+                               FROM HQ_ELEVATED.ITR_REQUEST_WORKERS
+                              WHERE status_id = 1
+                                AND request_id = TO_NUMBER(:P_REQUEST_ID)),
+                            '1825:1837:3199'
+                        ) FROM dual
+                        ```
+                }
+            )
+
+            parameter (
+                name: @T_BUSINESS_ADMINS
+                value {
+                    staticValue: 1825:1837
+                }
+            )
+
+        )
+
+        activity end-approve (
+            name: END_APPROVE
+            type: workflowEnd
+            layout {
+                sequence: 100
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":960,\"y\":1010}}"
+            }
+        )
+
+        activity end-reject (
+            name: END_REJECT
+            type: workflowEnd
+            endState {
+                endState: terminated
+            }
+            layout {
+                sequence: 90
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":730,\"y\":1010}}"
+            }
+        )
+
+        activity invoke-approval-sub-workflow (
+            name: Call Approval Sub-Workflow
+            type: invokeWorkflow
+            workflow {
+                definition: @GENERIC_APPROVAL_WF
+            }
+            layout {
+                sequence: 20
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":900,\"y\":250}}"
+            }
+
+            connection (
+                name: Done
+                activity {
+                    to: @check-subwf-outcome
+                }
+            )
+
+        )
+
+        activity requester-verification-task (
+            name: Requester Verification & Sign-Off
+            type: humanTaskCreate
+            settings {
+                initiatorItem: P_EMP_ID
+            }
+            humanTask {
+                definition: @gen-wf-action
+                taskIdItem: V_USER_TASK_ID
+                detailsPkItem: P_REQUEST_ID
+            }
+            overrides {
+                subject: تأكيد إغلاق طلب نظم المعلومات رقم &P_REQUEST_ID.
+            }
+            result {
+                outcome: V_USER_VERIFY_OUTCOME
+                owner: V_USER_VERIFY_OWNER
+            }
+            layout {
+                sequence: 80
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1150,\"y\":800}}"
+            }
+
+            connection (
+                name: VerifyOutcome
+                activity {
+                    to: @check-user-verify-outcome
+                }
+            )
+
+            parameter (
+                name: @T_ID
+                value {
+                    staticValue: ITR_USER_VERIFICATION
+                }
+            )
+
+            parameter (
+                name: @T_EMP_ID
+                value {
+                    type: item
+                    item: P_EMP_ID
+                }
+            )
+
+            parameter (
+                name: @T_EMP_NAME
+                value {
+                    type: item
+                    item: P_EMP_NAME
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_ID
+                value {
+                    type: item
+                    item: P_REQUEST_ID
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_SOURCE
+                value {
+                    staticValue: ITR:104:705
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_TYPE_ID
+                value {
+                    staticValue: 104
+                }
+            )
+
+            parameter (
+                name: @T_POTENTIAL_OWNERS
+                value {
+                    type: item
+                    item: P_EMP_ID
+                }
+            )
+
+            parameter (
+                name: @T_BUSINESS_ADMINS
+                value {
+                    staticValue: 1825:1837
+                }
+            )
+
+        )
+
+        activity start_1 (
+            name: Start
+            type: workflowStart
+            layout {
+                sequence: 10
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":980,\"y\":10}}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @approval-required
+                }
+            )
+
+        )
+
+        activity technician-execution-task (
+            name: IT Technician Work & Resolution
+            type: humanTaskCreate
+            settings {
+                initiatorItem: P_EMP_ID
+            }
+            humanTask {
+                definition: @gen-wf-action
+                taskIdItem: V_TECH_TASK_ID
+                detailsPkItem: P_REQUEST_ID
+            }
+            overrides {
+                subject: تنفيذ طلب نظم المعلومات رقم &P_REQUEST_ID. - &P_TITLE.
+            }
+            result {
+                outcome: V_TECH_OUTCOME
+                owner: V_TECH_OWNER
+            }
+            layout {
+                sequence: 70
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1150,\"y\":700}}"
+            }
+
+            connection (
+                name: Finished
+                activity {
+                    to: @requester-verification-task
+                }
+            )
+
+            parameter (
+                name: @T_ID
+                value {
+                    staticValue: ITR_TECHNICIAN_WORK
+                }
+            )
+
+            parameter (
+                name: @T_EMP_ID
+                value {
+                    type: item
+                    item: P_EMP_ID
+                }
+            )
+
+            parameter (
+                name: @T_EMP_NAME
+                value {
+                    type: item
+                    item: P_EMP_NAME
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_ID
+                value {
+                    type: item
+                    item: P_REQUEST_ID
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_SOURCE
+                value {
+                    staticValue: ITR:104:705
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_TYPE_ID
+                value {
+                    staticValue: 104
+                }
+            )
+
+            parameter (
+                name: @T_POTENTIAL_OWNERS
+                value {
+                    type: sqlQuery
+                    sqlQuery:
+                        ```sql
+                        SELECT COALESCE(
+                            (SELECT assigned_to
+                               FROM HQ_ELEVATED.ITR_REQUESTS
+                              WHERE request_id = TO_NUMBER(:P_REQUEST_ID)),
+                            (SELECT LISTAGG(username, ':') WITHIN GROUP (ORDER BY username)
+                               FROM HQ_ELEVATED.ITR_TEAM_MEMBERS
+                              WHERE team_id = (SELECT assigned_team_id
+                                                 FROM HQ_ELEVATED.ITR_REQUESTS
+                                                WHERE request_id = TO_NUMBER(:P_REQUEST_ID))),
+                            '1825:1837'
+                        ) FROM dual
+                        ```
+                }
+            )
+
+            parameter (
+                name: @T_BUSINESS_ADMINS
+                value {
+                    staticValue: 1825:1837
+                }
+            )
+
+        )
+
+        activity update-request-approved (
+            name: Update Request as Approved
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                        UPDATE HQ_ELEVATED.ITR_REQUESTS
+                           SET status = 20,
+                               approved = 1,
+                               last_approval_date = SYSDATE
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID);
+                    
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 50
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1150,\"y\":460}}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @coordinator-triage-task
+                }
+            )
+
+        )
+
+        activity update-request-closed (
+            name: Update Request as Closed Complete
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                        UPDATE HQ_ELEVATED.ITR_REQUESTS
+                           SET status = 150,
+                               complete_date = SYSDATE
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID);
+                    
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 87
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":1150,\"y\":1010}}"
+            }
+
+            connection (
+                name: Done
+                activity {
+                    to: @end-approve
+                }
+            )
+
+        )
+
+        activity update-request-rejected (
+            name: Update Request as Rejected
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                        UPDATE HQ_ELEVATED.ITR_REQUESTS
+                           SET status = 140,
+                               approved = 0,
+                               last_approval_date = SYSDATE
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID);
+                    
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 40
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":650,\"y\":460}}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @end-reject
+                }
+            )
+
+        )
+
+        activity update-request-reopened (
+            name: Update Request as Reopened
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                        UPDATE HQ_ELEVATED.ITR_REQUESTS
+                           SET status = 100
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID);
+                    
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 86
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":840,\"y\":700}}"
+            }
+
+            connection (
+                name: LoopBackToTechnician
+                activity {
+                    to: @technician-execution-task
+                }
+            )
+
+        )
+
+        variable V_APPROVAL_RES (
+            label {
+                label: V_APPROVAL_RES
+            }
+        )
+
+        variable V_COORD_OUTCOME (
+            label {
+                label: V_COORD_OUTCOME
+            }
+        )
+
+        variable V_COORD_OWNER (
+            label {
+                label: V_COORD_OWNER
+            }
+        )
+
+        variable V_COORD_TASK_ID (
+            label {
+                label: V_COORD_TASK_ID
+            }
+        )
+
+        variable V_TECH_OUTCOME (
+            label {
+                label: V_TECH_OUTCOME
+            }
+        )
+
+        variable V_TECH_OWNER (
+            label {
+                label: V_TECH_OWNER
+            }
+        )
+
+        variable V_TECH_TASK_ID (
+            label {
+                label: V_TECH_TASK_ID
+            }
+        )
+
+        variable V_USER_TASK_ID (
+            label {
+                label: V_USER_TASK_ID
+            }
+        )
+
+        variable V_USER_VERIFY_OUTCOME (
+            label {
+                label: V_USER_VERIFY_OUTCOME
+            }
+        )
+
+        variable V_USER_VERIFY_OWNER (
+            label {
+                label: V_USER_VERIFY_OWNER
+            }
+        )
+
+        participant (
+            name: New
+            type: admin
+            value {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select 1825 from dual
+                    union
+                    select 3199 from dual
+                    union
+                    select 1837 from dual
+                    
+                    ```
+            }
+        )
+
+    )
+
+    version v1 (
+        settings {
+            state: active
+        }
+
+        activity approval-required (
+            name: Check Approval Route
+            type: switch
+            condition {
+                conditionType: functionBody
+                plsqlFunctionBody:
+                    ```plsql
+                    DECLARE
+                        l_count NUMBER;
+                    BEGIN
+                        SELECT COUNT(*)
+                          INTO l_count
+                          FROM central.apr_approval_result_v
+                         WHERE request_type_id = TO_NUMBER(:P_REQUEST_TYPE_ID)
+                           AND emp_number = TO_NUMBER(:P_EMP_ID)
+                           AND approve_type = 'FYA'
+                           AND approver NOT IN ('-1', '-2');
+                        RETURN l_count > 0;
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 20
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":-200,\"y\":-750}}"
+            }
+
+            connection (
+                name: ApprovalRequired
+                condition {
+                    when: true
+                }
+                activity {
+                    to: @invoke-approval-sub-workflow
+                }
+            )
+
+            connection (
+                name: NoApprovalRoute
+                condition {
+                    when: false
+                }
+                activity {
+                    to: @update-request-approved
+                }
+            )
+
+        )
+
+        activity check-coordinator-outcome (
+            name: Check Coordinator Outcome
+            type: switch
+            condition {
+                conditionType: functionBody
+                plsqlFunctionBody:
+                    ```plsql
+                    DECLARE
+                        l_status NUMBER;
+                    BEGIN
+                        SELECT status
+                          INTO l_status
+                          FROM hq_elevated.itr_requests
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID);
+                    
+                        CASE l_status
+                            WHEN 100 THEN
+                                RETURN TRUE;
+                            WHEN 150 THEN
+                                RETURN FALSE;
+                            ELSE
+                                RAISE_APPLICATION_ERROR(
+                                    -20216,
+                                    'Coordinator task completed with invalid request status: ' || l_status
+                                );
+                        END CASE;
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 75
+            }
+
+            connection (
+                name: Assigned
+                condition {
+                    when: true
+                }
+                activity {
+                    to: @team-leader-assignment-task
+                }
+            )
+
+            connection (
+                name: Completed
+                condition {
+                    when: false
+                }
+                activity {
+                    to: @update-request-closed
+                }
+            )
+
+        )
+
+        activity check-subwf-outcome (
+            name: Check Approval Sub-Workflow Outcome
+            type: switch
+            switch {
+                type: checkWorkflowVar
+            }
+            compare {
+                compareVar: V_APPROVAL_RES
+            }
+            layout {
+                sequence: 40
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":-200,\"y\":-510}}"
+            }
+
+            connection (
+                name: APPROVED
+                execution {
+                    sequence: 10
+                }
+                condition {
+                    operator: =
+                    value: APPROVED
+                }
+                activity {
+                    to: @update-request-approved
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"right\",\"args\":{\"dx\":-10,\"dy\":0}},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"22.727%\",\"dy\":\"33.333%\",\"rotate\":true}},\"vertices\":[],\"z\":2,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            connection (
+                name: REJECTED
+                execution {
+                    sequence: 20
+                }
+                condition {
+                    operator: =
+                    value: REJECTED
+                }
+                activity {
+                    to: @update-request-rejected
+                }
+                advanced {
+                    diagram: "{\"source\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"54.548%\",\"dy\":\"100%\",\"rotate\":true}},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"54.545%\",\"dy\":\"16.667%\",\"rotate\":true}},\"vertices\":[],\"z\":3,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity check-user-verify-outcome (
+            name: Check Requester Sign-Off Outcome
+            type: switch
+            condition {
+                conditionType: functionBody
+                plsqlFunctionBody:
+                    ```plsql
+                    declare
+                    v_Status number ;
+                    BEGIN
+                      select
+                          STATUS into v_Status
+                     from  ITR_REQUESTS where REQUEST_ID = :P_REQUEST_ID;
+                    
+                        CASE v_status
+                            WHEN 150 THEN
+                                RETURN TRUE;
+                            WHEN 120 THEN
+                                RETURN FALSE;
+                            ELSE
+                                RAISE_APPLICATION_ERROR(
+                                    -20216,
+                                    'Requester task completed with invalid request status: ' || v_status
+                                );
+                        END CASE;
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 110
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":190,\"y\":80}}"
+            }
+
+            connection (
+                name: Confirmed
+                condition {
+                    when: true
+                }
+                activity {
+                    to: @update-request-closed
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            connection (
+                name: Reopened
+                condition {
+                    when: false
+                }
+                activity {
+                    to: @update-request-reopened
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+        )
+
+        activity coordinator-triage-task (
+            name: IT Coordinator Triage & Assignment
+            type: humanTaskCreate
+            settings {
+                initiatorItem: P_EMP_ID
+            }
+            humanTask {
+                definition: @gen-wf-action
+                taskIdItem: V_COORD_TASK_ID
+                detailsPkItem: P_REQUEST_ID
+            }
+            overrides {
+                subject: طلب إلى نظم المعلومات للتوجيه - &P_TITLE. من &P_EMP_NAME. (&P_EMP_ID.)
+            }
+            result {
+                outcome: V_COORD_OUTCOME
+                owner: V_COORD_OWNER
+            }
+            layout {
+                sequence: 70
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":190,\"y\":-340}}"
+            }
+
+            connection (
+                name: CoordinatorOutcome
+                activity {
+                    to: @check-coordinator-outcome
+                }
+                advanced {
+                    diagram: "{\"source\":{\"args\":{\"dx\":\"50%\",\"dy\":\"50%\",\"rotate\":true},\"name\":\"topLeft\"},\"target\":{\"name\":\"topLeft\",\"args\":{\"dx\":\"50%\",\"dy\":\"0%\",\"rotate\":true}},\"vertices\":[],\"z\":1,\"label\":{\"distance\":0.5,\"offset\":0}}"
+                }
+            )
+
+            parameter (
+                name: @T_BUSINESS_ADMINS
+                value {
+                    type: sqlQuery
+                    sqlQuery:
+                        ```sql
+                        SELECT LISTAGG(username, ':') WITHIN GROUP (ORDER BY username)
+                          FROM (
+                                SELECT DISTINCT username
+                                  FROM HQ_ELEVATED.ITR_TEAM_MEMBERS
+                                 WHERE UPPER(role) = 'COORDINATOR'
+                                   AND username IS NOT NULL
+                               )
+                        ```
+                }
+            )
+
+            parameter (
+                name: @T_EMP_ID
+                value {
+                    type: item
+                    item: P_EMP_ID
+                }
+            )
+
+            parameter (
+                name: @T_EMP_NAME
+                value {
+                    type: item
+                    item: P_EMP_NAME
+                }
+            )
+
+            parameter (
+                name: @T_ID
+                value {
+                    staticValue: ITR_COORDINATOR_TRIAGE
+                }
+            )
+
+            parameter (
+                name: @T_POTENTIAL_OWNERS
+                value {
+                    type: sqlQuery
+                    sqlQuery:
+                        ```sql
+                        SELECT LISTAGG(username, ':') WITHIN GROUP (ORDER BY username)
+                          FROM (
+                                SELECT DISTINCT username
+                                  FROM HQ_ELEVATED.ITR_TEAM_MEMBERS
+                                 WHERE UPPER(role) = 'COORDINATOR'
+                                   AND username IS NOT NULL
+                               )
+                        ```
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_ID
+                value {
+                    type: item
+                    item: P_REQUEST_ID
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_SOURCE
+                value {
+                    staticValue: ITR:104:705
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_TYPE_ID
+                value {
+                    type: item
+                    item: P_REQUEST_TYPE_ID
+                }
+            )
+
+        )
+
+        activity end-approve (
+            name: END_APPROVE
+            type: workflowEnd
+            layout {
+                sequence: 150
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":-120,\"y\":220}}"
+            }
+        )
+
+        activity end-reject (
+            name: END_REJECT
+            type: workflowEnd
+            endState {
+                endState: terminated
+            }
+            layout {
+                sequence: 140
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":-120,\"y\":-100}}"
+            }
+        )
+
+        activity invoke-approval-sub-workflow (
+            name: Call Approval Sub-Workflow
+            type: invokeWorkflow
+            workflow {
+                definition: @GENERIC_APPROVAL_WF
+            }
+            layout {
+                sequence: 30
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":-200,\"y\":-610}}"
+            }
+
+            connection (
+                name: Done
+                activity {
+                    to: @check-subwf-outcome
+                }
+            )
+
+        )
+
+        activity requester-verification-task (
+            name: Requester Verification & Sign-Off
+            type: humanTaskCreate
+            settings {
+                initiatorItem: P_EMP_ID
+            }
+            humanTask {
+                definition: @gen-wf-action
+                taskIdItem: V_USER_TASK_ID
+                detailsPkItem: P_REQUEST_ID
+            }
+            overrides {
+                subject: تأكيد إغلاق طلب نظم المعلومات رقم &P_REQUEST_ID.
+            }
+            result {
+                outcome: V_USER_VERIFY_OUTCOME
+                owner: V_USER_VERIFY_OWNER
+            }
+            layout {
+                sequence: 100
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":190,\"y\":-20}}"
+            }
+
+            connection (
+                name: VerifyOutcome
+                activity {
+                    to: @check-user-verify-outcome
+                }
+            )
+
+            parameter (
+                name: @T_BUSINESS_ADMINS
+                value {
+                    type: sqlQuery
+                    sqlQuery:
+                        ```sql
+                        SELECT LISTAGG(username, ':') WITHIN GROUP (ORDER BY username)
+                          FROM (
+                                SELECT DISTINCT username
+                                  FROM HQ_ELEVATED.ITR_TEAM_MEMBERS
+                                 WHERE UPPER(role) = 'COORDINATOR'
+                                   AND username IS NOT NULL
+                               )
+                        ```
+                }
+            )
+
+            parameter (
+                name: @T_EMP_ID
+                value {
+                    type: item
+                    item: P_EMP_ID
+                }
+            )
+
+            parameter (
+                name: @T_EMP_NAME
+                value {
+                    type: item
+                    item: P_EMP_NAME
+                }
+            )
+
+            parameter (
+                name: @T_ID
+                value {
+                    staticValue: ITR_USER_VERIFICATION
+                }
+            )
+
+            parameter (
+                name: @T_POTENTIAL_OWNERS
+                value {
+                    type: item
+                    item: P_EMP_ID
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_ID
+                value {
+                    type: item
+                    item: P_REQUEST_ID
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_SOURCE
+                value {
+                    staticValue: ITR:104:705
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_TYPE_ID
+                value {
+                    type: item
+                    item: P_REQUEST_TYPE_ID
+                }
+            )
+
+        )
+
+        activity start_1 (
+            name: Start
+            type: workflowStart
+            layout {
+                sequence: 10
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":-120,\"y\":-920},\"z\":-1}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @approval-required
+                }
+            )
+
+        )
+
+        activity team-leader-assignment-task (
+            name: IT Team Leader Assignment
+            type: humanTaskCreate
+            settings {
+                initiatorItem: P_EMP_ID
+            }
+            humanTask {
+                definition: @gen-wf-action
+                taskIdItem: V_LEADER_TASK_ID
+                detailsPkItem: P_REQUEST_ID
+            }
+            overrides {
+                subject: تعيين طلب نظم المعلومات رقم &P_REQUEST_ID. إلى عضو من الفريق
+            }
+            result {
+                outcome: V_LEADER_OUTCOME
+                owner: V_LEADER_OWNER
+            }
+            layout {
+                sequence: 80
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":190,\"y\":-230}}"
+            }
+
+            connection (
+                name: LeaderAssigned
+                activity {
+                    to: @validate-leader-assignment-state
+                }
+            )
+
+            parameter (
+                name: @T_BUSINESS_ADMINS
+                value {
+                    type: sqlQuery
+                    sqlQuery:
+                        ```sql
+                        SELECT LISTAGG(username, ':') WITHIN GROUP (ORDER BY username)
+                          FROM (
+                                SELECT DISTINCT username
+                                  FROM HQ_ELEVATED.ITR_TEAM_MEMBERS
+                                 WHERE UPPER(role) = 'COORDINATOR'
+                                   AND username IS NOT NULL
+                               )
+                        ```
+                }
+            )
+
+            parameter (
+                name: @T_EMP_ID
+                value {
+                    type: item
+                    item: P_EMP_ID
+                }
+            )
+
+            parameter (
+                name: @T_EMP_NAME
+                value {
+                    type: item
+                    item: P_EMP_NAME
+                }
+            )
+
+            parameter (
+                name: @T_ID
+                value {
+                    staticValue: ITR_TEAM_LEADER_ASSIGNMENT
+                }
+            )
+
+            parameter (
+                name: @T_POTENTIAL_OWNERS
+                value {
+                    type: sqlQuery
+                    sqlQuery:
+                        ```sql
+                        SELECT LISTAGG(username, ':') WITHIN GROUP (ORDER BY username)
+                          FROM HQ_ELEVATED.ITR_TEAM_MEMBERS
+                         WHERE team_id = (
+                                   SELECT assigned_team_id
+                                     FROM HQ_ELEVATED.ITR_REQUESTS
+                                    WHERE request_id = TO_NUMBER(:P_REQUEST_ID)
+                               )
+                           AND UPPER(role) IN ('LEADER', 'COORDINATOR')
+                        ```
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_ID
+                value {
+                    type: item
+                    item: P_REQUEST_ID
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_SOURCE
+                value {
+                    staticValue: ITR:104:705
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_TYPE_ID
+                value {
+                    type: item
+                    item: P_REQUEST_TYPE_ID
+                }
+            )
+
+        )
+
+        activity technician-execution-task (
+            name: IT Technician Work & Resolution
+            type: humanTaskCreate
+            settings {
+                initiatorItem: P_EMP_ID
+            }
+            humanTask {
+                definition: @gen-wf-action
+                taskIdItem: V_TECH_TASK_ID
+                detailsPkItem: P_REQUEST_ID
+            }
+            overrides {
+                subject: تنفيذ طلب نظم المعلومات رقم &P_REQUEST_ID. - &P_TITLE.
+            }
+            result {
+                outcome: V_TECH_OUTCOME
+                owner: V_TECH_OWNER
+            }
+            layout {
+                sequence: 90
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":190,\"y\":-120}}"
+            }
+
+            connection (
+                name: Finished
+                activity {
+                    to: @validate-technician-completion-state
+                }
+            )
+
+            parameter (
+                name: @T_BUSINESS_ADMINS
+                value {
+                    type: sqlQuery
+                    sqlQuery:
+                        ```sql
+                        SELECT LISTAGG(username, ':') WITHIN GROUP (ORDER BY username)
+                          FROM (
+                                SELECT DISTINCT username
+                                  FROM HQ_ELEVATED.ITR_TEAM_MEMBERS
+                                 WHERE UPPER(role) = 'COORDINATOR'
+                                   AND username IS NOT NULL
+                               )
+                        ```
+                }
+            )
+
+            parameter (
+                name: @T_EMP_ID
+                value {
+                    type: item
+                    item: P_EMP_ID
+                }
+            )
+
+            parameter (
+                name: @T_EMP_NAME
+                value {
+                    type: item
+                    item: P_EMP_NAME
+                }
+            )
+
+            parameter (
+                name: @T_ID
+                value {
+                    staticValue: ITR_TECHNICIAN_WORK
+                }
+            )
+
+            parameter (
+                name: @T_POTENTIAL_OWNERS
+                value {
+                    type: sqlQuery
+                    sqlQuery:
+                        ```sql
+                        SELECT COALESCE(
+                                   (SELECT assigned_to
+                                      FROM HQ_ELEVATED.ITR_REQUESTS
+                                     WHERE request_id = TO_NUMBER(:P_REQUEST_ID)),
+                                   (SELECT LISTAGG(username, ':') WITHIN GROUP (ORDER BY username)
+                                      FROM HQ_ELEVATED.ITR_TEAM_MEMBERS
+                                     WHERE team_id = (SELECT assigned_team_id
+                                                        FROM HQ_ELEVATED.ITR_REQUESTS
+                                                       WHERE request_id = TO_NUMBER(:P_REQUEST_ID))
+                                       AND username IS NOT NULL)
+                               )
+                          FROM dual
+                        ```
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_ID
+                value {
+                    type: item
+                    item: P_REQUEST_ID
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_SOURCE
+                value {
+                    staticValue: ITR:104:705
+                }
+            )
+
+            parameter (
+                name: @T_REQUEST_TYPE_ID
+                value {
+                    type: item
+                    item: P_REQUEST_TYPE_ID
+                }
+            )
+
+        )
+
+        activity update-request-approved (
+            name: Update Request as Approved
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                        UPDATE HQ_ELEVATED.ITR_REQUESTS
+                           SET status = 20,
+                               approved = 1,
+                               last_approval_date = SYSDATE
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID);
+                    
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 60
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":190,\"y\":-510}}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @coordinator-triage-task
+                }
+            )
+
+        )
+
+        activity update-request-closed (
+            name: Update Request as Closed Complete
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                        l_status NUMBER;
+                    BEGIN
+                        SELECT status
+                          INTO l_status
+                          FROM hq_elevated.itr_requests
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID);
+                    
+                        IF l_status <> 150 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20216,
+                                'IT request reached the close activity with invalid status: ' || l_status
+                            );
+                        END IF;
+                    
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 130
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":200,\"y\":220}}"
+            }
+
+            connection (
+                name: Done
+                activity {
+                    to: @end-approve
+                }
+            )
+
+        )
+
+        activity update-request-rejected (
+            name: Update Request as Rejected
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                        UPDATE HQ_ELEVATED.ITR_REQUESTS
+                           SET status = 140,
+                               approved = 0,
+                               last_approval_date = SYSDATE
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID);
+                    
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 50
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":-200,\"y\":-290}}"
+            }
+
+            connection (
+                name: New
+                activity {
+                    to: @end-reject
+                }
+            )
+
+        )
+
+        activity update-request-reopened (
+            name: Update Request as Reopened
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                        l_team_id HQ_ELEVATED.ITR_REQUESTS.ASSIGNED_TEAM_ID%TYPE;
+                    BEGIN
+                        UPDATE HQ_ELEVATED.ITR_REQUESTS
+                           SET status = 100
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID)
+                           AND status = 120
+                         RETURNING assigned_team_id INTO l_team_id;
+                    
+                        IF SQL%ROWCOUNT <> 1 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20216,
+                                'Only an on-hold IT request can be reopened.'
+                            );
+                        END IF;
+                    
+                        IF l_team_id IS NULL THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20212,
+                                'Cannot reopen an IT request without an assigned team.'
+                            );
+                        END IF;
+                    
+                        HQ_ELEVATED.ITR_TEAM_QUEUE_PKG.ENQUEUE_REQUEST(
+                            p_request_id => TO_NUMBER(:P_REQUEST_ID),
+                            p_team_id    => l_team_id
+                        );
+                    
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 120
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":520,\"y\":-20}}"
+            }
+
+            connection (
+                name: LoopBackToTechnician
+                activity {
+                    to: @technician-execution-task
+                }
+            )
+
+        )
+
+        activity validate-leader-assignment-state (
+            name: Validate Leader Assignment State
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                        l_status      NUMBER;
+                        l_assigned_to VARCHAR2(255);
+                    BEGIN
+                        SELECT status, assigned_to
+                          INTO l_status, l_assigned_to
+                          FROM hq_elevated.itr_requests
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID);
+                    
+                        IF l_status <> 110 OR l_assigned_to IS NULL THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20216,
+                                'Leader task completed before a technician was assigned.'
+                            );
+                        END IF;
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 85
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":350,\"y\":-230}}"
+            }
+
+            connection (
+                name: AssignmentStateValid
+                activity {
+                    to: @technician-execution-task
+                }
+            )
+
+        )
+
+        activity validate-technician-completion-state (
+            name: Validate Technician Completion State
+            type: executeCode
+            source {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                        l_status NUMBER;
+                    BEGIN
+                        SELECT status
+                          INTO l_status
+                          FROM hq_elevated.itr_requests
+                         WHERE request_id = TO_NUMBER(:P_REQUEST_ID);
+                    
+                        IF l_status <> 130 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20216,
+                                'Technician task completed with invalid request status: ' || l_status
+                            );
+                        END IF;
+                    END;
+                    ```
+            }
+            layout {
+                sequence: 95
+            }
+            advanced {
+                diagram: "{\"position\":{\"x\":350,\"y\":-120}}"
+            }
+
+            connection (
+                name: CompletionStateValid
+                activity {
+                    to: @requester-verification-task
+                }
+            )
+
+        )
+
+        variable V_APPROVAL_RES (
+            label {
+                label: V_APPROVAL_RES
+            }
+        )
+
+        variable V_COORD_OUTCOME (
+            label {
+                label: V_COORD_OUTCOME
+            }
+        )
+
+        variable V_COORD_OWNER (
+            label {
+                label: V_COORD_OWNER
+            }
+        )
+
+        variable V_COORD_TASK_ID (
+            label {
+                label: V_COORD_TASK_ID
+            }
+        )
+
+        variable V_LEADER_OUTCOME (
+            label {
+                label: V_LEADER_OUTCOME
+            }
+        )
+
+        variable V_LEADER_OWNER (
+            label {
+                label: V_LEADER_OWNER
+            }
+        )
+
+        variable V_LEADER_TASK_ID (
+            label {
+                label: V_LEADER_TASK_ID
+            }
+        )
+
+        variable V_TECH_OUTCOME (
+            label {
+                label: V_TECH_OUTCOME
+            }
+        )
+
+        variable V_TECH_OWNER (
+            label {
+                label: V_TECH_OWNER
+            }
+        )
+
+        variable V_TECH_TASK_ID (
+            label {
+                label: V_TECH_TASK_ID
+            }
+        )
+
+        variable V_USER_TASK_ID (
+            label {
+                label: V_USER_TASK_ID
+            }
+        )
+
+        variable V_USER_VERIFY_OUTCOME (
+            label {
+                label: V_USER_VERIFY_OUTCOME
+            }
+        )
+
+        variable V_USER_VERIFY_OWNER (
+            label {
+                label: V_USER_VERIFY_OWNER
+            }
+        )
+
+        participant (
+            name: New
+            type: admin
+            value {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    SELECT DISTINCT username
+                      FROM HQ_ELEVATED.ITR_TEAM_MEMBERS
+                     WHERE UPPER(role) = 'COORDINATOR'
+                       AND username IS NOT NULL
+                    ```
+            }
+        )
+
+    )
+
+)

@@ -1,0 +1,722 @@
+page 46 (
+    name: Upload LEAVE_CREDIT_HR
+    alias: UPLOAD-LEAVE-CREDIT-HR
+    title: &APP_TEXT$UPLOAD_LEAVECREDITHR.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region button-bar (
+        name: Button Bar
+        title: &APP_TEXT$BUTTON_BAR.
+        type: staticContent
+        layout {
+            sequence: 21
+            slot: body
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-ButtonRegion--noUI
+            ]
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P46_FILE
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region data-source (
+        name: Data Source
+        title: &APP_TEXT$DATA_SOURCE.
+        type: staticContent
+        layout {
+            sequence: 31
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region loaded-file (
+        name: Loaded File
+        title: &APP_TEXT$LOADED_FILE.
+        type: staticContent
+        layout {
+            sequence: 40
+            parentRegion: @data-source
+            slot: regionBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P46_FILE
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        layout {
+            sequence: 61
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region preview (
+        name: Preview
+        title: &APP_TEXT$PREVIEW.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                
+                SELECT 
+                    p.line_number,
+                    p.col001 AS EMP_ID,
+                    p.col002 AS ANNUAL_Entitelment,
+                    p.col003 AS CASUAL_Entitelment,
+                    p.col004 AS ACCRUED_LAST_YEAR,
+                    p.col005 AS CUT_H_BALANCE,
+                    p.col006 AS Annual_balance,
+                    p.col007 AS Casual_balance,
+                    p.col008 AS Rest_hour_balance,
+                    p.col009 AS Currently_Project,
+                    p.col010 AS Until_Date
+                
+                
+                FROM apex_application_temp_files f,
+                     TABLE(
+                         apex_data_parser.parse(
+                             p_content         => f.blob_content,
+                             p_file_name       => f.filename,
+                             p_xlsx_sheet_name => CASE 
+                                                     WHEN :P46_XLSX_WORKSHEET IS NOT NULL 
+                                                     THEN :P46_XLSX_WORKSHEET 
+                                                  END,
+                             p_file_profile    => apex_data_loading.get_file_profile(p_static_id => 'Upload_CREDIT'),
+                             p_max_rows        => 100
+                         )
+                     ) p
+                WHERE f.name = :P46_FILE;
+                
+                ```
+        }
+        layout {
+            sequence: 51
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+            ]
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P46_FILE
+        }
+        reportLayout {
+            numberOfRows: 5000
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--staticRowColors
+                t-Report--rowHighlight
+                t-Report--horizontalBorders
+                t-Report--hideNoPagination
+            ]
+        }
+        pagination {
+            type: rowRangesXToYOfZWithPagination
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            maxRowsToProcess: 5000
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_DATA_FOUND.
+        }
+        heading {
+            type: none
+        }
+
+        column ACCRUED_LAST_YEAR (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ACCRUED_LAST_YEAR.
+            }
+            layout {
+                sequence: 41
+            }
+        )
+
+        column ANNUAL_BALANCE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ANNUAL_BALANCE.
+            }
+            layout {
+                sequence: 61
+            }
+        )
+
+        column ANNUAL_ENTITELMENT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ANNUAL_ENTITELMENT.
+            }
+            layout {
+                sequence: 21
+            }
+        )
+
+        column CASUAL_BALANCE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CASUAL_BALANCE.
+            }
+            layout {
+                sequence: 71
+            }
+        )
+
+        column CASUAL_ENTITELMENT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CASUAL_ENTITELMENT.
+            }
+            layout {
+                sequence: 31
+            }
+        )
+
+        column CURRENTLY_PROJECT (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CURRENTLY_PROJECT.
+            }
+            layout {
+                sequence: 91
+            }
+        )
+
+        column CUT_H_BALANCE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CUT_H_BALANCE.
+            }
+            layout {
+                sequence: 51
+            }
+        )
+
+        column EMP_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMP_ID.
+            }
+            layout {
+                sequence: 11
+            }
+        )
+
+        column LINE_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$LINE_NUMBER.
+                alignment: end
+            }
+            layout {
+                sequence: 1
+                columnAlignment: end
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REST_HOUR_BALANCE (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REST_HOUR_BALANCE.
+            }
+            layout {
+                sequence: 81
+            }
+        )
+
+        column UNTIL_DATE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$UNTIL_DATE.
+            }
+            layout {
+                sequence: 101
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+    region upload-a-file (
+        name: Upload a File
+        title: &APP_TEXT$UPLOAD_A_FILE.
+        type: staticContent
+        layout {
+            sequence: 30
+            parentRegion: @data-source
+            slot: regionBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P46_FILE
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    pageItem P46_ERROR_ROW_COUNT (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @upload-a-file
+            slot: regionBody
+        }
+    )
+
+    pageItem P46_FILE (
+        type: fileUpload
+        label {
+            label: &APP_TEXT$UPLOAD_A_FILE.
+            alignment: left
+        }
+        display {
+            displayAs: blockDropzone
+            dropzoneDesc: &APP_TEXT$SUPPORTED_FORMATS_XLSX.
+        }
+        storage {
+            type: appTempFiles
+            maxFileSize: 5000
+        }
+        layout {
+            sequence: 10
+            region: @upload-a-file
+            slot: regionBody
+            alignment: left
+            labelColumnSpan: 0
+        }
+        appearance {
+            template: @hidden
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+        }
+    )
+
+    pageItem P46_FILE_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$LOADED_FILE.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @loaded-file
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: static
+            staticValue: Pasted Data
+        }
+    )
+
+    pageItem P46_XLSX_WORKSHEET (
+        type: selectList
+        label {
+            label: &APP_TEXT$XLSX_WORKSHEET.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select p.sheet_display_name,
+                       p.sheet_file_name
+                  from apex_application_temp_files f,
+                       table( apex_data_parser.get_xlsx_worksheets( p_content => f.blob_content ) ) p
+                 where f.name = :P46_FILE
+                ```
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 30
+            region: @loaded-file
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_sheet_count number;
+                begin
+                    select count(*)
+                      into l_sheet_count
+                      from apex_application_temp_files f,
+                           table( apex_data_parser.get_xlsx_worksheets( p_content => f.blob_content ) ) p
+                     where f.name = :P46_FILE;
+                    
+                    return ( l_sheet_count > 1 );
+                exception
+                    when others then 
+                        return false;
+                end;
+                ```
+        }
+    )
+
+    button clear (
+        buttonName: CLEAR
+        label: &APP_TEXT$CLEAR.
+        layout {
+            sequence: 10
+            region: @button-bar
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button download-sample-file (
+        buttonName: Download_Sample_File
+        label: &APP_TEXT$DOWNLOAD_SAMPLE_FILE.
+        layout {
+            sequence: 10
+            region: @new
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--primary
+                t-Button--iconLeft
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: #APP_FILES#Upload_CREDIT_FILE_SAMPLE0 (12).xlsx
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button load (
+        buttonName: LOAD
+        label: &APP_TEXT$LOAD_DATA.
+        layout {
+            sequence: 20
+            region: @button-bar
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction submit-worksheet-on-change (
+        name: Submit worksheet on change
+        execution {
+            sequence: 20
+        }
+        when {
+            selectionType: items
+            items: P46_XLSX_WORKSHEET
+        }
+
+        action native-submit-page (
+            action: submitPage
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction upload-a-file (
+        name: Upload a File
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: P46_FILE
+        }
+        clientSideCondition {
+            type: itemIsNotNull
+            item: P46_FILE
+        }
+
+        action native-submit-page (
+            action: submitPage
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    validation is-valid-file-type (
+        name: Is valid file type
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: functionBodyReturningBoolean
+            plsqlFunctionBody:
+                ```plsql
+                if apex_data_parser.assert_file_type(
+                       p_file_name => :P46_FILE_NAME,
+                       p_file_type => apex_data_parser.c_file_type_xlsx )
+                then
+                    return true;
+                else
+                    :P46_FILE := null;
+                    return false;
+                end if;
+                ```
+        }
+        error {
+            errorMessage: &APP_TEXT$INVALID_FILE_TYPE_SUPPORTED_FILE_TYPES_XLSX.
+            associatedItem: @P46_FILE
+        }
+    )
+
+    computation p46-file-name (
+        itemName: P46_FILE_NAME
+        execution {
+            sequence: 10
+            point: afterSubmit
+        }
+        computation {
+            sqlQuery:
+                ```sql
+                select filename
+                  from apex_application_temp_files 
+                 where name = :P46_FILE
+                ```
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P46_FILE
+        }
+    )
+
+    process clear-cache (
+        name: Clear Cache
+        type: clearSessionState
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 1493715894287288
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :REQUEST = 'CLEAR' or :P46_ERROR_ROW_COUNT = 0
+        }
+    )
+
+    process credit-col (
+        name: CREDIT_COL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                Begin
+                IF  APEX_COLLECTION.COLLECTION_EXISTS (
+                        p_collection_name => 'CREDIT_COL')
+                        THEN
+                    APEX_COLLECTION.DELETE_COLLECTION(
+                        p_collection_name => 'CREDIT_COL'); 
+                        END IF ;
+                End;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 1494117741287287
+        }
+    )
+
+    process load-data (
+        name: Load Data
+        type: dataLoading
+        dataLoading {
+            dataLoadDefinition: @upload_credit
+        }
+        sourceData {
+            fileBrowseItem: P46_FILE
+            xlsxSheetNameItem: P46_XLSX_WORKSHEET
+        }
+        processingResult {
+            errorRowCountItem: P46_ERROR_ROW_COUNT
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 1493360330287289
+        }
+        serverSideCondition {
+            whenButtonPressed: @load
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                   l_mime_type   VARCHAR2(255);
+                   l_blob        BLOB;
+                   l_file_name   VARCHAR2(2000);
+                BEGIN
+                   SELECT ATTACH_TYPE, ATTACH, ATTACH_NAME
+                   INTO l_mime_type, l_blob, l_file_name
+                   FROM CENTRAL.XXAPEX_HR_ATTACHMENTS
+                   WHERE ATTACH_ID = :P46_ATTACH_ID; -- Replace with your item name
+                
+                   owa_util.mime_header(l_mime_type, FALSE);
+                   htp.p('Content-length: ' || DBMS_LOB.getlength(l_blob));
+                   htp.p('Content-Disposition: attachment; filename="' || l_file_name || '"');
+                   owa_util.http_header_close;
+                
+                   wpg_docload.download_file(l_blob);
+                
+                   apex_application.stop_apex_engine;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 1522103086909214
+        }
+        serverSideCondition {
+            whenButtonPressed: @download-sample-file
+            type: never
+        }
+    )
+
+    branch (
+        name: GO TO REVIWE
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 50
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @load
+        }
+    )
+
+)

@@ -1,0 +1,274 @@
+page 26 (
+    name: Sample DashBoard
+    alias: SAMPLE-DASHBOARD
+    title: &APP_TEXT$SAMPLE_DASHBOARD.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region age-indicator (
+        name: Age Indicator
+        title: &APP_TEXT$AGE_INDICATOR.
+        type: chart
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_AGE_INDICATOR
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        security {
+            escapeSpecialChars: false
+        }
+        chartLayout {
+            height: 400
+        }
+        legend {
+            show: false
+        }
+
+        series series (
+            name: &APP_TEXT$SERIES_1.
+            execution {
+                sequence: 10
+            }
+            source {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select count(EMPLOYEE_NUMBER) C_NUM,
+                    
+                           PROJECT,
+                           AGE_INDIC
+                      from CENTRAL.XXAPEX_HR_AGE_INDICATOR
+                    group by  PROJECT,
+                           AGE_INDIC
+                    ```
+            }
+            columnMapping {
+                seriesName: PROJECT
+                label: AGE_INDIC
+                value: C_NUM
+            }
+            performance {
+                maxRowsToProcess: 20
+            }
+        )
+
+        axis x (
+            name: x
+            majorTicks {
+                show: auto
+            }
+        )
+
+        axis y (
+            name: y
+            majorTicks {
+                show: auto
+            }
+        )
+
+    )
+
+    region breadcrumb (
+        name: Breadcrumb
+        title: &APP_TEXT$BREADCRUMB.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region employee-project-leaves (
+        name: Employee Project Leaves
+        title: &APP_TEXT$EMPLOYEE_PROJECT_LEAVES.
+        type: chart
+        layout {
+            sequence: 30
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        security {
+            escapeSpecialChars: false
+        }
+        chart {
+            type: pie
+        }
+        legend {
+            show: false
+        }
+
+        series series (
+            name: &APP_TEXT$SERIES_1.
+            execution {
+                sequence: 10
+            }
+            source {
+                tableOwner: CENTRAL
+                tableName: XXAPEX_OTL_PROJECT_LEAVES
+                whereClause:
+                    ```sql
+                    NAME ='Annual Leave'
+                    and DT=to_date('31/12/2021','DD/MM/YYYY')
+                    ```
+            }
+            columnMapping {
+                seriesName: NAME
+                label: PROJ
+                value: NUM
+            }
+            label {
+                show: true
+            }
+            performance {
+                maxRowsToProcess: 20
+            }
+        )
+
+    )
+
+    region تقييم-الاداء (
+        name: تقييم الاداء
+        title: &APP_TEXT$PERFORMANCE_EVALUATION.
+        type: chart
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        security {
+            escapeSpecialChars: false
+        }
+        multiSeriesChartData {
+            fillGapsInChartData: false
+        }
+        legend {
+            show: false
+        }
+
+        series series (
+            name: &APP_TEXT$SERIES_1.
+            execution {
+                sequence: 10
+            }
+            source {
+                tableOwner: CENTRAL
+                tableName: XXAPEX_HR_APPRAISAL_DATA
+                whereClause: YEarr > '2015'
+            }
+            columnMapping {
+                seriesName: AQU_GRADE
+                label: YEARR
+                valueAggregation: count
+            }
+            performance {
+                maxRowsToProcess: 20
+            }
+        )
+
+        axis x (
+            name: x
+            majorTicks {
+                show: auto
+            }
+        )
+
+        axis y (
+            name: y
+            majorTicks {
+                show: auto
+            }
+        )
+
+    )
+
+    button new (
+        buttonName: New
+        label: &APP_TEXT$NEW.
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process test-mail-send (
+        name: test mail send
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                
+                    apex_mail.send (
+                        p_from                 => :APP_MAIL,
+                        p_to                 => 'asherif@eprom.com.eg',
+                        p_template_static_id => 'NOTIFICATION_NOTES',
+                        p_placeholders       => '{' ||
+                        '    "EMP_NAME":' || apex_json.stringify( 'ahmed' ) ||
+                        '   ,"EMP_ID":'   || apex_json.stringify( '1825' ) ||
+                        '}' );
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 11842406229636204
+        }
+    )
+
+)

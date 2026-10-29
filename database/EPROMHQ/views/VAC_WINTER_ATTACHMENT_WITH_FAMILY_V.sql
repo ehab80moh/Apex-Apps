@@ -1,0 +1,23 @@
+
+  CREATE OR REPLACE FORCE EDITIONABLE VIEW "EPROMHQ"."VAC_WINTER_ATTACHMENT_WITH_FAMILY_V" ("ATTACH_ID", "EMPLOYEE_NUMBER", "EMPLOYEE_NAME", "EMP_PERSON_ID", "RELATIVE_PERSON_ID", "RELATIVE_TYPE", "RELATIVE_NAME", "ATTACH1", "ATTACH2", "ATTACH3", "ATTACH4", "PERSON_TYPE", "FAMILY_MEMBER_NAME", "RELATION_DESC", "PROJECT_NAME", "BIRTH_DATE", "AGE_YEARS_25_1_2025", "ROOM_CLASS", "NUM_OF_ROOMS", "IN_WINTER_LIST") AS
+  SELECT
+    a."ATTACH_ID",a."EMPLOYEE_NUMBER",a."EMPLOYEE_NAME",a."EMP_PERSON_ID",a."RELATIVE_PERSON_ID",a."RELATIVE_TYPE",a."RELATIVE_NAME",a."ATTACH1",a."ATTACH2",a."ATTACH3",a."ATTACH4",a."PERSON_TYPE",
+    f.FULL_NAME AS family_member_name,
+    f.RELATION_DESC,
+    f.PROJECT_NAME,
+    f.BIRTH_DATE,
+    f.AGE_YEARS_25_1_2025,
+    f.ROOM_CLASS,
+    f.NUM_OF_ROOMS,
+    CASE
+        WHEN f.FULL_NAME IS NOT NULL THEN 'موجود في قائمة المشتى'
+        ELSE 'غير موجود'
+    END AS in_winter_list
+FROM VAC_WINTER_attachment_Emp_and_FAMILY_V a
+LEFT JOIN EPROMHQ.VAC_WINTER_2026_FAMILY_V f ON (
+    -- مطابقة الموظفين
+    (a.relative_type IN ('الموظف', 'Employee') AND f.EMP_NO = a.employee_number AND f.RELATION_DESC = 'العامل')
+    OR
+    -- مطابقة الأقارب بالاسم
+    (a.relative_type NOT IN ('الموظف', 'Employee') AND f.FULL_NAME = a.relative_name)
+);

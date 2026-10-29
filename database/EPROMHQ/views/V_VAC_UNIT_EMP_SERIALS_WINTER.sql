@@ -1,0 +1,32 @@
+
+  CREATE OR REPLACE FORCE EDITIONABLE VIEW "EPROMHQ"."V_VAC_UNIT_EMP_SERIALS_WINTER" ("مسلسل_كامل", "EMP_ID", "EMP_NAME", "SITE_CODE", "مسلسل_الوحدة_والفوج", "BLOCK_ID", "GROUP_ID", "ALLOCATION_ID") AS
+  SELECT
+    ROW_NUMBER() OVER (
+        PARTITION BY s.TRIP_ID
+        ORDER BY a.GROUP_ID NULLS LAST
+    ) AS "مسلسل_كامل",
+
+    a.EMP_ID,
+    e.EMP_NAME,
+    e.SITE_CODE,
+
+    ROW_NUMBER() OVER (
+        PARTITION BY a.BLOCK_ID
+        ORDER BY a.GROUP_ID NULLS LAST
+    ) AS "مسلسل_الوحدة_والفوج",
+
+    a.BLOCK_ID,
+    a.GROUP_ID,
+    a.ID AS ALLOCATION_ID
+
+FROM
+    EPROMHQ.VAC_UNIT_ALLOCATION a
+LEFT JOIN
+    CENTRAL.XXAPEX_HR_EMP_DATA e
+    ON a.EMP_ID = e.EMP_NUMBER
+left JOIN
+    EPROMHQ.VAC_WINTER_APPLICATIONS s
+    ON a.EMP_ID = s.EMP_ID
+WHERE
+    a.STATUS_ID = '1'
+    and s.TRIP_ID =15;

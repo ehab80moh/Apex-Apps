@@ -1,0 +1,15 @@
+actionPosition 1 (
+    name: 1
+    staticId: 1
+    sequence: 10
+)
+
+actionPosition actionpos (
+    name: ActionPos
+    staticId: ACTIONPOS
+    sequence: 20
+    position {
+        type: template
+        predefinedTemplate: @actiontem1
+    }
+)

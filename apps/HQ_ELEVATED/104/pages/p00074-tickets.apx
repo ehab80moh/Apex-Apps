@@ -1,0 +1,1209 @@
+page 74 (
+    name: دعم فني
+    alias: TICKETS
+    title: &APP_TEXT$TECHNICAL_SUPPORT.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region iis-tickets (
+        name: IIS_TICKETS
+        title: &APP_TEXT$TICKETS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select TICKET_ID,
+                    ROW_NUMBER() OVER (PARTITION BY EMP_ID ORDER BY CREATION_DATE) AS NUM,
+                       TITLE,
+                       DESCRIPTION,
+                       STATUS,
+                       PRIORITY,
+                       CATEGORY,
+                       CREATED_BY,
+                       ASSIGNED_TO,
+                       CREATION_DATE,
+                       LAST_UPDATE_DATE,
+                       RESOLUTION_NOTE,
+                       CLOSED_DATE,
+                       EMP_ID,
+                       ESCALATION,
+                       dbms_lob.getlength(ATTACHED_FILE) AS ATTACHED_FILE,
+                       dbms_lob.getlength(ATTACHED_FILE2) AS ATTACHED_FILE2,
+                       ATTACHED_DATE,
+                       ATTACHED_FILE_NAME,
+                       ATTACHED_FILE_NAME2
+                  from EPROMHQ.IIS_TICKETS
+                  WHERE EMP_ID = :APP_USER
+                ```
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: [
+                #DEFAULT#
+                js-headingLevel-3
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column ASSIGNED_TO (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 110
+            }
+        )
+
+        column ATTACHED_DATE (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 190
+            }
+        )
+
+        column ATTACHED_FILE (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$FIRST_ATTACHMENT.
+                alignment: center
+            }
+            layout {
+                sequence: 130
+                columnAlignment: center
+            }
+            appearance {
+                viewFileAs: inline
+            }
+            blobAttributes {
+                tableOwner: EPROMHQ
+                tableName: IIS_TICKETS
+                blobColumn: ATTACHED_FILE
+                primaryKeyColumn1: TICKET_ID
+                filenameColumn: ATTACHED_FILE_NAME
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            advanced {
+                cellWidth: 100
+            }
+        )
+
+        column ATTACHED_FILE2 (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$ANNEX_II.
+                alignment: center
+            }
+            layout {
+                sequence: 140
+                columnAlignment: center
+            }
+            appearance {
+                viewFileAs: inline
+            }
+            blobAttributes {
+                tableOwner: EPROMHQ
+                tableName: IIS_TICKETS
+                blobColumn: ATTACHED_FILE2
+                primaryKeyColumn1: TICKET_ID
+                filenameColumn: ATTACHED_FILE_NAME2
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            advanced {
+                cellWidth: 100
+            }
+        )
+
+        column ATTACHED_FILE_NAME (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 200
+            }
+        )
+
+        column ATTACHED_FILE_NAME2 (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 210
+            }
+        )
+
+        column CATEGORY (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CLASSIFICATION.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            advanced {
+                cellWidth: 180
+            }
+        )
+
+        column CLOSED_DATE (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CLOSING_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 160
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            advanced {
+                cellWidth: 120
+            }
+        )
+
+        column CREATED_BY (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column CREATION_DATE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CREATION_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            advanced {
+                cellWidth: 120
+            }
+        )
+
+        column DESCRIPTION (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DESCRIPTION.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column EMP_ID (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 170
+            }
+        )
+
+        column ESCALATION (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 180
+            }
+        )
+
+        column LAST_UPDATE_DATE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 120
+            }
+        )
+
+        column NUM (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$M.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            advanced {
+                cellWidth: 100
+            }
+        )
+
+        column PRIORITY (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column RESOLUTION_NOTE (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REPLY_FEEDBACK.
+                alignment: center
+            }
+            layout {
+                sequence: 150
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column STATUS (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ORDER_STATUS.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            advanced {
+                cellWidth: 120
+            }
+        )
+
+        column TICKET_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$COMPLAINT_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THE_TOPIC.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+    )
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        layout {
+            sequence: 40
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--removeHeader js-removeLandmark
+                t-Region--textContent
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region new-2 (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_7!RAW.
+        }
+        layout {
+            sequence: 1
+            slot: body
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region دعم-فني (
+        name: دعم فني
+        title: &APP_TEXT$TECHNICAL_SUPPORT.
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                SELECT 
+                       TICKET_ID,
+                       TITLE,
+                       DESCRIPTION,
+                       STATUS,
+                       PRIORITY,
+                       CATEGORY,
+                       CREATED_BY,
+                       ASSIGNED_TO,
+                       CREATION_DATE,
+                       LAST_UPDATE_DATE,
+                       RESOLUTION_NOTE,
+                       CLOSED_DATE,
+                       EMP_ID,
+                       ESCALATION,
+                       ATTACHED_FILE,
+                       ATTACHED_FILE2,
+                       ATTACHED_DATE,
+                       ATTACHED_FILE_NAME,
+                       ATTACHED_FILE_NAME2
+                  FROM EPROMHQ.IIS_TICKETS
+                 WHERE EMP_ID = :APP_USER;
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+            columnSpan: 6
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P74_ASSIGNED_TO (
+        type: hidden
+        layout {
+            sequence: 80
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: ASSIGNED_TO
+            dataType: varchar2
+        }
+    )
+
+    pageItem P74_ATTACHED_DATE (
+        type: hidden
+        layout {
+            sequence: 200
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: ATTACHED_DATE
+            dataType: date
+        }
+        default {
+            type: expression
+            plsqlExpression: SYSDATE
+        }
+    )
+
+    pageItem P74_ATTACHED_FILE (
+        type: imageUpload
+        label {
+            label: &APP_TEXT$ILLUSTRATION.
+            alignment: left
+        }
+        display {
+            displayAs: inlineFileBrowse
+        }
+        storage {
+            filenameColumn: ATTACHED_FILE_NAME
+        }
+        resizeTo {
+            maxFileSize: 4000
+            maxWidth: 2000
+            maxHeight: 2000
+        }
+        layout {
+            sequence: 170
+            region: @دعم-فني
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional
+            templateOptions: #DEFAULT#
+            width: 60
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @دعم-فني
+            column: ATTACHED_FILE
+            dataType: blob
+        }
+    )
+
+    pageItem P74_ATTACHED_FILE2 (
+        type: imageUpload
+        label {
+            label: &APP_TEXT$ILLUSTRATION_2.
+            alignment: left
+        }
+        display {
+            displayAs: inlineFileBrowse
+        }
+        storage {
+            filenameColumn: ATTACHED_FILE_NAME2
+        }
+        resizeTo {
+            maxFileSize: 4000
+            maxWidth: 2000
+            maxHeight: 2000
+        }
+        layout {
+            sequence: 180
+            region: @دعم-فني
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional
+            templateOptions: #DEFAULT#
+            width: 60
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @دعم-فني
+            column: ATTACHED_FILE2
+            dataType: blob
+        }
+    )
+
+    pageItem P74_ATTACHED_FILE_NAME (
+        type: hidden
+        layout {
+            sequence: 210
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: ATTACHED_FILE_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P74_ATTACHED_FILE_NAME2 (
+        type: hidden
+        layout {
+            sequence: 220
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: ATTACHED_FILE_NAME2
+            dataType: varchar2
+        }
+    )
+
+    pageItem P74_CATEGORY (
+        type: selectList
+        label {
+            label: &APP_TEXT$CLASSIFICATION_OF_THE_PROBLEM.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT
+                  CASE 
+                    WHEN APEX_UTIL.GET_SESSION_LANG = 'ar-ae' THEN 
+                      DISPLAY_AR
+                    ELSE 
+                      DISPLAY_EN
+                  END AS DISPLAY_VALUE,
+                  RETURN_VALUE
+                FROM (
+                  SELECT
+                    'مشاكل الدخول'                      AS DISPLAY_AR,
+                    'Login Issues'                      AS DISPLAY_EN,
+                    'LOGIN_ISSUES'                      AS RETURN_VALUE
+                  FROM DUAL
+                  UNION ALL
+                  SELECT
+                    'مشاكل البيانات',
+                    'Data Issues',
+                    'DATA_ISSUES'
+                  FROM DUAL
+                  UNION ALL
+                  SELECT
+                    'مشاكل تقديم الطلبات',
+                    'Application Submission Issues',
+                    'APPLICATION_ISSUES'
+                  FROM DUAL
+                  UNION ALL
+                  SELECT
+                    'مشاكل إشعارات أو تتبع الطلبات',
+                    'Notification or Tracking Issues',
+                    'NOTIFICATION_ISSUES'
+                  FROM DUAL
+                  UNION ALL
+                  SELECT
+                    'مشاكل تقنية أو أعطال',
+                    'Technical Problems or Errors',
+                    'TECHNICAL_ISSUES'
+                  FROM DUAL
+                  UNION ALL
+                  SELECT
+                    'مشاكل صلاحيات أو وصول',
+                    'Access or Permission Issues',
+                    'ACCESS_ISSUES'
+                  FROM DUAL
+                  UNION ALL
+                  SELECT
+                    'مشاكل واجهة المستخدم أو اللغة',
+                    'UI or Language Issues',
+                    'UI_ISSUES'
+                  FROM DUAL
+                  UNION ALL
+                  SELECT
+                    'استفسارات عامة',
+                    'General Inquiries',
+                    'GENERAL_INQUIRIES'
+                  FROM DUAL
+                )
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            region: @دعم-فني
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @دعم-فني
+            column: CATEGORY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P74_CLOSED_DATE (
+        type: hidden
+        layout {
+            sequence: 120
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: CLOSED_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P74_CREATED_BY (
+        type: hidden
+        layout {
+            sequence: 70
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: CREATED_BY
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :App_user
+        }
+    )
+
+    pageItem P74_CREATION_DATE (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: CREATION_DATE
+            dataType: date
+        }
+        default {
+            type: expression
+            plsqlExpression: SYSDATE
+        }
+    )
+
+    pageItem P74_DESCRIPTION (
+        type: textarea
+        label {
+            label: &APP_TEXT$DESCRIPTION_OF_THE_PROBLEM.
+            alignment: left
+        }
+        settings {
+            autoHeight: true
+            trimSpaces: none
+        }
+        layout {
+            sequence: 10
+            region: @new
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 5
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @دعم-فني
+            column: DESCRIPTION
+            dataType: clob
+        }
+        sessionState {
+            dataType: clob
+        }
+    )
+
+    pageItem P74_EMP_ID (
+        type: hidden
+        layout {
+            sequence: 130
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: EMP_ID
+            dataType: number
+        }
+        default {
+            type: expression
+            plsqlExpression: :App_user
+        }
+    )
+
+    pageItem P74_ESCALATION (
+        type: hidden
+        layout {
+            sequence: 140
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: ESCALATION
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: 0
+        }
+    )
+
+    pageItem P74_LAST_UPDATE_DATE (
+        type: hidden
+        layout {
+            sequence: 100
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: LAST_UPDATE_DATE
+            dataType: date
+        }
+        default {
+            type: expression
+            plsqlExpression: SYSDATE
+        }
+    )
+
+    pageItem P74_PRIORITY (
+        type: hidden
+        layout {
+            sequence: 60
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: PRIORITY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P74_RESOLUTION_NOTE (
+        type: hidden
+        layout {
+            sequence: 110
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: RESOLUTION_NOTE
+            dataType: clob
+        }
+        sessionState {
+            dataType: clob
+        }
+    )
+
+    pageItem P74_STATUS (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ORDER_STATUS.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:جديد;Open
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 20
+            region: @دعم-فني
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @دعم-فني
+            column: STATUS
+            dataType: varchar2
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue:
+                ```sql
+                SELECT CASE LANG
+                         WHEN 'ar-ae' THEN 'جديد'
+                         ELSE 'Open'
+                       END
+                  FROM central.EMP_LANG
+                 WHERE EMP_ID = :app_user
+                
+                ```
+        }
+        sessionState {
+            storage: session
+        }
+    )
+
+    pageItem P74_TICKET_ID (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @دعم-فني
+            slot: regionBody
+        }
+        source {
+            formRegion: @دعم-فني
+            column: TICKET_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P74_TITLE (
+        type: textField
+        label {
+            label: &APP_TEXT$THE_TOPIC.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @دعم-فني
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+        source {
+            formRegion: @دعم-فني
+            column: TITLE
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 30
+            region: @new
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 1
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$REQUEST_TECHNICAL_SUPPORT.
+        layout {
+            sequence: 20
+            region: @new
+            slot: regionBody
+            column: 1
+            columnSpan: 9
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$ARE_YOU_SURE.
+            style: information
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P74_TICKET_ID
+        }
+    )
+
+    dynamicAction cancel-dialog (
+        name: Cancel Dialog
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancel
+        }
+        serverSideCondition {
+            type: never
+        }
+
+        action native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process clear (
+        name: clear
+        type: clearSessionState
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 60938316562077835
+        }
+    )
+
+    process initialize-form-tickets (
+        name: Initialize form TICKETS
+        type: formInitialization
+        formRegion: @دعم-فني
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 55150083786564947
+        }
+    )
+
+    process notification-and-sms (
+        name: notification and sms
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                
+                
+                
+                  
+                
+                
+                
+                
+                
+                DECLARE
+                  TYPE emp_list_t IS TABLE OF NUMBER;
+                  emp_ids emp_list_t;
+                
+                  P_TITLE     VARCHAR2(200);
+                  P_BODY      VARCHAR2(4000);
+                  P_APP_ID    NUMBER := 175;
+                  P_PAGE_ID   NUMBER := 5;
+                  P_TASK_ID   VARCHAR2(200) := :P74_TICKET_ID;
+                  P_STATUS    NUMBER := 0;
+                  P_INITIATOR VARCHAR2(200);
+                  V_DATE      VARCHAR2(100);
+                BEGIN
+                  SELECT EMP
+                  BULK COLLECT INTO emp_ids
+                  FROM EPROMHQ.IIS_SUPPORT_EMPS
+                  WHERE IS_DEVOLEPER <> 1;
+                
+                  P_TITLE     := TO_CHAR(NVL(:P74_TITLE, ''));
+                  P_INITIATOR := TO_CHAR(NVL(:App_user, ''));
+                
+                  V_DATE := TO_CHAR(
+                              CASE 
+                                WHEN REGEXP_LIKE(:P74_CREATION_DATE, '^\d{2,4}[-/]\d{1,2}[-/]\d{1,4}$') 
+                                THEN TO_DATE(:P74_CREATION_DATE, 'YYYY-MM-DD') 
+                                ELSE SYSDATE 
+                              END,
+                              'DD-MM-YYYY'
+                            );
+                
+                
+                  P_BODY := 'Ticket #' || :P74_TICKET_ID || ' - ' || P_TITLE ||
+                            ' For Employee ' || NVL(:P74_EMP_ID, 'Unknown') ||
+                            ' | Date: ' || V_DATE || '.';
+                
+                
+                  FOR i IN 1 .. emp_ids.COUNT LOOP
+                    CENTRAL.XXAPEX_EMP_NOTIFICATIONS.ADD_NOTIFICATION(
+                      P_EMP_ID     => TO_CHAR(emp_ids(i)),
+                      P_TITLE      => P_TITLE,
+                      P_BODY       => P_BODY,
+                      P_APP_ID     => P_APP_ID,
+                      P_PAGE_ID    => P_PAGE_ID,
+                      P_TASK_ID    => P_TASK_ID,
+                      P_STATUS     => P_STATUS,
+                      P_INITIATOR  => P_INITIATOR
+                    );
+                  END LOOP;
+                
+                
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 55334557383272338
+        }
+        serverSideCondition {
+            whenButtonPressed: @create
+        }
+    )
+
+    process process-form-tickets (
+        name: Process form TICKETS
+        type: formAutoRowProcessing
+        formRegion: @دعم-فني
+        execution {
+            sequence: 20
+        }
+        successMessage {
+            successMessage: &APP_TEXT$THE_REQUEST_HAS_BEEN_FORWARDED.
+        }
+        advanced {
+            executionMappingIdentifier: 55150414954564947
+        }
+        serverSideCondition {
+            whenButtonPressed: @create
+        }
+    )
+
+    process submit (
+        name: submit
+        type: executeCode
+        source {
+            plsqlCode: :P74_STATUS:= 'Open';
+        }
+        execution {
+            sequence: 10
+            runProcess: oncePerSessionOrWhenReset
+        }
+        advanced {
+            executionMappingIdentifier: 60938431872077836
+        }
+    )
+
+)

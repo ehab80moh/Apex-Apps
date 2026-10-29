@@ -1,0 +1,1813 @@
+page 40 (
+    name: الاعتمادات
+    alias: REQUESTS-APPROVALS
+    title: &APP_TEXT$CREDITS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: [
+            #DEFAULT#
+            js-pageStickyMobileHeader
+            t-DeferredRendering
+        ]
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            ul.team{
+                list-style: none;
+                margin: auto;
+            }
+            ul.team li{
+                    font-size: 1em;
+                line-height: normal;
+            }
+            
+            img{
+                height: 10em;
+                width: 6em;
+            }
+            
+            .a-IRR-header--group {
+                display: flex;
+                flex-direction: column-reverse;
+                height: 12em;
+                align-items: center;
+            }
+            
+            
+            .apex-rds table {
+              font-family: 'Arial', sans-serif;
+              font-size: 14px;
+            }
+            
+            
+            .apex-rds th {
+              font-size: 16px;
+            }
+            
+            
+            .apex-rds td {
+              font-size: 14px;
+            }
+            
+            
+            .apex-rds td, .apex-rds th {
+              padding: 5px;
+            }
+            
+            
+            .apex-rds tr td[headers="REQUEST_TYPE_NAME"] {
+              font-weight: bold;
+            }
+            
+            
+            .apex-rds tr td[headers="REQUEST_TYPE_NAME"] span.request-type-name:contains('LEAVE_REQUEST') {
+              background-color: green;
+              color: white;
+            }
+            
+            
+            .apex-rds tr td[headers="REQUEST_TYPE_NAME"] span.request-type-name:contains('طلب اذن') {
+              background-color: red;
+              color: white;
+            }
+            
+            
+            .apex-rds tr td[headers="REQUEST_TYPE_NAME"] span.request-type-name:contains('MISSION_REQUEST') {
+              background-color: blue;
+              color: white;
+            }
+            
+            
+            .apex-rds tr td[headers="REQUEST_TYPE_NAME"] span.request-type-name:contains('طلب ساعات إضافية') {
+              background-color: yellow;
+              color: black;
+            }
+            
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region button-bar (
+        name: Button Bar
+        title: &APP_TEXT$BUTTON_BAR.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$DIV_IDACTIVEFACETSDIV!RAW.
+        }
+        layout {
+            sequence: 10
+            parentRegion: @search-res
+            slot: subRegions
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-ButtonRegion--noPadding
+                t-ButtonRegion--noUI
+            ]
+        }
+    )
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @tabs-container
+            templateOptions: [
+                #DEFAULT#
+                t-TabsRegion-mod--fillLabels
+                t-TabsRegion-mod--pill
+                t-TabsRegion-mod--large
+                t-Region-orderBy--center
+            ]
+        }
+    )
+
+    region search-res (
+        name: search res
+        title: &APP_TEXT$SEARCH_RES.
+        type: staticContent
+        layout {
+            sequence: 20
+            parentRegion: @اعتمادات-المرئوسين
+            slot: regionBody
+            startNewRow: false
+            columnSpan: 9
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region search-results (
+        name: Search Results
+        title: &APP_TEXT$SEARCH_RESULTS.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select * from  CENTRAL.xxapex_hr_emp_data ed
+                where ed.emp_number
+                in
+                (
+                SELECT 
+                        a.emp_number
+                    FROM 
+                        CENTRAL.APR_APPROVAL_RESULT_V a
+                    WHERE 
+                        EXISTS (
+                            SELECT 1 
+                            FROM TABLE(APEX_STRING.SPLIT(a.approver, ':')) t
+                            WHERE t.COLUMN_VALUE = :APP_USER
+                        )
+                
+                group by a.EMP_NUMBER
+                );
+                
+                ```
+        }
+        orderBy {
+            type: item
+            item: {
+                itemName: P40_ORDER_BY
+                orderBys: {
+                    EMP_NAME: "EMP_NAME" asc
+                    EXCEL_POS: "EXCEL_POS" asc
+                    PROJECT: "PROJECT" asc
+                }
+            }
+        }
+        layout {
+            sequence: 20
+            parentRegion: @search-res
+            slot: subRegions
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+            ]
+        }
+        componentAppearance {
+            gridColumns: 3
+        }
+        card {
+            primaryKeyColumn1: EMP_NUMBER
+        }
+        title {
+            column: EMP_NAME
+        }
+        subtitle {
+            column: EMP_NUMBER
+        }
+        body {
+            column: EXCEL_POS
+        }
+        iconAndBadge {
+            badgeColumn: PROJECT
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGE
+            position: first
+        }
+
+        action action (
+            label: &APP_TEXT$CREDITS.
+            layout {
+                sequence: 20
+            }
+            behavior {
+                target: {
+                    page: 59
+                    items: {
+                        P59_EMP_NO: &EMP_NUMBER.
+                    }
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-table-check
+                hot: true
+            }
+        )
+
+        action action-2 (
+            label: &APP_TEXT$PROFILE.
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 27
+                    items: {
+                        P27_EMP_CURRENT: &EMP_NUMBER.
+                        P27_SELECTED_EM_NUM: &EMP_NUMBER.
+                    }
+                }
+            }
+            serverSideCondition {
+                type: expression
+                plsqlExpression: :app_user in ('995','3775')
+            }
+        )
+
+    )
+
+    region اعتمادات-المرئوسين (
+        name: اعتمادات المرئوسين
+        title: &APP_TEXT$SUBORDINATE_APPROPRIATIONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            parentRegion: @new
+            slot: tabs
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT 
+                       *
+                    FROM 
+                        CENTRAL.APR_APPROVAL_RESULT_V a
+                    WHERE 
+                        EXISTS (
+                            SELECT 1 
+                            FROM TABLE(APEX_STRING.SPLIT(a.approver, ':')) t
+                            WHERE t.COLUMN_VALUE = :APP_USER
+                        );
+                ```
+        }
+    )
+
+    region اعتمادات-طلب-الاجازة (
+        name: اعتمادات طلب الاجازة
+        title: &APP_TEXT$LEAVE_APPLICATION_CREDITS.
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @اعتماداتى
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent15
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+    )
+
+    region اعتمادات-طلب-الاذن (
+        name: اعتمادات طلب الاذن
+        title: &APP_TEXT$PERMISSION_REQUEST_CREDITS.
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @اعتماداتى
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region اعتمادات-طلب-ساعات-إضافية (
+        name: اعتمادات طلب ساعات إضافية
+        title: &APP_TEXT$CREDITS_FOR_REQUESTING_ADDITIONAL_HOURS.
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @اعتماداتى
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region اعتمادات-طلب-سيارة-ميكروباص-ليموزين (
+        name: اعتمادات طلب سيارة (ميكروباص/ليموزين)
+        title: &APP_TEXT$CREDITS_FOR_REQUESTING_A_CAR_MICROBUS_LIMOUSINE.
+        type: staticContent
+        layout {
+            sequence: 70
+            parentRegion: @اعتماداتى
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region اعتمادات-طلب-مهمة-و-المهمة-التدريبية (
+        name: اعتمادات طلب مهمة و المهمة التدريبية
+        title: &APP_TEXT$REQUEST_CREDITS_FOR_ASSIGNMENT_AND_TRAINING_ASSIGNMENT.
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @اعتماداتى
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region اعتمادات-طلـــب-حجـــز-اقامــــة-فندقيــــة (
+        name: "اعتمادات طلـــب حجـــز اقامــــة فندقيــــة	"
+        title: &APP_TEXT$CREDITS_FOR_REQUESTING_A_HOTEL_ACCOMMODATION_RESERVATION.
+        type: staticContent
+        layout {
+            sequence: 80
+            parentRegion: @اعتماداتى
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region اعتماداتى (
+        name: اعتماداتى
+        title: &APP_TEXT$MY_CREDITS.
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @new
+            slot: tabs
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+    )
+
+    region البحث (
+        name: البحث
+        title: &APP_TEXT$SEARCH.
+        type: facetedSearch
+        source {
+            filteredRegion: @search-results
+        }
+        layout {
+            sequence: 10
+            parentRegion: @اعتمادات-المرئوسين
+            slot: regionBody
+            columnSpan: 3
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--hideHeader
+                t-Region--scrollBody
+            ]
+        }
+        accessibility {
+            landmarkLabel: &APP_TEXT$FILTERS.
+        }
+        settings {
+            compactNosThreshold: 10000
+            showCurrentFacets: selector
+            currentFacetsSelector: #active_facets
+            showTotalRowCount: true
+            totalRowCountLabel: &APP_TEXT$NUMBER_OF_EMPLOYEES.
+            displayChartForTopNValues: 10
+        }
+
+        facet P40_MAIN_DEPARTMENT (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$PUBLIC_ADMINISTRATION.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 30
+            }
+            listEntries {
+                computeCounts: false
+                maxDisplayedEntries: 7
+            }
+            actionsMenu {
+                filter: false
+            }
+            source {
+                databaseColumn: MAIN_DEPARTMENT
+            }
+        )
+
+        facet P40_ORGANIZATION_NAME (
+            type: selectList
+            label {
+                label: &APP_TEXT$MANAGEMENT.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 40
+            }
+            listEntries {
+                computeCounts: false
+            }
+            source {
+                databaseColumn: ORGANIZATION_NAME
+            }
+        )
+
+        facet P40_PROJECT_FC (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$PROJECT.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 20
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            actionsMenu {
+                filter: false
+                chart: false
+            }
+            source {
+                databaseColumn: PROJECT
+            }
+        )
+
+        facet P40_SEARCH (
+            type: search
+            label {
+                label: &APP_TEXT$SEARCH.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dbColumns: EMP_NUMBER,EMP_NAME
+            }
+        )
+
+    )
+
+    region معتمدين-الطلب (
+        name: معتمدين الطلب
+        title: &APP_TEXT$APPROVING_THE_REQUEST.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_NUMBER,
+                       REQUEST_TYPE_ID,
+                       REQUEST_TYPE_NAME,
+                      EMP_TO_UL(
+                    P_EMP_LIST => APPROVER,
+                    P_SHOW_NAMES => 'Y'
+                  ) APPROVER,
+                       APPROVAL_GROUP_NAME,
+                       APPROVAL_SEQUENCE,
+                       APPROVAL_GROUP_TYPE,
+                       APPROVE_TYPE,
+                       IS_MANDATORY
+                  from CENTRAL.APR_APPROVAL_RESULT_V
+                 where EMP_NUMBER=:app_user
+                and approver not in ('-2')
+                and REQUEST_TYPE_ID in (35)
+                
+                order by REQUEST_TYPE_NAME ASC ,APPROVAL_SEQUENCE ASC
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @اعتمادات-طلب-سيارة-ميكروباص-ليموزين
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+            cssClasses: region
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            partialPageRefresh: false
+        }
+        componentAdvanced {
+            stripHtml: true
+        }
+
+        column APPROVAL_GROUP_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column APPROVAL_GROUP_TYPE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column APPROVAL_SEQUENCE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$RANKING_OF_CREDITS.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVER (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPROVERS.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+            }
+            columnFormatting {
+                htmlExpression: #APPROVER!RAW#
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVE_TYPE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column IS_MANDATORY (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column REQUEST_TYPE_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REQUEST_TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    <span class="request-type-name">#REQUEST_TYPE_NAME#</span>
+                    
+                    ```
+                cssClasses: [
+                    <span
+                    class="fielddatabold">طلب
+                    أجازة	</span>
+                ]
+                cssStyle: [
+                    <span
+                    style="color:#FF0000"#REQUEST_TYPE_NAME#</span>
+                ]
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region معتمدين-الطلب-2 (
+        name: معتمدين الطلب
+        title: &APP_TEXT$APPROVING_THE_REQUEST.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_NUMBER,
+                       REQUEST_TYPE_ID,
+                       REQUEST_TYPE_NAME,
+                          EMP_TO_UL(
+                    P_EMP_LIST => APPROVER,
+                    P_SHOW_NAMES => 'Y'
+                  ) APPROVER,
+                       APPROVAL_GROUP_NAME,
+                       APPROVAL_SEQUENCE,
+                       APPROVAL_GROUP_TYPE,
+                       APPROVE_TYPE,
+                       IS_MANDATORY
+                  from CENTRAL.APR_APPROVAL_RESULT_V
+                 where EMP_NUMBER=:app_user
+                and approver not in ('-2')
+                and REQUEST_TYPE_ID in (107)
+                
+                order by REQUEST_TYPE_NAME ASC ,APPROVAL_SEQUENCE ASC
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @اعتمادات-طلـــب-حجـــز-اقامــــة-فندقيــــة
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+            cssClasses: region
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            partialPageRefresh: false
+        }
+        componentAdvanced {
+            stripHtml: true
+        }
+
+        column APPROVAL_GROUP_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column APPROVAL_GROUP_TYPE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column APPROVAL_SEQUENCE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$RANKING_OF_CREDITS.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVER (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPROVERS.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+            columnFormatting {
+                htmlExpression: #APPROVER!RAW#
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVE_TYPE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column IS_MANDATORY (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column REQUEST_TYPE_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REQUEST_TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    <span class="request-type-name">#REQUEST_TYPE_NAME#</span>
+                    
+                    ```
+                cssClasses: [
+                    <span
+                    class="fielddatabold">طلب
+                    أجازة	</span>
+                ]
+                cssStyle: [
+                    <span
+                    style="color:#FF0000"#REQUEST_TYPE_NAME#</span>
+                ]
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region معتمدين-الطلب-3 (
+        name: معتمدين الطلب
+        title: &APP_TEXT$APPROVING_THE_REQUEST.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_NUMBER,
+                       REQUEST_TYPE_ID,
+                       REQUEST_TYPE_NAME,
+                          EMP_TO_UL(
+                    P_EMP_LIST => APPROVER,
+                    P_SHOW_NAMES => 'Y'
+                  ) APPROVER,
+                       APPROVAL_GROUP_NAME,
+                       APPROVAL_SEQUENCE,
+                       APPROVAL_GROUP_TYPE,
+                       APPROVE_TYPE,
+                       IS_MANDATORY
+                  from CENTRAL.APR_APPROVAL_RESULT_V
+                 where EMP_NUMBER=:app_user
+                and approver not in ('-2')
+                and REQUEST_TYPE_ID=61
+                order by REQUEST_TYPE_NAME ASC ,APPROVAL_SEQUENCE ASC
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @اعتمادات-طلب-الاذن
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+            cssClasses: region
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            partialPageRefresh: false
+        }
+        componentAdvanced {
+            stripHtml: true
+        }
+
+        column APPROVAL_GROUP_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column APPROVAL_GROUP_TYPE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column APPROVAL_SEQUENCE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$RANKING_OF_CREDITS.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVER (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPROVERS.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+            columnFormatting {
+                htmlExpression: #APPROVER!RAW#
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVE_TYPE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column IS_MANDATORY (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column REQUEST_TYPE_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REQUEST_TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    <span class="request-type-name">#REQUEST_TYPE_NAME#</span>
+                    
+                    ```
+                cssClasses: [
+                    <span
+                    class="fielddatabold">طلب
+                    أجازة	</span>
+                ]
+                cssStyle: [
+                    <span
+                    style="color:#FF0000"#REQUEST_TYPE_NAME#</span>
+                ]
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region معتمدين-الطلب-4 (
+        name: معتمدين الطلب
+        title: &APP_TEXT$APPROVING_THE_REQUEST.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_NUMBER,
+                       REQUEST_TYPE_ID,
+                       REQUEST_TYPE_NAME,
+                          EMP_TO_UL(
+                    P_EMP_LIST => APPROVER,
+                    P_SHOW_NAMES => 'Y'
+                  ) APPROVER,
+                       APPROVAL_GROUP_NAME,
+                       APPROVAL_SEQUENCE,
+                       APPROVAL_GROUP_TYPE,
+                       APPROVE_TYPE,
+                       IS_MANDATORY
+                  from CENTRAL.APR_APPROVAL_RESULT_V
+                 where EMP_NUMBER=:app_user
+                and approver not in ('-2')
+                and REQUEST_TYPE_ID=76
+                
+                order by REQUEST_TYPE_NAME ASC ,APPROVAL_SEQUENCE ASC
+                ```
+        }
+        layout {
+            sequence: 110
+            parentRegion: @اعتمادات-طلب-ساعات-إضافية
+            slot: regionBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+            cssClasses: region
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            partialPageRefresh: false
+        }
+        componentAdvanced {
+            stripHtml: true
+        }
+
+        column APPROVAL_GROUP_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column APPROVAL_GROUP_TYPE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column APPROVAL_SEQUENCE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$RANKING_OF_CREDITS.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVER (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPROVERS.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+            columnFormatting {
+                htmlExpression: #APPROVER!RAW#
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVE_TYPE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column IS_MANDATORY (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column REQUEST_TYPE_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REQUEST_TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    <span class="request-type-name">#REQUEST_TYPE_NAME#</span>
+                    
+                    ```
+                cssClasses: [
+                    <span
+                    class="fielddatabold">طلب
+                    أجازة	</span>
+                ]
+                cssStyle: [
+                    <span
+                    style="color:#FF0000"#REQUEST_TYPE_NAME#</span>
+                ]
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region معتمدين-الطلب-5 (
+        name: معتمدين الطلب
+        title: &APP_TEXT$APPROVING_THE_REQUEST.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_NUMBER,
+                       REQUEST_TYPE_ID,
+                       REQUEST_TYPE_NAME,
+                          EMP_TO_UL(
+                    P_EMP_LIST => APPROVER,
+                    P_SHOW_NAMES => 'Y'
+                  ) APPROVER,
+                       APPROVAL_GROUP_NAME,
+                       APPROVAL_SEQUENCE,
+                       APPROVAL_GROUP_TYPE,
+                       APPROVE_TYPE,
+                       IS_MANDATORY
+                  from CENTRAL.APR_APPROVAL_RESULT_V
+                 where EMP_NUMBER=:app_user
+                and approver not in ('-2')
+                and REQUEST_TYPE_ID in (72 , 121)
+                
+                order by REQUEST_TYPE_NAME ASC ,APPROVAL_SEQUENCE ASC
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @اعتمادات-طلب-مهمة-و-المهمة-التدريبية
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+            cssClasses: region
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            partialPageRefresh: false
+        }
+        componentAdvanced {
+            stripHtml: true
+        }
+
+        column APPROVAL_GROUP_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column APPROVAL_GROUP_TYPE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column APPROVAL_SEQUENCE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$RANKING_OF_CREDITS.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVER (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPROVERS.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+            columnFormatting {
+                htmlExpression: #APPROVER!RAW#
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVE_TYPE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column IS_MANDATORY (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column REQUEST_TYPE_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REQUEST_TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    <span class="request-type-name">#REQUEST_TYPE_NAME#</span>
+                    
+                    ```
+                cssClasses: [
+                    <span
+                    class="fielddatabold">طلب
+                    أجازة	</span>
+                ]
+                cssStyle: [
+                    <span
+                    style="color:#FF0000"#REQUEST_TYPE_NAME#</span>
+                ]
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region معتمدين-الطلب-6 (
+        name: معتمدين الطلب
+        title: &APP_TEXT$APPROVING_THE_REQUEST.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_NUMBER,
+                       REQUEST_TYPE_ID,
+                       REQUEST_TYPE_NAME,
+                   EMP_TO_UL(
+                    P_EMP_LIST => APPROVER,
+                    P_SHOW_NAMES => 'Y'
+                  ) APPROVER,
+                       APPROVAL_GROUP_NAME,
+                       APPROVAL_SEQUENCE,
+                       APPROVAL_GROUP_TYPE,
+                       APPROVE_TYPE,
+                       IS_MANDATORY
+                  from CENTRAL.APR_APPROVAL_RESULT_V
+                 where EMP_NUMBER=:app_user
+                and approver not in ('-2')
+                and REQUEST_TYPE_ID=59
+                order by REQUEST_TYPE_NAME ASC ,APPROVAL_SEQUENCE ASC
+                ```
+        }
+        layout {
+            sequence: 70
+            parentRegion: @اعتمادات-طلب-الاجازة
+            slot: regionBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+            cssClasses: region
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            partialPageRefresh: false
+        }
+        componentAdvanced {
+            stripHtml: true
+        }
+
+        column APPROVAL_GROUP_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column APPROVAL_GROUP_TYPE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column APPROVAL_SEQUENCE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$RANKING_OF_CREDITS.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVER (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPROVERS.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+            columnFormatting {
+                htmlExpression: #APPROVER!RAW#
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVE_TYPE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column IS_MANDATORY (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column REQUEST_TYPE_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$REQUEST_TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    <span class="request-type-name">#REQUEST_TYPE_NAME#</span>
+                    
+                    ```
+                cssClasses: [
+                    <span
+                    class="fielddatabold">طلب
+                    أجازة	</span>
+                ]
+                cssStyle: [
+                    <span
+                    style="color:#FF0000"#REQUEST_TYPE_NAME#</span>
+                ]
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    pageItem P40_EMP_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+    )
+
+    pageItem P40_REQUEST_TYPE_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: body
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P40_REQUEST_URL (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: body
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    button create-request (
+        buttonName: create_request
+        label: &APP_TEXT$SUBMIT_THE_APPLICATION.
+        layout {
+            sequence: 10
+            region: @معتمدين-الطلب-6
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--gapTop
+            ]
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: &P40_REQUEST_URL.
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                declare 
+                v_approvers number;
+                begin
+                select count(*)
+                into v_approvers
+                  from CENTRAL.APR_APPROVAL_RESULT_V
+                 where EMP_NUMBER=:P40_EMP_ID
+                and REQUEST_TYPE_ID = :P40_REQUEST_TYPE_ID
+                and approve_type='FYA'
+                AND is_mandatory='Yes'
+                and approver not in ('-1','-2');
+                if v_approvers =0 then
+                 return false;
+                 end if;
+                
+                if :P40_EMP_ID <> :app_user then
+                return false;
+                else
+                return true;
+                end if;
+                end;
+                ```
+        }
+    )
+
+    button reset (
+        buttonName: RESET
+        label: &APP_TEXT$RESET_1.
+        layout {
+            sequence: 10
+            region: @button-bar
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--noUI
+                t-Button--iconLeft
+            ]
+            icon: fa-undo
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 40
+                clearCache: 58
+                action: resetRegions
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    computation p40-request-url (
+        itemName: P40_REQUEST_URL
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        computation {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                begin
+                
+                case :P40_REQUEST_TYPE_ID 
+                when 59 then
+                return 'f?p=115:13:'||V('SESSION');
+                when 61 then
+                return 'f?p=115:45:'||V('SESSION');
+                when 72 then
+                return 'f?p=115:25:'||V('SESSION');
+                when 76 then
+                return 'f?p=115:55:'||V('SESSION');
+                WHEN 107 THEN
+                return 'f?p=105:9:'||V('SESSION');
+                WHEN 96 THEN
+                return 'f?p=124:9:'||V('SESSION');
+                else return null;
+                end case;
+                
+                return null;
+                end;
+                ```
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process clear-session (
+        name: CLEAR SESSION
+        type: clearSessionState
+        clear {
+            type: pages
+            pages: 20
+        }
+        execution {
+            sequence: 10
+            point: afterRegions
+        }
+        advanced {
+            executionMappingIdentifier: 32887786244977241
+        }
+    )
+
+    process compute-req-owner (
+        name: Compute Req owner
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                :p40_EMP_ID:=NVL(:P40_EMP_ID,:APP_USER);
+                
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 32888106102977242
+        }
+    )
+
+)

@@ -1,0 +1,134 @@
+plugin news (
+    name: news
+    staticId: NEWS
+    templateComponent {
+        availableAs: report
+        partial:
+            ```html
+            <!-- <html lang="en" class="dark">
+            <head>
+            </head>
+            <body>
+                {if APEX$IS_LAZY_LOADING/}
+                <div></div>
+                {else/}
+                <div href="#NEWS_TITLE#"  
+            class="flex flex-col justify-end items-center bg-white border border-gray-200 rounded-lg shadow md:flex-row md:max-w-[136rem] hover:bg-white dark:border-gray-700 dark:bg-[#3f5a73] dark:hover:bg-[#3f5a73] text-left"
+                    style="margin: 10px;">
+            
+                    <img class="object-cover w-full rounded-t-lg h-96 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg" 
+                         src="#NEWS_TITLE#" alt="#NEWS_TITLE#" onerror=" "  style="min-width:21rem;">
+            
+                    <div class="flex flex-col justify-between p-4 leading-normal">
+            <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white text-left">
+                            #NEWS_TITLE#
+                        </h5>
+                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
+                            #NEWS_TEXT_SMALL!RAW#
+            
+                            <div>{if APEX$HAS_ACTION_BUTTONS/} #ACTIONPOS# {endif/}</div>
+                        </p>
+            
+            <p class="text-sm text-gray-500 dark:text-gray-400 text-left">
+                            #NEWS_DATETIME#
+                        </p>
+                    </div>
+                </div>
+                {endif/}
+            </body>
+            </html>
+            
+            
+            
+            
+            
+            
+            
+            
+             -->
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            <html lang="en" class="dark">
+            <head>
+            </head>
+            <body>
+            {if APEX$IS_LAZY_LOADING/}
+              <div></div>
+            {else/}
+              <div 
+                class="flex flex-col justify-end items-center bg-white border border-gray-200 rounded-lg shadow md:flex-row md:max-w-[136rem] hover:bg-white dark:border-gray-700 dark:bg-[#3f5a73] dark:hover:bg-[#3f5a73] text-left"
+                style="margin: 10px;">
+            
+            
+            <!-- <img src="#NEWS_IMAGE#" alt="News image" onerror="this.style.display='none'" /> -->
+                <img 
+                 src="#NEWS_IMAGE#" 
+              alt="News image" 
+              class="news-img" 
+              onerror="this.style.display='none';" 
+                />
+            
+                <div class="flex flex-col justify-between p-4 leading-normal">
+                  <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white text-left">
+                    #NEWS_TITLE#
+                  </h5>
+                  <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
+                    #NEWS_TEXT_SMALL!RAW#
+                  </p>
+            
+                  <p class="text-sm text-gray-500 dark:text-gray-400 text-left">
+                    #NEWS_DATETIME#
+                  </p>
+            
+                  {if APEX$HAS_ACTION_BUTTONS/}
+                    <div class="mt-2">#ACTIONPOS#</div>
+                  {endif/}
+                </div>
+              </div>
+            {endif/}
+            
+            </body>
+            </html>
+            
+            ```
+        reportBody: <ul>#APEX$ROWS#</ul>
+        reportRow: <li #APEX$ROW_IDENTIFICATION#>#APEX$PARTIAL#</li>
+        numberOfLazyLoadingSkeletons: 3
+    }
+    component {
+        standardAttributes: regionTemplateAttr
+    }
+    information {
+        version: 1.0
+    }
+)

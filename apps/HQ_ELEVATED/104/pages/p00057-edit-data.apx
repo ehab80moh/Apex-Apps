@@ -1,0 +1,2854 @@
+page 57 (
+    name: تعديل البيانات
+    alias: EDIT-DATA
+    title: &APP_TEXT$MODIFY_DATA.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        executeWhenPageLoads:
+            ```javascript-browser
+            $(document).ready(function() {
+                $(".emp-checkbox").on("change", function() {
+                    if ($(this).is(":checked")) {
+                        let empName = $(this).data("empname");
+                        $s("P57_Emp_NAME", empName); // Sets the APEX item value
+                        $("#P57_Emp_NAME").show(); // Show the page item
+                    } else {
+                        $s("P57_Emp_NAME", ""); // Clear the APEX item value
+                        $("#P57_Emp_NAME").hide(); // Hide the page item
+                    }
+                });
+            });
+            
+            ```
+    }
+    css {
+        inline:
+            ```css
+            .t-AVPList-label, 
+            .t-AVPList-value {
+                border-bottom: var(--ut-avp-border-width, 1px) solid #f7cece; 
+                display: flex; 
+                align-items: center; 
+                line-height: var(--ut-avp-line-height, 1.95rem); 
+                width: 10%; 
+            }
+            .emp-checkbox {
+                margin-right: 10px;
+                transform: scale(1.2); 
+            }
+            
+            .a-CardView-mediaImg {
+                border: 0;
+                display: block;
+                height: auto;
+                max-width: 50%;}
+                .t-Region-headerItems--buttons, 
+            .t-Region-headerItems--title {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding-inline-end: var(--ut-region-header-padding-x, 0.75rem);
+                flex-wrap: nowrap;
+                align-content: space-between;
+                justify-content: space-between;
+            }
+            
+            .t-AVPList--fixedLabelLarge {
+            
+                --ut-avp-label-width: 10.25rem;
+            } 
+            
+            .a-CardView-items .a-CardView-items--grid {
+            
+                background-color: #fff7ee;
+            
+            
+            }
+            
+            .a-CardView-media .a-CardView-media--body  .a-CardView-media--cover {
+            
+                    background-color: #ecf0f0cc;
+            
+            }
+            
+            .a-CardView{
+                background-color: #fffcf4;
+            box-shadow: 7px 6px 4px -2px rgba(0, 0, 0, 0.075);
+            
+            }
+            ```
+    }
+    htmlHeader {
+        pageHtmlBodyAttribute:
+            ```
+            .t-AVPList-label, .t-AVPList-value {
+                border-bottom: var(--ut-avp-border-width,var(--ut-component-inner-border-width)) solid var(--ut-avp-border-color,var(--ut-component-inner-border-color));
+                font-size: var(--ut-avp-font-size,.875rem);
+                line-height: var(--ut-avp-line-height,2.65rem);
+                margin: 0;
+                padding-block-end: var(--ut-avp-padding-y,.5rem);
+                padding-block-start: var(--ut-avp-padding-y,.5rem);
+                padding-inline-end: var(--ut-avp-padding-x,.75rem);
+                padding-inline-start: var(--ut-avp-padding-x,.75rem);
+            }
+            .t-Region-headerItems--buttons, 
+            .t-Region-headerItems--title {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding-inline-end: var(--ut-region-header-padding-x, 0.75rem);
+                flex-wrap: nowrap;
+                align-content: space-between;
+                justify-content: space-between;
+            }
+            
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region 1-الطلبات-السابقة (
+        name: 1 الطلبات السابقة
+        title: &APP_TEXT$MSG_1_PREVIOUS_ORDERS.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select DETAIL_ID,
+                       REQUEST_ID,
+                       EMP_ID,
+                       FIELD_NAME,
+                       NEW_VALUE,
+                       OLD_VALUE,
+                       "COMMENT",
+                       dbms_lob.getlength(ATTACHMENT_1) as BLOB,
+                       dbms_lob.getlength(ATTACHMENT_2) as ATTACHMENT_2,
+                       dbms_lob.getlength(ATTACHMENT_3) as ATTACHMENT_3,
+                       dbms_lob.getlength(ATTACHMENT_4) as ATTACHMENT_4,
+                       CREATED_AT,
+                       UPDATED_BY,
+                       case when IS_FINISH =0 or IS_FINISH is null then 'لم يتم العمل عليها حتي الان'
+                       when IS_FINISH =1 then 'تم انهاء التعديل'
+                       end as IS_FINISH
+                  from EPROMHQ.HRF_PERSONAL_EDIT_DETAILS
+                 where EMP_ID = :P57_EMP_ID
+                
+                
+                ```
+            pageItemsToSubmit: P57_EMP_ID
+        }
+        layout {
+            sequence: 10
+            parentRegion: @الطلبات-السابقة-2
+            slot: subRegions
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: [
+                #DEFAULT#
+                margin-top-md
+            ]
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 76
+                items: {
+                    P76_DETAIL_ID: #DETAIL_ID#
+                }
+                anchor: :&SESSION.::&DEBUG.:::
+            }
+            linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            includeSearchBar: false
+        }
+        advanced {
+            savedReportMappingIdentifier: 137991254119200018
+        }
+
+        column ATTACHMENT_2 (
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$ANNEX_II.
+                alignment: center
+            }
+            layout {
+                sequence: 190
+                columnAlignment: center
+            }
+            blobAttributes {
+                tableOwner: EPROMHQ
+                tableName: HRF_PERSONAL_EDIT_DETAILS
+                blobColumn: ATTACHMENT_2
+                primaryKeyColumn1: DETAIL_ID
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: W
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column ATTACHMENT_3 (
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$ANNEX_III.
+                alignment: center
+            }
+            layout {
+                sequence: 200
+                columnAlignment: center
+            }
+            blobAttributes {
+                tableOwner: EPROMHQ
+                tableName: HRF_PERSONAL_EDIT_DETAILS
+                blobColumn: ATTACHMENT_3
+                primaryKeyColumn1: DETAIL_ID
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: X
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column ATTACHMENT_4 (
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$ANNEX_IV.
+                alignment: center
+            }
+            layout {
+                sequence: 210
+                columnAlignment: center
+            }
+            blobAttributes {
+                tableOwner: EPROMHQ
+                tableName: HRF_PERSONAL_EDIT_DETAILS
+                blobColumn: ATTACHMENT_4
+                primaryKeyColumn1: DETAIL_ID
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: Y
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column BLOB (
+            type: downloadBlob
+            heading {
+                heading: &APP_TEXT$FIRST_ATTACHMENT.
+                alignment: center
+            }
+            layout {
+                sequence: 180
+                columnAlignment: center
+            }
+            blobAttributes {
+                tableOwner: EPROMHQ
+                tableName: HRF_PERSONAL_EDIT_DETAILS
+                blobColumn: ATTACHMENT_1
+                primaryKeyColumn1: DETAIL_ID
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: V
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column COMMENT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$COMMENT.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column CREATED_AT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CREATION_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 120
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: L
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column DETAIL_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$DETAIL_ID.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column EMP_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$EMP_ID.
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column FIELD_NAME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$STATEMENT_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column IS_FINISH (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MODIFIED.
+                alignment: center
+            }
+            layout {
+                sequence: 220
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Z
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column NEW_VALUE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$NEW_VALUE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column OLD_VALUE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$OLD_VALUE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column REQUEST_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$REQUEST_ID.
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column UPDATED_BY (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$UPDATED_BY.
+            }
+            layout {
+                sequence: 130
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        savedReport 1383598 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn ATTACHMENT_2 (
+                sequence: 7
+            )
+
+            displayColumn BLOB (
+                sequence: 6
+            )
+
+            displayColumn COMMENT (
+                sequence: 4
+            )
+
+            displayColumn CREATED_AT (
+                sequence: 5
+            )
+
+            displayColumn FIELD_NAME (
+                sequence: 1
+            )
+
+            displayColumn IS_FINISH (
+                sequence: 8
+            )
+
+            displayColumn NEW_VALUE (
+                sequence: 2
+            )
+
+            displayColumn OLD_VALUE (
+                sequence: 3
+            )
+
+        )
+
+    )
+
+    region 2-الطلبات-السابقة (
+        name: 2 الطلبات السابقة
+        title: &APP_TEXT$MSG_2_PREVIOUS_ORDERS.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select DEP_ID,
+                       EMP_ID,
+                       RELATION_CODE,
+                       FULL_NAME_AR,
+                       FULL_NAME_EN,
+                       NATIONAL_ID,
+                       MOBILE,
+                       HOME_PHONE,
+                       BIRTH_DATE,
+                       RESIDENCE_PLACE,
+                       JOB_TITLE,
+                       EDU_LEVEL_CODE,
+                       SCHOOL_OR_COMPANY,
+                       SCHOOL_CLASS,
+                       SOCIAL_INS_STATUS,
+                       MED_INS_STATUS,
+                       MED_INS_COMPANY,
+                       MED_INS_NO,
+                       IS_BENEFICIARY,
+                       START_COVERAGE_DATE,
+                       END_COVERAGE_DATE,
+                       NOTES,
+                       PHOTO_BLOB,
+                       PHOTO_MIME,
+                       PHOTO_FILENAME,
+                       PHOTO_UPD_AT,
+                       CREATED_AT,
+                       CREATED_BY,
+                       UPDATED_AT,
+                       UPDATED_BY,
+                       RELATIVE_PERSON_ID,
+                       GENDER_CODE,
+                           case when IS_FINISH =0 or IS_FINISH is null then 'لم يتم العمل عليها حتي الان'
+                       when IS_FINISH =1 then 'تم انهاء التعديل'
+                       end as IS_FINISH
+                  from EPROMHQ.HR_EMP_DEPENDENTS
+                 where EMP_ID = :App_user
+                ```
+        }
+        layout {
+            sequence: 90
+            parentRegion: @الطلبات-السابقة
+            slot: regionBody
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: [
+                #DEFAULT#
+                js-showMaximizeButton
+                t-Form--large
+                t-Form--labelsAbove
+                margin-top-md
+                margin-bottom-md
+            ]
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 75
+                items: {
+                    P75_DEP_ID: #DEP_ID#
+                }
+                anchor: :&SESSION.::&DEBUG.:::
+            }
+            linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            includeSearchBar: false
+        }
+        advanced {
+            savedReportMappingIdentifier: 137371933200152829
+        }
+
+        column BIRTH_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DATE_OF_BIRTH.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: I
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column CREATED_AT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DATE_THE_REQUEST_WAS_CREATED.
+                alignment: center
+            }
+            layout {
+                sequence: 280
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AA
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column CREATED_BY (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$CREATED_BY.
+            }
+            layout {
+                sequence: 290
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AB
+            }
+        )
+
+        column DEP_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$DEP_ID.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column EDU_LEVEL_CODE (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$QUALIFICATION.
+                alignment: center
+            }
+            lov {
+                lov: @edu-level-code
+            }
+            layout {
+                sequence: 130
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: L
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column EMP_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$EMP_ID.
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column END_COVERAGE_DATE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$END_COVERAGE_DATE.
+            }
+            layout {
+                sequence: 220
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: U
+            }
+        )
+
+        column FULL_NAME_AR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column FULL_NAME_EN (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FULL_NAME_EN.
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column GENDER_CODE (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$TYPE.
+                alignment: center
+            }
+            lov {
+                lov: @gender-code
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AF
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column HOME_PHONE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HOME_PHONE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column IS_BENEFICIARY (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$BENEFICIARY.
+            }
+            layout {
+                sequence: 200
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: S
+            }
+        )
+
+        column IS_FINISH (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MODIFIED.
+                alignment: center
+            }
+            layout {
+                sequence: 330
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AG
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column JOB_TITLE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$POSITION_IF_ANY.
+                alignment: center
+            }
+            layout {
+                sequence: 120
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column MED_INS_COMPANY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$NAME_OF_THE_MEDICAL_INSURANCE_COMPANY.
+                alignment: center
+            }
+            layout {
+                sequence: 180
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Q
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column MED_INS_NO (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$INSURANCE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 190
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: R
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column MED_INS_STATUS (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$EPROM_MEDICAL_INSURANCE_STATUS.
+            }
+            lov {
+                lov: @social-ins-status
+            }
+            layout {
+                sequence: 170
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: P
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column MOBILE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MOBILE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column NATIONAL_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$NATIONAL_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column NOTES (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$NOTES.
+            }
+            layout {
+                sequence: 230
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: V
+            }
+        )
+
+        column PHOTO_BLOB (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$PHOTO_BLOB.
+            }
+            layout {
+                sequence: 240
+            }
+            source {
+                dataType: OTHER
+            }
+            advanced {
+                endUserAlias: W
+            }
+        )
+
+        column PHOTO_FILENAME (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$PHOTO_FILENAME.
+            }
+            layout {
+                sequence: 260
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Y
+            }
+        )
+
+        column PHOTO_MIME (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$PHOTO_MIME.
+            }
+            layout {
+                sequence: 250
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: X
+            }
+        )
+
+        column PHOTO_UPD_AT (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$PHOTO_UPD_AT.
+            }
+            layout {
+                sequence: 270
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: Z
+            }
+        )
+
+        column RELATION_CODE (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$KINSHIP.
+                alignment: center
+            }
+            lov {
+                lov: @relation-code
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column RELATIVE_PERSON_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$RELATIVE_PERSON_ID.
+            }
+            layout {
+                sequence: 320
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AE
+            }
+        )
+
+        column RESIDENCE_PLACE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$PLACE_PLACE_OF_RESIDENCE.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column SCHOOL_CLASS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CLASS_OR_COMPANY.
+                alignment: center
+            }
+            layout {
+                sequence: 150
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: N
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column SCHOOL_OR_COMPANY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SCHOOL_COLLEGE_REGION.
+                alignment: center
+            }
+            layout {
+                sequence: 140
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column SOCIAL_INS_STATUS (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$SOCIAL_INSURANCE_STATUS.
+                alignment: center
+            }
+            lov {
+                lov: @social-ins-status
+            }
+            layout {
+                sequence: 160
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: O
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column START_COVERAGE_DATE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$START_COVERAGE_DATE.
+            }
+            layout {
+                sequence: 210
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: T
+            }
+        )
+
+        column UPDATED_AT (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$UPDATED_AT.
+            }
+            layout {
+                sequence: 300
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AC
+            }
+        )
+
+        column UPDATED_BY (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$UPDATED_BY.
+            }
+            layout {
+                sequence: 310
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AD
+            }
+        )
+
+        savedReport 1380051 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn BIRTH_DATE (
+                sequence: 7
+            )
+
+            displayColumn CREATED_AT (
+                sequence: 17
+            )
+
+            displayColumn EDU_LEVEL_CODE (
+                sequence: 10
+            )
+
+            displayColumn FULL_NAME_AR (
+                sequence: 2
+            )
+
+            displayColumn FULL_NAME_EN (
+                sequence: 3
+            )
+
+            displayColumn GENDER_CODE (
+                sequence: 18
+            )
+
+            displayColumn HOME_PHONE (
+                sequence: 6
+            )
+
+            displayColumn IS_FINISH (
+                sequence: 19
+            )
+
+            displayColumn JOB_TITLE (
+                sequence: 9
+            )
+
+            displayColumn MED_INS_COMPANY (
+                sequence: 14
+            )
+
+            displayColumn MED_INS_NO (
+                sequence: 15
+            )
+
+            displayColumn MED_INS_STATUS (
+                sequence: 16
+            )
+
+            displayColumn MOBILE (
+                sequence: 5
+            )
+
+            displayColumn NATIONAL_ID (
+                sequence: 4
+            )
+
+            displayColumn RELATION_CODE (
+                sequence: 1
+            )
+
+            displayColumn RESIDENCE_PLACE (
+                sequence: 8
+            )
+
+            displayColumn SCHOOL_CLASS (
+                sequence: 12
+            )
+
+            displayColumn SCHOOL_OR_COMPANY (
+                sequence: 11
+            )
+
+            displayColumn SOCIAL_INS_STATUS (
+                sequence: 13
+            )
+
+        )
+
+    )
+
+    region breadcrumb (
+        name: Breadcrumb
+        title: &APP_TEXT$BREADCRUMB.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 11
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+                margin-bottom-sm
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region cards (
+        name: Cards
+        title: &APP_TEXT$CARDS.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 
+                    r.relative_person_id ,
+                     ' الصفة : ' || r.relative_type AS CARD_TITLE, 
+                     ' الاسم : ' || r.relative_name AS CARD_TEXT, 
+                    CASE 
+                        WHEN r.DATE_OF_BIRTH IS NOT NULL 
+                        THEN ' تاريخ الميلاد : ' || TO_CHAR(r.DATE_OF_BIRTH, 'YYYY-MM-DD') 
+                        ELSE 'برجاء تسجيل تاريخ الميلاد' 
+                    END AS CARD_SUBTEXT, 
+                    CASE 
+                        WHEN r.INSURED = 'Y' THEN 'مؤمن عليه' 
+                        ELSE 'غير مؤمن عليه' 
+                    END AS CARD_BODY,
+                    r.image AS CARD_IMAGE,
+                    r.EMP_PERSON_ID
+                FROM CENTRAL.xxapex_hr_emp_relatives r 
+                WHERE r.employee_number = :APP_USER;
+                
+                ```
+        }
+        layout {
+            sequence: 31
+            parentRegion: @h2-تعديل-بيانات-العائلة-h
+            slot: regionBody
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: #DEFAULT#
+        }
+        card {
+            primaryKeyColumn1: RELATIVE_PERSON_ID
+        }
+        title {
+            column: CARD_TITLE
+        }
+        subtitle {
+            column: CARD_SUBTEXT
+        }
+        body {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <h3>&CARD_BODY.</h3>
+                
+                ```
+        }
+        secondaryBody {
+            advancedFormatting: true
+            htmlExpression: &IMAGE_DISPLAY!RAW.
+        }
+        media {
+            source: blobColumn
+            blobColumn: CARD_IMAGE
+            sizing: cover
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 60
+                    items: {
+                        P60_RELATIVE_PERSON_ID: &RELATIVE_PERSON_ID.
+                        P60_RELATIVE_PERSON_ID_1: &RELATIVE_PERSON_ID.
+                        P60_EMP_ID_1: &P57_EMP_ID.
+                    }
+                    request: edit
+                }
+                linkAttributes: &RELATIVE_PERSON_ID.
+            }
+        )
+
+    )
+
+    region edit-emp-data-read-only (
+        name: Edit_emp_data_READ_ONLY
+        title: &APP_TEXT$EDITEMPDATAREADONLY.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                
+                SELECT
+                    q.comments,
+                    S.SOCIAL_INSURANCE_NUM,
+                    s.REGION_OF_BIRTH,
+                    s.TOWN_OF_BIRTH,
+                    s.LOCAL_NAME,
+                    case when g.title='ENGG' THEN 'ENG' ELSE g.title END AS title,
+                    d.emp_name,
+                    d.national_identifier,
+                    d.emp_date_of_birth,
+                    d.emp_position_name,
+                    d.site_code,
+                    d.organization_name,
+                    d.assignments_date,
+                    REPLACE(d.grade_name, 'EPROM.', '') AS grade_name,
+                    d.permanent_date,
+                    d.excel_pos,
+                    d.project,
+                    d.basic_salary,
+                    d.exp_date,
+                    SYS.DBMS_LOB.getlength(d.image) AS image_length,
+                    d.image_id,
+                    d.comp_email,
+                    d.pay_email,
+                    d.egpc_email,
+                    d.mar_stat,
+                    d.prim_address,
+                    a.town_or_city,
+                    d.emp_number,
+                    d.job_date
+                FROM central.xxapex_hr_emp_data       d
+                JOIN central.xxapex_hr_emp_gender     g ON g.employee_number = d.emp_number
+                LEFT join central.XXAPEX_HR_EMP_SOCIAL_BIRTH s on s.EMP_NUMBER = d.emp_number
+                LEFT JOIN (
+                    SELECT *
+                    FROM central.xxapex_hr_qualifications qq
+                    WHERE qq.maon_or_not = 'Yes'
+                ) q ON q.employee_number = d.emp_number
+                LEFT JOIN (
+                    SELECT *
+                    FROM central.xxapex_hr_emp_addresses aa
+                    WHERE aa.primary_add = 'Y'
+                ) a ON a.employee_number = d.emp_number
+                WHERE d.emp_number = :APP_USER;
+                
+                ```
+        }
+        layout {
+            sequence: 21
+            parentRegion: @h2-تعديل-بيانات-الموظف-h
+            slot: subRegions
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: [
+                #DEFAULT#
+                t-Form--large
+            ]
+        }
+        reportLayout {
+            numberOfRows: 30
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--fixedLabelLarge
+                t-AVPList--leftAligned
+            ]
+        }
+
+        column ASSIGNMENTS_DATE (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$INSTALLATION_DATE.
+            }
+            layout {
+                sequence: 140
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\062A\0627\0631\064A\062E \0627\0644\062A\062B\0628\064A\062A)
+                    }
+                    request: ASSIGNMENTS_DATE
+                }
+                linkText: "&{COLUMN_LINKTEXT ASSIGNMENTS_DATE=#ASSIGNMENTS_DATE#}!RAW."
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column BASIC_SALARY (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 250
+            }
+        )
+
+        column COMMENTS (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$MAIN_QUALIFICATION.
+            }
+            layout {
+                sequence: 110
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0627\0644\0645\0624\0647\0644 \0627\0644\062F\0631\0627\0633\064A)
+                        P58_LABEL1: unistr(\0627\0644\062C\0627\0645\0639\0629)
+                        P58_LABEL2: unistr(\0627\0644\062A\062E\0635\0635)
+                        P58_LABEL3: unistr(\0627\0644\062A\0642\062F\064A\0631)
+                        P58_LABEL4: unistr(\0633\0646\0629 \0627\0644\062A\062E\0631\062C)
+                        P58_OLD_VALUE: #COMMENTS#
+                        P58_FIELD_NAME: unistr(\0627\0644\0645\0624\0647\0644 \0627\0644\0631\0626\064A\0633\064A)
+                        P58_LABEL20: unistr(\0634\0647\0627\062F\0629 \0627\0644\0645\0624\0647\0644)
+                    }
+                    request: COMMENTS
+                }
+                linkText: "&{COLUMN_LINKTEXT_1 COMMENTS=#COMMENTS#}!RAW."
+            }
+        )
+
+        column COMP_EMAIL (
+            reportColumnQueryId: 22
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$COMPANY_EMAIL.
+            }
+            layout {
+                sequence: 170
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0627\064A\0645\064A\0644 \0627\0644\0634\0631\0643\0629)
+                        P58_OLD_VALUE: #COMP_EMAIL#
+                        P58_FIELD_NAME: unistr(\0627\064A\0645\064A\0644 \0627\0644\0634\0631\0643\0629)
+                    }
+                    request: COMP_EMAIL
+                }
+                linkText: "&{COLUMN_LINKTEXT_2 COMP_EMAIL=#COMP_EMAIL#}!RAW."
+            }
+        )
+
+        column EGPC_EMAIL (
+            reportColumnQueryId: 24
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 280
+            }
+        )
+
+        column EMP_DATE_OF_BIRTH (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$DATE_OF_BIRTH.
+            }
+            layout {
+                sequence: 100
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\062A\0627\0631\064A\062E \0627\0644\0645\064A\0644\0627\062F)
+                    }
+                    request: BIRTH_DAY
+                }
+                linkText: "&{COLUMN_LINKTEXT_3 EMP_DATE_OF_BIRTH=#EMP_DATE_OF_BIRTH#}!RAW."
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column EMP_NAME (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$THE_NAME.
+            }
+            layout {
+                sequence: 20
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0623\0644\0627\0633\0645 \0643\0627\0645\0644)
+                        P58_LABEL1: unistr(\0623\0644\0627\0633\0645 \0627\0644\0627\0648\0644)
+                        P58_LABEL2: unistr(\0623\0644\0627\0633\0645 \0627\0644\0627\0648\0633\0637)
+                        P58_LABEL3: unistr(\0623\0644\0627\0633\0645 \0627\0644\0627\062E\064A\0631)
+                        P58_OLD_VALUE: #EMP_NAME#
+                        P58_FIELD_NAME: unistr(\0623\0644\0627\0633\0645)
+                        P58_LABEL20: unistr(\0627\0644\0628\0637\0627\0642\0629 \0627\0644\0634\062E\0635\064A\0629)
+                    }
+                    request: NAME
+                }
+                linkText: "&{COLUMN_LINKTEXT_4 EMP_NAME=#EMP_NAME#}!RAW."
+            }
+            columnFormatting {
+                cssClasses: [
+                    class="t-Button
+                    t-Button--icon
+                    t-Button--hot
+                    t-Button--success
+                    t-Button--iconLeft"
+                ]
+                cssStyle: [
+                    class="t-Button
+                    t-Button--icon
+                    t-Button--hot
+                    t-Button--success
+                    t-Button--iconLeft"
+                ]
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 28
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 200
+            }
+        )
+
+        column EMP_POSITION_NAME (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$JOB_NAME.
+            }
+            layout {
+                sequence: 130
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0627\0633\0645 \0627\0644\0648\0638\064A\0641\0629)
+                    }
+                    request: EMP_POSITION_NAME
+                }
+                linkText: "&{COLUMN_LINKTEXT_5 EMP_POSITION_NAME=#EMP_POSITION_NAME#}!RAW."
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column EXCEL_POS (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 240
+            }
+        )
+
+        column EXP_DATE (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 260
+            }
+        )
+
+        column GRADE_NAME (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 230
+            }
+        )
+
+        column IMAGE_ID (
+            reportColumnQueryId: 21
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 270
+            }
+        )
+
+        column IMAGE_LENGTH (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 310
+            }
+        )
+
+        column JOB_DATE (
+            reportColumnQueryId: 29
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 300
+            }
+        )
+
+        column LOCAL_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$NAME_IN_ENGLISH.
+            }
+            layout {
+                sequence: 30
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0627\0644\0623\0633\0645 \0628\0627\0644\0644\063A\0629 \0627\0644\0623\0646\062C\0644\064A\0632\064A\0629)
+                        P58_LABEL20: unistr(\062C\0648\0627\0632 \0633\0641\0631\064D \0633\0627\0631\064A \064A\062A\0636\0645\0646 \0627\0644\0627\0633\0645 \0628\0627\0644\0644\063A\0629 \0627\0644\0625\0646\062C\0644\064A\0632\064A\0629)
+                        P58_FIELD_NAME: unistr(\0627\0644\0623\0633\0645 \0628\0627\0644\0644\063A\0629 \0627\0644\0623\0646\062C\0644\064A\0632\064A\0629)
+                        P58_OLD_VALUE: #LOCAL_NAME#
+                    }
+                }
+                linkText: "&{COLUMN_LINKTEXT_6 LOCAL_NAME=#LOCAL_NAME#}!RAW."
+            }
+        )
+
+        column MAR_STAT (
+            reportColumnQueryId: 25
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$MARITAL_STATUS.
+            }
+            layout {
+                sequence: 120
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0627\0644\062D\0627\0644\0629 \0627\0644\0627\062C\062A\0645\0627\0639\064A\0629)
+                        P58_OLD_VALUE: #MAR_STAT#
+                        P58_FIELD_NAME: unistr(\0627\0644\062D\0627\0644\0629 \0627\0644\0627\062C\062A\0645\0627\0639\064A\0629)
+                        P58_LABEL20: unistr(\0627\0644\0628\0637\0627\0642\0629 \0627\0644\0634\062E\0635\064A\0629)
+                        P58_LABEL19: unistr(\0642\0633\064A\0645\0629 \0627\0644\0632\0648\0627\062C)
+                    }
+                    request: MAR_STAT
+                }
+                linkText: "&{COLUMN_LINKTEXT_7 MAR_STAT=#MAR_STAT#}!RAW."
+            }
+        )
+
+        column NATIONAL_IDENTIFIER (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$NATIONAL_NUMBER.
+            }
+            layout {
+                sequence: 50
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0627\0644\0631\0642\0645 \0627\0644\0642\0648\0645\064A \002814 \0631\0642\0645 \0029)
+                        P58_LABEL20: unistr(\0627\0644\0628\0637\0627\0642\0629 \0627\0644\0634\062E\0635\064A\0629)
+                        P58_FIELD_NAME: unistr(\0627\0644\0631\0642\0645 \0627\0644\0642\0648\0645\064A)
+                        P58_OLD_VALUE: #NATIONAL_IDENTIFIER#
+                    }
+                    request: ID
+                }
+                linkText: "&{COLUMN_LINKTEXT_8 NATIONAL_IDENTIFIER=#NATIONAL_IDENTIFIER#}!RAW."
+            }
+        )
+
+        column ORGANIZATION_NAME (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 220
+            }
+        )
+
+        column PAY_EMAIL (
+            reportColumnQueryId: 23
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$SALARY_STATEMENT_TRANSFER_EMAIL.
+            }
+            layout {
+                sequence: 180
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0627\064A\0645\064A\0644 \062A\062D\0648\064A\0644 \0643\0634\0641 \0627\0644\0631\0627\062A\0628)
+                        P58_OLD_VALUE: #PAY_EMAIL#
+                        P58_FIELD_NAME: unistr(\0627\064A\0645\064A\0644 \062A\062D\0648\064A\0644 \0643\0634\0641 \0627\0644\0631\0627\062A\0628)
+                    }
+                    request: PAY_EMAIL
+                }
+                linkText: "&{COLUMN_LINKTEXT_9 PAY_EMAIL=#PAY_EMAIL#}!RAW."
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column PERMANENT_DATE (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$APPOINTMENT_DATE.
+            }
+            layout {
+                sequence: 150
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\062A\0627\0631\064A\062E \0627\0644\062A\0639\064A\064A\0646)
+                    }
+                    request: PERMANENT_DATE
+                }
+                linkText: "&{COLUMN_LINKTEXT_10 PERMANENT_DATE=#PERMANENT_DATE#}!RAW."
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column PRIM_ADDRESS (
+            reportColumnQueryId: 26
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$MAIN_TITLE.
+            }
+            layout {
+                sequence: 190
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0627\0644\0639\0646\0648\0627\0646 \0627\0644\0631\0626\064A\0633\064A)
+                        P58_OLD_VALUE: #PRIM_ADDRESS#
+                        P58_FIELD_NAME: unistr(\0627\0644\0639\0646\0648\0627\0646 \0627\0644\0631\0626\064A\0633\064A)
+                        P58_LABEL20: unistr(\0639\0642\062F \0028\0625\064A\062C\0627\0631\002F\062A\0645\0644\064A\0643\0029 \0623\0648 \0625\064A\0635\0627\0644 \0645\0631\0627\0641\0642 \0028\0645\064A\0627\0647\002F\0643\0647\0631\0628\0627\0621\0029)
+                    }
+                    request: PRIM_ADDRESS
+                }
+                linkText: "&{COLUMN_LINKTEXT_11 PRIM_ADDRESS=#PRIM_ADDRESS#}!RAW."
+            }
+        )
+
+        column PROJECT (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$PROJECT.
+            }
+            layout {
+                sequence: 160
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0627\0644\0645\0634\0631\0648\0639)
+                    }
+                    request: PROJECT
+                }
+                linkText: "&{COLUMN_LINKTEXT_12 PROJECT=#PROJECT#}!RAW."
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column REGION_OF_BIRTH (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$BIRTH_AREA.
+            }
+            layout {
+                sequence: 90
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0645\0646\0637\0642\0629 \0627\0644\0645\064A\0644\0627\062F)
+                        P58_LABEL20: unistr(\0634\0647\0627\062F\0647 \0627\0644\0645\064A\0644\0627\062F)
+                        P58_FIELD_NAME: unistr(\0645\0646\0637\0642\0629 \0627\0644\0645\064A\0644\0627\062F)
+                        P58_OLD_VALUE: #REGION_OF_BIRTH#
+                    }
+                }
+                linkText: "&{COLUMN_LINKTEXT_13 REGION_OF_BIRTH=#REGION_OF_BIRTH#}!RAW."
+            }
+        )
+
+        column SITE_CODE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 210
+            }
+        )
+
+        column SOCIAL_INSURANCE_NUM (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$INSURANCE_NUMBER.
+            }
+            layout {
+                sequence: 60
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0627\0644\0631\0642\0645 \0627\0644\062A\0623\0645\064A\0646\064A)
+                        P58_LABEL20: unistr(\0628\0631\064A\0646\062A \062A\0623\0645\064A\0646\064A \0028\0625\0646 \0648\062C\062F\0029)
+                        P58_FIELD_NAME: unistr(\0627\0644\0631\0642\0645 \0627\0644\062A\0623\0645\064A\0646\064A)
+                        P58_OLD_VALUE: unistr( \0627\0644\0631\0642\0645 \0627\0644\062A\0623\0645\064A\0646\064A)
+                    }
+                }
+                linkText: "&{COLUMN_LINKTEXT_14 SOCIAL_INSURANCE_NUM=#SOCIAL_INSURANCE_NUM#}!RAW."
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$TITLE.
+            }
+            layout {
+                sequence: 10
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0627\0644\0644\0642\0628)
+                        P58_LABEL20: unistr(\0634\0647\0627\062F\0629 \0627\0644\0645\0624\0647\0644)
+                        P58_FIELD_NAME: unistr(\0627\0644\0644\0642\0628)
+                        P58_OLD_VALUE: #TITLE#
+                    }
+                    request: title
+                }
+                linkText: "&{COLUMN_LINKTEXT_15 TITLE=#TITLE#}!RAW."
+            }
+            columnFormatting {
+                cssClasses: [
+                    class="t-Button
+                    t-Button--icon
+                    t-Button--hot
+                    t-Button--success
+                    t-Button--iconLeft"
+                ]
+                cssStyle: [
+                    class="t-Button
+                    t-Button--icon
+                    t-Button--hot
+                    t-Button--success
+                    t-Button--iconLeft"
+                ]
+            }
+        )
+
+        column TOWN_OF_BIRTH (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$BIRTH_CITY.
+            }
+            layout {
+                sequence: 80
+            }
+            link {
+                target: {
+                    page: 58
+                    items: {
+                        P58_LABEL: unistr(\0645\062F\064A\0646\0629 \0627\0644\0645\064A\0644\0627\062F)
+                        P58_LABEL20: unistr(\0634\0647\0627\062F\0647 \0627\0644\0645\064A\0644\0627\062F)
+                        P58_FIELD_NAME: unistr(\0645\062F\064A\0646\0629 \0627\0644\0645\064A\0644\0627\062F)
+                        P58_OLD_VALUE: #TOWN_OF_BIRTH#
+                    }
+                }
+                linkText: "&{COLUMN_LINKTEXT_16 TOWN_OF_BIRTH=#TOWN_OF_BIRTH#}!RAW."
+            }
+        )
+
+        column TOWN_OR_CITY (
+            reportColumnQueryId: 27
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 290
+            }
+        )
+
+    )
+
+    region h2-تعديل-بيانات-العائلة-h (
+        name: <h2> تعديل بيانات العائلة </h2>
+        title: &APP_TEXT$MODIFY_FAMILY_DATA!RAW.
+        type: staticContent
+        layout {
+            sequence: 40
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent14
+                t-Region--scrollBody
+                t-Form--leftLabels
+            ]
+        }
+    )
+
+    region h2-تعديل-بيانات-الموظف-h (
+        name: <h2>تعديل بيانات الموظف</h2>
+        title: &APP_TEXT$MODIFY_EMPLOYEE_DATA!RAW.
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region الطلبات-السابقة (
+        name: " الطلبات السابقة "
+        title: &APP_TEXT$PREVIOUS_ORDERS.
+        type: staticContent
+        layout {
+            sequence: 41
+            parentRegion: @h2-تعديل-بيانات-العائلة-h
+            slot: regionBody
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT 1 FROM EPROMHQ.HR_EMP_DEPENDENTS
+                WHERE EMP_ID = :APP_USER
+                ```
+        }
+    )
+
+    region الطلبات-السابقة-2 (
+        name: " الطلبات السابقة "
+        title: &APP_TEXT$PREVIOUS_ORDERS.
+        type: staticContent
+        layout {
+            sequence: 31
+            parentRegion: @h2-تعديل-بيانات-الموظف-h
+            slot: subRegions
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT 1 FROM EPROMHQ.HRF_PERSONAL_EDIT_DETAILS
+                WHERE EMP_ID = :APP_USER
+                ```
+        }
+    )
+
+    region ملحوظة (
+        name: ملحوظة
+        title: &APP_TEXT$NOTE.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_26!RAW.
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--warning
+            ]
+        }
+    )
+
+    pageItem P57_EMP_ID (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    button add (
+        buttonName: Add
+        label: &APP_TEXT$ADD_A_NEW_FAMILY_MEMBER.
+        layout {
+            sequence: 10
+            region: @h2-تعديل-بيانات-العائلة-h
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+                t-Button--iconLeft
+                t-Button--stretch
+                t-Button--gapRight
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 60
+                items: {
+                    P60_EMP_ID: &P57_EMP_ID.
+                    P60_EMP_ID_1: &P57_EMP_ID.
+                }
+                request: add
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction new (
+        name: New_5
+        execution {
+            sequence: 100
+        }
+        when {
+            event: apexafterclosecanceldialog
+            selectionType: region
+            region: @h2-تعديل-بيانات-العائلة-h
+        }
+
+        action native-submit-page (
+            action: submitPage
+            settings {
+                showProcessing: false
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh (
+        name: "refresh "
+        execution {
+            sequence: 110
+        }
+        when {
+            event: apexafterclosecanceldialog
+            selectionType: region
+            region: @h2-تعديل-بيانات-الموظف-h
+        }
+
+        action native-submit-page (
+            action: submitPage
+            settings {
+                showProcessing: false
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process clear-session (
+        name: CLEAR SESSION
+        type: clearSessionState
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 89401160073998646
+        }
+    )
+
+    process insert (
+        name: INSERT
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    v_request_id NUMBER;
+                    v_existing_value VARCHAR2(500);
+                    v_new_value VARCHAR2(400);
+                BEGIN
+                    INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DATA ("EMP_ID", "REQUEST_TYPE", "ADD_COMMENT", "UPDATED_BY")
+                    VALUES (:APP_USER, 'Update', 'Automated change detection', :APP_USER)
+                    RETURNING "REQUEST_ID" INTO v_request_id;
+                
+                
+                    SELECT EMP_NAME INTO v_existing_value FROM CENTRAL.XXAPEX_HR_EMP_DATA WHERE EMP_NUMBER = :APP_USER; 
+                  IF (v_existing_value IS NULL AND :P57_EMP_NAME IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_EMP_NAME IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_EMP_NAME IS NOT NULL AND v_existing_value <> :P57_EMP_NAME) THEN 
+                        INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, :APP_USER, 'EMP_NAME', v_existing_value, :P57_EMP_NAME, 'Name updated', :APP_USER);
+                    END IF;
+                
+                    SELECT NATIONAL_IDENTIFIER INTO v_existing_value FROM CENTRAL.XXAPEX_HR_EMP_DATA WHERE EMP_NUMBER = :APP_USER;
+                  IF (v_existing_value IS NULL AND :P57_NATIONAL_IDENTIFIER IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_NATIONAL_IDENTIFIER IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_NATIONAL_IDENTIFIER IS NOT NULL AND v_existing_value <> :P57_NATIONAL_IDENTIFIER) THEN 
+                               INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, :APP_USER, 'NATIONAL_IDENTIFIER', v_existing_value, :P57_NATIONAL_IDENTIFIER, 'National ID updated', :APP_USER);
+                    END IF;
+                
+                    SELECT PROJECT INTO v_existing_value FROM CENTRAL.XXAPEX_HR_EMP_DATA WHERE EMP_NUMBER = :APP_USER;
+                  IF (v_existing_value IS NULL AND :P57_PROJECT IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_PROJECT IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_PROJECT IS NOT NULL AND v_existing_value <> :P57_PROJECT) THEN 
+                        INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, :APP_USER, 'PROJECT', v_existing_value, :P57_PROJECT, 'Project updated', :APP_USER);
+                    END IF;
+                
+                    SELECT EMP_DATE_OF_BIRTH INTO v_existing_value FROM CENTRAL.XXAPEX_HR_EMP_DATA WHERE EMP_NUMBER = :APP_USER;
+                  IF (v_existing_value IS NULL AND :P57_EMP_DATE_OF_BIRTH IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_EMP_DATE_OF_BIRTH IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_EMP_DATE_OF_BIRTH IS NOT NULL AND v_existing_value <> :P57_EMP_DATE_OF_BIRTH) THEN         
+                       INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, :APP_USER, 'EMP_DATE_OF_BIRTH', v_existing_value, :P57_EMP_DATE_OF_BIRTH, 'Date of birth updated', :APP_USER);
+                    END IF;
+                
+                    
+                    BEGIN
+                        SELECT q.comments 
+                        INTO v_existing_value
+                        FROM CENTRAL.XXAPEX_HR_EMP_DATA D
+                        LEFT JOIN (SELECT * FROM central.xxapex_hr_qualifications WHERE maon_or_not = 'Yes') q 
+                            ON q.employee_number = d.emp_number
+                        LEFT JOIN (SELECT * FROM central.XXAPEX_HR_EMP_ADDRESSES WHERE PRIMARY_ADD = 'Y') a
+                            ON a.employee_number = d.emp_number
+                        WHERE d.EMP_NUMBER = TO_NUMBER(:APP_USER);  
+                    EXCEPTION 
+                        WHEN NO_DATA_FOUND THEN 
+                            v_existing_value := NULL;  
+                        WHEN OTHERS THEN 
+                            v_existing_value := NULL;  
+                    END;
+                
+                  IF (v_existing_value IS NULL AND :P57_COMMENTS IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_COMMENTS IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_COMMENTS IS NOT NULL AND v_existing_value <> :P57_COMMENTS) THEN         
+                       INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, TO_NUMBER(:APP_USER), 'COMMENTS', NVL(v_existing_value, 'No Previous Comment'), :P57_COMMENTS, 'Comments updated', :APP_USER);
+                    END IF;
+                
+                
+                    SELECT MAR_STAT INTO v_existing_value FROM CENTRAL.XXAPEX_HR_EMP_DATA WHERE EMP_NUMBER = :APP_USER;
+                  IF (v_existing_value IS NULL AND :P57_MAR_STAT IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_MAR_STAT IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_MAR_STAT IS NOT NULL AND v_existing_value <> :P57_MAR_STAT) THEN         INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, :APP_USER, 'MAR_STAT', v_existing_value, :P57_MAR_STAT, 'Marital status updated', :APP_USER);
+                    END IF;
+                
+                    
+                    SELECT EMP_POSITION_NAME INTO v_existing_value FROM CENTRAL.XXAPEX_HR_EMP_DATA WHERE EMP_NUMBER = :APP_USER;
+                       IF (v_existing_value IS NULL AND :P57_EMP_POSITION_NAME IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_EMP_POSITION_NAME IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_EMP_POSITION_NAME IS NOT NULL AND v_existing_value <> :P57_EMP_POSITION_NAME) THEN          
+                       INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, :APP_USER, 'EMP_POSITION_NAME', v_existing_value, :P57_EMP_POSITION_NAME, 'Position updated', :APP_USER);
+                    END IF;
+                
+                    SELECT ASSIGNMENTS_DATE INTO v_existing_value FROM CENTRAL.XXAPEX_HR_EMP_DATA WHERE EMP_NUMBER = :APP_USER;
+                       IF (v_existing_value IS NULL AND :P57_ASSIGNMENTS_DATE IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_ASSIGNMENTS_DATE IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_ASSIGNMENTS_DATE IS NOT NULL AND v_existing_value <> :P57_ASSIGNMENTS_DATE) THEN  
+                          INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, :APP_USER, 'ASSIGNMENTS_DATE', v_existing_value, :P57_ASSIGNMENTS_DATE, 'Assignments date updated', :APP_USER);
+                    END IF;
+                
+                    SELECT PERMANENT_DATE INTO v_existing_value FROM CENTRAL.XXAPEX_HR_EMP_DATA WHERE EMP_NUMBER = :APP_USER;
+                    IF (v_existing_value IS NULL AND :P57_PERMANENT_DATE IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_PERMANENT_DATE IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_PERMANENT_DATE IS NOT NULL AND v_existing_value <> :P57_PERMANENT_DATE) THEN
+                        INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, :APP_USER, 'PERMANENT_DATE', v_existing_value, :P57_PERMANENT_DATE, 'Permanent date updated', :APP_USER);
+                    END IF;
+                
+                
+                    begin
+                    SELECT COMP_EMAIL INTO v_existing_value FROM CENTRAL.XXAPEX_HR_EMP_DATA WHERE EMP_NUMBER = :APP_USER;
+                       IF (v_existing_value IS NULL AND :P57_COMP_EMAIL IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_COMP_EMAIL IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_COMP_EMAIL IS NOT NULL AND v_existing_value <> :P57_COMP_EMAIL) THEN
+                        INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, :APP_USER, 'COMP_EMAIL', v_existing_value, :P57_COMP_EMAIL, 'Company email updated', :APP_USER);
+                    END IF;
+                end;
+                    SELECT PAY_EMAIL INTO v_existing_value FROM CENTRAL.XXAPEX_HR_EMP_DATA WHERE EMP_NUMBER = :APP_USER;
+                      IF (v_existing_value IS NULL AND :P57_PAY_EMAIL IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_PAY_EMAIL IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_PAY_EMAIL IS NOT NULL AND v_existing_value <> :P57_PAY_EMAIL) THEN
+                        INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, :APP_USER, 'PAY_EMAIL', v_existing_value, :P57_PAY_EMAIL, 'Pay email updated', :APP_USER);
+                    END IF;
+                
+                    SELECT PRIM_ADDRESS INTO v_existing_value FROM CENTRAL.XXAPEX_HR_EMP_DATA WHERE EMP_NUMBER = :APP_USER;
+                   IF (v_existing_value IS NULL AND :P57_ADDRESS IS NOT NULL)  -- New value added
+                       OR (v_existing_value IS NOT NULL AND :P57_ADDRESS IS NULL)  -- Old value removed
+                       OR (v_existing_value IS NOT NULL AND :P57_ADDRESS IS NOT NULL AND v_existing_value <> :P57_ADDRESS) THEN  
+                        INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                        ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                        VALUES (v_request_id, :APP_USER, 'PRIM_ADDRESS', v_existing_value, :P57_ADDRESS, 'Primary address updated', :APP_USER);
+                    END IF;
+                    
+                    COMMIT;
+                
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 89401002434998645
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    v_existing_emp_name          CENTRAL.XXAPEX_HR_EMP_DATA.EMP_NAME%TYPE;
+                    v_existing_national_identifier CENTRAL.XXAPEX_HR_EMP_DATA.NATIONAL_IDENTIFIER%TYPE;
+                    v_existing_project           CENTRAL.XXAPEX_HR_EMP_DATA.PROJECT%TYPE;
+                    v_existing_emp_date_of_birth CENTRAL.XXAPEX_HR_EMP_DATA.EMP_DATE_OF_BIRTH%TYPE;
+                    v_existing_mar_stat          CENTRAL.XXAPEX_HR_EMP_DATA.MAR_STAT%TYPE;
+                    v_existing_emp_position_name CENTRAL.XXAPEX_HR_EMP_DATA.EMP_POSITION_NAME%TYPE;
+                    v_existing_assignments_date  CENTRAL.XXAPEX_HR_EMP_DATA.ASSIGNMENTS_DATE%TYPE;
+                    v_existing_permanent_date    CENTRAL.XXAPEX_HR_EMP_DATA.PERMANENT_DATE%TYPE;
+                    v_existing_comp_email        CENTRAL.XXAPEX_HR_EMP_DATA.COMP_EMAIL%TYPE;
+                    v_existing_pay_email         CENTRAL.XXAPEX_HR_EMP_DATA.PAY_EMAIL%TYPE;
+                    v_existing_prim_address      CENTRAL.XXAPEX_HR_EMP_DATA.PRIM_ADDRESS%TYPE;
+                    v_existing_comments          VARCHAR2(500);
+                    
+                    TYPE t_change IS RECORD (
+                        field_name  VARCHAR2(100),
+                        old_value  VARCHAR2(4000),
+                        new_value  VARCHAR2(4000),
+                        comment_txt VARCHAR2(100)
+                    );
+                    TYPE t_changes IS TABLE OF t_change;
+                    l_changes t_changes := t_changes();
+                    
+                    v_request_id NUMBER;
+                BEGIN
+                    BEGIN
+                        SELECT EMP_NAME, NATIONAL_IDENTIFIER, PROJECT, EMP_DATE_OF_BIRTH, MAR_STAT,
+                               EMP_POSITION_NAME, ASSIGNMENTS_DATE, PERMANENT_DATE, COMP_EMAIL, PAY_EMAIL, PRIM_ADDRESS
+                        INTO v_existing_emp_name, v_existing_national_identifier, v_existing_project,
+                             v_existing_emp_date_of_birth, v_existing_mar_stat, v_existing_emp_position_name,
+                             v_existing_assignments_date, v_existing_permanent_date, v_existing_comp_email,
+                             v_existing_pay_email, v_existing_prim_address
+                        FROM CENTRAL.XXAPEX_HR_EMP_DATA
+                        WHERE EMP_NUMBER = :APP_USER;
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            v_existing_emp_name := NULL;
+                            v_existing_national_identifier := NULL;
+                            v_existing_project := NULL;
+                            v_existing_emp_date_of_birth := NULL;
+                            v_existing_mar_stat := NULL;
+                            v_existing_emp_position_name := NULL;
+                            v_existing_assignments_date := NULL;
+                            v_existing_permanent_date := NULL;
+                            v_existing_comp_email := NULL;
+                            v_existing_pay_email := NULL;
+                            v_existing_prim_address := NULL;
+                    END;
+                
+                    BEGIN
+                        SELECT q.comments 
+                        INTO v_existing_comments
+                        FROM CENTRAL.XXAPEX_HR_EMP_DATA D
+                        LEFT JOIN (SELECT * FROM central.xxapex_hr_qualifications WHERE maon_or_not = 'Yes') q 
+                            ON q.employee_number = d.emp_number
+                        LEFT JOIN (SELECT * FROM central.XXAPEX_HR_EMP_ADDRESSES WHERE PRIMARY_ADD = 'Y') a
+                            ON a.employee_number = d.emp_number
+                        WHERE d.EMP_NUMBER = TO_NUMBER(:APP_USER);  
+                    EXCEPTION 
+                        WHEN NO_DATA_FOUND THEN 
+                            v_existing_comments := NULL;  
+                        WHEN OTHERS THEN 
+                            v_existing_comments := NULL;  
+                    END;
+                
+                    IF (v_existing_emp_name IS NULL AND :P57_EMP_NAME IS NOT NULL) 
+                       OR (v_existing_emp_name IS NOT NULL AND :P57_EMP_NAME IS NULL) 
+                       OR (v_existing_emp_name <> :P57_EMP_NAME) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('EMP_NAME', v_existing_emp_name, :P57_EMP_NAME, 'Name updated');
+                    END IF;
+                
+                    IF (v_existing_national_identifier IS NULL AND :P57_NATIONAL_IDENTIFIER IS NOT NULL) 
+                       OR (v_existing_national_identifier IS NOT NULL AND :P57_NATIONAL_IDENTIFIER IS NULL) 
+                       OR (v_existing_national_identifier <> :P57_NATIONAL_IDENTIFIER) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('NATIONAL_IDENTIFIER', v_existing_national_identifier, :P57_NATIONAL_IDENTIFIER, 'National ID updated');
+                    END IF;
+                
+                    IF (v_existing_project IS NULL AND :P57_PROJECT IS NOT NULL) 
+                       OR (v_existing_project IS NOT NULL AND :P57_PROJECT IS NULL) 
+                       OR (v_existing_project <> :P57_PROJECT) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('PROJECT', v_existing_project, :P57_PROJECT, 'Project updated');
+                    END IF;
+                
+                    IF (v_existing_emp_date_of_birth IS NULL AND :P57_EMP_DATE_OF_BIRTH IS NOT NULL) 
+                       OR (v_existing_emp_date_of_birth IS NOT NULL AND :P57_EMP_DATE_OF_BIRTH IS NULL) 
+                       OR (v_existing_emp_date_of_birth <> :P57_EMP_DATE_OF_BIRTH) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('EMP_DATE_OF_BIRTH', v_existing_emp_date_of_birth, :P57_EMP_DATE_OF_BIRTH, 'Date of birth updated');
+                    END IF;
+                
+                    IF (v_existing_mar_stat IS NULL AND :P57_MAR_STAT IS NOT NULL) 
+                       OR (v_existing_mar_stat IS NOT NULL AND :P57_MAR_STAT IS NULL) 
+                       OR (v_existing_mar_stat <> :P57_MAR_STAT) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('MAR_STAT', v_existing_mar_stat, :P57_MAR_STAT, 'Marital status updated');
+                    END IF;
+                
+                    IF (v_existing_emp_position_name IS NULL AND :P57_EMP_POSITION_NAME IS NOT NULL) 
+                       OR (v_existing_emp_position_name IS NOT NULL AND :P57_EMP_POSITION_NAME IS NULL) 
+                       OR (v_existing_emp_position_name <> :P57_EMP_POSITION_NAME) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('EMP_POSITION_NAME', v_existing_emp_position_name, :P57_EMP_POSITION_NAME, 'Position updated');
+                    END IF;
+                
+                    IF (v_existing_assignments_date IS NULL AND :P57_ASSIGNMENTS_DATE IS NOT NULL) 
+                       OR (v_existing_assignments_date IS NOT NULL AND :P57_ASSIGNMENTS_DATE IS NULL) 
+                       OR (v_existing_assignments_date <> :P57_ASSIGNMENTS_DATE) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('ASSIGNMENTS_DATE', v_existing_assignments_date, :P57_ASSIGNMENTS_DATE, 'Assignments date updated');
+                    END IF;
+                
+                    IF (v_existing_permanent_date IS NULL AND :P57_PERMANENT_DATE IS NOT NULL) 
+                       OR (v_existing_permanent_date IS NOT NULL AND :P57_PERMANENT_DATE IS NULL) 
+                       OR (v_existing_permanent_date <> :P57_PERMANENT_DATE) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('PERMANENT_DATE', v_existing_permanent_date, :P57_PERMANENT_DATE, 'Permanent date updated');
+                    END IF;
+                
+                    IF (v_existing_comp_email IS NULL AND :P57_COMP_EMAIL IS NOT NULL) 
+                       OR (v_existing_comp_email IS NOT NULL AND :P57_COMP_EMAIL IS NULL) 
+                       OR (v_existing_comp_email <> :P57_COMP_EMAIL) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('COMP_EMAIL', v_existing_comp_email, :P57_COMP_EMAIL, 'Company email updated');
+                    END IF;
+                
+                    IF (v_existing_pay_email IS NULL AND :P57_PAY_EMAIL IS NOT NULL) 
+                       OR (v_existing_pay_email IS NOT NULL AND :P57_PAY_EMAIL IS NULL) 
+                       OR (v_existing_pay_email <> :P57_PAY_EMAIL) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('PAY_EMAIL', v_existing_pay_email, :P57_PAY_EMAIL, 'Pay email updated');
+                    END IF;
+                
+                    IF (v_existing_prim_address IS NULL AND :P57_ADDRESS IS NOT NULL) 
+                       OR (v_existing_prim_address IS NOT NULL AND :P57_ADDRESS IS NULL) 
+                       OR (v_existing_prim_address <> :P57_ADDRESS) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('PRIM_ADDRESS', v_existing_prim_address, :P57_ADDRESS, 'Primary address updated');
+                    END IF;
+                
+                    IF (v_existing_comments IS NULL AND :P57_COMMENTS IS NOT NULL) 
+                       OR (v_existing_comments IS NOT NULL AND :P57_COMMENTS IS NULL) 
+                       OR (v_existing_comments <> :P57_COMMENTS) THEN
+                        l_changes.EXTEND;
+                        l_changes(l_changes.LAST) := t_change('COMMENTS', NVL(v_existing_comments, 'No Previous Comment'), :P57_COMMENTS, 'Comments updated');
+                    END IF;
+                
+                    IF l_changes.COUNT > 0 THEN
+                        INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DATA ("EMP_ID", "REQUEST_TYPE", "ADD_COMMENT", "UPDATED_BY")
+                        VALUES (:APP_USER, 'Update', 'Automated change detection', :APP_USER)
+                        RETURNING "REQUEST_ID" INTO v_request_id;
+                
+                        FOR i IN 1..l_changes.COUNT LOOP
+                            INSERT INTO EPROMHQ.HRF_PERSONAL_EDIT_DETAILS 
+                            ("REQUEST_ID", "EMP_ID", "FIELD_NAME", "OLD_VALUE", "NEW_VALUE", "COMMENT", "UPDATED_BY") 
+                            VALUES (
+                                v_request_id,
+                                :APP_USER,
+                                l_changes(i).field_name,
+                                l_changes(i).old_value,
+                                l_changes(i).new_value,
+                                l_changes(i).comment_txt,
+                                :APP_USER
+                            );
+                        END LOOP;
+                
+                        COMMIT;
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 92764725391853713
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+)

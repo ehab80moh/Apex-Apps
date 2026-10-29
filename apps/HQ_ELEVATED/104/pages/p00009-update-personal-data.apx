@@ -1,0 +1,780 @@
+page 9 (
+    name: تحديث بيانات شخصية
+    alias: UPDATE-PERSONAL-DATA
+    title: &APP_TEXT$UPDATE_PERSONAL_DATA.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            img {
+              display: block;
+              max-width:300px;
+              max-height:150px;
+              width: auto;
+              height: auto;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region المرفقات (
+        name: المرفقات
+        title: &APP_TEXT$ATTACHMENTS.
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_ATTACHMENTS
+            whereClause:
+                ```sql
+                table_name='XXAPEX_HR_EMP_DATA_EDIT_V1'
+                and PARENT_ID=:APP_USER
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @تحديث-بيانات-شخصية
+            slot: subRegions
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: add
+        }
+        toolbar {
+            controls: [
+                searchCol
+                searchField
+                actionsMenu
+                resetButton
+                saveButton
+            ]
+        }
+        download {
+            formats: [
+                csv
+                html
+                excel
+                pdf
+            ]
+        }
+        advanced {
+            savedReportMappingIdentifier: 10578652212917119
+        }
+
+        savedReport 136452 (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @ATTACH_ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @ATTACH_NAME
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @ATTACH_DESCRIPTION
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @ATTACH
+                layout {
+                    sequence: 4
+                }
+            )
+
+            displayColumn (
+                column: @ATTACH_TYPE
+                layout {
+                    sequence: 5
+                }
+            )
+
+            displayColumn (
+                column: @PARENT_ID
+                layout {
+                    sequence: 6
+                }
+            )
+
+            displayColumn (
+                column: @TABLE_NAME
+                layout {
+                    sequence: 7
+                }
+            )
+
+            displayColumn (
+                column: @CREATED_BY
+                layout {
+                    sequence: 8
+                }
+            )
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column APEX$ROW_SELECTOR (
+            type: rowSelector
+            layout {
+                sequence: 10
+            }
+        )
+
+        column ATTACH (
+            type: textField
+            heading {
+                heading: &APP_TEXT$ATTACH.
+            }
+            layout {
+                sequence: 60
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: ATTACH
+                dataType: blob
+            }
+            columnFilter {
+                enabled: false
+            }
+        )
+
+        column ATTACH_DESCRIPTION (
+            type: textarea
+            heading {
+                heading: &APP_TEXT$ATTACH_DESCRIPTION.
+            }
+            layout {
+                sequence: 50
+            }
+            validation {
+                maxLength: 240
+            }
+            source {
+                databaseColumn: ATTACH_DESCRIPTION
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: none
+            }
+            enableUsersTo {
+                sort: false
+            }
+        )
+
+        column ATTACH_ID (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$ATTACH_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 30
+                columnAlignment: end
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: ATTACH_ID
+                dataType: number
+                queryOnly: true
+                primaryKey: true
+            }
+            columnFilter {
+                lovType: none
+            }
+        )
+
+        column ATTACH_NAME (
+            type: textarea
+            heading {
+                heading: &APP_TEXT$ATTACH_NAME.
+            }
+            layout {
+                sequence: 40
+            }
+            validation {
+                valueRequired: true
+                maxLength: 240
+            }
+            source {
+                databaseColumn: ATTACH_NAME
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: none
+            }
+            enableUsersTo {
+                sort: false
+            }
+        )
+
+        column ATTACH_TYPE (
+            type: textarea
+            heading {
+                heading: &APP_TEXT$ATTACH_TYPE.
+            }
+            layout {
+                sequence: 70
+            }
+            validation {
+                maxLength: 240
+            }
+            source {
+                databaseColumn: ATTACH_TYPE
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: none
+            }
+            enableUsersTo {
+                sort: false
+            }
+        )
+
+        column CREATED_BY (
+            type: textField
+            heading {
+                heading: &APP_TEXT$CREATED_BY.
+            }
+            layout {
+                sequence: 100
+            }
+            validation {
+                valueRequired: true
+                maxLength: 20
+            }
+            source {
+                databaseColumn: CREATED_BY
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column PARENT_ID (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$PARENT_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 80
+                columnAlignment: end
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: PARENT_ID
+                dataType: number
+            }
+            default {
+                type: item
+                item: P9_EMPLOYEE_NUMBER
+            }
+            columnFilter {
+                lovType: none
+            }
+        )
+
+        column TABLE_NAME (
+            type: textarea
+            heading {
+                heading: &APP_TEXT$TABLE_NAME.
+            }
+            layout {
+                sequence: 90
+            }
+            validation {
+                valueRequired: true
+                maxLength: 240
+            }
+            source {
+                databaseColumn: TABLE_NAME
+                dataType: varchar2
+            }
+            default {
+                type: functionBody
+                plsqlFunctionBody:
+                    ```plsql
+                    declare
+                    begin
+                    return 'XXAPEX_HR_EMP_DATA_EDIT_V1';
+                    end;
+                    ```
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: none
+            }
+            enableUsersTo {
+                sort: false
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: &APP_TEXT$ATTACHMENTS.
+        }
+    )
+
+    region تحديث-بيانات-شخصية (
+        name: تحديث بيانات شخصية
+        title: &APP_TEXT$UPDATE_PERSONAL_DATA.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_EMP_DATA_EDIT_V1
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P9_EMPLOYEE_NUMBER (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @تحديث-بيانات-شخصية
+            slot: regionBody
+        }
+        source {
+            formRegion: @تحديث-بيانات-شخصية
+            column: EMPLOYEE_NUMBER
+            dataType: number
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P9_IMAGE (
+        type: fileUpload
+        label {
+            label: &APP_TEXT$IMAGE.
+            alignment: left
+        }
+        display {
+            displayAs: inlineDropzone
+        }
+        storage {
+            type: appTempFiles
+            fileTypes: image/*
+            maxFileSize: 5000
+        }
+        layout {
+            sequence: 30
+            region: @تحديث-بيانات-شخصية
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @تحديث-بيانات-شخصية
+            column: IMAGE
+            dataType: blob
+        }
+    )
+
+    pageItem P9_IMAGE_ID (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @تحديث-بيانات-شخصية
+            slot: regionBody
+        }
+        source {
+            formRegion: @تحديث-بيانات-شخصية
+            column: IMAGE_ID
+            dataType: number
+        }
+    )
+
+    pageItem P9_IMAGE_SHOW (
+        type: displayImage
+        label {
+            label: &APP_TEXT$IMAGE_SHOW.
+            alignment: left
+        }
+        settings {
+            filenameColumn: &P9_IMAGE_ID.
+        }
+        layout {
+            sequence: 20
+            region: @تحديث-بيانات-شخصية
+            slot: regionBody
+            alignment: left
+            column: 6
+            columnSpan: 1
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            cssClasses: IMG
+        }
+        source {
+            formRegion: @تحديث-بيانات-شخصية
+            column: IMAGE
+            dataType: blob
+        }
+    )
+
+    pageItem P9_MAR_STAT (
+        type: radioGroup
+        label {
+            label: &APP_TEXT$MARITAL_STATUS!RAW.
+            alignment: left
+        }
+        settings {
+            noOfCols: 2
+        }
+        lov {
+            type: sharedComponent
+            lov: @mar-status
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 60
+            region: @تحديث-بيانات-شخصية
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--xlarge
+            ]
+        }
+        source {
+            formRegion: @تحديث-بيانات-شخصية
+            column: MAR_STAT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_STATUS (
+        type: textField
+        label {
+            label: &APP_TEXT$STATUS.
+            alignment: left
+        }
+        settings {
+            disabled: true
+            sendOnPageSubmit: true
+        }
+        layout {
+            sequence: 70
+            region: @تحديث-بيانات-شخصية
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @تحديث-بيانات-شخصية
+            column: STATUS
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$CREATE.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P9_EMPLOYEE_NUMBER
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P9_EMPLOYEE_NUMBER
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$APPLY_CHANGES.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P9_EMPLOYEE_NUMBER
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        settings {
+            showSuccessMessages: false
+        }
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 13612515343554235
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process initialize-form-تحديث-بيانات-شخصية (
+        name: Initialize form تحديث بيانات شخصية
+        type: formInitialization
+        formRegion: @تحديث-بيانات-شخصية
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 13611794943554234
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                :P9_EMPLOYEE_NUMBER:=:APP_USER;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 10577373299917106
+        }
+    )
+
+    process process-form-تحديث-بيانات-شخصية (
+        name: Process form تحديث بيانات شخصية
+        type: formAutoRowProcessing
+        formRegion: @تحديث-بيانات-شخصية
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 13612198502554235
+        }
+    )
+
+    process المرفقات-save-interactive-grid-data (
+        name: المرفقات - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @المرفقات
+        execution {
+            sequence: 60
+        }
+        advanced {
+            executionMappingIdentifier: 10579783793917130
+        }
+    )
+
+)

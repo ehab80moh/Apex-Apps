@@ -1,0 +1,366 @@
+page 700 (
+    name: my-it-requests
+    alias: MY-IT-REQUESTS
+    title: &APP_TEXT$PORTAL_PAGE_700_TITLE.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region user-it-requests (
+        name: My IT Requests
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select r.REQUEST_ID,
+                       r.REQUEST_NO,
+                       r.DESCRIPTION,
+                       r.REQUEST_DATE,
+                       t.name as CATEGORY_NAME,
+                       d.title as SUBCATEGORY_NAME,
+                       r.CRITICALITY,
+                       case
+                           when r.STATUS = 10 then 'Pending Approval'
+                           when r.STATUS = 20 then 'Approved - Pending Assignment'
+                           when r.STATUS = 100 then 'Assigned to Team'
+                           when r.STATUS = 110 then 'In Progress'
+                           when r.STATUS = 120 then 'On-Hold (Pending Re-assignment)'
+                           when r.STATUS = 130 then 'Awaiting Your Verification'
+                           when r.STATUS = 140 then 'Rejected'
+                           when r.STATUS = 150 then 'Completed'
+                           when r.STATUS = 160 then 'Cancelled'
+                           else 'Unknown'
+                       end as STATUS_LABEL,
+                       r.STATUS,
+                       r.ASSIGNED_TO,
+                       r.COMPLETE_DATE,
+                       case
+                           when r.STATUS = 150 then
+                               case when r.SUB_STATUS = 'COMPLETED_BY_COORDINATOR' then 'Completed by Coordinator'
+                                    else 'Completed'
+                               end
+                           when r.STATUS = 10 then 'Awaiting Manager'
+                           when r.STATUS = 20 then 'Awaiting Coordinator'
+                           when r.STATUS = 160 then 'Cancelled'
+                           when r.STATUS in (100, 110, 120, 130) then
+                               (select 'Pos ' ||
+                                       (select count(*) from ITR_REQUESTS r2 where r2.APPROVED = 1 and r2.COMPLETE_DATE is null and r2.ASSIGNED_TEAM_ID = r.ASSIGNED_TEAM_ID and r2.REQUEST_ID <= r.REQUEST_ID) ||
+                                       ' of ' ||
+                                       (select count(*) from ITR_REQUESTS r3 where r3.APPROVED = 1 and r3.COMPLETE_DATE is null and r3.ASSIGNED_TEAM_ID = r.ASSIGNED_TEAM_ID)
+                                from dual)
+                           else null
+                       end as QUEUE_STATUS
+                  from ITR_REQUESTS r
+                  left join ITR_REQUEST_TYPES t on r.REQUEST_TYPE = t.id
+                  left join ITR_REQUEST_TYPE_DETAILS d on r.REQUEST_TYPE_DETAIL_ID = d.id
+                 where r.EMP_ID = :APP_USER
+                 order by r.REQUEST_DATE desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 705
+                items: {
+                    P705_REQUEST_ID: \#REQUEST_ID#\
+                }
+                clearCache: 705
+            }
+            linkIcon: <span class="fa fa-search-plus" aria-hidden="true" title="View Details"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 34503358361985381
+        }
+
+        column ASSIGNED_TO (
+            type: plainText
+            heading {
+                heading: Assigned To
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column CATEGORY_NAME (
+            type: plainText
+            heading {
+                heading: Category
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column CRITICALITY (
+            type: plainText
+            heading {
+                heading: Criticality
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column DESCRIPTION (
+            type: plainText
+            heading {
+                heading: Description
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column QUEUE_STATUS (
+            type: plainText
+            heading {
+                heading: Queue Position
+            }
+            layout {
+                sequence: 100
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column REQUEST_DATE (
+            type: plainText
+            heading {
+                heading: Request Date
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column REQUEST_ID (
+            type: hidden
+            heading {
+                heading: Request ID
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column REQUEST_NO (
+            type: plainText
+            heading {
+                heading: Request No
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column STATUS_LABEL (
+            type: plainText
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column SUBCATEGORY_NAME (
+            type: plainText
+            heading {
+                heading: Subcategory
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn ASSIGNED_TO (
+                sequence: 9
+            )
+
+            displayColumn CATEGORY_NAME (
+                sequence: 5
+            )
+
+            displayColumn CRITICALITY (
+                sequence: 7
+            )
+
+            displayColumn DESCRIPTION (
+                sequence: 3
+            )
+
+            displayColumn QUEUE_STATUS (
+                sequence: 10
+            )
+
+            displayColumn REQUEST_DATE (
+                sequence: 4
+            )
+
+            displayColumn REQUEST_ID (
+                sequence: 1
+            )
+
+            displayColumn REQUEST_NO (
+                sequence: 2
+            )
+
+            displayColumn STATUS_LABEL (
+                sequence: 8
+            )
+
+            displayColumn SUBCATEGORY_NAME (
+                sequence: 6
+            )
+
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: Submit New IT Request
+        layout {
+            sequence: 10
+            region: @user-it-requests
+            slot: rightOfInteractiveReportSearchBar
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconRight
+            ]
+            icon: fa-file-new
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 701
+                clearCache: 701
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction refresh-report (
+        name: Refresh Report on Modal Close
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @user-it-requests
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @user-it-requests
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

@@ -1,0 +1,685 @@
+page 63 (
+    name: "2025 برنامج التدريب الصيفي "
+    alias: TRN-APPLICANTS-DATA
+    title: &APP_TEXT$MSG_2025_SUMMER_INTERNSHIP_PROGRAM.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region 2025-برنامج-التدريب-الصيفي (
+        name: "2025 برنامج التدريب الصيفي "
+        title: &APP_TEXT$MSG_2025_SUMMER_INTERNSHIP_PROGRAM.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: TRN_APPLICANTS_DATA
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    pageItem P63_COLLEGE (
+        type: textField
+        label {
+            label: &APP_TEXT$COLLEGE.
+            alignment: left
+        }
+        layout {
+            sequence: 170
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: COLLEGE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P63_COLLEGE_YEAR (
+        type: textField
+        label {
+            label: &APP_TEXT$ACADEMIC_BAND.
+            alignment: left
+        }
+        layout {
+            sequence: 190
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            valueRequired: true
+            maxLength: 100
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: COLLEGE_YEAR
+            dataType: varchar2
+        }
+    )
+
+    pageItem P63_CREATED_AT (
+        type: hidden
+        layout {
+            sequence: 240
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: CREATED_AT
+            dataType: date
+        }
+        default {
+            type: expression
+            plsqlExpression: SYSDATE
+        }
+    )
+
+    pageItem P63_CREATED_BY (
+        type: hidden
+        layout {
+            sequence: 230
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: CREATED_BY
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    pageItem P63_ENROLLMENT_PROOF_FILE (
+        type: imageUpload
+        label {
+            label: &APP_TEXT$UNIVERSITY_CERTIFICATE_LETTER_OF_ENROLLMENT.
+            alignment: left
+        }
+        display {
+            displayAs: inlineFileBrowse
+            dropzoneTitle: &APP_TEXT$SELECT_THE_IMAGE.
+            displayDownloadLink: false
+        }
+        resizeTo {
+            maxFileSize: 3000
+            maxWidth: 2000
+            maxHeight: 2000
+        }
+        layout {
+            sequence: 200
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--xlarge
+            ]
+            width: 30
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: ENROLLMENT_PROOF_FILE
+            dataType: blob
+        }
+    )
+
+    pageItem P63_FULL_NAME (
+        type: textField
+        label {
+            label: &APP_TEXT$TRAINEE_NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 200
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: FULL_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P63_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P63_NATIONAL_ID (
+        type: textField
+        label {
+            label: &APP_TEXT$NATIONAL_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 14
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: NATIONAL_ID
+            dataType: varchar2
+        }
+    )
+
+    pageItem P63_NATIONAL_ID_IMG (
+        type: imageUpload
+        label {
+            label: &APP_TEXT$A_COPY_OF_THE_NATIONAL_ID_CARD.
+            alignment: left
+        }
+        display {
+            displayAs: inlineFileBrowse
+            dropzoneTitle: &APP_TEXT$SELECT_THE_IMAGE.
+            displayDownloadLink: false
+        }
+        resizeTo {
+            maxFileSize: 3000
+            maxWidth: 2000
+            maxHeight: 2000
+        }
+        layout {
+            sequence: 210
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--xlarge
+            ]
+            width: 30
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: NATIONAL_ID_IMG
+            dataType: blob
+        }
+    )
+
+    pageItem P63_PROGRAM_TYPE (
+        type: selectList
+        label {
+            label: &APP_TEXT$PRACTICAL_THEORETICAL_COLLEGES_PROGRAMME.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:برنامج الكليات العملية;برنامج الكليات العملية,برنامج الكليات النظرية;برنامج الكليات النظرية
+        }
+        layout {
+            sequence: 160
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: PROGRAM_TYPE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P63_RELATIVES_DOCS_FILE (
+        type: imageUpload
+        label {
+            label: &APP_TEXT$COMPANY_EMPLOYEE_ID.
+            alignment: left
+        }
+        display {
+            displayAs: inlineFileBrowse
+            dropzoneTitle: &APP_TEXT$SELECT_THE_IMAGE.
+            displayDownloadLink: false
+        }
+        resizeTo {
+            maxFileSize: 3000
+            maxWidth: 2000
+            maxHeight: 2000
+        }
+        layout {
+            sequence: 220
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--xlarge
+            ]
+            width: 30
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: RELATIVES_DOCS_FILE
+            dataType: blob
+        }
+    )
+
+    pageItem P63_RELATIVES_IN_SERVICE (
+        type: selectList
+        label {
+            label: &APP_TEXT$CHILDREN_SIBLINGS_OF_EMPLOYEES.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:أبناء عاملين بالخدمة;أبناء عاملين بالخدمة,أشقاء عاملين بالخدمة;أشقاء عاملين بالخدمة
+        }
+        layout {
+            sequence: 150
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: RELATIVES_IN_SERVICE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P63_RESIDENCE_ADDRESS (
+        type: textField
+        label {
+            label: &APP_TEXT$PLACE_OF_RESIDENCE.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 300
+        }
+        validation {
+            valueRequired: true
+            maxLength: 300
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: RESIDENCE_ADDRESS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P63_SPECIALIZATION (
+        type: textField
+        label {
+            label: &APP_TEXT$SPECIALIZATION.
+            alignment: left
+        }
+        layout {
+            sequence: 180
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: SPECIALIZATION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P63_WHATSAPP_NUMBER (
+        type: textField
+        label {
+            label: &APP_TEXT$MOBILE_NUMBER_WHATSAPP.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @2025-برنامج-التدريب-الصيفي
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 11
+        }
+        source {
+            formRegion: @2025-برنامج-التدريب-الصيفي
+            column: WHATSAPP_NUMBER
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: previous
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$SUBMIT_THE_APPLICATION.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P63_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P63_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$SAVE_CHANGES.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P63_ID
+        }
+    )
+
+    validation new (
+        name: New
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: itemMatchesRegexp
+            item: P63_WHATSAPP_NUMBER
+            regexp: "^01\\d{9}$"
+        }
+        error {
+            errorMessage: &APP_TEXT$PLEASE_ENTER_THE_MOBILE_NUMBER_CORRECTLY.
+            associatedItem: @P63_WHATSAPP_NUMBER
+        }
+    )
+
+    validation new-2 (
+        name: New_1
+        execution {
+            sequence: 20
+        }
+        validation {
+            type: itemMatchesRegexp
+            item: P63_NATIONAL_ID
+            regexp: "^\\d{14}$"
+        }
+        error {
+            errorMessage: &APP_TEXT$PLEASE_ENTER_THE_NATIONAL_ID_NUMBER_CORRECTLY_CONSISTING_OF_14_DIGITS.
+            associatedItem: @P63_NATIONAL_ID
+        }
+    )
+
+    process 2025-برنامج-التدريب-الصيفي (
+        name: "2025 برنامج التدريب الصيفي "
+        type: formInitialization
+        formRegion: @2025-برنامج-التدريب-الصيفي
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 30281596924066090
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 30282362867066091
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process process-form-trn-applicants-data (
+        name: Process form TRN_APPLICANTS_DATA
+        type: formAutoRowProcessing
+        formRegion: @2025-برنامج-التدريب-الصيفي
+        execution {
+            sequence: 10
+        }
+        successMessage {
+            successMessage: &APP_TEXT$SUBMISSION_SUBMITTED_SUCCESSFULLY.
+        }
+        advanced {
+            executionMappingIdentifier: 30281934965066091
+        }
+    )
+
+)

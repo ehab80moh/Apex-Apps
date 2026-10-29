@@ -1,0 +1,339 @@
+page 502 (
+    name: surveys form
+    alias: SURVEYS-FORM
+    title: &APP_TEXT$SURVEYS_FORM.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        chained: false
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region surveys-form (
+        name: surveys form
+        title: &APP_TEXT$SURVEYS_FORM.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: GEN_SURVEYS
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P502_DESCR (
+        type: textarea
+        label {
+            label: &APP_TEXT$DESCR.
+            alignment: right
+        }
+        layout {
+            sequence: 30
+            region: @surveys-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        validation {
+            maxLength: 2000
+        }
+        source {
+            formRegion: @surveys-form
+            column: DESCR
+            dataType: varchar2
+        }
+    )
+
+    pageItem P502_END_DATE (
+        type: datePicker
+        label {
+            label: &APP_TEXT$END_DATE.
+            alignment: right
+        }
+        layout {
+            sequence: 50
+            region: @surveys-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 255
+        }
+        source {
+            formRegion: @surveys-form
+            column: END_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P502_START_DATE (
+        type: datePicker
+        label {
+            label: &APP_TEXT$START_DATE.
+            alignment: right
+        }
+        layout {
+            sequence: 40
+            region: @surveys-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 255
+        }
+        source {
+            formRegion: @surveys-form
+            column: START_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P502_SURVEY_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @surveys-form
+            slot: regionBody
+        }
+        source {
+            formRegion: @surveys-form
+            column: SURVEY_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P502_SURVEY_TITILE (
+        type: textField
+        label {
+            label: &APP_TEXT$SURVEY_TITILE.
+            alignment: right
+        }
+        settings {
+            trimSpaces: none
+        }
+        layout {
+            sequence: 20
+            region: @surveys-form
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+        source {
+            formRegion: @surveys-form
+            column: SURVEY_TITILE
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$CREATE.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P502_SURVEY_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P502_SURVEY_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$APPLY_CHANGES.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P502_SURVEY_ID
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 98035704542854737
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process initialize-form-surveys-form (
+        name: Initialize form surveys form
+        type: formInitialization
+        formRegion: @surveys-form
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 98034902048854737
+        }
+    )
+
+    process process-form-surveys-form (
+        name: Process form surveys form
+        type: formAutoRowProcessing
+        formRegion: @surveys-form
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 98035354993854737
+        }
+    )
+
+)

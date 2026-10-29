@@ -1,0 +1,213 @@
+customAttribute ICON (
+    apexlangName: icon
+    attribute: 4
+    name: Icon
+    type: icon
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 40
+    }
+    help {
+        helpText: Enter an icon class or use the Pick Icon dialog to select the icon you want to add to display in the badge.
+    }
+)
+
+customAttribute LABEL (
+    apexlangName: label
+    attribute: 1
+    name: Label
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: raw
+    }
+    appearance {
+        sequence: 10
+    }
+    builder {
+        translatable: true
+    }
+    help {
+        helpText: Enter a value for the badge label or select a source column from the quick pick options.
+    }
+)
+
+customAttribute LABEL_DISPLAY (
+    apexlangName: displayLabel
+    attribute: 5
+    name: Display Label
+    type: yesNo
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 50
+    }
+    help {
+        helpText: Specify whether to display or hide the badge label. When set to Yes, the badge label will be displayed in addition to the badge value. When set to No, only the badge value will be displayed.
+    }
+)
+
+customAttribute SHAPE (
+    apexlangName: shape
+    attribute: 7
+    name: Shape
+    type: selectList
+    componentLov {
+        nullText: Default
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 70
+    }
+    help {
+        helpText: Select the shape of the badge. Default inherits the shape set by the containing template.
+    }
+
+    entry circular (
+        sequence: 20
+        display: Circular
+        return: t-Badge--circle
+        help {
+            helpText: Displayed with circular edges.
+        }
+    )
+
+    entry rounded (
+        sequence: 10
+        display: Rounded
+        return: t-Badge--rounded
+        help {
+            helpText: Displayed with rounded corners.
+        }
+    )
+
+    entry square (
+        sequence: 30
+        display: Square
+        return: t-Badge--square
+        help {
+            helpText: Displayed with squared edges.
+        }
+    )
+
+)
+
+customAttribute SIZE (
+    apexlangName: size
+    attribute: 8
+    name: Size
+    type: selectList
+    componentLov {
+        nullText: Default
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 80
+    }
+    help {
+        helpText: Set the size of the badge. The default inherits the sizing set by the containing template.
+    }
+
+    entry large (
+        sequence: 30
+        display: Large
+        return: t-Badge--lg
+    )
+
+    entry medium (
+        sequence: 20
+        display: Medium
+        return: t-Badge--md
+    )
+
+    entry small (
+        sequence: 10
+        display: Small
+        return: t-Badge--sm
+    )
+
+)
+
+customAttribute STATE (
+    apexlangName: state
+    attribute: 3
+    name: State
+    type: sessionStateValue
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 30
+    }
+    help {
+        helpText: Select the source column for the state of the badge. Substitute column value with "danger", "warning", "success" or "info" for default styling.
+    }
+)
+
+customAttribute STYLE (
+    apexlangName: style
+    attribute: 6
+    name: Style
+    type: selectList
+    componentLov {
+        nullText: Default
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 60
+    }
+    help {
+        helpText: Select the badge style. Default inherits the style set by the containing template.
+    }
+
+    entry outline (
+        sequence: 20
+        display: Outline
+        return: t-Badge--outline
+    )
+
+    entry subtle (
+        sequence: 10
+        display: Subtle
+        return: t-Badge--subtle
+    )
+
+)
+
+customAttribute VALUE (
+    apexlangName: value
+    attribute: 2
+    name: Value
+    type: sessionStateValue
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: stripHtml
+    }
+    appearance {
+        sequence: 20
+    }
+    supports {
+        dataTypes: [
+            varchar2
+            number
+            date
+            intervalYearToMonth
+            intervalDayToSecond
+        ]
+    }
+    help {
+        helpText: Select a source column for the badge value.
+    }
+)

@@ -1,0 +1,82 @@
+appItem EMP_BIRTH (
+    scope: global
+)
+
+appItem EMP_GRADE (
+    scope: global
+)
+
+appItem EMP_NAME (
+)
+
+appItem EMP_PERSON_ID (
+    scope: global
+)
+
+appItem EMP_PROJECT (
+    scope: global
+)
+
+appItem EMP_ROTATION (
+    scope: global
+)
+
+appItem EMP_SITE (
+    scope: global
+)
+
+appItem ERC_TYPE (
+    scope: global
+    security {
+        sessionStateProtection: unrestricted
+        escapeSpecialChars: false
+    }
+)
+
+appItem FSP_LANGUAGE_PREFERENCE (
+    scope: global
+    security {
+        sessionStateProtection: unrestricted
+    }
+)
+
+appItem IMAGE_ID (
+    security {
+        sessionStateProtection: unrestricted
+    }
+)
+
+appItem MED_APP_EMP_ID (
+    scope: global
+)
+
+appItem MED_APP_USERNAME (
+    scope: global
+)
+
+appItem MED_APP_USER_ID (
+    scope: global
+)
+
+appItem MOBILE (
+)
+
+appItem NOT_COUNT (
+)
+
+appItem PERSONAL_EMAIL (
+)
+
+appItem SESSION_LANG (
+    scope: global
+)
+
+appItem TASK_COUNT (
+)
+
+appItem USER_ROLES (
+    scope: global
+    security {
+        escapeSpecialChars: false
+    }
+)

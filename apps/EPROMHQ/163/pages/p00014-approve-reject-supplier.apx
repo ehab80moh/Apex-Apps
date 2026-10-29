@@ -1,0 +1,660 @@
+page 14 (
+    name: Approve / Reject Supplier
+    alias: APPROVE-REJECT-SUPPLIER
+    title: Approve / Reject Supplier
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            #hidden-data {
+                display: none !important;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region approval-decision (
+        name: Approval Decision
+        title: Decision
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: dialogHeader
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent1
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region hidden-data (
+        name: Hidden Data
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: hidden-data
+        }
+    )
+
+    pageItem P14_COMMENT (
+        type: textarea
+        label {
+            label: COMMENT
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @approval-decision
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+    )
+
+    pageItem P14_DECISION (
+        type: radioGroup
+        label {
+            label: Decision
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:APPROVE;Return1,REJECT;Return2
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @approval-decision
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        advanced {
+            cssClasses: STATIC2:Approve;APPROVE,Reject;REJECT
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P14_EMP_NUM (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 30
+            region: @hidden-data
+            slot: regionBody
+        }
+    )
+
+    pageItem P14_ROLE (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @hidden-data
+            slot: regionBody
+        }
+    )
+
+    pageItem P14_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @hidden-data
+            slot: regionBody
+        }
+    )
+
+    pageItem P14_TECH_EMPLOYEE (
+        type: selectList
+        label {
+            label: Tech Employee
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT
+                    employee_name || ' (' || employee_num || ')' AS d,
+                    employee_num AS r
+                FROM sup_approval_members
+                WHERE approval_role = 'TECH'
+                  AND status = 'ACTIVE'
+                ORDER BY employee_name
+                ```
+            displayExtraValues: false
+            nullDisplayValue: -- Select Technical Reviewer --
+        }
+        layout {
+            sequence: 30
+            region: @approval-decision
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                EXISTS (
+                    SELECT 1
+                    FROM sup_approval_members
+                    WHERE employee_num = :APP_USER
+                      AND approval_role = 'PROC'
+                      AND status = 'ACTIVE'
+                )
+                
+                ```
+        }
+    )
+
+    button cancel (
+        buttonName: Cancel
+        label: Cancel
+        layout {
+            sequence: 70
+            region: @approval-decision
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-close (
+            action: closeDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button submit-approval (
+        buttonName: SUBMIT-APPROVAL
+        label: Approve
+        layout {
+            sequence: 50
+            region: @approval-decision
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button submit-reject (
+        buttonName: SUBMIT-REJECT
+        label: Reject
+        layout {
+            sequence: 60
+            region: @approval-decision
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--danger
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    validation item-required-proc-only (
+        name: Item Required (PROC only)
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: itemIsNotNull
+            item: P14_TECH_EMPLOYEE
+        }
+        error {
+            errorMessage: Please select a Technical Specialist to continue the process.
+            associatedItem: @P14_TECH_EMPLOYEE
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit-approval
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                -- EXISTS (
+                --     SELECT 1
+                --     FROM sup_approval_members
+                --     WHERE employee_num = :APP_USER
+                --       AND approval_role = 'PROC'
+                --       AND status = 'ACTIVE'
+                -- )
+                EXISTS (
+                    SELECT 1
+                    FROM sup_approval_members
+                    WHERE employee_num = :APP_USER
+                      AND approval_role = 'PROC'
+                      AND status = 'ACTIVE'
+                )
+                AND EXISTS (
+                    SELECT 1
+                    FROM sup_suppliers
+                    WHERE supplier_id = :P14_SUPPLIER_ID
+                      AND status NOT IN ('FINANCE_REJECTED', 'LEGAL_REJECTED')
+                )
+                ```
+        }
+    )
+
+    process approve (
+        name: APPROVE
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                
+                declare
+                    v_next_status sup_suppliers.status%type;
+                begin
+                    case :P14_ROLE
+                        when 'PROC' then
+                            update sup_supplier_approvals
+                               set procurement_by       = :P14_EMP_NUM,
+                                   procurement_decision = 'APPROVE',
+                                   procurement_date     = sysdate,
+                                   procurement_comment  = :P14_COMMENT,
+                                   technical_empno      = :P14_TECH_EMPLOYEE
+                             where supplier_id = :P14_SUPPLIER_ID;
+                
+                            v_next_status := 'PROCUREMENT_APPROVED';
+                
+                        when 'TECH' then
+                            update sup_supplier_approvals
+                               set technical_empno     = :P14_EMP_NUM,
+                                   technical_by        = :APP_USER,
+                                   technical_decision  = 'APPROVE',
+                                   technical_date      = sysdate,
+                                   technical_comment   = :P14_COMMENT,
+                                   FINANCIAL_BY        = '1172' --  added
+                             where supplier_id = :P14_SUPPLIER_ID;
+                
+                            v_next_status := 'TECHNICAL_APPROVED';
+                
+                        when 'FIN' then
+                            update sup_supplier_approvals
+                               set --financial_by       = :APP_USER,
+                                   financial_decision = 'APPROVE',
+                                   financial_date     = sysdate,
+                                   financial_comment  = :P14_COMMENT,
+                                   legal_by           = '3704'  --- added
+                             where supplier_id = :P14_SUPPLIER_ID;
+                
+                            v_next_status := 'FINANCE_APPROVED';
+                
+                        when 'LEGAL' then
+                            update sup_supplier_approvals
+                               set --legal_by           = :APP_USER,
+                                   legal_decision     = 'APPROVE',
+                                   legal_date         = sysdate,
+                                   legal_comment      = :P14_COMMENT
+                             where supplier_id = :P14_SUPPLIER_ID;
+                
+                            v_next_status := 'APPROVED';
+                    end case;
+                
+                    update sup_suppliers
+                       set status = v_next_status
+                     where supplier_id = :P14_SUPPLIER_ID;
+                end;
+                
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 195292543543702133
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit-approval
+        }
+    )
+
+    process ensure-approval-row (
+        name: Ensure Approval Row
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                    insert into sup_supplier_approvals (supplier_id)
+                    select :P14_SUPPLIER_ID
+                    from dual
+                    where not exists (
+                        select 1
+                        from sup_supplier_approvals
+                        where supplier_id = :P14_SUPPLIER_ID
+                    );
+                end;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 194455529743640136
+        }
+    )
+
+    process initialize-approval (
+        name: Initialize Approval
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                    -- employee number
+                    :P14_EMP_NUM := :APP_USER;
+                
+                    -- approval role
+                    select approval_role
+                    into :P14_ROLE
+                    from sup_approval_members
+                    where employee_num = :APP_USER
+                      and status = 'ACTIVE'
+                      and rownum = 1;
+                
+                exception
+                    when no_data_found then
+                        raise_application_error(-20001, 'You are not authorized to approve suppliers');
+                end;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 194455471187640135
+        }
+    )
+
+    process new (
+        name: CLEAR
+        type: clearSessionState
+        execution {
+            sequence: 10
+            point: beforeFooter
+        }
+        advanced {
+            executionMappingIdentifier: 241510870603027303
+        }
+    )
+
+    process reject (
+        name: REJECT
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    v_reject_status sup_suppliers.status%type;
+                begin
+                    case :P14_ROLE
+                        when 'PROC' then
+                            update sup_supplier_approvals
+                               set procurement_by       = :P14_EMP_NUM,
+                                   procurement_decision = 'REJECT',
+                                   procurement_date     = sysdate,
+                                   procurement_comment  = :P14_COMMENT
+                             where supplier_id = :P14_SUPPLIER_ID;
+                
+                            v_reject_status := 'PROCUREMENT_REJECTED';
+                
+                        when 'TECH' then
+                            update sup_supplier_approvals
+                               set technical_empno     = :P14_EMP_NUM,
+                                   technical_by        = :APP_USER,
+                                   technical_decision  = 'REJECT',
+                                   technical_date      = sysdate,
+                                   technical_comment   = :P14_COMMENT
+                             where supplier_id = :P14_SUPPLIER_ID;
+                
+                            v_reject_status := 'TECHNICAL_REJECTED';
+                
+                        when 'FIN' then
+                            update sup_supplier_approvals
+                               set financial_by       = :APP_USER,
+                                   financial_decision = 'REJECT',
+                                   financial_date     = sysdate,
+                                   financial_comment  = :P14_COMMENT
+                             where supplier_id = :P14_SUPPLIER_ID;
+                
+                            v_reject_status := 'FINANCE_REJECTED';
+                
+                        when 'LEGAL' then
+                            update sup_supplier_approvals
+                               set legal_by           = :APP_USER,
+                                   legal_decision     = 'REJECT',
+                                   legal_date         = sysdate,
+                                   legal_comment      = :P14_COMMENT
+                             where supplier_id = :P14_SUPPLIER_ID;
+                
+                            v_reject_status := 'LEGAL_REJECTED';
+                    end case;
+                
+                    update sup_suppliers
+                       set status = v_reject_status
+                     where supplier_id = :P14_SUPPLIER_ID;
+                end;
+                
+                -- declare
+                --     v_reject_status sup_suppliers.status%type;
+                -- begin
+                --     case :P14_ROLE
+                
+                --         when 'PROC' then
+                --             update sup_supplier_approvals
+                --                set procurement_by      = :P14_EMP_NUM,
+                --                    procurement_decision= 'REJECT',
+                --                    procurement_date    = sysdate,
+                --                    procurement_comment = :P14_COMMENT
+                --              where supplier_id = :P14_SUPPLIER_ID;
+                
+                --             v_reject_status := 'PROCUREMENT_REJECTED';
+                
+                --         when 'TECH' then
+                --             update sup_supplier_approvals
+                --                set technical_empno     = :P14_EMP_NUM,
+                --                    technical_by        = :APP_USER,
+                --                    technical_decision  = 'REJECT',
+                --                    technical_date      = sysdate,
+                --                    technical_comment   = :P14_COMMENT
+                --              where supplier_id = :P14_SUPPLIER_ID;
+                
+                --             v_reject_status := 'TECHNICAL_REJECTED';
+                
+                --         when 'FIN' then
+                --             update sup_supplier_approvals
+                --                set financial_by        = :APP_USER,
+                --                    financial_decision  = 'REJECT',
+                --                    financial_date      = sysdate,
+                --                    financial_comment   = :P14_COMMENT
+                --              where supplier_id = :P14_SUPPLIER_ID;
+                
+                --             v_reject_status := 'FINANCE_REJECTED';
+                
+                --         when 'LEGAL' then
+                --             update sup_supplier_approvals
+                --                set legal_by            = :APP_USER,
+                --                    legal_decision      = 'REJECT',
+                --                    legal_date          = sysdate,
+                --                    legal_comment       = :P14_COMMENT
+                --              where supplier_id = :P14_SUPPLIER_ID;
+                
+                --             v_reject_status := 'LEGAL_REJECTED';
+                --     end case;
+                
+                --     update sup_suppliers
+                --        set status = v_reject_status
+                --      where supplier_id = :P14_SUPPLIER_ID;
+                
+                --     --apex_util.close_dialog;
+                
+                -- end;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 195292633470702134
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit-reject
+        }
+    )
+
+    process send-sms-after-approval (
+        name: SEND_SMS_AFTER_APPROVAL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_result VARCHAR2(50);
+                BEGIN
+                    l_result :=
+                        sup_sms_after_decision(
+                            p_supplier_id  => :P14_SUPPLIER_ID,
+                            p_action       => 'SUBMIT-APPROVAL',
+                            p_current_role => :P14_ROLE,
+                            p_sender_empno  => :APP_USER
+                        );
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 80
+        }
+        advanced {
+            executionMappingIdentifier: 241510785538027302
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit-approval
+        }
+    )
+
+    process send-sms-after-reject (
+        name: SEND_SMS_AFTER_REJECT
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_result VARCHAR2(50);
+                BEGIN
+                    l_result :=
+                        sup_sms_after_decision(
+                            p_supplier_id  => :P14_SUPPLIER_ID,
+                            p_action       => 'SUBMIT-REJECT',
+                            p_current_role => :P14_ROLE,
+                            p_sender_empno  => :APP_USER
+                        );
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 90
+        }
+        advanced {
+            executionMappingIdentifier: 241510932318027304
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit-reject
+        }
+    )
+
+    branch (
+        name: Close
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 11
+                clearCache: 11
+                action: clearRegions
+            }
+        }
+    )
+
+)

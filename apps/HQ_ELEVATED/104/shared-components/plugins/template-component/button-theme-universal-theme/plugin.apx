@@ -1,0 +1,14 @@
+plugin button (
+    name: Button
+    staticId: THEME_42$BUTTON
+    theme: @universal-theme
+    templateComponent {
+        partial:
+            ```html
+            {if MENU_ID/}<button type="button" data-menu="#MENU_ID#"{else/}<a href="#LINK_URL#" #LINK_ATTR#{endif/} class="t-Button{if IS_HOT/} t-Button--hot{endif/}{if IS_ICON_ONLY/} t-Button--noLabel t-Button--icon{else/}{if ICON_CLASSES/} t-Button--iconLeft{endif/}{endif/} #CSS_CLASSES#" title="#LABEL!STRIPHTML#" {if IS_DISABLED/} disabled{endif/}>
+              {if ?ICON_CLASSES/}<span class="t-Icon t-Icon--left #ICON_CLASSES#" aria-hidden="true"></span>{endif/}<span class="t-Button-label">#LABEL#</span>
+            {if MENU_ID/}</button>{else/}</a>{endif/}
+            
+            ```
+    }
+)

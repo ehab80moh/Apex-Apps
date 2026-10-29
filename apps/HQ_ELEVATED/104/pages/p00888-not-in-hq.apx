@@ -1,0 +1,43 @@
+page 888 (
+    name: Not_in_hq
+    alias: NOT-IN-HQ
+    title: &APP_TEXT$UNDER_CONSTRUCTION.
+    appearance {
+        pageTemplate: @login
+        templateOptions: #DEFAULT#
+    }
+    navigationMenu {
+        overrideUserInterfaceLevel: true
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region تحت-الانشاء (
+        name: تحت الانشاء
+        title: &APP_TEXT$UNDER_CONSTRUCTION.
+        type: staticContent
+        source {
+            htmlCode: "&{PLUG_SOURCE_28 LOGOUT_URL=&LOGOUT_URL.}!RAW."
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+            column: 3
+            columnSpan: 6
+        }
+        appearance {
+            template: @hero
+            templateOptions: #DEFAULT#
+            icon: fa-wrench
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+    )
+
+)

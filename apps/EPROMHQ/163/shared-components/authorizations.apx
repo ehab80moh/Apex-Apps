@@ -1,0 +1,96 @@
+authorization access (
+    name: PAGE_ACCESS_BY_ROLE
+    type: existsSqlQuery
+    settings {
+        sqlQuery:
+            ```sql
+            select 1
+              from epromhq.sup_user_roles ur
+              join epromhq.sup_roles r
+                on r.role_id = ur.role_id
+             where upper(ur.user_id) = upper(:APP_USER)
+               and instr(
+                     ':' || replace(r.role_pages, ' ', '') || ':',
+                     ':' || to_char(:APP_PAGE_ID) || ':'
+                   ) > 0
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization app-authorization (
+    name: APP AUTHORIZATION
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            DECLARE
+                V_CNT NUMBER;
+                V_ROLE_PAGES VARCHAR2(4000);
+            BEGIN
+                IF :APP_PAGE_ID = 1 THEN 
+                    RETURN TRUE;
+                END IF;
+                
+                IF :APP_USER LIKE '0%'
+                    AND LENGTH(:APP_USER) = 11
+                    AND :APP_PAGE_ID IN (13, 17, 18, 19) THEN
+                    RETURN TRUE;
+                END IF;
+            
+                -- جمع جميع ROLES في سلسلة واحدة
+                SELECT
+                    LISTAGG(R.ROLE_PAGES, ':') WITHIN GROUP (ORDER BY R.ROLE_ID)
+                INTO V_ROLE_PAGES
+                FROM
+                         SUP_ROLES R
+                    JOIN SUP_USER_ROLES UR ON R.ROLE_ID = UR.ROLE_ID
+                WHERE
+                    UR.USER_ID = :APP_USER;
+            
+                -- إذا لم يكن لدى المستخدم أي رول
+                IF V_ROLE_PAGES IS NULL THEN
+                    RETURN FALSE;
+                END IF;
+            
+                -- حساب عدد الصفحات المتطابقة
+                SELECT
+                    COUNT(*)
+                INTO V_CNT
+                FROM
+                    TABLE ( APEX_STRING.SPLIT(V_ROLE_PAGES, ':') )
+                WHERE
+                    COLUMN_VALUE = :APP_PAGE_ID;
+            
+                IF V_CNT > 0 THEN
+                    RETURN TRUE;
+                END IF;
+                
+                RETURN FALSE;
+            EXCEPTION
+                WHEN NO_DATA_FOUND THEN
+                    RETURN FALSE;
+            END;
+            ```
+    }
+)
+
+authorization is-suppplier (
+    name: is_suppplier
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            begin
+            if :SUP_SUPPLIER_ID is not null then return true; end if;
+            return false;
+            end;
+            
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)

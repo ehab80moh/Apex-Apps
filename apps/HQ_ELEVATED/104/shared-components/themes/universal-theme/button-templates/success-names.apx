@@ -1,0 +1,33 @@
+buttonTemplate success-names (
+    name: success-names
+    templateClass: custom1
+    templateOptions {
+        preset: [
+            t-Button--success
+            t-Button--simple
+        ]
+    }
+    button {
+        normal:
+            ```html
+            <div class="container">
+              <h2>Button</h2>
+              <p>The .btn-success class indicates a successful or positive action:</p>      
+              <button type="button" class="btn btn-success">Success</button>
+            </div>
+              
+            ```
+        hot:
+            ```html
+            <div class="container">
+              <h2>Button</h2>
+              <p>The .btn-success class indicates a successful or positive action:</p>      
+              <button type="button" class="btn btn-success">Success</button>
+            </div>
+              
+            ```
+    }
+    advanced {
+        identifier: SUCCESS
+    }
+)

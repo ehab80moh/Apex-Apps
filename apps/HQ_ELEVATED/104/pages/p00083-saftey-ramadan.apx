@@ -1,0 +1,105 @@
+page 83 (
+    name: ارشادات السلامة في شهر رمضان المبارك
+    alias: SAFTEY-RAMADAN
+    title: &APP_TEXT$SAFETY_INSTRUCTIONS_DURING_THE_HOLY_MONTH_OF_RAMADAN.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: [
+            #DEFAULT#
+            t-Dialog--noPadding
+        ]
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region new-2 (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        source {
+            htmlCode: <img src="/apex/hq_elevated/g/attach/c51ce410c124a10e0db5e4b97fc2af39" style="width:100%"></img>
+        }
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button new (
+        buttonName: New
+        label: &APP_TEXT$RAMADAN_HSE_CAMPAIGN_2026PDF.
+        layout {
+            sequence: 10
+            region: @new
+            slot: previous
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--small
+                t-Button--pillStart
+            ]
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: /apex/hq_elevated/g/attach/aab3238922bcc25a6f606eb525ffdc56
+            warnOnUnsavedChanges: doNotCheck
+        }
+        advanced {
+            customAttributes: target="_blank"
+        }
+    )
+
+    button new-2 (
+        buttonName: New_1
+        label: &APP_TEXT$SAFETY_BULLETIN_IN_RAMADANPDF.
+        layout {
+            sequence: 20
+            region: @new
+            slot: previous
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--small
+            ]
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: /apex/hq_elevated/g/attach/9bf31c7ff062936a96d3c8bd1f8f2ff3
+            warnOnUnsavedChanges: doNotCheck
+        }
+        advanced {
+            customAttributes: target="_blank"
+        }
+    )
+
+)

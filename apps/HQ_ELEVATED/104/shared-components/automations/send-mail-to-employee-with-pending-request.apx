@@ -1,0 +1,90 @@
+automation send-mail-to-employee-with-pending-request (
+    name: Send Mail To employee With pending Request
+    execution {
+        scheduleExpression: FREQ=MONTHLY;BYMONTHDAY=1;BYHOUR=0;BYMINUTE=0
+        actionsInitiatedOn: always
+    }
+    additionalCodeExecution {
+        plsqlCode:
+            ```plsql
+            begin
+            null;
+            end;
+            ```
+    }
+
+    action send-mail-to-emp (
+        name: SEND_MAIL_TO_EMP
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                
+                
+                
+                
+                
+                
+                DECLARE 
+                    v_code VARCHAR2(20);
+                    v_emp_name VARCHAR2(99);
+                    
+                    CURSOR cc IS
+                        SELECT 
+                    central.xxapex_tasks_details.get_task_parameter_value(aa.task_id,'REQUEST_ID') REQ_ID,
+                    aa.task_def_static_id REQ_typ,
+                    aa.initiator,
+                    av.emp_name,
+                    av.egpc_email,
+                (case when         
+                        aa.task_def_static_id='LEAVE_REQUEST' then
+                            central.xxapex_tasks_details.get_tk_det_mail_per_emp_tk(aa.task_id, av.emp_number, aa.task_def_name) 
+                    end  )vac_summry,
+                        (case when         
+                        aa.task_def_static_id='PERMISSION_REQUEST' then
+                             central.xxapex_tasks_details.get_tk_det_mail_per_emp_tk(aa.task_id, av.emp_number, aa.task_def_name) 
+                        end) PER_SUMMRY,
+                        (case when         
+                        aa.task_def_static_id='MISSION_REQUEST'  then
+                             central.xxapex_tasks_details.get_tk_det_mail_per_emp_tk(aa.task_id, av.emp_number, aa.task_def_name) 
+                        end) mission_SUMMRY
+                        FROM
+                            apex_tasks aa
+                        JOIN 
+                            xxapex_hr_emp_data av ON av.emp_number = aa.initiator
+                        WHERE
+                            aa.state_code IN ('ASSIGNED', 'UNASSIGNED', 'APEX.TASK.OUTCOME.')
+                            AND aa.task_def_id IS NOT NULL
+                            AND aa.task_def_static_id IN ('LEAVE_REQUEST', 'PERMISSION_REQUEST', 'MISSION_REQUEST')
+                            AND aa.created_on < TRUNC(SYSDATE, 'MM')
+                        GROUP BY 
+                            aa.initiator, av.emp_name, av.egpc_email;
+                
+                BEGIN
+                    FOR I IN cc LOOP
+                begin
+                    apex_mail.send (
+                        p_from               => 'apex@eprom.com.eg',
+                        p_to                 =>  'kelgezawy@eprom.com.eg',
+                        p_template_static_id => 'PENDING_REQUEST',
+                        p_placeholders       => '{' ||
+                        '  "VAC_SUMMRY":'   || apex_json.stringify( I.VAC_SUMMRY ) ||
+                        ' ,"PER_SUMMRY":' || apex_json.stringify( i.PER_SUMMRY ) ||
+                        ' ,"EMP_NAME":' || apex_json.stringify( i.EMP_NAME ) ||
+                        ' ,"MISSION_SUMMRY":'   || apex_json.stringify( I.MISSION_SUMMRY ) ||
+                        '}' 
+                        );
+                        end;
+                    END LOOP;
+                    
+                    APEX_MAIL.PUSH_QUEUE;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+    )
+
+)

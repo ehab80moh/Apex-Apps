@@ -1,0 +1,1039 @@
+page 106 (
+    name: &APP_TEXT$MEDICAL_REFERRAL_TITLE.
+    alias: REFERRAL-FORM1
+    title: &APP_TEXT$MEDICAL_REFERRAL_TITLE.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            html, body, .t-Dialog-body {
+                overflow: hidden !important;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 50
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region confirmation (
+        name: &APP_TEXT$MEDICAL_REFERRAL_CONFIRMATION_TITLE.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$MEDICAL_REFERRAL_CONFIRMATION_TEXT.
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+        appearance {
+            template: @alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+            ]
+            icon: fa-check-circle-o
+        }
+    )
+
+    region request-details (
+        name: تقديم طلب خطاب علاج
+        title: &APP_TEXT$MEDICAL_REFERRAL_REQUEST_FORM.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @awesome-region
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region requester-card (
+        name: &APP_TEXT$MEDICAL_REFERRAL_REQUESTER_DETAILS.
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select e.emp_name,
+                       e.emp_number,
+                       e.excel_pos as emp_position,
+                       e.organization_name as emp_organization,
+                       nvl(e.project, e.fin_project) as emp_project
+                  from central.xxapex_hr_emp_data e
+                 where upper(trim(e.emp_number)) = upper(trim(:APP_USER))
+                ```
+            pageItemsToSubmit: APP_USER
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--showIcon
+                t-Region--accent14
+                t-Region--noBorder
+                t-Region--scrollBody
+            ]
+            icon: fa-user
+        }
+        advanced {
+            customAttributes: style="display:none;"
+        }
+    )
+
+    region validity-feedback (
+        name: &APP_TEXT$MEDICAL_REFERRAL_AVAILABLE_FROM.
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noBorder
+            ]
+        }
+    )
+
+    pageItem P106_ADMISSION (
+        type: textarea
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_ADMISSION.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @request-details
+            slot: regionBody
+            alignment: left
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 3
+        }
+        validation {
+            maxLength: 255
+        }
+    )
+
+    pageItem P106_AVAILABLE_FROM (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_AVAILABLE_FROM.
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 10
+            region: @validity-feedback
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: expression
+            plsqlExpression: TO_CHAR(MED.MD_REFERAL_RULES_PKG.AVAILABLE_FROM(SYSDATE), 'DD-MM-YYYY')
+        }
+    )
+
+    pageItem P106_EMP_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_EMPLOYEE_NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @requester-card
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            column: 3
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+                t-Form-fieldContainer--normalDisplay
+            ]
+        }
+        source {
+            formRegion: @requester-card
+            column: EMP_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P106_EMP_NUMBER (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_EMPLOYEE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @requester-card
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            column: 9
+            columnSpan: 4
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+                t-Form-fieldContainer--normalDisplay
+            ]
+        }
+        source {
+            formRegion: @requester-card
+            column: EMP_NUMBER
+            dataType: varchar2
+            primaryKey: true
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P106_EMP_ORGANIZATION (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_EMPLOYEE_ORGANIZATION.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @requester-card
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+                t-Form-fieldContainer--normalDisplay
+            ]
+        }
+        source {
+            formRegion: @requester-card
+            column: EMP_ORGANIZATION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P106_EMP_POSITION (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_EMPLOYEE_POSITION.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @requester-card
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+                t-Form-fieldContainer--normalDisplay
+            ]
+        }
+        source {
+            formRegion: @requester-card
+            column: EMP_POSITION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P106_EMP_PROJECT (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_EMPLOYEE_PROJECT.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @requester-card
+            slot: regionBody
+            alignment: left
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+                t-Form-fieldContainer--normalDisplay
+            ]
+        }
+        source {
+            formRegion: @requester-card
+            column: EMP_PROJECT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P106_LETTER_DATE (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_LETTER_DATE.
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 20
+            region: @request-details
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: expression
+            plsqlExpression: SYSDATE
+        }
+        help {
+            helpText: &APP_TEXT$MEDICAL_REFERRAL_DATE_BOUNDS_HELP.
+        }
+    )
+
+    pageItem P106_PERSON_ID (
+        type: selectList
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_BENEFICIARY.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from (
+                        select apex_lang.message('MEDICAL_REFERRAL_BENEFICIARY_EMPLOYEE', e.emp_name) as display_value,
+                               0 as return_value,
+                               0 as sort_order
+                          from central.xxapex_hr_emp_data e
+                         where upper(trim(e.emp_number)) = upper(trim(:APP_USER))
+                        union all
+                        select r.relative_name || ' - ' || r.relative_type as display_value,
+                               r.relative_person_id as return_value,
+                               1 as sort_order
+                          from med.emp_relative_new r
+                         where upper(trim(r.employee_number)) = upper(trim(:APP_USER))
+                           and nvl(r.insured, 'N') = 'Y'
+                       )
+                 order by sort_order, display_value
+                ```
+        }
+        layout {
+            sequence: 10
+            region: @request-details
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: static
+            staticValue: 0
+        }
+    )
+
+    pageItem P106_PROVIDER_ID (
+        type: selectList
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_PROVIDER.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select p.provider_name as display_value,
+                       p.provider_id as return_value
+                  from med.md_healthcare_provider p
+                 where p.provider_origin = 'LOCAL_CONTRACT'
+                   and p.active_yn = 'Y'
+                   and p.contract_start_date is not null
+                   and trunc(p.contract_start_date) <= trunc(sysdate)
+                   and (p.contract_end_date is null
+                        or trunc(p.contract_end_date) >= trunc(sysdate))
+                   and p.provider_type <> 'PHARMACY'
+                   and p.provider_type in (
+                           select trim(column_value)
+                             from table(apex_string.split(:P106_REQUEST_TYPES, ':'))
+                       )
+                   and (
+                           instr(':' || :P106_REQUEST_TYPES || ':', ':RADIOLOGY_CENTER:') = 0
+                           or instr(':' || :P106_REQUEST_TYPES || ':', ':LAB:') = 0
+                           or p.provider_type = 'RADIOLOGY_CENTER'
+                       )
+                   and med.md_referal_wf_pkg.provider_is_available(
+                           p.provider_id,
+                           trunc(sysdate)
+                       ) = 'Y'
+                 order by p.provider_name
+                ```
+        }
+        cascadingLov {
+            parentItems: P106_REQUEST_TYPES
+            itemsToSubmit: P106_REQUEST_TYPES
+        }
+        layout {
+            sequence: 40
+            region: @request-details
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P106_REQUEST_TYPES (
+        type: selectList
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_PROVIDER_TYPE.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_LAB') as display_value, 'LAB' as return_value from dual
+                union all
+                select apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_DENTAL_CLINIC'), 'DENTAL_CLINIC' from dual
+                union all
+                select apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_HOSPITAL'), 'HOSPITAL' from dual
+                union all
+                select apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_PHYSIOTHERAPY'), 'PHYSIOTHERAPY' from dual
+                union all
+                select apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_RADIOLOGY_CENTER'), 'RADIOLOGY_CENTER' from dual
+                union all
+                select apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_OPHTHALMOLOGY'), 'OPHTHALMOLOGY' from dual
+                 order by display_value
+                ```
+        }
+        layout {
+            sequence: 30
+            region: @request-details
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P106_REQUIREMENT_ID (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_REQUIREMENT.
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 60
+            region: @request-details
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: expression
+            plsqlExpression: APEX_LANG.MESSAGE('MEDICAL_REFERRAL_REQUIREMENT_VALUE')
+        }
+    )
+
+    pageItem P106_SPECIALITY_ID (
+        type: selectList
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_SPECIALITY.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select trim(name) as display_value,
+                       min(id) as return_value
+                  from med.md_speciality
+                 where trim(name) is not null
+                 group by trim(name)
+                 order by trim(name)
+                ```
+            nullDisplayValue: &APP_TEXT$PLEASE_SELECT.
+        }
+        layout {
+            sequence: 50
+            region: @request-details
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P106_SUPPORTING_FILES (
+        type: fileUpload
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_SUPPORTING_FILES.
+            alignment: left
+        }
+        display {
+            displayAs: blockDropzone
+            dropzoneTitle: &APP_TEXT$MEDICAL_REFERRAL_SUPPORTING_FILES.
+            dropzoneDesc: &APP_TEXT$MEDICAL_REFERRAL_SUPPORTING_FILES_HELP.
+        }
+        storage {
+            type: appTempFiles
+            allowMultipleFiles: true
+            fileTypes: image/*,application/pdf
+            maxFileSize: 5120
+        }
+        layout {
+            sequence: 80
+            region: @request-details
+            slot: regionBody
+            alignment: left
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P106_VALID_TO (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_VALID_TO.
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 20
+            region: @validity-feedback
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-above
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: expression
+            plsqlExpression: TO_CHAR(MED.MD_REFERAL_RULES_PKG.VALID_TO(SYSDATE), 'DD-MM-YYYY')
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$MEDICAL_REFERRAL_CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button submit (
+        buttonName: SUBMIT
+        label: &APP_TEXT$MEDICAL_REFERRAL_SUBMIT.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$MEDICAL_REFERRAL_SUBMIT_CONFIRM.
+            style: warning
+        }
+    )
+
+    dynamicAction cancel-dialog (
+        name: Cancel Dialog
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancel
+        }
+
+        action native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction toggle-hospital-speciality (
+        name: Show specialty only for hospital
+        execution {
+            sequence: 30
+        }
+        when {
+            selectionType: items
+            items: P106_REQUEST_TYPES
+        }
+
+        action native-toggle-speciality (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    (function () {
+                        var isHospital = apex.item('P106_REQUEST_TYPES').getValue() === 'HOSPITAL';
+                        var speciality = apex.item('P106_SPECIALITY_ID');
+                        if (!speciality) {
+                            return;
+                        }
+                        if (isHospital) {
+                            speciality.show();
+                        } else {
+                            speciality.setValue('');
+                            speciality.hide();
+                        }
+                    }());
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    validation hospital-speciality-required (
+        name: Hospital speciality is required
+        execution {
+            sequence: 20
+        }
+        validation {
+            type: functionBodyReturningBoolean
+            plsqlFunctionBody:
+                ```plsql
+                BEGIN
+                    RETURN :P106_REQUEST_TYPES <> 'HOSPITAL'
+                       OR :P106_SPECIALITY_ID IS NOT NULL;
+                END;
+                ```
+        }
+        error {
+            errorMessage: &APP_TEXT$MEDICAL_REFERRAL_SPECIALITY_REQUIRED.
+            displayLocation: inlineWithField
+            associatedItem: @P106_SPECIALITY_ID
+        }
+    )
+
+    validation medical-provider-types-allowed (
+        name: Medical provider type combination is allowed
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: functionBodyReturningBoolean
+            plsqlFunctionBody:
+                ```plsql
+                BEGIN
+                    MED.MD_REFERAL_EXT_PKG.VALIDATE_REQUEST_TYPES(:P106_REQUEST_TYPES);
+                    RETURN TRUE;
+                END;
+                ```
+        }
+        error {
+            errorMessage: &APP_TEXT$MEDICAL_REFERRAL_PROVIDER_TYPE_COMBINATION_ERROR.
+            displayLocation: inlineWithField
+            associatedItem: @P106_REQUEST_TYPES
+        }
+    )
+
+    process close-dialog (
+        name: Close dialog
+        type: closeDialog
+        execution {
+            sequence: 40
+        }
+        successMessage {
+            successMessage: &APP_TEXT$MEDICAL_REFERRAL_SUBMISSION_SUCCESS.
+        }
+        advanced {
+            executionMappingIdentifier: 52397285322261979
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
+    process initialize-requester-card (
+        name: Initialize requester card
+        type: formInitialization
+        formRegion: @requester-card
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 52397078494261978
+        }
+    )
+
+    process initialize-requester-key (
+        name: Initialize requester key
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    :P106_EMP_NUMBER := :APP_USER;
+                END;
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 52718336707854217
+        }
+    )
+
+    process submit-medical-referral (
+        name: Submit medical referral
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_referal_id       NUMBER;
+                    l_workflow_id      NUMBER;
+                    l_approver_list    VARCHAR2(240);
+                    l_duplicate_id     VARCHAR2(100);
+                    l_duplicate_date   VARCHAR2(30);
+                    l_original_sqlcode PLS_INTEGER;
+                    l_original_sqlerrm VARCHAR2(4000);
+                BEGIN
+                    MED.MD_REFERAL_WF_PKG.CREATE_REQUEST(
+                        P_APP_USER      => :APP_USER,
+                        P_PERSON_ID     => :P106_PERSON_ID,
+                        P_LETTER_DATE   => TRUNC(SYSDATE),
+                        P_PROVIDER_ID   => :P106_PROVIDER_ID,
+                        P_SPECIALITY_ID => CASE
+                                               WHEN :P106_REQUEST_TYPES = 'HOSPITAL'
+                                               THEN :P106_SPECIALITY_ID
+                                               ELSE '0'
+                                           END,
+                        P_REQUIREMENT_ID => MED.MD_REFERAL_RULES_PKG.DEFAULT_REQUIREMENT_ID(),
+                        P_ADMISSION      => NVL(:P106_ADMISSION, 'N/A'),
+                        P_REFERAL_ID     => l_referal_id
+                    );
+                
+                    IF TRIM(:P106_ADMISSION) IS NULL THEN
+                        UPDATE MED.MD_REFERAL
+                           SET ADMISSION = NULL
+                         WHERE ID = l_referal_id;
+                
+                        UPDATE MED.MD_REFERAL_FLOW
+                           SET ADMISSION_SNAPSHOT = NULL
+                         WHERE REFERAL_ID = l_referal_id;
+                    END IF;
+                
+                    MED.MD_REFERAL_EXT_PKG.INITIALIZE_REQUEST(
+                        P_REFERAL_ID      => l_referal_id,
+                        P_TYPES           => :P106_REQUEST_TYPES,
+                        P_APP_USER        => :APP_USER,
+                        P_TEMP_FILES_ITEM => :P106_SUPPORTING_FILES
+                    );
+                
+                    -- CREATE_REQUEST resolves the verified employee route before creating a pending request.
+                
+                    l_workflow_id := APEX_WORKFLOW.START_WORKFLOW(
+                        P_APPLICATION_ID => 104,
+                        P_STATIC_ID      => 'GENERIC_APPROVAL_WF',
+                        P_PARAMETERS     => APEX_WORKFLOW.T_WORKFLOW_PARAMETERS(
+                            1 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                STATIC_ID => 'P_REQUEST_ID',
+                                STRING_VALUE => TO_CHAR(l_referal_id)
+                            ),
+                            2 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                STATIC_ID => 'P_REQUEST_SOURCE',
+                                STRING_VALUE => 'MED.MD_REFERAL'
+                            ),
+                            3 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                STATIC_ID => 'P_REQUEST_TITLE',
+                                STRING_VALUE => APEX_LANG.MESSAGE('MEDICAL_REFERRAL_WORKFLOW_TITLE')
+                            ),
+                            4 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                STATIC_ID => 'P_REQUEST_TYPE_ID',
+                                STRING_VALUE => '106'
+                            ),
+                            5 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                STATIC_ID => 'P_EMP_ID',
+                                STRING_VALUE => MED.MD_REFERAL_WF_PKG.REQUEST_EMP_ID(l_referal_id)
+                            ),
+                            6 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                STATIC_ID => 'P_EMP_NAME',
+                                STRING_VALUE => MED.MD_REFERAL_WF_PKG.REQUEST_EMP_NAME(l_referal_id)
+                            )
+                        )
+                    );
+                
+                    MED.MD_REFERAL_WF_PKG.ATTACH_WORKFLOW(l_referal_id, l_workflow_id);
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        l_original_sqlcode := SQLCODE;
+                        l_original_sqlerrm := SQLERRM;
+                
+                        APEX_DEBUG.ERROR(
+                            'Page 106 referral submit failed. SQLCODE=' ||
+                            TO_CHAR(l_original_sqlcode) ||
+                            '; SQLERRM=' || SUBSTR(l_original_sqlerrm, 1, 3000) ||
+                            '; BACKTRACE=' ||
+                            SUBSTR(DBMS_UTILITY.FORMAT_ERROR_BACKTRACE, 1, 1000)
+                        );
+                
+                        IF l_original_sqlcode IN (-20012, -20014, -20015) THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20012,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_EMPLOYEE_MISSING')
+                            );
+                        ELSIF l_original_sqlcode = -20013 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20013,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_DATE_BOUNDS_ERROR')
+                            );
+                        ELSIF l_original_sqlcode IN (-20016, -20037) THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20016,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_SYSTEM_CONFIGURATION_ERROR')
+                            );
+                        ELSIF l_original_sqlcode = -20017 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20017,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_BENEFICIARY_NOT_COVERED')
+                            );
+                        ELSIF l_original_sqlcode = -20018 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20018,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_PROVIDER_UNAVAILABLE')
+                            );
+                        ELSIF l_original_sqlcode = -20019 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20019,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_SPECIALITY_UNAVAILABLE')
+                            );
+                        ELSIF l_original_sqlcode = -20020 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20020,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_SERVICE_TYPE_UNRESOLVED')
+                            );
+                        ELSIF l_original_sqlcode = -20021 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20021,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_DUPLICATE_IN_PROGRESS')
+                            );
+                        ELSIF l_original_sqlcode = -20022 THEN
+                            l_duplicate_id := REGEXP_SUBSTR(
+                                l_original_sqlerrm,
+                                'Duplicate medical referral ([0-9]+) dated ([0-9]{4}-[0-9]{2}-[0-9]{2})',
+                                1,
+                                1,
+                                NULL,
+                                1
+                            );
+                            l_duplicate_date := REGEXP_SUBSTR(
+                                l_original_sqlerrm,
+                                'Duplicate medical referral ([0-9]+) dated ([0-9]{4}-[0-9]{2}-[0-9]{2})',
+                                1,
+                                1,
+                                NULL,
+                                2
+                            );
+                
+                            IF l_duplicate_id IS NOT NULL AND l_duplicate_date IS NOT NULL THEN
+                                RAISE_APPLICATION_ERROR(
+                                    -20022,
+                                    APEX_LANG.MESSAGE(
+                                        'MEDICAL_REFERRAL_DUPLICATE_REQUEST_COPY',
+                                        l_duplicate_id,
+                                        l_duplicate_date
+                                    )
+                                );
+                            ELSE
+                                RAISE_APPLICATION_ERROR(
+                                    -20022,
+                                    APEX_LANG.MESSAGE('MEDICAL_REFERRAL_DUPLICATE_REQUEST')
+                                );
+                            END IF;
+                        ELSIF l_original_sqlcode = -20040 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20040,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_APPROVER_CONFIGURATION_MISSING')
+                            );
+                        ELSIF l_original_sqlcode = -20041 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20041,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_ADMISSION_REQUIRED_FIELD')
+                            );
+                        ELSIF l_original_sqlcode = -20050 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20050,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_PROVIDER_TYPE_COMBINATION_ERROR')
+                            );
+                        ELSIF l_original_sqlcode BETWEEN -20055 AND -20051 THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20051,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_SUPPORTING_FILES_ERROR')
+                            );
+                        ELSIF l_original_sqlcode IN (-20056, -20057, -20058) THEN
+                            RAISE_APPLICATION_ERROR(
+                                -20058,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_SELECTIONS_MISMATCH')
+                            );
+                        ELSE
+                            RAISE_APPLICATION_ERROR(
+                                -20001,
+                                APEX_LANG.MESSAGE('MEDICAL_REFERRAL_SUBMISSION_ERROR')
+                            );
+                        END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 52397104558261978
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
+)

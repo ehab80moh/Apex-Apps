@@ -1,0 +1,191 @@
+page 21 (
+    name: Terms
+    alias: TERMS1
+    title: Terms
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        width: 700
+        height: 750
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            /* Remove scroll bar from dialog content */
+            .t-Dialog-body {
+                overflow: hidden !important;
+            }
+            
+            /* Remove scroll bar from page body */
+            body, html {
+                overflow: hidden !important;
+            }
+            
+            
+            ```
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region new (
+        name: New
+        title: Terms & Conditions
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <!DOCTYPE html> 
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>كيفية التقديم كمورد/مقاول</title>
+                    <style>
+                        body {
+                            font-family: "Tahoma", sans-serif;
+                            line-height: 0.8;
+                            margin: 10px;
+                            background: #f8f8f8;
+                        }
+                        h1, h2 {
+                            color: #333;
+                        }
+                        .section {
+                            background: #fff;
+                            padding: 10px;
+                            border-radius: 6px;
+                            margin-bottom: 10px;
+                            border: 1px solid #ddd;
+                        }
+                        ul {
+                            margin: 0;
+                            padding-right: 7px;
+                        }
+                        li {
+                            margin-bottom: 3px;
+                        }
+                    </style>
+                </head>
+                <body>
+                
+                    <h1>كيفية التقديم كمورد / مقاول</h1>
+                
+                    <div class="section">
+                        <h2>المستندات المطلوبة للتسجيل</h2>
+                        <ul>
+                            <li>بطاقة ضريبية سارية</li>
+                            <li>سجل تجارى حديث (لم يمر على إصداره أكثر من ثلاثة أشهر)</li>
+                            <li>التسجيل في ضريبة القيمة المضافة</li>
+                            <li>آخر ثلاث ميزانيات معتمدة</li>
+                            <li>سابقة الأعمال</li>
+                            <li>التسجيل في الفاتورة الإلكترونية</li>
+                            <li>القيد بالاتحاد المصري للتشييد والبناء (للمقاولين)</li>
+                            <li>الموافقة على إقرار صحة البيانات</li>
+                            <li>تحديث البيانات دائمًا</li>
+                        </ul>
+                    </div>
+                
+                    <div class="section">
+                        <h2>الشروط العامة للقيد في سجل الموردين / المقاولين</h2>
+                        <ul>
+                            <li>مراعاة الدقة في ملء البيانات وإخطار الشركة بأية تعديلات مستقبلية.</li>
+                            <li>يجب دعم البيانات بالمستندات الأصلية أو صور مطابقة للأصل.</li>
+                            <li>أن يكون المتقدم قد باشر النشاط في المجال مدة مناسبة وله سابقة أعمال موثقة.</li>
+                            <li>لا يقبل قيد مورد/مقاول من العاملين السابقين بقطاع البترول إلا بعد مرور ثلاث سنوات على ترك الخدمة.</li>
+                            <li>الالتزام بكافة القوانين واللوائح والتعليمات المرتبطة بالنشاط.</li>
+                        </ul>
+                    </div>
+                
+                </body>
+                </html>
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--colorBG
+                t-Alert--wizard
+                t-Alert--info
+                t-Alert--removeHeading js-removeLandmark
+                t-Form--noPadding
+                t-Form--stretchInputs
+                t-Region-orderBy--center
+            ]
+        }
+    )
+
+    region new-2 (
+        name: New222
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--large
+                t-Form--stretchInputs
+            ]
+        }
+    )
+
+    button close (
+        buttonName: close
+        label: Accept & Close
+        layout {
+            sequence: 10
+            region: @new-2
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--primary
+                t-Button--stretch
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-close (
+            action: closeDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    process new (
+        name: New
+        type: closeDialog
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 256634125717686385
+        }
+    )
+
+)

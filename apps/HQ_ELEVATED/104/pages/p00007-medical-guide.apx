@@ -1,0 +1,490 @@
+page 7 (
+    name: الدليل الطبي
+    alias: MEDICAL-GUIDE
+    title: &APP_TEXT$MEDICAL_GUIDE.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+        warnOnUnsavedChanges: false
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region navegat-using-google-map (
+        name: Navegat using google map
+        title: &APP_TEXT$NAVEGAT_USING_GOOGLE_MAP.
+        type: staticContent
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-size600x400
+            ]
+        }
+        advanced {
+            htmlDomId: nav_rg
+        }
+    )
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select
+                       CON_TYPE,
+                       EST_NAME,
+                       ADDRESS_DESCRITION,
+                       LATITUDE_COLUMN,
+                       LONGITUDE_COLUMN,
+                       LINK,
+                governorate
+                  from XXAPEX_MED_MEDICAL_GUIDE
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        pagination {
+            type: rowRangesXToY
+            displayPosition: topAndBottomLeft
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            reportsSelectList: false
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            selectColumns: false
+            rowsPerPage: false
+            controlBreak: false
+            highlight: false
+            compute: false
+            aggregate: false
+            chart: false
+            flashback: false
+            saveReport: false
+            reset: false
+            help: false
+        }
+        download {
+            sendAsEmail: false
+        }
+        componentAdvanced {
+            maxRowsPerPageInSelector: 5
+        }
+        advanced {
+            savedReportMappingIdentifier: 6004629808686137
+        }
+
+        column ADDRESS_DESCRITION (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ADDRESS.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column CON_TYPE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column EST_NAME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$THE_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column GOVERNORATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$GOVERNORATE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column LATITUDE_COLUMN (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$LATITUDE_COLUMN.
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column LINK (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$LINK.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    <b> <a target="_blank" href="#LINK#">#EST_NAME#</a> </b>
+                    
+                    ```
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column LONGITUDE_COLUMN (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$LONGITUDE_COLUMN.
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: &APP_TEXT$NEW.
+        }
+
+        savedReport 63986 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 5
+            }
+
+            displayColumn ADDRESS_DESCRITION (
+                sequence: 3
+            )
+
+            displayColumn CON_TYPE (
+                sequence: 1
+            )
+
+            displayColumn EST_NAME (
+                sequence: 2
+            )
+
+            displayColumn GOVERNORATE (
+                sequence: 4
+            )
+
+            displayColumn LINK (
+                sequence: 5
+            )
+
+        )
+
+    )
+
+    region الدليل-الطبي (
+        name: الدليل الطبي
+        title: &APP_TEXT$MEDICAL_GUIDE.
+        type: map
+        source {
+            location: localDatabase
+            tableName: XXAPEX_MED_MEDICAL_GUIDE
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: MAP_static_ID
+        }
+        controls {
+            options: [
+                mousewheelZoom
+                rectangleZoom
+                scaleBar
+                infiniteMap
+            ]
+        }
+        attributes {
+            messagesPosition: below
+        }
+
+        layer الدليل-الطبي (
+            name: الدليل الطبي
+            label {
+                label: &APP_TEXT$MEDICAL_GUIDE.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                tableName: XXAPEX_MED_MEDICAL_GUIDE
+            }
+            columnMapping {
+                geometryColumnDataType: longitudeLatitude
+                longitudeColumn: LONGITUDE_COLUMN
+                latitudeColumn: LATITUDE_COLUMN
+                primaryKeyColumn: ID
+            }
+            tooltip {
+                advancedFormatting: true
+                htmlExpression:
+                    ```html
+                    <div>&GOVERNORATE.</div>
+                    <strong>&EST_NAME.</strong>
+                    ```
+            }
+            legend {
+                enableToHide: false
+            }
+        )
+
+    )
+
+    pageItem P7_LATITUDE (
+        type: hidden
+        layout {
+            sequence: 40
+            slot: body
+        }
+    )
+
+    pageItem P7_LONGITUDE (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: body
+        }
+    )
+
+    dynamicAction get-location (
+        name: get location
+        execution {
+            sequence: 10
+        }
+        when {
+            event: region/map/spatialmapobjectclick
+            selectionType: region
+            region: @الدليل-الطبي
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    function createMapsControls(lat, lon) {
+                      const container = document.querySelector('#nav_rg .t-DialogRegion-body');
+                      if (!container) return;
+                    
+                      // validate numbers
+                      const nLat = Number(lat), nLon = Number(lon);
+                      if (!isFinite(nLat) || !isFinite(nLon)) return;
+                    
+                      // build URL
+                      const destination = `${nLat},${nLon}`;
+                      const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${encodeURIComponent(destination)}&travelmode=driving&dir_action=navigate`;
+                    
+                      // --- ensure wrapper (so we can layout input+copy+button cleanly)
+                      let wrap = container.querySelector('#mapsControlsWrap');
+                      if (!wrap) {
+                        wrap = document.createElement('div');
+                        wrap.id = 'mapsControlsWrap';
+                        wrap.style.display = 'grid';
+                        wrap.style.gridTemplateColumns = '1fr auto';
+                        wrap.style.gap = '8px';
+                        wrap.style.marginTop = '8px';
+                        container.appendChild(wrap);
+                      }
+                    
+                      // --- input (readonly)
+                      let urlInput = wrap.querySelector('#mapsUrlInput');
+                      if (!urlInput) {
+                        urlInput = document.createElement('input');
+                        urlInput.id = 'mapsUrlInput';
+                        urlInput.type = 'text';
+                        urlInput.readOnly = true;
+                        urlInput.className = 't-Form-input'; // APEX style
+                        urlInput.title = 'Google Maps URL';
+                        // put input in first cell
+                        wrap.appendChild(urlInput);
+                      }
+                      urlInput.value = mapsUrl;
+                    
+                      // --- copy button
+                      let copyBtn = wrap.querySelector('#mapsCopyBtn');
+                      if (!copyBtn) {
+                        copyBtn = document.createElement('button');
+                        copyBtn.id = 'mapsCopyBtn';
+                        copyBtn.type = 'button';
+                        copyBtn.className = 't-Button t-Button--noLabel'; // small clean btn
+                        copyBtn.textContent = 'Copy';
+                        copyBtn.style.minWidth = '80px';
+                        wrap.appendChild(copyBtn);
+                    
+                        copyBtn.addEventListener('click', async () => {
+                          try {
+                            // modern clipboard API
+                            if (navigator.clipboard && window.isSecureContext) {
+                              await navigator.clipboard.writeText(urlInput.value);
+                            } else {
+                              // fallback
+                              urlInput.select();
+                              document.execCommand('copy');
+                              urlInput.blur();
+                            }
+                            // APEX toast if available; else alert
+                            if (window.apex?.message) {
+                              apex.message.showPageSuccess('Link copied!');
+                              setTimeout(() => apex.message.hidePageSuccess(), 1500);
+                            } else {
+                              alert('Link copied!');
+                            }
+                          } catch (e) {
+                            if (window.apex?.message) {
+                              apex.message.alert('Could not copy. Please copy manually.');
+                            } else {
+                              alert('Could not copy. Please copy manually.');
+                            }
+                          }
+                        });
+                      }
+                    
+                      // --- maps button (below input row)
+                      let mapsBtn = container.querySelector('#mapsLinkBtn');
+                      if (!mapsBtn) {
+                        mapsBtn = document.createElement('a');
+                        mapsBtn.id = 'mapsLinkBtn';
+                        mapsBtn.className = 't-Button t-Button--primary t-Button--stretch';
+                        mapsBtn.target = '_blank';
+                        mapsBtn.rel = 'noopener';
+                        mapsBtn.textContent = 'افتح الاتجاهات في Google Maps';
+                        // insert after the wrap so it sits below input+copy
+                        wrap.insertAdjacentElement('afterend', mapsBtn);
+                      }
+                      mapsBtn.href = mapsUrl;
+                    }
+                    
+                    // Example: call on page load
+                    document.addEventListener('DOMContentLoaded', function () {
+                      createMapsControls($v('P7_LATITUDE'), $v('P7_LONGITUDE'));
+                    });
+                    
+                    // Optional: auto-refresh when APEX items change
+                    if (window.apex?.jQuery) {
+                      apex.jQuery('#P7_LATITUDE, #P7_LONGITUDE').on('change', function () {
+                        createMapsControls($v('P7_LATITUDE'), $v('P7_LONGITUDE'));
+                      });
+                    }
+                    
+                    
+                    
+                            var mapObject = apex.region("MAP_static_ID").getMapObject();
+                            mapObject.on('click', function(e) {
+                                apex.item("P7_LATITUDE").setValue(e.lngLat.lat);
+                                apex.item("P7_LONGITUDE").setValue(e.lngLat.lng);
+                                createMapsControls(e.lngLat.lat, e.lngLat.lng) ;
+                                apex.theme.openRegion('nav_rg');
+                           
+                           
+                            });
+                    
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

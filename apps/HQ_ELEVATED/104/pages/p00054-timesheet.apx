@@ -1,0 +1,916 @@
+page 54 (
+    name: Timesheet
+    alias: TIMESHEET
+    title: &APP_TEXT$TIMESHEET.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region timesheet (
+        name: Timesheet
+        title: &APP_TEXT$TIMESHEET.
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 
+                    TIMESHEET_ID,
+                    EMP_ID,
+                    WORK_DATE,
+                   DAY_NAME, -- Add this column for day name
+                    TIME_IN_HOUR,
+                    TIME_IN_MIN,
+                    TIME_OUT_HOUR,
+                    TIME_OUT_MIN,
+                     STANDARD_HOURS,
+                    APPROVED_OVERTIME_HOURS_BEFORE_7PM,
+                    APPROVED_OVERTIME_HOURS_AFTER_7PM
+                FROM 
+                    EPROMHQ.XXAPEX_TIMESHEET
+                WHERE 
+                 TRIM(TO_CHAR(WORK_DATE, 'YYYY-MM')) = TRIM(UPPER(:P54_MONTH))
+                 AND
+                    EMP_ID = :P54_EMP_ID
+                
+                
+                
+                
+                ```
+        }
+        layout {
+            sequence: 101
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: [
+                #DEFAULT#
+                margin-top-lg
+                margin-bottom-lg
+                margin-left-md
+                margin-right-md
+            ]
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+        toolbar {
+            controls: [
+                searchCol
+                searchField
+                actionsMenu
+                resetButton
+                saveButton
+            ]
+        }
+        download {
+            formats: [
+                csv
+                html
+                pdf
+                excel
+            ]
+        }
+        advanced {
+            savedReportMappingIdentifier: 71765169676243287
+        }
+
+        savedReport 717656 (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @TIMESHEET_ID
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @EMP_ID
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @WORK_DATE
+                layout {
+                    sequence: 4
+                }
+            )
+
+            displayColumn (
+                column: @TIME_IN_HOUR
+                layout {
+                    sequence: 6
+                }
+            )
+
+            displayColumn (
+                column: @TIME_IN_MIN
+                layout {
+                    sequence: 7
+                }
+            )
+
+            displayColumn (
+                column: @TIME_OUT_HOUR
+                layout {
+                    sequence: 8
+                }
+            )
+
+            displayColumn (
+                column: @TIME_OUT_MIN
+                layout {
+                    sequence: 9
+                }
+            )
+
+            displayColumn (
+                column: @STANDARD_HOURS
+                layout {
+                    sequence: 10
+                }
+            )
+
+            displayColumn (
+                column: @APPROVED_OVERTIME_HOURS_BEFORE_7PM
+                layout {
+                    sequence: 11
+                }
+            )
+
+            displayColumn (
+                column: @APPROVED_OVERTIME_HOURS_AFTER_7PM
+                layout {
+                    sequence: 12
+                }
+            )
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    frozen: true
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @DAY_NAME
+                layout {
+                    sequence: 5
+                }
+            )
+
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column APEX$ROW_SELECTOR (
+            type: rowSelector
+            layout {
+                sequence: 10
+            }
+        )
+
+        column APPROVED_OVERTIME_HOURS_AFTER_7PM (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$APPROVED_OVERTIME_HOURS_AFTER_7PM.
+                alignment: end
+            }
+            layout {
+                sequence: 130
+                columnAlignment: end
+            }
+            source {
+                databaseColumn: APPROVED_OVERTIME_HOURS_AFTER_7PM
+                dataType: number
+            }
+            columnFilter {
+                lovType: none
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column APPROVED_OVERTIME_HOURS_BEFORE_7PM (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$APPROVED_OVERTIME_HOURS_BEFORE_7PM.
+                alignment: end
+            }
+            layout {
+                sequence: 120
+                columnAlignment: end
+            }
+            source {
+                databaseColumn: APPROVED_OVERTIME_HOURS_BEFORE_7PM
+                dataType: number
+            }
+            columnFilter {
+                lovType: none
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column DAY_NAME (
+            type: textField
+            heading {
+                heading: &APP_TEXT$DAY_NAME.
+            }
+            layout {
+                sequence: 60
+            }
+            validation {
+                maxLength: 36
+            }
+            source {
+                databaseColumn: DAY_NAME
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column EMP_ID (
+            type: selectList
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_ID.
+            }
+            lov {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select emp_name || ' -- '||emp_number DESCRIPTION,emp_number from xxapex_hr_emp_data
+                    where Site_Code = 'EPROM_HQ_SUEZ'
+                    ```
+                displayExtraValues: false
+                displayNullValue: false
+            }
+            layout {
+                sequence: 40
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: EMP_ID
+                dataType: number
+            }
+            default {
+                type: item
+                item: P54_EMP_ID
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: useLov
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            enableUsersTo {
+                sort: false
+                hide: false
+            }
+        )
+
+        column STANDARD_HOURS (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$STANDARD_HOURS.
+                alignment: end
+            }
+            layout {
+                sequence: 110
+                columnAlignment: end
+            }
+            source {
+                databaseColumn: STANDARD_HOURS
+                dataType: number
+            }
+            columnFilter {
+                lovType: none
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column TIMESHEET_ID (
+            type: hidden
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: TIMESHEET_ID
+                dataType: number
+                queryOnly: true
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column TIME_IN_HOUR (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$TIME_IN_HOUR.
+                alignment: end
+            }
+            layout {
+                sequence: 70
+                columnAlignment: end
+            }
+            source {
+                databaseColumn: TIME_IN_HOUR
+                dataType: number
+            }
+            columnFilter {
+                lovType: none
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column TIME_IN_MIN (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$TIME_IN_MIN.
+                alignment: end
+            }
+            layout {
+                sequence: 80
+                columnAlignment: end
+            }
+            source {
+                databaseColumn: TIME_IN_MIN
+                dataType: number
+            }
+            columnFilter {
+                lovType: none
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column TIME_OUT_HOUR (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$TIME_OUT_HOUR.
+                alignment: end
+            }
+            layout {
+                sequence: 90
+                columnAlignment: end
+            }
+            source {
+                databaseColumn: TIME_OUT_HOUR
+                dataType: number
+            }
+            columnFilter {
+                lovType: none
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column TIME_OUT_MIN (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$TIME_OUT_MIN.
+                alignment: end
+            }
+            layout {
+                sequence: 100
+                columnAlignment: end
+            }
+            source {
+                databaseColumn: TIME_OUT_MIN
+                dataType: number
+            }
+            columnFilter {
+                lovType: none
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column WORK_DATE (
+            type: datePicker
+            heading {
+                heading: &APP_TEXT$WORK_DATE.
+            }
+            layout {
+                sequence: 50
+            }
+            appearance {
+                formatMask: YYYY-MM-DD
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: WORK_DATE
+                dataType: date
+            }
+            columnFilter {
+                enabled: false
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: &APP_TEXT$TIMESHEET.
+        }
+    )
+
+    pageItem P54_EMP_ID (
+        type: popupLov
+        label {
+            label: &APP_TEXT$EMPID.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @emp-id
+        }
+        layout {
+            sequence: 11
+            slot: body
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P54_MONTH (
+        type: selectList
+        label {
+            label: &APP_TEXT$MONTH.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:JAN-25;2025-01,FEB-25;2025-02,MAR-25;2025-03,APR-25;2025-04,MAY-25;2025-05,JUN-25;2025-06,JUL-25;2025-07,AUG-25;2025-08,SEP-25;2025-09,OCT-25;2025-10,NOV-25;2025-11,DEC-25;2025-12
+        }
+        layout {
+            sequence: 31
+            slot: body
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P54_TIME_IN_HOUR (
+        type: textField
+        label {
+            label: &APP_TEXT$TIME_IN_HOUR.
+            alignment: left
+        }
+        layout {
+            sequence: 41
+            slot: body
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P54_TIME_IN_MIN (
+        type: textField
+        label {
+            label: &APP_TEXT$TIME_IN_MIN_1.
+            alignment: left
+        }
+        layout {
+            sequence: 51
+            slot: body
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P54_TIME_OUT_HOUR (
+        type: textField
+        label {
+            label: &APP_TEXT$TIME_OUT_HOUR.
+            alignment: left
+        }
+        layout {
+            sequence: 61
+            slot: body
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P54_TIME_OUT_MIN (
+        type: textField
+        label {
+            label: &APP_TEXT$TIME_OUT_MIN_1.
+            alignment: left
+        }
+        layout {
+            sequence: 81
+            slot: body
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    button create-time-sheet (
+        buttonName: CREATE_TIME_SHEET
+        label: &APP_TEXT$CREATE_TIME_SHEET.
+        layout {
+            sequence: 91
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+                t-Button--stretch
+                t-Button--gapLeft
+                t-Button--gapRight
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                        start_date DATE := TO_DATE(:P54_MONTH || '-01', 'YYYY-MM-DD'); -- Start of the month
+                        end_date DATE := LAST_DAY(start_date);                         -- End of the month
+                        v_emp_id NUMBER := :P54_EMP_ID;                                -- Employee ID
+                    BEGIN
+                        FOR d IN (
+                            SELECT start_date + LEVEL - 1 AS work_date
+                            FROM DUAL
+                            CONNECT BY LEVEL <= end_date - start_date + 1
+                        )
+                        LOOP
+                            BEGIN
+                                INSERT INTO EPROMHQ.XXAPEX_TIMESHEET (
+                                    EMP_ID,
+                                    WORK_DATE,
+                                    TIME_IN_HOUR,
+                                    TIME_IN_MIN,
+                                    TIME_OUT_HOUR,
+                                    TIME_OUT_MIN,
+                                    STANDARD_HOURS,
+                                    APPROVED_OVERTIME_HOURS_BEFORE_7PM,
+                                    APPROVED_OVERTIME_HOURS_AFTER_7PM,
+                                    DAY_NAME
+                                )
+                                SELECT 
+                                    v_emp_id,
+                                    d.work_date,
+                                    :P54_TIME_IN_HOUR,  -- TIME_IN_HOUR
+                                    :P54_TIME_IN_MIN,   -- TIME_IN_MIN
+                                    :P54_TIME_OUT_HOUR, -- TIME_OUT_HOUR
+                                    :P54_TIME_OUT_MIN,  -- TIME_OUT_MIN
+                                    NVL(:STANDARD_HOURS, 8),                  -- Default to 8 hours if null
+                                    NVL(:APPROVED_OVERTIME_HOURS_BEFORE_7PM, 0), -- Default to 0 if null
+                                    NVL(:APPROVED_OVERTIME_HOURS_AFTER_7PM, 0),  -- Default to 0 if null
+                                    TRIM(TO_CHAR(d.work_date, 'Day'))         -- Trim to avoid padding spaces
+                                FROM DUAL
+                                WHERE NOT EXISTS (
+                                    SELECT 1
+                                    FROM EPROMHQ.XXAPEX_TIMESHEET
+                                    WHERE EMP_ID = v_emp_id
+                                    AND WORK_DATE = d.work_date
+                                );
+                            EXCEPTION
+                                WHEN DUP_VAL_ON_INDEX THEN
+                                    NULL;
+                            END;
+                        END LOOP;
+                    END;
+                    
+                    ```
+                itemsToSubmit: [
+                    P54_EMP_ID
+                    P54_MONTH
+                    P54_TIME_IN_HOUR
+                    P54_TIME_OUT_HOUR
+                    P54_TIME_IN_MIN
+                    P54_TIME_OUT_MIN
+                ]
+            }
+            execution {
+                sequence: 10
+                waitForResult: false
+            }
+        )
+
+        triggerAction native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @timesheet
+            }
+            execution {
+                sequence: 20
+            }
+        )
+
+    )
+
+    dynamicAction calculate-the-standard-hours (
+        name: "Calculate The STANDARD HOURS "
+        execution {
+            sequence: 30
+        }
+        when {
+            selectionType: columns
+            interactiveGrid: @timesheet
+            columns: [
+                TIME_IN_HOUR
+                TIME_IN_MIN
+                TIME_OUT_HOUR
+                TIME_OUT_MIN
+            ]
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                        v_time_in  DATE;
+                        v_time_out DATE;
+                    BEGIN
+                        v_time_in := TO_DATE(:WORK_DATE || ' ' || :TIME_IN_HOUR || ':' || NVL(:TIME_IN_MIN, 0), 'YYYY-MM-DD HH24:MI');
+                        v_time_out := TO_DATE(:WORK_DATE || ' ' || :TIME_OUT_HOUR || ':' || NVL(:TIME_OUT_MIN, 0), 'YYYY-MM-DD HH24:MI');
+                    
+                        :STANDARD_HOURS := ROUND((v_time_out - v_time_in) * 24, 2);
+                    END;
+                    
+                    ```
+                itemsToSubmit: [
+                    TIME_IN_HOUR
+                    TIME_IN_MIN
+                    TIME_OUT_HOUR
+                    TIME_OUT_MIN
+                    WORK_DATE
+                ]
+                itemsToReturn: STANDARD_HOURS
+                showProcessing: true
+            }
+            execution {
+                sequence: 10
+                stopExecutionOnError: false
+                waitForResult: false
+            }
+        )
+
+    )
+
+    dynamicAction submit-using-the-page-items (
+        name: SUBMIT USING THE PAGE ITEMS
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: [
+                P54_EMP_ID
+                P54_MONTH
+            ]
+        }
+
+        action native-submit-page (
+            action: submitPage
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    validation new (
+        name: New
+        execution {
+            sequence: 10
+        }
+        validation {
+            editableRegion: @timesheet
+            plsqlExpression: :TIME_OUT_HOUR < :TIME_IN_HOUR
+        }
+        error {
+            errorMessage: &APP_TEXT$PLEASE_ADJUST_THE_CLOCK.
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                
+                
+                
+                BEGIN
+                    MERGE INTO EPROMHQ.XXAPEX_TIMESHEET tgt
+                    USING (SELECT :P54_EMP_ID AS EMP_ID, :P54_MONTH AS MONTH_VALUE FROM DUAL) src
+                    ON (
+                        tgt.EMP_ID IS NULL OR TRIM(TO_CHAR(tgt.WORK_DATE, 'Month')) = src.MONTH_VALUE
+                       )
+                    WHEN MATCHED THEN
+                        UPDATE SET tgt.EMP_ID = src.EMP_ID
+                    WHEN NOT MATCHED THEN
+                        INSERT (EMP_ID, WORK_DATE) -- Add columns as necessary
+                        VALUES (src.EMP_ID, TO_DATE(src.MONTH_VALUE, 'Month')); -- Adjust to match your table structure
+                
+                    COMMIT;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 70094037411604441
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process new-2 (
+        name: New_1
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    start_date DATE := TO_DATE(:P54_MONTH || '-01', 'YYYY-MM-DD');
+                    end_date DATE := LAST_DAY(start_date);
+                    v_emp_id NUMBER := :P54_EMP_ID;
+                BEGIN
+                    FOR d IN (
+                        SELECT start_date + LEVEL - 1 AS work_date
+                        FROM DUAL
+                        CONNECT BY LEVEL <= end_date - start_date + 1
+                    )
+                    LOOP
+                        BEGIN
+                            INSERT INTO EPROMHQ.XXAPEX_TIMESHEET (
+                                EMP_ID,
+                                WORK_DATE,
+                                TIME_IN_HOUR,
+                                TIME_IN_MIN,
+                                TIME_OUT_HOUR,
+                                TIME_OUT_MIN,
+                                STANDARD_HOURS,
+                                APPROVED_OVERTIME_HOURS_BEFORE_7PM,
+                                APPROVED_OVERTIME_HOURS_AFTER_7PM,
+                                DAY_NAME
+                            )
+                            SELECT 
+                                v_emp_id,
+                                d.work_date,
+                                :P54_TIME_IN_HOUR,  -- TIME_IN_HOUR
+                                :P54_TIME_IN_MIN,   -- TIME_IN_MIN
+                                :P54_TIME_OUT_HOUR, -- TIME_OUT_HOUR
+                                :P54_TIME_OUT_MIN,  -- TIME_OUT_MIN
+                                :STANDARD_HOURS,    -- Default STANDARD_HOURS
+                                :APPROVED_OVERTIME_HOURS_BEFORE_7PM, -- Default APPROVED_OVERTIME_HOURS_BEFORE_7PM
+                                :APPROVED_OVERTIME_HOURS_AFTER_7PM,  -- Default APPROVED_OVERTIME_HOURS_AFTER_7PM
+                                TO_CHAR(d.work_date, 'Day')  -- Day name
+                            FROM DUAL
+                            WHERE NOT EXISTS (
+                                SELECT 1
+                                FROM EPROMHQ.XXAPEX_TIMESHEET
+                                WHERE EMP_ID = v_emp_id
+                                AND WORK_DATE = d.work_date
+                            );
+                        EXCEPTION
+                            WHEN DUP_VAL_ON_INDEX THEN
+                                NULL;
+                        END;
+                    END LOOP;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 73290007535155738
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process timesheet-save-interactive-grid-data (
+        name: Timesheet - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @timesheet
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 70093890572604439
+        }
+    )
+
+)

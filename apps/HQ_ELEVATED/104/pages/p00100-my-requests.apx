@@ -1,0 +1,838 @@
+page 100 (
+    name: طلباتى
+    alias: MY-REQUESTS
+    title: &APP_TEXT$MY_REQUESTS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .previous-requests-panel,
+            .previous-requests-strip {
+                margin-block: .35rem .9rem;
+                border: 1px solid var(--ut-component-border-color, #d7dee7);
+                border-radius: .65rem;
+                background: var(--ut-component-background-color, #fff);
+                box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+                overflow: hidden;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-header {
+                border-bottom: 1px solid var(--ut-component-border-color, #d7dee7);
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body {
+                display: flex;
+                flex-wrap: nowrap;
+                align-items: stretch;
+                gap: .5rem;
+                padding: .55rem .75rem;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action {
+                flex: 1 1 0;
+                min-width: 0;
+                width: auto;
+                max-width: none;
+                padding-inline: 0;
+                min-height: 2.55rem;
+                border: 1px solid #365b7d;
+                border-radius: .55rem;
+                color: #fff;
+                justify-content: center;
+                gap: .45rem;
+                white-space: nowrap;
+                box-shadow: 0 2px 5px rgb(26 58 86 / 18%);
+                transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:nth-of-type(1) {
+                background: #356b8f;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:nth-of-type(2) {
+                background: #4d78a6;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:nth-of-type(3) {
+                background: #3e887c;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:nth-of-type(4) {
+                background: #696b9b;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action .t-Icon--right {
+                display: none;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:hover,
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:focus-visible {
+                transform: translateY(-1px);
+                filter: brightness(1.08);
+                box-shadow: 0 4px 10px rgb(26 58 86 / 28%);
+            }
+            
+            @media (max-width: 700px) {
+                .previous-requests-strip .t-ContentBlock-body {
+                    flex-wrap: wrap;
+                    gap: .35rem;
+                }
+            
+                .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action {
+                    flex: 1 1 calc(50% - .35rem);
+                    min-width: calc(50% - .35rem);
+                    min-height: 2.4rem;
+                    font-size: .82rem;
+                }
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region initiated-by-me-report (
+        name: Initiated by Me - Report
+        title: &APP_TEXT$INITIATED_BY_ME_REPORT.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                with portal_task_rows as (
+                    select t.* from table(apex_approval.get_tasks(p_context=>'INITIATED_BY_ME')) t
+                     where t.state<>'Canceled'
+                       and not(t.app_id=104 and t.task_def_static_id in('PRC_COMMITTEE_VOTE','PRC_COMMITTEE_FINAL'))
+                    union all
+                    select
+                    cast(212 as number) APP_ID,
+                    cast(-pc.cycle_id as number) TASK_ID,
+                    cast(null as number) TASK_DEF_ID,
+                    cast('طلب لجنة' as varchar2(255)) TASK_DEF_NAME,
+                    cast('PRC_COMMITTEE_REQUEST' as varchar2(255)) TASK_DEF_STATIC_ID,
+                    cast(pc.card_title as varchar2(1000)) SUBJECT,
+                    cast('APPROVAL' as varchar2(8)) TASK_TYPE,
+                    cast(212 as number) DETAILS_APP_ID,
+                    cast('اللجان' as varchar2(255)) DETAILS_APP_NAME,
+                    cast(apex_page.get_url(p_application=>212,p_page=>74,p_clear_cache=>'74',p_items=>'P74_CYCLE_ID',p_values=>pc.cycle_id) as varchar2(4000)) DETAILS_LINK_TARGET,
+                    cast(to_char(pc.cycle_id) as varchar2(400)) DETAIL_PK,
+                    cast(null as timestamp with time zone) DUE_ON,
+                    cast(null as number) DUE_IN_HOURS,
+                    cast(null as varchar2(255)) DUE_IN,
+                    cast(null as varchar2(32)) DUE_CODE,
+                    cast(3 as number) PRIORITY,
+                    cast('Normal' as varchar2(255)) PRIORITY_LEVEL,
+                    cast('N' as varchar2(1)) INITIATOR_CAN_COMPLETE,
+                    cast(pc.requested_by as varchar2(255)) INITIATOR,
+                    cast(lower(pc.requested_by) as varchar2(255)) INITIATOR_LOWER,
+                    cast(null as varchar2(255)) ACTUAL_OWNER,
+                    cast(null as varchar2(255)) ACTUAL_OWNER_LOWER,
+                    cast(case when pc.display_status='CANCELLED' then 'CANCELED' when pc.display_status in('APPROVED','REJECTED','CANCELLED','FAILED') then 'COMPLETED' else 'ASSIGNED' end as varchar2(32)) STATE_CODE,
+                    cast(case when pc.display_status='CANCELLED' then 'Canceled' when pc.display_status in('APPROVED','REJECTED','CANCELLED','FAILED') then 'Completed' else 'Assigned' end as varchar2(255)) STATE,
+                    cast(case when pc.display_status in('APPROVED','REJECTED','CANCELLED','FAILED') then 'Y' else 'N' end as varchar2(1)) IS_COMPLETED,
+                    cast(case when pc.display_status in('APPROVED','REJECTED') then pc.display_status end as varchar2(32)) OUTCOME_CODE,
+                    cast(case pc.display_status when 'APPROVED' then 'Approved' when 'REJECTED' then 'Rejected' end as varchar2(255)) OUTCOME,
+                    cast(null as varchar2(255)) BADGE_CSS_CLASSES,
+                    cast(null as varchar2(255)) BADGE_STATE,
+                    cast(null as varchar2(255)) BADGE_TEXT,
+                    cast((cast(sys_extract_utc(systimestamp) as date)-cast(sys_extract_utc(pc.started_at) as date))*24 as number) CREATED_AGO_HOURS,
+                    cast(to_char(pc.started_at,'DD/MM/YYYY') as varchar2(255)) CREATED_AGO,
+                    cast(pc.requested_by as varchar2(255)) CREATED_BY,
+                    cast(pc.started_at as timestamp with time zone) CREATED_ON,
+                    cast(null as varchar2(255)) LAST_UPDATED_BY,
+                    cast(pc.started_at as timestamp with time zone) LAST_UPDATED_ON,
+                    cast(null as varchar2(32)) TENANT_ID
+                    from EPROMHQ.PRC_PORTAL_CARDS_V pc where pc.context_kind='REQUEST'
+                )
+                select t1.*,
+                 pc.committee_name portal_committee_name,pc.status_label portal_committee_status
+                ,case 
+                when pc.cycle_id is not null then pc.status_css
+                when t1.state='Canceled' then 'u-danger'
+                when t1.state= 'Assigned' then 'u-warning'
+                when t1.state= 'Unassigned' then 'u-warning'
+                when t1.outcome_code='REJECTED' then 'u-danger'
+                when t1.outcome_code= '' then 'u-warning'
+                
+                else
+                'u-success' end badge_class_2
+                ,case
+                when pc.cycle_id is not null then pc.status_label
+                when nvl(upper(trim(t1.state)), 'NONE') in ('CANCELED', 'CANCELLED')
+                  or nvl(upper(trim(t1.outcome)), 'NONE') in ('CANCELED', 'CANCELLED')
+                  or nvl(upper(trim(t1.outcome_code)), 'NONE') in ('CANCELED', 'CANCELLED') then 'ملغي'
+                when nvl(upper(trim(t1.outcome)), 'NONE') in ('APPROVED', 'APPROVAL', 'APPROVE')
+                  or nvl(upper(trim(t1.outcome_code)), 'NONE') in ('APPROVED', 'APPROVAL', 'APPROVE') then 'تمت الموافقة'
+                when nvl(upper(trim(t1.outcome)), 'NONE') in ('REJECTED', 'REJECT')
+                  or nvl(upper(trim(t1.outcome_code)), 'NONE') in ('REJECTED', 'REJECT') then 'مرفوض'
+                when nvl(upper(trim(t1.outcome)), 'NONE') in ('EXPIRED', 'EXPIRE')
+                  or nvl(upper(trim(t1.outcome_code)), 'NONE') in ('EXPIRED', 'EXPIRE') then 'منتهي'
+                when nvl(upper(trim(t1.state)), 'NONE') in ('COMPLETED', 'COMPLETE') then 'مكتمل'
+                when nvl(upper(trim(t1.state)), 'NONE') in ('ASSIGNED', 'UNASSIGNED', 'CLAIMED', 'DELEGATED', 'WAITING', 'PENDING')
+                  or nvl(upper(trim(t1.outcome)), 'NONE') in ('APEX.TASK.OUTCOME.', 'PENDING', 'PENDING_APPROVAL', 'UNDER_APPROVAL', 'IN_PROGRESS')
+                  or nvl(upper(trim(t1.outcome_code)), 'NONE') = 'NONE' then 'قيد المراجعة'
+                else 'قيد المتابعة' end outcome_2
+                ,case
+                when t1.task_def_static_id='PRC_COMMITTEE_REQUEST' then 'طلب لجنة'
+                when nvl(upper(trim(t1.task_def_static_id)), 'NONE') = 'APPROVAL_TASK'
+                  or nvl(upper(trim(t1.task_def_name)), 'NONE') in ('APPROVAL TASK', 'APPROVAL_TASK') then 'مهمة الاعتماد'
+                else nvl(nullif(trim(t1.task_def_name), ''), 'مهمة الطلب') end task_def_name_display
+                ,case when pc.cycle_id is not null then pc.committee_name else central.get_emp_name(ACTUAL_OWNER_LOWER) end owner_name
+                from portal_task_rows t1
+                left join EPROMHQ.PRC_PORTAL_CARDS_V pc on pc.context_kind='REQUEST'
+                  and t1.task_def_static_id='PRC_COMMITTEE_REQUEST'
+                  and pc.cycle_id=to_number(t1.detail_pk default null on conversion error)
+                
+                order by created_on desc
+                ```
+            optimizerHint: APEX$USE_NO_GROUPING_SETS
+        }
+        orderBy {
+            type: item
+            item: {
+                itemName: P100_SORT_BY
+                orderBys: {
+                    CREATED_ON: created_on desc
+                    DUE_ON: priority asc, due_on asc nulls last
+                }
+            }
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            layout: horizontal
+        }
+        card {
+            primaryKeyColumn1: TASK_ID
+        }
+        title {
+            column: SUBJECT
+        }
+        subtitle {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                {if PORTAL_COMMITTEE_NAME/}
+                <small><strong>اللجنة: &PORTAL_COMMITTEE_NAME!HTML.</strong><br>
+                الحالة: &PORTAL_COMMITTEE_STATUS!HTML.<br>
+                اضغط لمتابعة حالة طلبك وقرار اللجنة</small>
+                {else/}
+                <small><strong>&TASK_DEF_NAME_DISPLAY!HTML.</strong>
+                {if ACTUAL_OWNER/}
+                    &middot; المعتمد : &OWNER_NAME!HTML. 
+                {endif/}
+                {if !IS_COMPLETED/}
+                    {case DUE_CODE/}
+                        {when OVERDUE/}
+                            &middot <strong class="u-danger-text">Due &DUE_IN.</strong>
+                        {when NEXT_HOUR/}
+                            &middot <strong class="u-danger-text">Due &DUE_IN.</strong>
+                        {when NEXT_24_HOURS/}
+                            &middot <span class="u-danger-text">Due &DUE_IN.</span>
+                    {endcase/}
+                {endif/} 
+                {if !IS_COMPLETED/}
+                    {case PRIORITY/}
+                        {when 1/}
+                            &middot <strong class="u-danger-text">Urgent</strong>
+                        {when 2/}
+                            &middot <span class="u-danger-text">High priority</span>
+                    {endcase/}
+                {endif/} 
+                </small>
+                {endif/}
+                ```
+        }
+        iconAndBadge {
+            badgeColumn: OUTCOME_2
+            badgeLabel: الحالة
+            badgeCssClasses: &BADGE_CLASS_2.
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_TASKS.
+            noDataFoundIcon: fa-clipboard-check-alt fa-lg
+        }
+
+        action action (
+            type: title
+            layout {
+                sequence: 10
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &DETAILS_LINK_TARGET.
+            }
+        )
+
+    )
+
+    region initiated-by-me-smart-filters (
+        name: Initiated by Me - Smart Filters
+        title: &APP_TEXT$INITIATED_BY_ME_SMART_FILTERS.
+        type: smartFilters
+        source {
+            filteredRegion: @initiated-by-me-report
+        }
+        layout {
+            sequence: 10
+            parentRegion: @متابعة-طلباتى-الحالية
+            slot: searchFieldAndSmartFilters
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            compactNosThreshold: 10000
+        }
+
+        filter P100_APPLICATION (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$APPLICATION.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 60
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: DETAILS_APP_NAME
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P100_DUE (
+            type: range
+            label {
+                label: &APP_TEXT$DUE.
+            }
+            settings {
+                selectMultiple: true
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-due
+            }
+            layout {
+                sequence: 20
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: DUE_IN_HOURS
+                dataType: number
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P100_INITIATED (
+            type: range
+            label {
+                label: &APP_TEXT$INITIATED.
+            }
+            settings {
+                selectMultiple: true
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-initiated
+            }
+            layout {
+                sequence: 80
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: CREATED_AGO_HOURS
+                dataType: number
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P100_INITIATOR (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$INITIATOR.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                databaseColumn: INITIATOR_LOWER
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P100_OWNER (
+            type: checkboxGroup
+            label {
+                label: المعتمد بواسطة
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 90
+            }
+            listEntries {
+                computeCounts: false
+            }
+            source {
+                databaseColumn: OWNER_NAME
+            }
+        )
+
+        filter P100_PRIORITY (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$PRIORITY.
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-priority
+            }
+            layout {
+                sequence: 40
+            }
+            listEntries {
+                sortByTopCounts: false
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: PRIORITY
+                dataType: number
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P100_SEARCH (
+            type: search
+            label {
+                label: &APP_TEXT$SEARCH_AND_FILTER_ORDERS.
+            }
+            layout {
+                sequence: 10
+            }
+            appearance {
+                valuePlaceholder: &APP_TEXT$SEARCH_AND_FILTER_ORDERS.
+            }
+        )
+
+        filter P100_STATE (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$STATE.
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-state
+            }
+            layout {
+                sequence: 50
+            }
+            listEntries {
+                sortByTopCounts: false
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: STATE_CODE
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P100_TYPE (
+            type: radioGroup
+            label {
+                label: &APP_TEXT$TYPE.
+            }
+            lov {
+                type: functionBody
+                plsqlFunctionBody:
+                    ```plsql
+                    
+                    select case
+                               when nvl(upper(trim(TASK_DEF_STATIC_ID)), 'NONE') = 'APPROVAL_TASK'
+                                 or nvl(upper(trim(TASK_DEF_NAME)), 'NONE') in ('APPROVAL TASK', 'APPROVAL_TASK') then 'مهمة الاعتماد'
+                               else nvl(nullif(trim(TASK_DEF_NAME), ''), 'مهمة الطلب')
+                           end as TASK_DEF_NAME,
+                           TASK_DEF_STATIC_ID
+                      from table ( apex_approval.get_tasks ( p_context => 'INITIATED_BY_ME' ) )
+                     where not(APP_ID=104 and TASK_DEF_STATIC_ID in('PRC_COMMITTEE_VOTE','PRC_COMMITTEE_FINAL'))
+                      group by TASK_DEF_NAME,TASK_DEF_STATIC_ID
+                    union all
+                    select 'طلبات اللجان','PRC_COMMITTEE_REQUEST' from dual
+                     where exists(select 1 from EPROMHQ.PRC_PORTAL_CARDS_V where context_kind='REQUEST');
+                    ```
+            }
+            layout {
+                sequence: 30
+            }
+            listEntries {
+                computeCounts: false
+            }
+            source {
+                databaseColumn: TASK_DEF_STATIC_ID
+            }
+        )
+
+    )
+
+    region الطلبات-السابقة (
+        name: الطلبات السابقة
+        title: &APP_TEXT$PREVIOUS_ORDERS.
+        type: staticContent
+        source {
+            htmlCode: <span class='u-VisuallyHidden'>&APP_TEXT$PREVIOUS_REQUESTS_HINT!RAW.</span>
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @content-block
+            templateOptions: [
+                #DEFAULT#
+                t-ContentBlock--h3
+                t-ContentBlock--lightBG
+            ]
+            cssClasses: [
+                previous-requests-panel
+                previous-requests-strip
+            ]
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                DECLARE
+                  l_count NUMBER;
+                BEGIN
+                
+                 SELECT COUNT(*)
+                  INTO l_count
+                  FROM xxapex_hr_emp_Data
+                  WHERE emp_number = :APP_USER
+                  AND site_code NOT IN ('EPROM_ERC', 'EPROM_MIDOR');
+                
+                  RETURN l_count > 0;
+                
+                END;
+                ```
+        }
+    )
+
+    region متابعة-طلباتى-الحالية (
+        name: متابعة طلباتى الحالية
+        title: &APP_TEXT$FOLLOW_UP_ON_MY_CURRENT_REQUESTS.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 20
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useRegionTitle
+                t-Form--stretchInputs
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+        }
+    )
+
+    pageItem P100_SORT_BY (
+        type: selectList
+        label {
+            label: &APP_TEXT$SORT_BY.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 
+                    CASE 
+                        WHEN :FSP_LANGUAGE_PREFERENCE = 'ar-ae' THEN 'تاريخ الطلب' 
+                        ELSE 'Request Date' 
+                    END AS d,
+                    'created_on' AS r
+                FROM dual
+                UNION ALL
+                SELECT 
+                    CASE 
+                        WHEN :FSP_LANGUAGE_PREFERENCE = 'ar-ae' THEN 'تاريخ الإستحقاق' 
+                        ELSE 'Due Date' 
+                    END AS d,
+                    'due_on' AS r
+                FROM dual
+                
+                ```
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 30
+            region: @initiated-by-me-report
+            slot: sortOrder
+            alignment: left
+        }
+        appearance {
+            template: @hidden
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+            cssClasses: u-pullRight
+            height: 1
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: user
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P100_TASK_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            encryptSessionState: false
+        }
+    )
+
+    button leaves (
+        buttonName: leaves
+        label: &APP_TEXT$VACATIONS.
+        layout {
+            sequence: 10
+            region: @الطلبات-السابقة
+            slot: regionBody
+            columnSpan: 3
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--primary
+                t-Button--stretch
+            ]
+            cssClasses: previous-requests-action
+            icon: fa-calendar
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 15
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button missions (
+        buttonName: missions
+        label: &APP_TEXT$MISSIONS.
+        layout {
+            sequence: 30
+            region: @الطلبات-السابقة
+            slot: regionBody
+            columnSpan: 3
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--primary
+                t-Button--stretch
+            ]
+            cssClasses: previous-requests-action
+            icon: fa-briefcase
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 29
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button overtime (
+        buttonName: overtime
+        label: &APP_TEXT$EXTRA_HOURS.
+        layout {
+            sequence: 40
+            region: @الطلبات-السابقة
+            slot: regionBody
+            columnSpan: 3
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--primary
+                t-Button--stretch
+            ]
+            cssClasses: previous-requests-action
+            icon: fa-hourglass-half
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 30
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button permissions (
+        buttonName: permissions
+        label: &APP_TEXT$PERMISSIONS.
+        layout {
+            sequence: 20
+            region: @الطلبات-السابقة
+            slot: regionBody
+            columnSpan: 3
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--primary
+                t-Button--stretch
+            ]
+            cssClasses: previous-requests-action
+            icon: fa-clock-o
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 28
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction refresh-initiated-by-me-report (
+        name: Refresh - Initiated by Me - Report
+        execution {
+            sequence: 20
+        }
+        when {
+            event: apexafterclosecanceldialog
+            selectionType: region
+            region: @initiated-by-me-report
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @initiated-by-me-smart-filters
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-2 (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @initiated-by-me-report
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction show-success-message (
+        name: Show Success Message
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosecanceldialog
+            selectionType: jQuerySelector
+            jquerySelector: body
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    
+                    if ( this.data.successMessage ) {
+                        apex.message.showPageSuccess(this.data.successMessage.text);
+                    }           
+                                
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

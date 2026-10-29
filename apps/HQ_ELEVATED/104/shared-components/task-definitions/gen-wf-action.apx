@@ -1,0 +1,210 @@
+taskDefinition gen-wf-action (
+    name: Generic_Action_Task
+    type: action
+    task {
+        subject: Action Task for Request &T_REQUEST_ID.
+    }
+    advanced {
+        detailsPage: {
+            page: 705
+            items: {
+                P705_REQUEST_ID: &T_REQUEST_ID.
+                P705_TASK_ID: &TASK_ID.
+                P705_T_ID: &T_ID.
+            }
+            clearCache: 705
+            action: resetPagination
+        }
+    }
+
+    parameter T_BUSINESS_ADMINS (
+        label: T_BUSINESS_ADMINS
+    )
+
+    parameter T_EMP_ID (
+        label: T_EMP_ID
+    )
+
+    parameter T_EMP_NAME (
+        label: T_EMP_NAME
+    )
+
+    parameter T_ID (
+        label: T_ID
+    )
+
+    parameter T_POTENTIAL_OWNERS (
+        label: T_POTENTIAL_OWNERS
+    )
+
+    parameter T_REQUEST_ID (
+        label: T_REQUEST_ID
+    )
+
+    parameter T_REQUEST_SOURCE (
+        label: T_REQUEST_SOURCE
+    )
+
+    parameter T_REQUEST_TYPE_ID (
+        label: T_REQUEST_TYPE_ID
+    )
+
+    parameter T_STEP (
+        label: T_STEP
+    )
+
+    action on-cancel (
+        name: on cancel
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    IF UPPER(TRIM(NVL(:T_ID, '-'))) NOT IN (
+                        'ITR_COORDINATOR_TRIAGE',
+                        'ITR_TEAM_LEADER_ASSIGNMENT',
+                        'ITR_TECHNICIAN_WORK',
+                        'ITR_USER_VERIFICATION'
+                    ) THEN
+                        hq_elevated.gen_wf_action_pkg.process_action(
+                            p_request_type_id => TO_NUMBER(:T_REQUEST_TYPE_ID),
+                            p_action          => 'CANCEL',
+                            p_request_id      => TO_NUMBER(:T_REQUEST_ID),
+                            p_emp_id          => TO_NUMBER(:T_EMP_ID),
+                            p_task_id         => :APEX$TASK_ID,
+                            p_app_user        => :APEX$TASK_INITIATOR,
+                            p_seq_no          => NVL(
+                                TO_NUMBER(
+                                    apex_human_task.get_task_parameter_value(
+                                        p_task_id          => :APEX$TASK_ID,
+                                        p_param_static_id  => 'T_STEP',
+                                        p_ignore_not_found => TRUE
+                                    )
+                                ),
+                                1
+                            ),
+                            p_task_subject    => :APEX$TASK_SUBJECT,
+                            p_task_initiator  => :APEX$TASK_INITIATOR
+                        );
+                    END IF;
+                
+                    hq_elevated.gen_wf_log_pkg.capture_task_log(
+                        p_task_id => :APEX$TASK_ID
+                    );
+                
+                    IF :APEX$WORKFLOW_ID IS NOT NULL THEN
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            onEvent: cancel
+            sequence: 30
+        }
+    )
+
+    action on-complete (
+        name: On Complete
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_outcome VARCHAR2(30) := UPPER(TRIM(NVL(:APEX$TASK_OUTCOME, 'COMPLETE')));
+                BEGIN
+                    IF UPPER(TRIM(NVL(:T_ID, '-'))) NOT IN (
+                        'ITR_COORDINATOR_TRIAGE',
+                        'ITR_TEAM_LEADER_ASSIGNMENT',
+                        'ITR_TECHNICIAN_WORK',
+                        'ITR_USER_VERIFICATION'
+                    ) THEN
+                        hq_elevated.gen_wf_action_pkg.process_action(
+                            p_request_type_id => TO_NUMBER(:T_REQUEST_TYPE_ID),
+                            p_action          => l_outcome,
+                            p_request_id      => TO_NUMBER(:T_REQUEST_ID),
+                            p_emp_id          => TO_NUMBER(:T_EMP_ID),
+                            p_task_id         => :APEX$TASK_ID,
+                            p_app_user        => NVL(:APEX$TASK_OWNER, :APP_USER),
+                            p_seq_no          => NVL(
+                                TO_NUMBER(
+                                    apex_human_task.get_task_parameter_value(
+                                        p_task_id          => :APEX$TASK_ID,
+                                        p_param_static_id  => 'T_STEP',
+                                        p_ignore_not_found => TRUE
+                                    )
+                                ),
+                                1
+                            ),
+                            p_task_subject    => :APEX$TASK_SUBJECT,
+                            p_task_initiator  => :APEX$TASK_INITIATOR
+                        );
+                    END IF;
+                
+                    hq_elevated.gen_wf_log_pkg.capture_task_log(
+                        p_task_id => :APEX$TASK_ID
+                    );
+                
+                    IF :APEX$WORKFLOW_ID IS NOT NULL THEN
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            onEvent: complete
+            sequence: 20
+        }
+    )
+
+    action on-create (
+        name: on create
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                   hq_elevated.gen_wf_log_pkg.capture_task_log(p_task_id => :APEX$TASK_ID);
+                
+                   IF :APEX$WORKFLOW_ID IS NOT NULL THEN
+                      hq_elevated.gen_wf_log_pkg.capture_workflow_log(p_workflow_id => :APEX$WORKFLOW_ID);
+                   END IF;
+                END;
+                ```
+        }
+        execution {
+            onEvent: create
+            sequence: 10
+        }
+    )
+
+    participant (
+        value {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT TRIM(column_value) AS username
+                FROM TABLE(apex_string.split(:T_POTENTIAL_OWNERS, ':'))
+                WHERE column_value IS NOT NULL;
+                ```
+        }
+    )
+
+    participant (
+        type: businessAdministrator
+        value {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT TRIM(column_value) AS username
+                FROM TABLE(apex_string.split(:T_BUSINESS_ADMINS, ':'))
+                WHERE column_value IS NOT NULL;
+                ```
+        }
+    )
+
+)

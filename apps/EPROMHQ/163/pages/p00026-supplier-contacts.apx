@@ -1,0 +1,502 @@
+page 26 (
+    name: Supplier Contacts
+    alias: SUPPLIER-CONTACTS
+    title: Supplier Contacts
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            /* Style input field */
+            #P26_COMPANY_NAME {
+                background-color: #b9c9e9 !important;
+                color: #0b3d91 !important;
+                font-weight: bold !important;
+                text-align: center !important;
+                border: 1.5px solid #11508f !important;
+                border-radius: 8px !important;
+            }
+            
+            /* Style label */
+            label[for="P26_COMPANY_NAME"] {
+                color: #0D355D !important;
+                font-weight: bold !important;
+                font-size: 13px !important;
+                text-align: center !important;
+                }
+            
+            
+             #P26_CONTACT_PERSON {
+                background-color: #b6c9eb !important;
+                color: #0b3d91 !important;
+                font-weight: bold !important;
+                text-align: center !important;
+                border: 1.5px solid #11508f !important;
+                border-radius: 8px !important;
+            }
+            
+            label[for="P26_CONTACT_PERSON"] {
+                color: #0D355D !important;
+                font-weight: bold !important;
+                font-size: 13px !important;
+                text-align: center !important;
+                }
+            ```
+    }
+    readOnly {
+        type: always
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+                t-Region-orderBy--center
+            ]
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region supplier-contacts (
+        name: Supplier Contacts
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select supplier_id,
+                    Company_name,
+                    HEADOFF_MOBILE,
+                    HEADOFF_PHONE,
+                    HEADOFF_FAX,
+                    HEADOFF_EMAIL,
+                    WEBSITE,
+                    HEADOFF_ADDRESS,
+                    CONTACT_PERSON,
+                    CONTACT_POSITION,
+                    CONTACT_MAIN_MOBILE,
+                    CONTACT_SEC_MOBILE,
+                    CONTACT_EMAIL
+                from sup_suppliers
+                where supplier_id = :P26_SUPPLIER_ID
+                order by 1
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region-orderBy--center
+            ]
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P26_COMPANY_NAME (
+        type: displayOnly
+        label {
+            label: Company Name
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: COMPANY_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P26_CONTACT_EMAIL (
+        type: displayOnly
+        label {
+            label: Contact Email
+            alignment: left
+        }
+        layout {
+            sequence: 110
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: CONTACT_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P26_CONTACT_MAIN_MOBILE (
+        type: displayOnly
+        label {
+            label: Contact Main Mobile
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: CONTACT_MAIN_MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P26_CONTACT_PERSON (
+        type: displayOnly
+        label {
+            label: Contact Person
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: CONTACT_PERSON
+            dataType: varchar2
+        }
+    )
+
+    pageItem P26_CONTACT_POSITION (
+        type: displayOnly
+        label {
+            label: Contact Position
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: CONTACT_POSITION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P26_CONTACT_SEC_MOBILE (
+        type: displayOnly
+        label {
+            label: Secondary Mobile
+            alignment: left
+        }
+        layout {
+            sequence: 130
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: CONTACT_SEC_MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P26_HEADOFF_ADDRESS (
+        type: textarea
+        label {
+            label: Headoff Address
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 2
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: HEADOFF_ADDRESS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P26_HEADOFF_EMAIL (
+        type: displayOnly
+        label {
+            label: Headoff Email
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: HEADOFF_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P26_HEADOFF_FAX (
+        type: displayOnly
+        label {
+            label: Headoff Fax
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: HEADOFF_FAX
+            dataType: varchar2
+        }
+    )
+
+    pageItem P26_HEADOFF_MOBILE (
+        type: displayOnly
+        label {
+            label: Headoff Mobile
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: HEADOFF_MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P26_HEADOFF_PHONE (
+        type: displayOnly
+        label {
+            label: Headoff Phone
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: HEADOFF_PHONE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P26_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @supplier-contacts
+            slot: regionBody
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: SUPPLIER_ID
+            dataType: number
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P26_WEBSITE (
+        type: displayOnly
+        label {
+            label: Website
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @supplier-contacts
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @supplier-contacts
+            column: WEBSITE
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Cancel
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: [
+                t-Button--large
+                t-Button--pill
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 264631239346020817
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process initialize-form-supplier-contacts (
+        name: Initialize form Supplier Contacts
+        type: formInitialization
+        formRegion: @supplier-contacts
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 264630460602020817
+        }
+    )
+
+    process process-form-supplier-contacts (
+        name: Process form Supplier Contacts
+        type: formAutoRowProcessing
+        formRegion: @supplier-contacts
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 264630878354020817
+        }
+    )
+
+)

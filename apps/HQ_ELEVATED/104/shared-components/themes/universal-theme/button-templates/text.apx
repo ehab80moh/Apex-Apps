@@ -1,0 +1,11 @@
+buttonTemplate text (
+    name: Text
+    templateClass: button
+    button {
+        normal: <button class="t-Button #BUTTON_CSS_CLASSES#" type="button" #BUTTON_ATTRIBUTES# #ONCLICK# id="#BUTTON_ID#"><span class="t-Button-label">#LABEL#</span></button>
+        hot: <button class="t-Button t-Button--hot #BUTTON_CSS_CLASSES#" type="button" #BUTTON_ATTRIBUTES# #ONCLICK# id="#BUTTON_ID#"><span class="t-Button-label">#LABEL#</span></button>
+    }
+    advanced {
+        identifier: TEXT
+    }
+)

@@ -1,0 +1,53 @@
+page 3 (
+    name: Maintenance Mode
+    alias: PLACEHOLDER
+    title: &APP_TEXT$APPLICATION_UNDER_MAINTENANCE.
+    appearance {
+        pageTemplate: @login
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region جارى-التحديث (
+        name: جارى التحديث
+        title: &APP_TEXT$UPDATING.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_21.
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    branch (
+        name: go to 1
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        behavior {
+            target: {
+                page: 1
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+)

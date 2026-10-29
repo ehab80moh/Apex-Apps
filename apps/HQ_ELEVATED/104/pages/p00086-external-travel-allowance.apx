@@ -1,0 +1,3704 @@
+page 86 (
+    name: بدل انتقالات خارجيه
+    alias: EXTERNAL-TRAVEL-ALLOWANCE
+    title: &APP_TEXT$FOREIGN_TRANSFER_ALLOWANCE.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        executeWhenPageLoads:
+            ```javascript-browser
+            function getCheckedValues() {
+              var values = [];
+              $(".row_checkbox:checked").each(function () {
+                values.push($(this).val());
+              });
+              $s("P73_SELECTED_IDS", values.join(","));
+            }
+            
+            // Toggle all when header checkbox clicked
+            $(document).on("change", "#select_all", function () {
+              $(".row_checkbox").prop("checked", this.checked);
+              getCheckedValues();
+            });
+            
+            // Update header checkbox + item when any row checkbox changes
+            $(document).on("change", ".row_checkbox", function () {
+              if (!this.checked) {
+                $("#select_all").prop("checked", false);
+              } else if ($(".row_checkbox:checked").length === $(".row_checkbox").length) {
+                $("#select_all").prop("checked", true);
+              }
+              getCheckedValues();
+            });
+            
+            ```
+    }
+    css {
+        inline:
+            ```css
+            
+            .row_checkbox {
+                transform: scale(1.5); 
+                margin: 10px;
+            }
+            
+            
+            .row_checkbox {
+                width: 20px;
+                height: 20px;
+                cursor: pointer;
+            }
+            
+            td[headers="MOVEMENT_DATE"],
+            td[headers="MOVEMENT_DESCRIPTION"] {
+                white-space: pre;
+                vertical-align: top;
+            }
+            
+            #select_all {
+              transform: scale(1.5);
+              margin-right: 8px;
+            }
+            
+            
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        title: &APP_TEXT$BREADCRUMB.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region region-display-selector (
+        name: region display selector
+        title: &APP_TEXT$REGION_DISPLAY_SELECTOR_1.
+        type: staticContent
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @tabs-container
+            templateOptions: [
+                #DEFAULT#
+                t-TabsRegion-mod--simple
+            ]
+        }
+    )
+
+    region استرجاع-من-المالية-بدل-انتقالات-خارجيه (
+        name: "استرجاع من المالية بدل انتقالات خارجيه "
+        title: &APP_TEXT$REFUND_FROM_THE_FINANCE_MINISTRY_FOR_FOREIGN_TRANSFERS.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH exp AS (
+                    SELECT
+                        ht.request_id,
+                
+                        MAX(CASE WHEN UPPER(TRIM(ht.type_of_hotel)) = 'B.B' THEN 1 ELSE 0 END) AS bb_75_flag,
+                        MAX(CASE WHEN UPPER(TRIM(ht.type_of_hotel)) = 'H.B' THEN 1 ELSE 0 END) AS hb_50_flag,
+                        MAX(CASE WHEN UPPER(TRIM(ht.type_of_hotel)) = 'S.A' THEN 1 ELSE 0 END) AS sa_100_flag,
+                
+                        SUM(
+                            CASE
+                                WHEN REGEXP_LIKE(TRIM(ht.number_of_days), '^\d+(\.\d+)?$')
+                                THEN TO_NUMBER(TRIM(ht.number_of_days))
+                                ELSE 0
+                            END
+                        ) AS hotel_days,
+                
+                        LISTAGG(
+                            TRIM(ht.type_of_hotel) || ' - ' || TRIM(ht.number_of_days) || ' يوم',
+                            ' / '
+                        ) WITHIN GROUP (ORDER BY ht.type_of_hotel) AS hotel_details
+                
+                    FROM EPROMHQ.TRV_ALLOWANCE_HOTELS ht
+                    GROUP BY ht.request_id
+                )
+                SELECT
+                    '<input type="checkbox" class="row_checkbox" value="' || a.request_id || '"/>' AS select_row,
+                    a.request_id,
+                    a.emp_id,
+                    h.emp_name AS emp_name,
+                    h.site_code,
+                    h.project,
+                    TO_NUMBER(REGEXP_SUBSTR(TRIM(h.current_grade), '\d+$')) AS grade_num,
+                    a.trip_purpose,
+                    a.trip_location,
+                    a.date_from,
+                    a.start_time,
+                    a.date_to,
+                    a.end_time,
+                    TRUNC((a.date_to - a.date_from) + 1) AS number_days,
+                    CAST(NULL AS NUMBER) AS per_diem_rate,
+                
+                    NVL(ex.bb_75_flag, 0) AS bb_75,
+                    NVL(ex.hb_50_flag, 0) AS hb_50,
+                    NVL(ex.sa_100_flag, 0) AS sa_100,
+                
+                    CASE
+                        WHEN NVL(ex.sa_100_flag, 0) = 1 THEN 'S.A 100%'
+                        WHEN NVL(ex.hb_50_flag, 0)  = 1 THEN 'H.B 50%'
+                        WHEN NVL(ex.bb_75_flag, 0)  = 1 THEN 'B.B 75%'
+                        ELSE NULL
+                    END AS hotel_plan,
+                
+                    NVL(ex.hotel_days, 0) AS hotel_days,
+                
+                    ex.hotel_details AS hotel_details,
+                
+                    CAST(NULL AS NUMBER) AS total_allowance,
+                    CAST(NULL AS VARCHAR2(100)) AS meal,
+                    CAST(NULL AS NUMBER) AS travel_expense,
+                    a.last_approval_date,
+                    a.status,
+                    a.task_ids,
+                    a.approval_manager,
+                    a.FINANCE_COMMENT,
+                
+                    CASE
+                        WHEN a.approval_manager = '1' THEN '✅تمت الموافقة'
+                        WHEN a.approval_manager = '0' THEN '❌تم الرفض'
+                        WHEN a.approval_manager = '2' OR a.approval_manager IS NULL THEN '⏳في انتظار الاعتماد'
+                        ELSE a.approval_manager
+                    END AS approval_manager_msg,
+                
+                    a.approval_car,
+                
+                    CASE
+                        WHEN a.approval_car = '1' THEN '✅تمت الموافقة'
+                        WHEN a.approval_car = '2' THEN '❌تم الرفض'
+                        WHEN a.approval_car = '0' OR a.approval_car IS NULL THEN '⏳في انتظار الاعتماد'
+                        ELSE a.approval_car
+                    END AS approval_car_msg,
+                
+                    a.approval_hotel,
+                
+                    CASE
+                        WHEN a.approval_hotel = '1' THEN '✅تمت الموافقة'
+                        WHEN a.approval_hotel = '2' THEN '❌تم الرفض'
+                        WHEN a.approval_hotel = '0' OR a.approval_hotel IS NULL THEN '⏳في انتظار الاعتماد'
+                        ELSE a.approval_hotel
+                    END AS approval_hotel_msg,
+                
+                    CASE
+                        WHEN a.approval_finance = '1' THEN '✅تمت الموافقة'
+                        WHEN a.approval_finance = '2' THEN '❌تم الرفض'
+                        WHEN a.approval_finance = '0' OR a.approval_finance IS NULL THEN '⏳في انتظار الاعتماد'
+                        ELSE a.approval_finance
+                    END AS approval_finance_msg,
+                
+                    a.date_of_disbursement AS date_of_disbursement,
+                    CAST(NULL AS VARCHAR2(4000)) AS attached_file,
+                
+                    CASE
+                        WHEN NVL(a.delete_approval_car, 0)     = 1
+                          OR NVL(a.delete_approval_hotel, 0)   = 1
+                          OR NVL(a.delete_approval_finance, 0) = 1
+                        THEN '❌ مرفوض'
+                
+                        WHEN NVL(a.approval_manager, 0) = 1
+                         AND NVL(a.approval_car, 0)     = 1
+                         AND NVL(a.approval_hotel, 0)   = 1
+                         AND NVL(a.approval_finance, 0) = 1
+                        THEN '✅ تم الصرف'
+                
+                        ELSE '⏳ قيد المراجعة'
+                    END AS request_final_status,
+                
+                    NULL AS cancel,
+                    a.approval_finance,
+                    CAST(NULL AS NUMBER) AS net_amount,
+                    a.date_of_administrator,
+                    a.RETURN_FROM_FINANCE_TO_ADMIN
+                
+                
+                
+                
+                FROM EPROMHQ.TRV_ALLOWANCE a
+                
+                LEFT JOIN exp ex
+                       ON ex.request_id = a.request_id
+                
+                LEFT JOIN CENTRAL.XXAPEX_HR_EMP_DATA h
+                       ON h.emp_number = a.emp_id
+                
+                WHERE a.date_of_disbursement IS NULL 
+                  AND NVL(a.approval_car, 0) = 1
+                  AND NVL(a.approval_manager, 0) = 1
+                  AND NVL(a.approval_hotel, 0) <> 0
+                  AND NVL(a.delete_approval_car, 0) <> 1
+                  AND NVL(a.delete_approval_hotel, 0) <> 1
+                  AND NVL(a.delete_approval_finance, 0) <> 1
+                  AND a.FINANCE_RETURN_FLAG = 1
+                  AND (
+                      h.site_code IN (
+                          SELECT s.site_code 
+                          FROM central.apr_static_approval_site s 
+                          WHERE s.emp_number = :APP_USER
+                            AND s.admin_job_type IN ('car_admin', 'hotel_admin')
+                      )
+                      OR (
+                          :EMP_SITE IS NOT NULL 
+                          AND h.site_code = :EMP_SITE
+                          AND EXISTS (
+                              SELECT 1 
+                              FROM central.apr_static_approval_site s 
+                              WHERE s.emp_number = :APP_USER
+                                AND s.admin_job_type IN ('car_admin', 'hotel_admin')
+                          )
+                      )
+                  )
+                ```
+        }
+        layout {
+            sequence: 90
+            parentRegion: @region-display-selector
+            slot: tabs
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        pagination {
+            type: rowRangesXToYOfZ
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 687820997915268716
+        }
+
+        column APPROVAL_CAR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_CAR.
+            }
+            layout {
+                sequence: 650
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AM
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column APPROVAL_CAR_MSG (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CAR_APPROVAL.
+            }
+            layout {
+                sequence: 300
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AC
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column APPROVAL_FINANCE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_FINANCE.
+            }
+            layout {
+                sequence: 630
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AJ
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column APPROVAL_FINANCE_MSG (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FINANCIAL_APPROVAL.
+            }
+            layout {
+                sequence: 580
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AE
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column APPROVAL_HOTEL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_HOTEL.
+            }
+            layout {
+                sequence: 660
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AN
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column APPROVAL_HOTEL_MSG (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HOTEL_OFFICIAL_APPROVAL.
+            }
+            layout {
+                sequence: 310
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AD
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column APPROVAL_MANAGER (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_MANAGER.
+            }
+            layout {
+                sequence: 640
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AL
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column APPROVAL_MANAGER_MSG (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DIRECTOR_S_APPROVAL.
+            }
+            layout {
+                sequence: 290
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AB
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column ATTACHED_FILE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$ATTACHED_FILE.
+            }
+            layout {
+                sequence: 590
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AF
+            }
+        )
+
+        column BB_75 (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$BB_75.
+                alignment: end
+            }
+            layout {
+                sequence: 480
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: P
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column CANCEL (
+            type: link
+            heading {
+                heading: &APP_TEXT$FOR_FINANCIAL_RECOVERY.
+                alignment: center
+            }
+            layout {
+                sequence: 520
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    page: 105
+                    items: {
+                        P105_REQUEST_ID: #REQUEST_ID#
+                    }
+                }
+                linkText: &APP_TEXT$COLUMN_LINKTEXT_17!RAW.
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: V
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column DATE_FROM (
+            type: link
+            heading {
+                heading: &APP_TEXT$GO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: DD-MM-YYYY
+            }
+            link {
+                target: {
+                    page: 102
+                    items: {
+                        P102_REQUEST_ID: #REQUEST_ID#
+                        P102_DATE_FROM: #DATE_FROM#
+                    }
+                }
+                linkText: #DATE_FROM#
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: J
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column DATE_OF_ADMINISTRATOR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ADMINISTRATIVE_TRANSFER_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 380
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AK
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column DATE_OF_DISBURSEMENT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EXCHANGE_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 420
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AO
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column DATE_TO (
+            type: link
+            heading {
+                heading: &APP_TEXT$RETURN_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 120
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: DD-MM-YYYY
+            }
+            link {
+                target: {
+                    page: 102
+                    items: {
+                        P102_REQUEST_ID: #REQUEST_ID#
+                        P102_DATE_TO: #DATE_TO#
+                    }
+                }
+                linkText: #DATE_TO#
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: L
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column EMP_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column EMP_NAME (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NAME.
+            }
+            lov {
+                lov: @employee-numbers-2
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column END_TIME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TIME_TO.
+                alignment: center
+            }
+            layout {
+                sequence: 130
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        column FINANCE_COMMENT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FINANCE_COMMENT.
+            }
+            layout {
+                sequence: 230
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AQ
+            }
+        )
+
+        column GRADE_NUM (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DEGREE.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: G
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column HB_50 (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HB_50.
+                alignment: end
+            }
+            layout {
+                sequence: 490
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: Q
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column HOTEL_DAYS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HOTEL_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 200
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: T
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column HOTEL_DETAILS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HOTEL_DETAILS.
+                alignment: center
+            }
+            layout {
+                sequence: 210
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: U
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column HOTEL_PLAN (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HOTEL_PLAN.
+            }
+            layout {
+                sequence: 510
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: S
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column LAST_APPROVAL_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$LAST_APPROVAL_DATE.
+            }
+            layout {
+                sequence: 550
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: Y
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column MEAL (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$MEAL.
+            }
+            layout {
+                sequence: 530
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: W
+            }
+        )
+
+        column NET_AMOUNT (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$NET_AMOUNT.
+            }
+            layout {
+                sequence: 610
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AH
+            }
+        )
+
+        column NUMBER_DAYS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 140
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: 999G999G999G999G999G999G990
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: N
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column PER_DIEM_RATE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$DAILY_WAGE_RATE.
+            }
+            layout {
+                sequence: 470
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: O
+            }
+        )
+
+        column PROJECT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$PROJECT.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column REQUEST_FINAL_STATUS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ORDER_STATUS.
+                alignment: center
+            }
+            layout {
+                sequence: 600
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AG
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column REQUEST_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$REQUEST_ID.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column RETURN_FROM_FINANCE_TO_ADMIN (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DATE_OF_TRANSFER_FROM_FINANCE.
+                alignment: center
+            }
+            layout {
+                sequence: 440
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AR
+            }
+        )
+
+        column SA_100 (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SA_100.
+                alignment: end
+            }
+            layout {
+                sequence: 500
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: R
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column SELECT_ROW (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$INPUT_TYPECHECKBOX_IDSELECTALL!RAW.
+                alignment: center
+            }
+            layout {
+                sequence: 450
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            serverSideCondition {
+                type: never
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column SITE_CODE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SITE_CODE.
+            }
+            layout {
+                sequence: 460
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+            enableUsersTo {
+                hide: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column START_TIME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TIME_FROM.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        column STATUS (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$STATUS.
+            }
+            layout {
+                sequence: 560
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Z
+            }
+        )
+
+        column TASK_IDS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TASK_IDS.
+            }
+            layout {
+                sequence: 570
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AA
+            }
+            enableUsersTo {
+                hide: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column TOTAL_ALLOWANCE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$TOTAL_ALLOWANCE.
+            }
+            layout {
+                sequence: 620
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AI
+            }
+        )
+
+        column TRAVEL_EXPENSE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$TRAVEL_EXPENSE.
+            }
+            layout {
+                sequence: 540
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: X
+            }
+        )
+
+        column TRIP_LOCATION (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$MISSION_LOCATION.
+                alignment: center
+            }
+            lov {
+                lov: @sites
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column TRIP_PURPOSE (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$MISSION_TYPE.
+                alignment: center
+            }
+            lov {
+                lov: @trip-purpose
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport 3369261 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn APPROVAL_CAR_MSG (
+                sequence: 21
+            )
+
+            displayColumn APPROVAL_FINANCE_MSG (
+                sequence: 29
+            )
+
+            displayColumn APPROVAL_HOTEL_MSG (
+                sequence: 22
+            )
+
+            displayColumn APPROVAL_MANAGER_MSG (
+                sequence: 20
+            )
+
+            displayColumn BB_75 (
+                sequence: 15
+            )
+
+            displayColumn CANCEL (
+                sequence: 31
+            )
+
+            displayColumn DATE_FROM (
+                sequence: 9
+            )
+
+            displayColumn DATE_OF_ADMINISTRATOR (
+                sequence: 24
+            )
+
+            displayColumn DATE_OF_DISBURSEMENT (
+                sequence: 26
+            )
+
+            displayColumn DATE_TO (
+                sequence: 11
+            )
+
+            displayColumn EMP_ID (
+                sequence: 2
+            )
+
+            displayColumn EMP_NAME (
+                sequence: 3
+            )
+
+            displayColumn END_TIME (
+                sequence: 12
+            )
+
+            displayColumn FINANCE_COMMENT (
+                sequence: 27
+            )
+
+            displayColumn GRADE_NUM (
+                sequence: 6
+            )
+
+            displayColumn HB_50 (
+                sequence: 16
+            )
+
+            displayColumn HOTEL_DAYS (
+                sequence: 14
+            )
+
+            displayColumn HOTEL_DETAILS (
+                sequence: 19
+            )
+
+            displayColumn HOTEL_PLAN (
+                sequence: 18
+            )
+
+            displayColumn LAST_APPROVAL_DATE (
+                sequence: 23
+            )
+
+            displayColumn NUMBER_DAYS (
+                sequence: 13
+            )
+
+            displayColumn PROJECT (
+                sequence: 4
+            )
+
+            displayColumn REQUEST_FINAL_STATUS (
+                sequence: 30
+            )
+
+            displayColumn RETURN_FROM_FINANCE_TO_ADMIN (
+                sequence: 28
+            )
+
+            displayColumn SA_100 (
+                sequence: 17
+            )
+
+            displayColumn SELECT_ROW (
+                sequence: 1
+            )
+
+            displayColumn SITE_CODE (
+                sequence: 5
+            )
+
+            displayColumn START_TIME (
+                sequence: 10
+            )
+
+            displayColumn TASK_IDS (
+                sequence: 25
+            )
+
+            displayColumn TRIP_LOCATION (
+                sequence: 8
+            )
+
+            displayColumn TRIP_PURPOSE (
+                sequence: 7
+            )
+
+        )
+
+    )
+
+    region بدل-انتقالات-خارجيه-2 (
+        name: بدل انتقالات خارجيه
+        title: &APP_TEXT$FOREIGN_TRANSFER_ALLOWANCE.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH movements AS (
+                    SELECT
+                        e.request_id,
+                        LISTAGG(
+                            NVL(TO_CHAR(e.date_from, 'DD-MM-YYYY'), '-'),
+                            CHR(10) ON OVERFLOW TRUNCATE '...' WITH COUNT
+                        ) WITHIN GROUP (ORDER BY e.date_from, e.expense_id) AS movement_date,
+                        LISTAGG(
+                            NVL(REPLACE(REPLACE(e.mission, CHR(13), ' '), CHR(10), ' '), '-'),
+                            CHR(10) ON OVERFLOW TRUNCATE '...' WITH COUNT
+                        ) WITHIN GROUP (ORDER BY e.date_from, e.expense_id) AS movement_description
+                    FROM EPROMHQ.TRV_EXPENSE e
+                    GROUP BY e.request_id
+                ),
+                exp AS (
+                    SELECT
+                        ht.request_id,
+                
+                        MAX(CASE WHEN UPPER(TRIM(ht.type_of_hotel)) = 'B.B' THEN 1 ELSE 0 END) AS bb_75_flag,
+                        MAX(CASE WHEN UPPER(TRIM(ht.type_of_hotel)) = 'H.B' THEN 1 ELSE 0 END) AS hb_50_flag,
+                        MAX(CASE WHEN UPPER(TRIM(ht.type_of_hotel)) = 'S.A' THEN 1 ELSE 0 END) AS sa_100_flag,
+                
+                        SUM(
+                            CASE
+                                WHEN REGEXP_LIKE(TRIM(ht.number_of_days), '^\d+(\.\d+)?$')
+                                THEN TO_NUMBER(TRIM(ht.number_of_days))
+                                ELSE 0
+                            END
+                        ) AS hotel_days,
+                
+                        LISTAGG(
+                            TRIM(ht.type_of_hotel) || ' - ' || TRIM(ht.number_of_days) || ' يوم',
+                            ' / '
+                        ) WITHIN GROUP (ORDER BY ht.type_of_hotel) AS hotel_details
+                
+                    FROM EPROMHQ.TRV_ALLOWANCE_HOTELS ht
+                    GROUP BY ht.request_id
+                )
+                SELECT
+                    '<input type="checkbox" class="row_checkbox" value="' || a.request_id || '"/>' AS select_row,
+                    a.request_id,
+                    a.emp_id,
+                    h.emp_name AS emp_name,
+                    h.site_code,
+                    h.project,
+                    TO_NUMBER(REGEXP_SUBSTR(TRIM(h.current_grade), '\d+$')) AS grade_num,
+                    a.trip_purpose,
+                    a.trip_location,
+                    mv.movement_date,
+                    mv.movement_description,
+                    a.date_from,
+                    a.start_time,
+                    a.date_to,
+                    a.end_time,
+                    TRUNC((a.date_to - a.date_from) + 1) AS number_days,
+                    CAST(NULL AS NUMBER) AS per_diem_rate,
+                
+                    NVL(ex.bb_75_flag, 0) AS bb_75,
+                    NVL(ex.hb_50_flag, 0) AS hb_50,
+                    NVL(ex.sa_100_flag, 0) AS sa_100,
+                
+                    CASE
+                        WHEN NVL(ex.sa_100_flag, 0) = 1 THEN 'S.A 100%'
+                        WHEN NVL(ex.hb_50_flag, 0)  = 1 THEN 'H.B 50%'
+                        WHEN NVL(ex.bb_75_flag, 0)  = 1 THEN 'B.B 75%'
+                        ELSE NULL
+                    END AS hotel_plan,
+                
+                    NVL(ex.hotel_days, 0) AS hotel_days,
+                
+                    ex.hotel_details AS hotel_details,
+                
+                    CAST(NULL AS NUMBER) AS total_allowance,
+                    CAST(NULL AS VARCHAR2(100)) AS meal,
+                    CAST(NULL AS NUMBER) AS travel_expense,
+                    a.last_approval_date,
+                    a.status,
+                    a.task_ids,
+                    a.approval_manager,
+                
+                    CASE
+                        WHEN a.approval_manager = '1' THEN '✅تمت الموافقة'
+                        WHEN a.approval_manager = '0' THEN '❌تم الرفض'
+                        WHEN a.approval_manager = '2' OR a.approval_manager IS NULL THEN '⏳في انتظار الاعتماد'
+                        ELSE a.approval_manager
+                    END AS approval_manager_msg,
+                
+                    a.approval_car,
+                
+                    CASE
+                        WHEN a.approval_car = '1' THEN '✅تمت الموافقة'
+                        WHEN a.approval_car = '2' THEN '❌تم الرفض'
+                        WHEN a.approval_car = '0' OR a.approval_car IS NULL THEN '⏳في انتظار الاعتماد'
+                        ELSE a.approval_car
+                    END AS approval_car_msg,
+                
+                    a.approval_hotel,
+                
+                    CASE
+                        WHEN a.approval_hotel = '1' THEN '✅تمت الموافقة'
+                        WHEN a.approval_hotel = '2' THEN '❌تم الرفض'
+                        WHEN a.approval_hotel = '0' OR a.approval_hotel IS NULL THEN '⏳في انتظار الاعتماد'
+                        ELSE a.approval_hotel
+                    END AS approval_hotel_msg,
+                
+                    CASE
+                        WHEN a.approval_finance = '1' THEN '✅تمت الموافقة'
+                        WHEN a.approval_finance = '2' THEN '❌تم الرفض'
+                        WHEN a.approval_finance = '0' OR a.approval_finance IS NULL THEN '⏳في انتظار الاعتماد'
+                        ELSE a.approval_finance
+                    END AS approval_finance_msg,
+                
+                    a.date_of_disbursement AS date_of_disbursement,
+                    CAST(NULL AS VARCHAR2(4000)) AS attached_file,
+                
+                    CASE
+                        WHEN NVL(a.delete_approval_car, 0)     = 1
+                          OR NVL(a.delete_approval_hotel, 0)   = 1
+                          OR NVL(a.delete_approval_finance, 0) = 1
+                          OR a.approval_manager = '0'
+                          OR a.approval_car = '2'
+                          OR a.approval_hotel = '2'
+                          OR a.approval_finance = '2'
+                          OR a.status = 'TERMINATED'
+                        THEN '❌ مرفوض'
+                
+                        WHEN NVL(a.approval_manager, 0) = 1
+                         AND NVL(a.approval_car, 0)     = 1
+                         AND NVL(a.approval_hotel, 0)   = 1
+                         AND NVL(a.approval_finance, 0) = 1
+                        THEN '✅ تم الصرف'
+                
+                        ELSE '⏳ قيد المراجعة'
+                    END AS request_final_status,
+                
+                    NULL AS cancel,
+                    a.approval_finance,
+                    CAST(NULL AS NUMBER) AS net_amount,
+                    a.date_of_administrator
+                
+                FROM EPROMHQ.TRV_ALLOWANCE a
+                
+                LEFT JOIN movements mv
+                       ON mv.request_id = a.request_id
+                
+                LEFT JOIN exp ex
+                       ON ex.request_id = a.request_id
+                
+                LEFT JOIN CENTRAL.XXAPEX_HR_EMP_DATA h
+                       ON h.emp_number = a.emp_id
+                
+                WHERE a.request_type_id = '47'
+                  AND NVL(a.status, 'PENDING') NOT IN ('DELETED')
+                  AND (
+                      h.site_code IN (
+                          SELECT s.site_code 
+                          FROM central.apr_static_approval_site s 
+                          WHERE s.emp_number = :APP_USER
+                            AND s.admin_job_type IN ('car_admin', 'hotel_admin')
+                      )
+                      OR (
+                          :EMP_SITE IS NOT NULL 
+                          AND h.site_code = :EMP_SITE
+                          AND EXISTS (
+                              SELECT 1 
+                              FROM central.apr_static_approval_site s 
+                              WHERE s.emp_number = :APP_USER
+                                AND s.admin_job_type IN ('car_admin', 'hotel_admin')
+                          )
+                      )
+                  )
+                ```
+        }
+        layout {
+            sequence: 70
+            parentRegion: @region-display-selector
+            slot: tabs
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        pagination {
+            type: rowRangesXToYOfZ
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 673629499902972131
+        }
+
+        column APPROVAL_CAR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_CAR.
+            }
+            layout {
+                sequence: 230
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AJ
+            }
+        )
+
+        column APPROVAL_CAR_MSG (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CAR_APPROVAL.
+            }
+            layout {
+                sequence: 170
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: X
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column APPROVAL_FINANCE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_FINANCE.
+            }
+            layout {
+                sequence: 190
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AE
+            }
+        )
+
+        column APPROVAL_FINANCE_MSG (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FINANCIAL_APPROVAL.
+                alignment: center
+            }
+            layout {
+                sequence: 390
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: BD
+            }
+        )
+
+        column APPROVAL_HOTEL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_HOTEL.
+            }
+            layout {
+                sequence: 240
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AK
+            }
+        )
+
+        column APPROVAL_HOTEL_MSG (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HOTEL_OFFICIAL_APPROVAL.
+            }
+            layout {
+                sequence: 180
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Y
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column APPROVAL_MANAGER (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_MANAGER.
+            }
+            layout {
+                sequence: 200
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AI
+            }
+        )
+
+        column APPROVAL_MANAGER_MSG (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DIRECTOR_S_APPROVAL.
+            }
+            layout {
+                sequence: 160
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: W
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column ATTACHED_FILE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ATTACHED_FILE.
+            }
+            layout {
+                sequence: 500
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: BE
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column BB_75 (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$BB_75.
+                alignment: end
+            }
+            layout {
+                sequence: 400
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AP
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column CANCEL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CANCEL.
+            }
+            layout {
+                sequence: 410
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AR
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column DATE_FROM (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$GO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: DD-MM-YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: J
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column DATE_OF_ADMINISTRATOR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ADMINISTRATIVE_TRANSFER_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 220
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AF
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column DATE_OF_DISBURSEMENT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EXCHANGE_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 210
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AL
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column DATE_TO (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$RETURN_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: DD-MM-YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: K
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column EMP_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column EMP_NAME (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NAME.
+            }
+            lov {
+                lov: @employee-numbers-2
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column END_TIME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TIME_TO.
+                alignment: center
+            }
+            layout {
+                sequence: 120
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AH
+            }
+        )
+
+        column GRADE_NUM (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DEGREE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: G
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column HB_50 (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HB_50.
+                alignment: end
+            }
+            layout {
+                sequence: 440
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AV
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column HOTEL_DAYS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HOTEL_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 140
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AN
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column HOTEL_DETAILS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HOTEL_DETAILS.
+                alignment: center
+            }
+            layout {
+                sequence: 150
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AO
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column HOTEL_PLAN (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$HOTEL_PLAN.
+            }
+            layout {
+                sequence: 270
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AQ
+            }
+        )
+
+        column LAST_APPROVAL_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$LAST_APPROVAL_DATE.
+            }
+            layout {
+                sequence: 490
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: BA
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column MEAL (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$MEAL.
+            }
+            layout {
+                sequence: 470
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AY
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column MOVEMENT_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MOVEMENT_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 530
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: BH
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column MOVEMENT_DESCRIPTION (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MOVEMENT_DESCRIPTION.
+                alignment: center
+            }
+            layout {
+                sequence: 540
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: BI
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column NET_AMOUNT (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$NET_AMOUNT.
+            }
+            layout {
+                sequence: 520
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: BG
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column NUMBER_DAYS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 130
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: 999G999G999G999G999G999G990
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: L
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column PER_DIEM_RATE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$PER_DIEM_RATE.
+            }
+            layout {
+                sequence: 430
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AU
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column PROJECT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$PROJECT.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column REQUEST_FINAL_STATUS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ORDER_STATUS.
+                alignment: center
+            }
+            layout {
+                sequence: 510
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: BF
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column REQUEST_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$REQUEST_ID.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column SA_100 (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SA_100.
+                alignment: end
+            }
+            layout {
+                sequence: 450
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AW
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column SELECT_ROW (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SELECT_ROW.
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AS
+            }
+        )
+
+        column SITE_CODE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SITE_CODE.
+            }
+            layout {
+                sequence: 420
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AT
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column START_TIME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TIME_FROM.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AG
+            }
+        )
+
+        column STATUS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$STATUS.
+            }
+            layout {
+                sequence: 370
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: BB
+            }
+        )
+
+        column TASK_IDS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TASK_IDS.
+            }
+            layout {
+                sequence: 380
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: BC
+            }
+        )
+
+        column TOTAL_ALLOWANCE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$TOTAL_ALLOWANCE.
+            }
+            layout {
+                sequence: 460
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AX
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column TRAVEL_EXPENSE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$TRAVEL_EXPENSE.
+            }
+            layout {
+                sequence: 480
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AZ
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column TRIP_LOCATION (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$MISSION_LOCATION.
+                alignment: center
+            }
+            lov {
+                lov: @sites
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column TRIP_PURPOSE (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$MISSION_TYPE.
+                alignment: center
+            }
+            lov {
+                lov: @trip-purpose
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport 3279813 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 100000
+            }
+
+            displayColumn APPROVAL_CAR_MSG (
+                sequence: 17
+            )
+
+            displayColumn APPROVAL_FINANCE (
+                sequence: 19
+            )
+
+            displayColumn APPROVAL_FINANCE_MSG (
+                sequence: 24
+            )
+
+            displayColumn APPROVAL_HOTEL_MSG (
+                sequence: 18
+            )
+
+            displayColumn APPROVAL_MANAGER_MSG (
+                sequence: 16
+            )
+
+            displayColumn DATE_FROM (
+                sequence: 9
+            )
+
+            displayColumn DATE_OF_ADMINISTRATOR (
+                sequence: 20
+            )
+
+            displayColumn DATE_OF_DISBURSEMENT (
+                sequence: 21
+            )
+
+            displayColumn DATE_TO (
+                sequence: 11
+            )
+
+            displayColumn EMP_ID (
+                sequence: 1
+            )
+
+            displayColumn EMP_NAME (
+                sequence: 2
+            )
+
+            displayColumn END_TIME (
+                sequence: 12
+            )
+
+            displayColumn GRADE_NUM (
+                sequence: 4
+            )
+
+            displayColumn HOTEL_DAYS (
+                sequence: 15
+            )
+
+            displayColumn HOTEL_DETAILS (
+                sequence: 14
+            )
+
+            displayColumn HOTEL_PLAN (
+                sequence: 22
+            )
+
+            displayColumn MOVEMENT_DATE (
+                sequence: 7
+            )
+
+            displayColumn MOVEMENT_DESCRIPTION (
+                sequence: 8
+            )
+
+            displayColumn NUMBER_DAYS (
+                sequence: 13
+            )
+
+            displayColumn PROJECT (
+                sequence: 3
+            )
+
+            displayColumn START_TIME (
+                sequence: 10
+            )
+
+            displayColumn STATUS (
+                sequence: 23
+            )
+
+            displayColumn TRIP_LOCATION (
+                sequence: 6
+            )
+
+            displayColumn TRIP_PURPOSE (
+                sequence: 5
+            )
+
+        )
+
+    )
+
+    region بدل-انتقالات-داخلية (
+        name: بدل انتقالات داخلية
+        title: &APP_TEXT$INTERNAL_TRANSPORTATION_ALLOWANCE.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH movements AS (
+                    SELECT
+                        e.request_id,
+                        LISTAGG(
+                            NVL(TO_CHAR(e.date_from, 'DD-MM-YYYY'), '-'),
+                            CHR(10) ON OVERFLOW TRUNCATE '...' WITH COUNT
+                        ) WITHIN GROUP (ORDER BY e.date_from, e.expense_id) AS movement_date,
+                        LISTAGG(
+                            NVL(REPLACE(REPLACE(e.mission, CHR(13), ' '), CHR(10), ' '), '-'),
+                            CHR(10) ON OVERFLOW TRUNCATE '...' WITH COUNT
+                        ) WITHIN GROUP (ORDER BY e.date_from, e.expense_id) AS movement_description
+                    FROM EPROMHQ.TRV_EXPENSE e
+                    GROUP BY e.request_id
+                )
+                SELECT 
+                '<input type="checkbox" class="row_checkbox" value="' || a.request_id || '"/>' AS select_row,
+                  a.REQUEST_ID,
+                  a.EMP_ID,
+                  a.EMP_ID Emp_name,
+                  x.SITE_CODE,
+                  x.PROJECT,
+                  x.MAIN_DEPARTMENT,
+                  a.TRIP_PURPOSE,
+                  a.TRIP_LOCATION,
+                  mv.movement_date,
+                  mv.movement_description,
+                  a.DATE_FROM,
+                  a.DATE_TO,
+                TRUNC((a.date_to - a.date_from) + 1) AS number_days,
+                  a.CREATED_AT,
+                  a.PER_DIEM_RATE,
+                  a.TOTAL_ALLOWANCE,
+                  a.MEAL,
+                  a.TRAVEL_EXPENSE,
+                  a.DELETE_APPROVAL_CAR,
+                  a.DELETE_APPROVAL_HOTEL,
+                  a.DELETE_APPROVAL_FINANCE,
+                  a.LAST_APPROVAL_DATE,
+                  a.STATUS,
+                  a.TASK_IDS,
+                  a.APPROVAL_MANAGER,
+                  a.APPROVAL_CAR,
+                  a.APPROVAL_HOTEL,
+                  a.APPROVAL_FINANCE,
+                  A.REQUEST_TYPE_ID,
+                  Date_of_disbursement,
+                  DATE_OF_ADMINISTRATOR,
+                  null as attached_file,
+                      CASE
+                        WHEN a.approval_manager = '1' THEN '✅تمت الموافقة'
+                        WHEN a.approval_manager = '0' THEN '❌تم الرفض'
+                        WHEN a.approval_manager = '2' OR a.approval_manager IS NULL THEN '⏳في انتظار الاعتماد'
+                        ELSE a.approval_manager
+                    END AS approval_manager_msg,
+                
+                    -- a.approval_car,
+                
+                    CASE
+                        WHEN a.approval_car = '1' THEN '✅تمت الموافقة'
+                        WHEN a.approval_car = '2' THEN '❌تم الرفض'
+                        WHEN a.approval_car = '0' OR a.approval_car IS NULL THEN '⏳في انتظار الاعتماد'
+                        ELSE a.approval_car
+                    END AS approval_car_msg,
+                    
+                    CASE
+                        WHEN a.approval_finance = '1' THEN '✅تمت الموافقة'
+                        WHEN a.approval_finance = '2' THEN '❌تم الرفض'
+                        WHEN a.approval_finance = '0' OR a.approval_finance IS NULL THEN '⏳في انتظار الاعتماد'
+                        ELSE a.approval_finance
+                    END AS approval_finance_msg,
+                
+                  CASE
+                    WHEN NVL(a.APPROVAL_MANAGER,0) = 1
+                     AND NVL(a.APPROVAL_CAR,0)     = 1
+                     AND NVL(a.APPROVAL_FINANCE,0) = 1
+                    THEN '✔ تم الصرف'
+                
+                    ELSE '⏳ قيد المراجعة'
+                  END AS REQUEST_FINAL_STATUS
+                
+                FROM EPROMHQ.TRV_ALLOWANCE a left join central.xxapex_hr_emp_data x on a.emp_id = x.emp_number
+                LEFT JOIN movements mv ON mv.request_id = a.request_id
+                WHERE A.REQUEST_TYPE_ID = 33
+                  AND a.APPROVAL_MANAGER = 1
+                  and a.APPROVAL_CAR = 1
+                  AND NVL(a.DELETE_APPROVAL_CAR,0)  <> 1
+                  AND NVL(a.DELETE_APPROVAL_HOTEL,0)<> 1
+                --   AND( APPROVAL_FINANCE is null or APPROVAL_FINANCE <> 1 )
+                    --   and a.request_id not in (select REQUEST_ID from EPROMHQ.TRV_ALLOWANCE_HOTELS)
+                -- and a.DATE_OF_ADMINISTRATOR is null
+                AND  x.SITE_CODE = :EMP_SITE
+                  AND :APP_USER IN (SELECT EMP_NUMBER FROM CENTRAL.APR_STATIC_APPROVAL_SITE)
+                ```
+        }
+        layout {
+            sequence: 60
+            parentRegion: @region-display-selector
+            slot: tabs
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        pagination {
+            type: rowRangesXToYOfZ
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 337563079460735233
+        }
+
+        column APPROVAL_CAR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_OF_THE_VEHICLE_OFFICIAL.
+                alignment: center
+            }
+            layout {
+                sequence: 180
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: X
+            }
+            enableUsersTo {
+                hide: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column APPROVAL_CAR_MSG (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CAR_APPROVAL.
+                alignment: center
+            }
+            layout {
+                sequence: 350
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AP
+            }
+        )
+
+        column APPROVAL_FINANCE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FINANCIAL_APPROVAL.
+            }
+            layout {
+                sequence: 190
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: U
+            }
+            enableUsersTo {
+                hide: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column APPROVAL_FINANCE_MSG (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FINANCIAL_APPROVAL.
+                alignment: center
+            }
+            layout {
+                sequence: 360
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AQ
+            }
+        )
+
+        column APPROVAL_HOTEL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_HOTEL.
+            }
+            layout {
+                sequence: 310
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AL
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column APPROVAL_MANAGER (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DIRECTOR_S_APPROVAL.
+                alignment: center
+            }
+            layout {
+                sequence: 170
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: W
+            }
+            enableUsersTo {
+                hide: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column APPROVAL_MANAGER_MSG (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DIRECTOR_S_APPROVAL.
+                alignment: center
+            }
+            layout {
+                sequence: 340
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AO
+            }
+        )
+
+        column ATTACHED_FILE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$ATTACHED_FILE.
+            }
+            layout {
+                sequence: 140
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: R
+            }
+        )
+
+        column CREATED_AT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CREATE_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 210
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AB
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column DATE_FROM (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$GO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: DD-MM-YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: I
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column DATE_OF_ADMINISTRATOR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ADMINISTRATIVE_TRANSFER_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 160
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: V
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column DATE_OF_DISBURSEMENT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EXCHANGE_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 200
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: Z
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column DATE_TO (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$RETURN_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: DD-MM-YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: J
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column DELETE_APPROVAL_CAR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DELETE_APPROVAL_CAR.
+                alignment: end
+            }
+            layout {
+                sequence: 260
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AG
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column DELETE_APPROVAL_FINANCE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DELETE_APPROVAL_FINANCE.
+                alignment: end
+            }
+            layout {
+                sequence: 280
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AI
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column DELETE_APPROVAL_HOTEL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DELETE_APPROVAL_HOTEL.
+                alignment: end
+            }
+            layout {
+                sequence: 270
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AH
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column EMP_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column EMP_NAME (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NAME.
+            }
+            lov {
+                lov: @employee-numbers-2
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column LAST_APPROVAL_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$LAST_APPROVAL_DATE.
+            }
+            layout {
+                sequence: 290
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: AJ
+            }
+        )
+
+        column MAIN_DEPARTMENT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_MANAGEMENT.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AA
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column MEAL (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$MEAL.
+            }
+            layout {
+                sequence: 120
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        column MOVEMENT_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MOVEMENT_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 370
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AR
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column MOVEMENT_DESCRIPTION (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MOVEMENT_DESCRIPTION.
+                alignment: center
+            }
+            layout {
+                sequence: 380
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AS
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column NUMBER_DAYS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: 999G999G999G999G999G999G990
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: K
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column PER_DIEM_RATE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$PER_DIEM_RATE.
+            }
+            layout {
+                sequence: 240
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AE
+            }
+        )
+
+        column PROJECT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$PROJECT.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column REQUEST_FINAL_STATUS (
+            type: plainText
+            heading {
+                heading: طلب الحالة النهائية
+                alignment: center
+            }
+            layout {
+                sequence: 330
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AN
+            }
+            enableUsersTo {
+                hide: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column REQUEST_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$REQUEST_ID.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$REQUEST_TYPE_ID.
+            }
+            layout {
+                sequence: 320
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AM
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column SELECT_ROW (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SELECT_ROW.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AC
+            }
+            enableUsersTo {
+                hide: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column SITE_CODE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SITE_CODE.
+            }
+            layout {
+                sequence: 230
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AD
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column STATUS (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$STATUS.
+            }
+            layout {
+                sequence: 130
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: P
+            }
+        )
+
+        column TASK_IDS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TASK_IDS.
+            }
+            layout {
+                sequence: 300
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AK
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column TOTAL_ALLOWANCE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$TOTAL_ALLOWANCE.
+            }
+            layout {
+                sequence: 150
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: T
+            }
+        )
+
+        column TRAVEL_EXPENSE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$TRAVEL_EXPENSE.
+            }
+            layout {
+                sequence: 250
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: AF
+            }
+        )
+
+        column TRIP_LOCATION (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$MISSION_LOCATION.
+                alignment: center
+            }
+            lov {
+                lov: @sites
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        column TRIP_PURPOSE (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$MISSION_TYPE.
+                alignment: center
+            }
+            lov {
+                lov: @trip-purpose
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+            enableUsersTo {
+                hide: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            config {
+                buildOption: @commented-out
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport 3512147 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn APPROVAL_CAR_MSG (
+                sequence: 7
+            )
+
+            displayColumn APPROVAL_FINANCE_MSG (
+                sequence: 8
+            )
+
+            displayColumn APPROVAL_MANAGER_MSG (
+                sequence: 9
+            )
+
+            displayColumn CREATED_AT (
+                sequence: 11
+            )
+
+            displayColumn DATE_FROM (
+                sequence: 17
+            )
+
+            displayColumn DATE_OF_ADMINISTRATOR (
+                sequence: 6
+            )
+
+            displayColumn DATE_OF_DISBURSEMENT (
+                sequence: 10
+            )
+
+            displayColumn DATE_TO (
+                sequence: 18
+            )
+
+            displayColumn EMP_ID (
+                sequence: 2
+            )
+
+            displayColumn EMP_NAME (
+                sequence: 3
+            )
+
+            displayColumn MAIN_DEPARTMENT (
+                sequence: 4
+            )
+
+            displayColumn MOVEMENT_DATE (
+                sequence: 15
+            )
+
+            displayColumn MOVEMENT_DESCRIPTION (
+                sequence: 16
+            )
+
+            displayColumn NUMBER_DAYS (
+                sequence: 12
+            )
+
+            displayColumn PROJECT (
+                sequence: 5
+            )
+
+            displayColumn REQUEST_FINAL_STATUS (
+                sequence: 19
+            )
+
+            displayColumn SELECT_ROW (
+                sequence: 1
+            )
+
+            displayColumn TRIP_LOCATION (
+                sequence: 14
+            )
+
+            displayColumn TRIP_PURPOSE (
+                sequence: 13
+            )
+
+        )
+
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 30
+        }
+        when {
+            selectionType: items
+            items: [
+                P86_PROJECT
+                P86_MONTH
+            ]
+        }
+    )
+
+)

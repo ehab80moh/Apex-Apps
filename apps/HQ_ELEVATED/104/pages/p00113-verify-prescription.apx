@@ -1,0 +1,218 @@
+page 113 (
+    name: Verify Prescription
+    alias: VERIFY-PRESCRIPTION
+    title: &APP_TEXT$P113_PAGE_TITLE.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    htmlHeader {
+        htmlHeader: <meta name="robots" content="noindex, nofollow, noarchive">
+    }
+    security {
+        authentication: public
+        formAutoComplete: false
+        browserCache: false
+    }
+    advanced {
+        reloadOnSubmit: always
+    }
+
+    region prescription-status (
+        name: Prescription status
+        title: &APP_TEXT$P113_PRESCRIPTION_DATA_TITLE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select :P113_REQUEST_NO request_no,
+                       :P113_BENEFICIARY_NAME beneficiary_name,
+                       :P113_DOCTOR doctor_name,
+                       :P113_STATUS status
+                  from dual
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+            ]
+        }
+
+        column BENEFICIARY_NAME (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_BENEFICIARY.
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column DOCTOR_NAME (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P113_DOCTOR.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column REQUEST_NO (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_REQUEST_NUMBER.
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column STATUS (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_STATUS.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+    )
+
+    region verification (
+        name: Prescription verification
+        title: &APP_TEXT$P113_VERIFICATION_RESULT_TITLE.
+        type: staticContent
+        source {
+            htmlCode: <div class="t-Alert t-Alert--horizontal t-Alert--info">&APP_TEXT$P113_VERIFICATION_HELP.</div>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P113_BENEFICIARY_NAME (
+        type: hidden
+        layout {
+            sequence: 50
+            slot: body
+        }
+    )
+
+    pageItem P113_DOCTOR (
+        type: hidden
+        layout {
+            sequence: 60
+            slot: body
+        }
+    )
+
+    pageItem P113_REQUEST_ID (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: body
+        }
+    )
+
+    pageItem P113_REQUEST_NO (
+        type: hidden
+        layout {
+            sequence: 40
+            slot: body
+        }
+    )
+
+    pageItem P113_STATUS (
+        type: hidden
+        layout {
+            sequence: 70
+            slot: body
+        }
+    )
+
+    pageItem P113_TOKEN (
+        type: textField
+        label {
+            label: &APP_TEXT$P113_VERIFICATION_CODE.
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            slot: body
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button download (
+        buttonName: DOWNLOAD
+        label: &APP_TEXT$P113_DOWNLOAD_PDF.
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process download-token (
+        name: Download verified prescription
+        type: executeCode
+        source {
+            plsqlCode: begin med.md_pres_document_pkg.download_public_document(:P113_TOKEN); end;
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 64383087515241184
+        }
+        serverSideCondition {
+            whenButtonPressed: @download
+        }
+    )
+
+    process resolve-token (
+        name: Resolve prescription token
+        type: executeCode
+        source {
+            plsqlCode: begin med.md_pres_document_pkg.resolve_public_token(:P113_TOKEN,:P113_REQUEST_ID,:P113_REQUEST_NO,:P113_BENEFICIARY_NAME,:P113_DOCTOR,:P113_STATUS); end;
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 64382904072241184
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P113_TOKEN
+        }
+    )
+
+)

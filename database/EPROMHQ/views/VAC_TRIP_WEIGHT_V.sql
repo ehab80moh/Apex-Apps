@@ -1,0 +1,7 @@
+
+  CREATE OR REPLACE FORCE EDITIONABLE VIEW "EPROMHQ"."VAC_TRIP_WEIGHT_V" ("WEIGHT", "TRIP_ID", "TRIP_NAME", "TRIP_YEAR", "TRIP_TYPE", "APPLICATION_START_DATE", "APPLICATION_END_DATE", "UNIT_LIMITS") AS
+  select rownum-1 weight,t."TRIP_ID",t."TRIP_NAME",t."TRIP_YEAR",t."TRIP_TYPE",t."APPLICATION_START_DATE",t."APPLICATION_END_DATE",t."UNIT_LIMITS" from
+(select * from vac_trips
+order by application_start_date desc
+)t
+where rownum<=6;

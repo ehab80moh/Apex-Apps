@@ -1,0 +1,366 @@
+page 91 (
+    name: TASK Logs
+    alias: TASK-LOGS
+    title: &APP_TEXT$TASK_LOGS.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: [
+            #DEFAULT#
+            ui-dialog--stretch
+        ]
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region task-logs (
+        name: TASK Logs
+        title: &APP_TEXT$TASK_LOGS.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: TASK_FULL_DETAILS_LOG
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_DATA_FOUND_1.
+            whenMoreDataFound: "&{MAX_ROW_COUNT_MESSAGE MAX_ROW_COUNT=#MAX_ROW_COUNT#}."
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 51849480479287099
+        }
+
+        column ACTUAL_OWNER (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ACTUAL_OWNER.
+            }
+            layout {
+                sequence: 7
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column APPLICATION_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPLICATION_ID_1.
+                alignment: end
+            }
+            layout {
+                sequence: 2
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column APPLICATION_NAME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPLICATION_NAME.
+            }
+            layout {
+                sequence: 3
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column CREATED_BY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CREATED_BY.
+            }
+            layout {
+                sequence: 9
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column CREATED_ON (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CREATED_ON.
+            }
+            layout {
+                sequence: 13
+            }
+            appearance {
+                formatMask: SINCE
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        column INITIATOR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$INITIATOR.
+            }
+            layout {
+                sequence: 6
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column LOG_AT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$LOG_AT.
+            }
+            layout {
+                sequence: 14
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH:MIPM
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: N
+            }
+        )
+
+        column OUTCOME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$OUTCOME.
+            }
+            layout {
+                sequence: 8
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column SUBJECT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SUBJECT.
+            }
+            layout {
+                sequence: 5
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column TASK_DEF_STATIC_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TASK_DEF_STATIC_ID_1.
+            }
+            layout {
+                sequence: 4
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column TASK_HISTORY_DATA (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TASK_HISTORY_DATA.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column TASK_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TASK_ID_1.
+                alignment: end
+            }
+            layout {
+                sequence: 1
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column TASK_PARAMETERS_DATA (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TASK_PARAMETERS_DATA.
+            }
+            layout {
+                sequence: 11
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        column TASK_PARTICIPANTS_DATA (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TASK_PARTICIPANTS_DATA.
+            }
+            layout {
+                sequence: 12
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: &APP_TEXT$TASK_LOGS.
+        }
+
+        savedReport 518612 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn ACTUAL_OWNER (
+                sequence: 7
+            )
+
+            displayColumn APPLICATION_ID (
+                sequence: 2
+            )
+
+            displayColumn APPLICATION_NAME (
+                sequence: 3
+            )
+
+            displayColumn CREATED_BY (
+                sequence: 9
+            )
+
+            displayColumn CREATED_ON (
+                sequence: 13
+            )
+
+            displayColumn INITIATOR (
+                sequence: 6
+            )
+
+            displayColumn LOG_AT (
+                sequence: 14
+            )
+
+            displayColumn OUTCOME (
+                sequence: 8
+            )
+
+            displayColumn SUBJECT (
+                sequence: 5
+            )
+
+            displayColumn TASK_DEF_STATIC_ID (
+                sequence: 4
+            )
+
+            displayColumn TASK_HISTORY_DATA (
+                sequence: 10
+            )
+
+            displayColumn TASK_ID (
+                sequence: 1
+            )
+
+            displayColumn TASK_PARAMETERS_DATA (
+                sequence: 11
+            )
+
+            displayColumn TASK_PARTICIPANTS_DATA (
+                sequence: 12
+            )
+
+        )
+
+    )
+
+)

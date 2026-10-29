@@ -1,0 +1,100 @@
+page 12 (
+    name: Download File
+    alias: DOWNLOAD-FILE
+    title: Download File
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    pageItem P12_ATTACH_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+    )
+
+    process download-file (
+        name: DOWNLOAD_FILE
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                
+                declare
+                    l_blob        blob;
+                    l_filename    varchar2(400);
+                    l_mime        varchar2(200);
+                begin
+                    -- Fetch the file from DB
+                    select a.file_content,
+                           s.company_name||' - '||a.file_name,
+                           a.mime_type
+                    into   l_blob,
+                           l_filename,
+                           l_mime
+                    from   sup_suppliers_attaches a, sup_suppliers s
+                    where  a.attach_id = :P12_ATTACH_ID
+                    and    substr(a.file_name,1,instr(a.file_name,'-')-1) = s.supplier_id;
+                
+                    -- Output headers
+                    sys.htp.init;
+                    owa_util.mime_header(nvl(l_mime,'application/octet-stream'), FALSE);
+                    htp.p('Content-Disposition: attachment; filename="'||l_filename||'"');
+                    owa_util.http_header_close;
+                
+                    -- Stream the file
+                    wpg_docload.download_file(l_blob);
+                
+                    -- Stop further page rendering
+                    apex_application.g_unrecoverable_error := TRUE;
+                end;
+                --------------------------------------------------------------------
+                -- declare
+                --     l_blob        blob;
+                --     l_filename    varchar2(400);
+                --     l_mime        varchar2(200);
+                -- begin
+                --     -- Fetch the file from DB
+                --     select file_content,
+                --            nvl(file_name, static_name),
+                --            mime_type
+                --     into   l_blob,
+                --            l_filename,
+                --            l_mime
+                --     from   sup_suppliers_attaches
+                --     where  attach_id = :P12_ATTACH_ID;
+                
+                --     -- Output headers
+                --     sys.htp.init;
+                --     owa_util.mime_header(nvl(l_mime,'application/octet-stream'), FALSE);
+                --     htp.p('Content-Disposition: attachment; filename="'||l_filename||'"');
+                --     owa_util.http_header_close;
+                
+                --     -- Stream the file
+                --     wpg_docload.download_file(l_blob);
+                
+                --     -- Stop further page rendering
+                --     apex_application.g_unrecoverable_error := TRUE;
+                -- end;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 196011995081073628
+        }
+    )
+
+)

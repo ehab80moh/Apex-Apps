@@ -1,0 +1,3344 @@
+page 109 (
+    name: medical-referral-details
+    alias: MEDICAL-REFERRAL-DETAILS
+    title: &APP_TEXT$MEDICAL_REFERRAL_REQUEST_DETAILS.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @drawer
+        templateOptions: [
+            #DEFAULT#
+            js-dialog-class-t-Drawer--pullOutEnd
+        ]
+        cssClasses: p109-review-dialog
+    }
+    dialog {
+        width: 550
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            (function () {
+                var feedbackActive = false;
+            
+                function preserveRadiologySelections() {
+                    var filter = document.getElementById('P109_RADIOLOGY_FILTER');
+                    var select = document.getElementById('P109_RADIOLOGY_ITEMS');
+                    if (!filter || !select) {
+                        return;
+                    }
+                    var item = apex.item('P109_RADIOLOGY_ITEMS');
+                    var values = getSelectionValues('P109_RADIOLOGY_ITEMS');
+                    var displayValues = values.map(function (value) {
+                        return item.displayValueFor(value);
+                    });
+                    apex.jQuery(select).one('apexafterrefresh.p109Filter', function () {
+                        item.setValue(values, displayValues, true);
+                    });
+                }
+            
+                function getSelectionValues(itemName) {
+                    var item = apex.item(itemName);
+                    var value;
+                    if (!item) {
+                        return [];
+                    }
+                    value = item.getValue();
+                    if (Array.isArray(value)) {
+                        return value.filter(function (entry) {
+                            return entry !== null && entry !== '';
+                        });
+                    }
+                    return String(value || '').split(':').filter(function (entry) {
+                        return entry !== '';
+                    });
+                }
+            
+                function clearSelectionFeedback() {
+                    var feedback = document.getElementById('p109_selection_feedback');
+                    if (!feedback) {
+                        return;
+                    }
+                    feedback.className = 'p109-selection-feedback';
+                    feedback.innerHTML = '';
+                }
+            
+                function renderSelectionFeedback(state) {
+                    var feedback = document.getElementById('p109_selection_feedback');
+                    var adminItem = apex.item('P109_CAN_REVIEW');
+                    var warningRegion = document.getElementById('p109_medical_detail_warning');
+                    var lists;
+                    var selectedCount;
+                    var missingCount;
+                    if (!feedback || !adminItem || String(adminItem.getValue() || '') !== 'Y') {
+                        return;
+                    }
+            
+                    if (!feedbackActive && state !== 'loading') {
+                        clearSelectionFeedback();
+                        return;
+                    }
+            
+                    lists = ['P109_LAB_ITEMS', 'P109_RADIOLOGY_ITEMS'].map(function (itemName) {
+                        var item = apex.item(itemName);
+                        var node = item && item.node;
+                        return {
+                            item: itemName,
+                            available: !!(node || document.getElementById(itemName)),
+                            values: getSelectionValues(itemName)
+                        };
+                    }).filter(function (entry) {
+                        return entry.available;
+                    });
+                    selectedCount = lists.reduce(function (total, entry) {
+                        return total + entry.values.length;
+                    }, 0);
+                    missingCount = lists.filter(function (entry) {
+                        return entry.values.length === 0;
+                    }).length;
+            
+                    if (lists.length === 0) {
+                        clearSelectionFeedback();
+                        return;
+                    }
+            
+                    if (warningRegion) {
+                        warningRegion.style.display = feedbackActive ? 'none' : '';
+                    }
+            
+                    var feedbackMessage;
+                    if (state === 'loading') {
+                        feedbackMessage = {
+                            icon: 'fa-refresh',
+                            title: 'P109_SELECTION_LOADING_TITLE',
+                            description: 'P109_SELECTION_LOADING_DESCRIPTION'
+                        };
+                    } else if (selectedCount === 0 || missingCount > 0) {
+                        feedbackMessage = {
+                            icon: 'fa-exclamation-triangle',
+                            title: 'P109_SELECTION_INCOMPLETE_TITLE',
+                            description: 'P109_SELECTION_INCOMPLETE_DESCRIPTION'
+                        };
+                    } else {
+                        feedbackMessage = {
+                            icon: 'fa-check-circle',
+                            title: 'P109_SELECTION_READY_TITLE',
+                            description: 'P109_SELECTION_READY_DESCRIPTION'
+                        };
+                    }
+            
+                    var feedbackState = state === 'loading' ? 'loading' :
+                        (selectedCount === 0 || missingCount > 0 ? 'warning' : 'success');
+                    feedback.className = 'p109-selection-feedback p109-selection-feedback--' + feedbackState;
+                    feedback.innerHTML = '<span class="t-Icon fa ' + feedbackMessage.icon + '" aria-hidden="true"></span><div class="p109-selection-feedback-text"><strong></strong><span></span></div>';
+                    var feedbackText = feedback.querySelectorAll('.p109-selection-feedback-text > strong, .p109-selection-feedback-text > span');
+                    if (feedbackText.length === 2) {
+                        feedbackText[0].textContent = apex.lang.getMessage(feedbackMessage.title);
+                        feedbackText[1].textContent = apex.lang.getMessage(feedbackMessage.description);
+                    }
+                }
+            
+                window.p109SelectionFeedback = {
+                    showLoading: function () {
+                        feedbackActive = true;
+                        renderSelectionFeedback('loading');
+                    },
+                    render: function () {
+                        renderSelectionFeedback('ready');
+                    }
+                };
+            
+                apex.jQuery(function () {
+                    var radiologyFilter = document.getElementById('P109_RADIOLOGY_FILTER');
+                    if (radiologyFilter) {
+                        // Capture the selected IDs before the native cascading LOV clears them.
+                        radiologyFilter.addEventListener('change', preserveRadiologySelections, true);
+                    }
+                    apex.jQuery(document).on('apexafterrefresh', '#p109_selected_examination_summary', function () {
+                        window.p109SelectionFeedback.render();
+                    });
+                });
+            }());
+            ```
+    }
+    css {
+        inline:
+            ```css
+            .p109-review-dialog .t-Dialog-body { background: #f4f7fb; }
+            .p109-referral-card,
+            .p109-provider-card,
+            .p109-attachments-card,
+            .p109-selection-card,
+            .p109-selection-summary,
+            .p109-warning-card {
+                border: 1px solid #dbe5ef;
+                border-radius: 16px;
+                background: #fff;
+                box-shadow: 0 10px 28px rgba(15, 23, 42, .07);
+                overflow: hidden;
+            }
+            .p109-referral-card .t-Region-body,
+            .p109-provider-card .t-Region-body,
+            .p109-attachments-card .t-Region-body,
+            .p109-history-card .t-Region-body,
+            .p109-selection-card .t-Region-body,
+            .p109-selection-summary .t-Region-body { padding: .75rem; }
+            .p109-referral-card .a-ContentRow-title {
+                color: #123047;
+                font-weight: 800;
+                line-height: 1.45;
+            }
+            .p109-detail-grid {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: .5rem;
+                margin-top: .55rem;
+            }
+            .p109-detail-grid > div {
+                min-height: 3.2rem;
+                padding: .5rem .6rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                background: #f8fafc;
+                line-height: 1.5;
+                font-size: .82rem;
+                overflow-wrap: anywhere;
+            }
+            .p109-detail-grid strong {
+                display: block;
+                margin-bottom: .2rem;
+                color: #64748b;
+                font-size: .78rem;
+                font-weight: 800;
+            }
+            .p109-provider-card .t-Report {
+                width: 100%;
+                overflow-x: auto;
+                border: 1px solid #dbe5ef;
+                border-radius: 12px;
+            }
+            .p109-provider-card .t-Report-report {
+                width: 100%;
+                margin-bottom: 0;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            .p109-provider-card .t-Report-colHead {
+                padding: .8rem 1rem;
+                border-bottom: 1px solid #c9d9e6;
+                background: #eef6fb;
+                color: #123047;
+                font-weight: 800;
+                text-align: start;
+                white-space: nowrap;
+            }
+            .p109-provider-card .t-Report-cell {
+                padding: .85rem 1rem;
+                border-bottom: 1px solid #e7eef5;
+                color: #27445a;
+                vertical-align: middle;
+            }
+            .p109-provider-card .t-Report-report tbody tr:last-child .t-Report-cell { border-bottom: 0; }
+            .p109-provider-card .t-Report-report tbody tr:nth-child(even) { background: #f8fbfd; }
+            .p109-provider-card .t-Report-report tbody tr:hover { background: #eef8fc; }
+            .p109-attachments-card .t-Report-report,
+            .p109-selection-summary .t-Report-report { margin-bottom: 0; }
+            .p109-selection-summary .t-Report,
+            .p109-selection-summary .t-Report-report { width: 100%; }
+            .p109-selection-card .t-Form-fieldContainer { margin-bottom: .75rem; }
+            .p109-selection-card .t-Form-inputContainer,
+            .p109-selection-card .t-Form-itemWrapper,
+            .p109-selection-card a-select,
+            .p109-selection-card .apex-item-comboselect { width: 100%; min-width: 0; }
+            .p109-selection-card .a-Chips--wrap { max-width: 100%; }
+            .p109-selection-feedback-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+            .p109-selection-card .t-Form-label {
+                color: #315568;
+                font-weight: 800;
+            }
+            .p109-selection-card select[multiple],
+            .p109-selection-card .selectlist[multiple] { min-height: 10rem; }
+            .p109-selection-card .t-Form-label { font-size: .82rem; }
+            .p109-history-card .t-Report-cell,
+            .p109-history-card .t-Report-colHead { padding: .55rem .65rem; font-size: .82rem; }
+            .p109-selection-hint { margin: 0 0 .8rem; color: #64748b; line-height: 1.7; }
+            .p109-selection-feedback {
+                display: flex;
+                align-items: flex-start;
+                gap: .65rem;
+                margin: 0 0 1rem;
+                padding: .8rem 1rem;
+                border: 1px solid #cbd5e1;
+                border-radius: 12px;
+                background: #f8fafc;
+                color: #334155;
+                line-height: 1.7;
+            }
+            .p109-selection-feedback:empty { display: none; }
+            .p109-selection-feedback strong { display: block; margin-bottom: .15rem; color: #123047; font-weight: 800; }
+            .p109-selection-feedback .t-Icon { flex: 0 0 auto; margin-top: .2rem; }
+            .p109-selection-feedback--loading { border-color: #bfdbfe; background: #eff6ff; color: #1e40af; }
+            .p109-selection-feedback--success { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
+            .p109-selection-feedback--warning { border-color: #f4c95d; background: #fffbeb; color: #854d0e; }
+            .p109-warning-card { border-color: #f4c95d; background: #fffbeb; }
+            .p109-warning-card .t-Region-body { padding: .7rem 1rem; }
+            .p109-destructive-note {
+                display: flex;
+                align-items: flex-start;
+                gap: .75rem;
+                margin-bottom: 1rem;
+                padding: .85rem 1rem;
+                border: 1px solid #fecaca;
+                border-radius: 12px;
+                background: #fef2f2;
+                color: #7f1d1d;
+                line-height: 1.65;
+            }
+            .p109-destructive-note .t-Icon {
+                flex: 0 0 auto;
+                margin-top: .2rem;
+                color: #dc2626;
+                font-size: 1.2rem;
+            }
+            .p109-destructive-note strong { display: block; margin-bottom: .15rem; }
+            .p109-action-bar {
+                border-top: 1px solid #dbe5ef;
+                background: rgba(255, 255, 255, .96);
+                backdrop-filter: blur(8px);
+            }
+            .p109-action-bar .t-Button { border-radius: 999px; font-weight: 800; }
+            .p109-review-dialog :focus-visible {
+                outline: 3px solid rgba(14, 165, 233, .35);
+                outline-offset: 2px;
+            }
+            @media (max-width: 900px) {
+                .p109-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            }
+            @media (max-width: 640px) {
+                .p109-detail-grid { grid-template-columns: 1fr; }
+                .p109-action-bar .t-Button { flex: 1 1 auto; }
+                .p109-provider-card .t-Region-body { padding: .75rem; }
+                .p109-provider-card .t-Report-colHead,
+                .p109-provider-card .t-Report-cell { padding: .75rem; }
+            }
+            /* One compact screen; only drawer content scrolls, footer stays visible. */
+            html:has(body.p109-review-dialog), body.p109-review-dialog { height: 100%; overflow: hidden; }
+            .p109-review-dialog .t-Drawer { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+            .p109-review-dialog .t-Drawer-bodyWrapperOut { flex: 1; min-height: 0; overflow: hidden; }
+            .p109-review-dialog .t-Drawer-bodyWrapperIn { height: 100%; overflow: auto; overscroll-behavior: contain; }
+            .p109-review-dialog .t-Drawer-body { height: auto; padding: 10px; background: #f6f7f9; }
+            .p109-review-dialog .t-Drawer-footer { flex: 0 0 auto; padding: 6px 10px; background: #fff; border-top: 1px solid #dbe5ef; }
+            .p109-review-dialog .t-ContentRow-description,
+            .p109-review-dialog .a-ContentRow-description { color: #000; font-weight: 700; }
+            .p109-review-dialog .p109-referral-card .a-ContentRow-title { font-size: 1rem; line-height: 1.4; }
+            .p109-review-dialog .p109-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+            .p109-review-dialog .p109-detail-grid > div { min-height: 0; padding: 5px 7px; font-size: .8rem; line-height: 1.35; color: #000; font-weight: 700; }
+            .p109-review-dialog .p109-detail-grid > div:nth-child(3) { grid-column: 1 / -1; }
+            .p109-review-dialog .p109-detail-grid strong { color: #000; font-size: .75rem; margin-bottom: 2px; }
+            .p109-review-dialog .p109-status-cell { border-color: #b6d8cb; background: #eef8f3; }
+            .p109-review-dialog .t-Region { margin-bottom: 8px; }
+            .p109-review-dialog .t-Region-header { padding-block: 4px; }
+            .p109-review-dialog .t-Region-body { padding: 7px; }
+            .p109-review-dialog .p109-referral-card,
+            .p109-review-dialog .p109-provider-card,
+            .p109-review-dialog .p109-history-card,
+            .p109-review-dialog .p109-selection-summary { border-radius: 8px; box-shadow: none; }
+            .p109-review-dialog .p109-provider-card .t-Report-cell,
+            .p109-review-dialog .p109-provider-card .t-Report-colHead,
+            .p109-review-dialog .p109-history-card .t-Report-cell,
+            .p109-review-dialog .p109-history-card .t-Report-colHead { padding: 5px; font-size: .75rem; white-space: normal; overflow-wrap: anywhere; }
+            .p109-review-dialog .p109-history-card .t-Report-report { width: 100%; table-layout: fixed; }
+            .p109-review-dialog .p109-selection-card .t-Form-fieldContainer { margin-bottom: 5px; }
+            .p109-review-dialog .t-Button { font-weight: 700; }
+            @media (max-width: 420px) {
+                .p109-review-dialog .t-Drawer-body { padding: 7px; }
+                .p109-review-dialog .t-Drawer-footer .t-Button { padding-inline: 8px; }
+            }
+            
+            ```
+    }
+    security {
+        authorizationScheme: mustNotBePublicUser
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    advanced {
+        enableDuplicatePageSubmissions: false
+    }
+
+    region action-bar (
+        name: Actions
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region administrative-cancel-dialog (
+        name: Requester cancellation
+        title: &APP_TEXT$MEDICAL_REFERRAL_CANCEL.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="p109-destructive-note" role="note" aria-label="&APP_TEXT$MEDICAL_REFERRAL_CANCEL.">
+                    <span class="t-Icon fa fa-exclamation-triangle" aria-hidden="true"></span>
+                    <div>
+                        <strong>&APP_TEXT$MEDICAL_REFERRAL_CANCEL_CONFIRMATION.</strong>
+                        أدخل سبب الإلغاء. يظهر هذا الإجراء لمقدم المهمة فقط قبل اكتمالها.
+                    </div>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 100
+            slot: contentBody
+        }
+        appearance {
+            template: @inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-size600x400
+                t-Form--stretchInputs
+            ]
+            cssClasses: p109-admin-cancel-dialog
+        }
+        advanced {
+            htmlDomId: p109_administrative_cancel_dialog
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT t.task_id
+                  FROM med.md_referal_flow flow
+                  JOIN apex_tasks t ON t.application_id = 104
+                                  AND LOWER(t.task_def_static_id) = 'approval-task'
+                 WHERE flow.referal_id = :P109_REFERAL_ID
+                   AND flow.status = 'PENDING_APPROVAL'
+                   AND UPPER(TRIM(flow.emp_id_snapshot)) = UPPER(TRIM(:APP_USER))
+                   AND UPPER(TRIM(t.initiator)) = UPPER(TRIM(:APP_USER))
+                   AND t.state_code NOT IN ('COMPLETED','CANCELLED','CANCELED','ERRORED','FAILED')
+                   AND (:P109_TASK_ID IS NULL OR t.task_id = :P109_TASK_ID)
+                   AND (flow.current_task_id IS NULL OR flow.current_task_id = t.task_id)
+                   AND EXISTS (SELECT 1 FROM apex_task_parameters p WHERE p.task_id=t.task_id
+                                AND p.param_static_id='T_REQUEST_TYPE_ID' AND TRIM(p.param_value)='106')
+                   AND EXISTS (SELECT 1 FROM apex_task_parameters p WHERE p.task_id=t.task_id
+                                AND p.param_static_id='T_REQUEST_ID'
+                                AND TO_NUMBER(p.param_value DEFAULT NULL ON CONVERSION ERROR)=flow.referal_id)
+                ```
+        }
+        security {
+            authorizationScheme: mustNotBePublicUser
+        }
+    )
+
+    region administrative-cancel-dialog-buttons (
+        name: Administrative Cancellation Dialog Buttons
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @administrative-cancel-dialog
+            slot: regionBody
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        security {
+            authorizationScheme: mustNotBePublicUser
+        }
+    )
+
+    region doctor-selection-workspace (
+        name: Doctor examination selections
+        title: &APP_TEXT$P109_SELECTED_EXAMS_TITLE.
+        type: staticContent
+        source {
+            htmlCode: <div id="p109_selection_feedback" class="p109-selection-feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+            ]
+            cssClasses: p109-selection-card
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                BEGIN
+                    IF :P109_TASK_ID IS NULL OR NVL(:P109_CAN_REVIEW, 'N') <> 'Y' THEN
+                        RETURN FALSE;
+                    END IF;
+                    BEGIN
+                        RETURN apex_human_task.is_allowed(
+                                   p_task_id   => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_approve)
+                            OR apex_human_task.is_allowed(
+                                   p_task_id   => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_claim);
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            RETURN FALSE;
+                        WHEN OTHERS THEN
+                            IF SQLCODE = -1403 THEN
+                                RETURN FALSE;
+                            END IF;
+                            RAISE;
+                    END;
+                END;
+                ```
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    region employee-recent-referrals (
+        name: Previous employee referrals
+        title: &APP_TEXT$PREVIOUS_REQUESTS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                with current_request as (
+                    select current_flow.*
+                      from med.md_referal_flow current_flow
+                     where current_flow.referal_id = :P109_REFERAL_ID
+                       and (
+                            upper(trim(current_flow.emp_id_snapshot)) = upper(trim(:APP_USER))
+                            or :P109_IS_MEDICAL_ADMIN = 'Y'
+                            or med.apr_med_approver_task_api.has_medical_request_task_access(
+                                   :APP_USER, 106, current_flow.referal_id) = 'Y'
+                       )
+                ), history_rows as (
+                    select r.id,
+                           coalesce(
+                               f.beneficiary_name_snapshot,
+                               case
+                                   when nvl(r.person_id, 0) = 0
+                                        or r.person_id = current_request.emp_person_id_snapshot
+                                   then current_request.emp_name_snapshot
+                                   else (
+                                       select max(rel.relative_name) keep (
+                                                  dense_rank last order by rel.start_date nulls first,
+                                                                           rel.end_date nulls last)
+                                         from med.emp_relative_new rel
+                                        where upper(trim(rel.employee_number)) =
+                                              upper(trim(current_request.emp_id_snapshot))
+                                          and rel.relative_person_id = r.person_id
+                                   )
+                               end,
+                               apex_lang.message('P107_VALUE_UNSPECIFIED')
+                           ) as beneficiary_name_snapshot,
+                           coalesce(
+                               (select listagg(
+                                           case category.provider_category
+                    when 'HOSPITAL' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_HOSPITAL')
+                    when 'DENTAL_CLINIC' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_DENTAL_CLINIC')
+                    when 'MEDICAL_CENTER' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_MEDICAL_CENTER')
+                    when 'LAB' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_LAB')
+                    when 'PHYSIOTHERAPY' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_PHYSIOTHERAPY')
+                    when 'RADIOLOGY_CENTER' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_RADIOLOGY_CENTER')
+                    when 'OPHTHALMOLOGY' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_OPHTHALMOLOGY')
+                    else category.provider_category
+                end, ' / '
+                                       ) within group (order by category.provider_category)
+                                  from med.md_referal_request_category category
+                                 where category.referal_id = r.id),
+                               case coalesce(f.provider_type_snapshot, provider.provider_type)
+                    when 'HOSPITAL' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_HOSPITAL')
+                    when 'DENTAL_CLINIC' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_DENTAL_CLINIC')
+                    when 'MEDICAL_CENTER' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_MEDICAL_CENTER')
+                    when 'LAB' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_LAB')
+                    when 'PHYSIOTHERAPY' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_PHYSIOTHERAPY')
+                    when 'RADIOLOGY_CENTER' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_RADIOLOGY_CENTER')
+                    when 'OPHTHALMOLOGY' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_OPHTHALMOLOGY')
+                    else coalesce(f.provider_type_snapshot, provider.provider_type)
+                end,
+                               apex_lang.message('P107_VALUE_UNSPECIFIED')
+                           ) as provider_type_snapshot,
+                           coalesce(
+                               f.beneficiary_relation_snapshot,
+                               case
+                                   when nvl(r.person_id, 0) = 0
+                                        or r.person_id = current_request.emp_person_id_snapshot
+                                   then 'EMPLOYEE'
+                                   else (
+                                       select max(coalesce(rel.relative_type, rel.relative_type_code)) keep (
+                                                  dense_rank last order by rel.start_date nulls first,
+                                                                           rel.end_date nulls last)
+                                         from med.emp_relative_new rel
+                                        where upper(trim(rel.employee_number)) =
+                                              upper(trim(current_request.emp_id_snapshot))
+                                          and rel.relative_person_id = r.person_id
+                                   )
+                               end
+                           ) as beneficiary_relation_raw,
+                           case
+                               when coalesce(f.provider_type_snapshot, provider.provider_type) = 'HOSPITAL'
+                                    or (f.referal_id is null and provider.provider_type is null)
+                               then case
+                                        when coalesce(f.speciality_id, r.speciality_id) in ('0', '6', '26', '27', '28', '29', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '89', '90', '109', '490', '491', '492', '493', '494', '510', '511', '100731', '100732', '100733', '100734', '100735', '100736', '100737', '100738', '100739', '100740', '100741', '100742', '100743', '100744', '100745', '100746', '100751', '100752', '100771', '100772', '100773', '100774')
+                                        then apex_lang.message('MEDICAL_REFERRAL_SPECIALITY_' ||
+                                                               coalesce(f.speciality_id, r.speciality_id))
+                                        else coalesce(f.speciality_name_snapshot, speciality.name,
+                                                      apex_lang.message('P107_VALUE_UNSPECIFIED'))
+                                    end
+                               else to_char(unistr('\2014'))
+                           end as speciality_name_snapshot,
+                           coalesce(
+                               (select listagg(
+                                           case when (select count(*) from med.md_referal_request_category cc
+                                                       where cc.referal_id = r.id) > 1
+                                                then case category.provider_category
+                                                     when 'HOSPITAL' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_HOSPITAL')
+                                                     when 'DENTAL_CLINIC' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_DENTAL_CLINIC')
+                                                     when 'MEDICAL_CENTER' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_MEDICAL_CENTER')
+                                                     when 'LAB' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_LAB')
+                                                     when 'PHYSIOTHERAPY' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_PHYSIOTHERAPY')
+                                                     when 'RADIOLOGY_CENTER' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_RADIOLOGY_CENTER')
+                                                     when 'OPHTHALMOLOGY' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_OPHTHALMOLOGY')
+                                                     else category.provider_category end || ': '
+                                           end || coalesce(
+                                               case when category.provider_id = f.provider_id
+                                                    then f.provider_name_snapshot end,
+                                               category_provider.provider_name,
+                                               apex_lang.message('P107_VALUE_UNSPECIFIED')
+                                           ), ' / '
+                                       ) within group (order by category.provider_category)
+                                  from med.md_referal_request_category category
+                                  left join med.md_healthcare_provider category_provider
+                                    on category_provider.provider_id = category.provider_id
+                                 where category.referal_id = r.id),
+                               f.provider_name_snapshot,
+                               provider.provider_name,
+                               (select max(coalesce(v.vendor_name_alt, v.vendor_name))
+                                  from med.ap_po_vendors v where v.vendor_id = r.vendor_id),
+                               apex_lang.message('P107_VALUE_UNSPECIFIED')
+                           ) as provider_name_snapshot,
+                           coalesce(f.letter_date, r.rdate) as letter_date,
+                           coalesce(f.created_at, cast(r.creation_date as timestamp)) as created_at
+                      from current_request
+                      join med.md_referal r
+                        on upper(trim(r.emp_id)) = upper(trim(current_request.emp_id_snapshot))
+                      left join med.md_referal_flow f on f.referal_id = r.id
+                      left join med.md_healthcare_provider provider
+                        on (r.contract_provider_id is not null and provider.provider_id = r.contract_provider_id)
+                        or (r.contract_provider_id is null and provider.erp_vendor_id = r.vendor_id)
+                      left join med.md_speciality speciality
+                        on to_char(speciality.id) = trim(coalesce(f.speciality_id, r.speciality_id))
+                     where r.id < current_request.referal_id
+                )
+                select beneficiary_name_snapshot,
+                       case
+                           when upper(trim(beneficiary_relation_raw)) in ('EMPLOYEE', 'SELF', to_char(unistr('\0627\0644\0645\0648\0638\0641')), to_char(unistr('\0645\0648\0638\0641'))) then case when lower(apex_util.get_session_lang) like 'en%' then 'Employee' else to_char(unistr('\0627\0644\0645\0648\0638\0641')) end
+                           when upper(trim(beneficiary_relation_raw)) in ('SPOUSE', 'WIFE', 'S', to_char(unistr('\0627\0644\0632\0648\062C\0629')), to_char(unistr('\0632\0648\062C\0629'))) then case when lower(apex_util.get_session_lang) like 'en%' then 'Wife' else to_char(unistr('\0627\0644\0632\0648\062C\0629')) end
+                           when upper(trim(beneficiary_relation_raw)) in ('HUSBAND', to_char(unistr('\0627\0644\0632\0648\062C')), to_char(unistr('\0632\0648\062C'))) then case when lower(apex_util.get_session_lang) like 'en%' then 'Husband' else to_char(unistr('\0627\0644\0632\0648\062C')) end
+                           when upper(trim(beneficiary_relation_raw)) in ('SON', to_char(unistr('\0627\0644\0627\0628\0646')), to_char(unistr('\0627\0628\0646'))) then case when lower(apex_util.get_session_lang) like 'en%' then 'Son' else to_char(unistr('\0627\0644\0627\0628\0646')) end
+                           when upper(trim(beneficiary_relation_raw)) in ('DAUGHTER', to_char(unistr('\0627\0644\0627\0628\0646\0629')), to_char(unistr('\0627\0628\0646\0629')), to_char(unistr('\0627\0628\0646\0647'))) then case when lower(apex_util.get_session_lang) like 'en%' then 'Daughter' else to_char(unistr('\0627\0644\0627\0628\0646\0629')) end
+                           when upper(trim(beneficiary_relation_raw)) in ('FATHER', 'JP_FT', to_char(unistr('\0627\0644\0648\0627\0644\062F')), to_char(unistr('\0627\0644\0623\0628')), to_char(unistr('\0627\0644\0627\0628'))) then case when lower(apex_util.get_session_lang) like 'en%' then 'Father' else to_char(unistr('\0627\0644\0648\0627\0644\062F')) end
+                           when upper(trim(beneficiary_relation_raw)) in ('MOTHER', 'JP_MT', to_char(unistr('\0627\0644\0648\0627\0644\062F\0629')), to_char(unistr('\0627\0644\0623\0645')), to_char(unistr('\0627\0644\0627\0645'))) then case when lower(apex_util.get_session_lang) like 'en%' then 'Mother' else to_char(unistr('\0627\0644\0648\0627\0644\062F\0629')) end
+                           when upper(trim(beneficiary_relation_raw)) like '%CHILD%'
+                                or upper(trim(beneficiary_relation_raw)) in ('A', 'BROTHER', 'C', 'O', 'O5', 'O6', 'O7', 'O8')
+                           then case when lower(apex_util.get_session_lang) like 'en%' then 'Child' else to_char(unistr('\0627\0628\0646 / \0627\0628\0646\0629')) end
+                           else coalesce(beneficiary_relation_raw, apex_lang.message('P107_VALUE_UNSPECIFIED'))
+                       end as beneficiary_relation_snapshot,
+                       provider_type_snapshot,
+                       provider_name_snapshot,
+                       speciality_name_snapshot,
+                       letter_date
+                  from history_rows
+                 order by letter_date desc nulls last, created_at desc nulls last, id desc
+                ```
+            pageItemsToSubmit: [
+                P109_REFERAL_ID
+                P109_IS_MEDICAL_ADMIN
+            ]
+        }
+        layout {
+            sequence: 50
+            slot: contentBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+            cssClasses: p109-history-card
+        }
+        advanced {
+            htmlDomId: p109_previous_requests
+        }
+        security {
+            authorizationScheme: @medical-referral-request-viewer
+        }
+        reportLayout {
+            numberOfRows: 3
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_DATA_FOUND.
+        }
+
+        column BENEFICIARY_NAME_SNAPSHOT (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_BENEFICIARY.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column BENEFICIARY_RELATION_SNAPSHOT (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_BENEFICIARY_TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LETTER_DATE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_LETTER_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column PROVIDER_NAME_SNAPSHOT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_PROVIDER.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column PROVIDER_TYPE_SNAPSHOT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_PROVIDER_TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column SPECIALITY_NAME_SNAPSHOT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_SPECIALITY.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region medical-detail-warning (
+        name: Detailed examination warning
+        type: staticContent
+        source {
+            htmlCode: <div class="t-Alert t-Alert--warning">&P109_DETAIL_WARNING!HTML.</div>
+        }
+        layout {
+            sequence: 45
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: p109_medical_detail_warning
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                BEGIN
+                    IF :P109_TASK_ID IS NULL
+                       OR NVL(:P109_CAN_REVIEW, 'N') <> 'Y'
+                       OR :P109_DETAIL_WARNING IS NULL THEN
+                        RETURN FALSE;
+                    END IF;
+                    BEGIN
+                        RETURN apex_human_task.is_allowed(
+                                   p_task_id   => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_approve)
+                            OR apex_human_task.is_allowed(
+                                   p_task_id   => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_claim);
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            RETURN FALSE;
+                        WHEN OTHERS THEN
+                            IF SQLCODE = -1403 THEN
+                                RETURN FALSE;
+                            END IF;
+                            RAISE;
+                    END;
+                END;
+                ```
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    region medical-referral-attachments (
+        name: Supporting attachments
+        title: &APP_TEXT$MEDICAL_REFERRAL_SUPPORTING_FILES.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select a.attachment_id,
+                       a.original_filename,
+                       a.mime_type,
+                       a.file_size,
+                       apex_page.get_url(
+                           p_application => 104,
+                           p_page        => 110,
+                           p_items       => 'P110_ATTACHMENT_ID,P110_TASK_ID,P110_DISPOSITION',
+                           p_values      => a.attachment_id || ',' || :P109_TASK_ID || ',INLINE'
+                       ) as view_url,
+                       apex_page.get_url(
+                           p_application => 104,
+                           p_page        => 110,
+                           p_items       => 'P110_ATTACHMENT_ID,P110_TASK_ID,P110_DISPOSITION',
+                           p_values      => a.attachment_id || ',' || :P109_TASK_ID || ',DOWNLOAD'
+                       ) as download_url
+                  from med.md_referal_attachment a
+                 where a.referal_id = :P109_REFERAL_ID
+                   and med.md_referal_ext_pkg.attachment_allowed(
+                           a.attachment_id, :APP_USER, :P109_TASK_ID
+                       ) = 'Y'
+                 order by a.uploaded_at, a.attachment_id
+                ```
+            pageItemsToSubmit: [
+                P109_REFERAL_ID
+                P109_TASK_ID
+            ]
+        }
+        layout {
+            sequence: 60
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+            ]
+            cssClasses: p109-attachments-card
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from med.md_referal_attachment a where a.referal_id = :P109_REFERAL_ID and med.md_referal_ext_pkg.attachment_allowed(a.attachment_id, :APP_USER, :P109_TASK_ID) = 'Y'
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: #DEFAULT#
+        }
+
+        column ATTACHMENT_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column DOWNLOAD_URL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_DOWNLOAD.
+            }
+            layout {
+                sequence: 50
+            }
+            link {
+                target: {
+                    type: url
+                    url: #DOWNLOAD_URL#
+                }
+                linkText: &APP_TEXT$MEDICAL_REFERRAL_DOWNLOAD.
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column FILE_SIZE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_ATTACHMENT_SIZE.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column MIME_TYPE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_FILE_TYPE.
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column ORIGINAL_FILENAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FILE.
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column VIEW_URL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: link
+            heading {
+                heading: &APP_TEXT$VIEW_ATTACHMENTS.
+            }
+            layout {
+                sequence: 40
+            }
+            link {
+                target: {
+                    type: url
+                    url: #VIEW_URL#
+                }
+                linkText: &APP_TEXT$VIEW_ATTACHMENTS.
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+    )
+
+    region medical-referral-details (
+        name: Medical referral details
+        type: themeTemplateComponent/contentRow
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                with task_parameters as (
+                    select p.task_id,
+                           max(case when p.param_static_id = 'T_REQUEST_ID'
+                                   then to_number(p.param_value) end) as T_REQUEST_ID,
+                           max(case when p.param_static_id = 'T_REQUEST_TYPE_ID'
+                                   then to_number(p.param_value) end) as T_REQUEST_TYPE_ID
+                      from apex_task_parameters p
+                     where p.task_id = :P109_TASK_ID
+                     group by p.task_id
+                ),
+                visible_task as (
+                    select task_id
+                      from table(apex_human_task.get_tasks(
+                               p_context => 'SINGLE_TASK',
+                               p_task_id => :P109_TASK_ID))
+                ),
+                latest_document as (
+                    select d.referal_id,
+                           d.document_version,
+                           d.file_name,
+                           d.file_size,
+                           d.token_status,
+                           d.created_at,
+                           row_number() over (
+                               partition by d.referal_id
+                               order by d.document_version desc, d.document_id desc
+                           ) as document_rank
+                      from med.md_referal_document d
+                )
+                select flow.referal_id,
+                       flow.emp_name_snapshot,
+                       flow.emp_id_snapshot,
+                       flow.project_snapshot,
+                       flow.beneficiary_name_snapshot,
+                       flow.beneficiary_relation_snapshot,
+                       flow.provider_name_snapshot,
+                       CASE flow.provider_type_snapshot
+                           WHEN 'HOSPITAL' THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_PROVIDER_TYPE_HOSPITAL')
+                           WHEN 'DENTAL_CLINIC' THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_PROVIDER_TYPE_DENTAL_CLINIC')
+                           WHEN 'MEDICAL_CENTER' THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_PROVIDER_TYPE_MEDICAL_CENTER')
+                           WHEN 'LAB' THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_PROVIDER_TYPE_LAB')
+                           WHEN 'PHYSIOTHERAPY' THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_PROVIDER_TYPE_PHYSIOTHERAPY')
+                           WHEN 'RADIOLOGY_CENTER' THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_PROVIDER_TYPE_RADIOLOGY_CENTER')
+                           WHEN 'OPHTHALMOLOGY' THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_PROVIDER_TYPE_OPHTHALMOLOGY')
+                           ELSE flow.provider_type_snapshot
+                       END AS provider_type_snapshot,
+                       flow.provider_address_snapshot,
+                       CASE
+                           WHEN flow.speciality_id IN ('0', '6', '26', '27', '28', '29', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '89', '90', '109', '490', '491', '492', '493', '494', '510', '511', '100731', '100732', '100733', '100734', '100735', '100736', '100737', '100738', '100739', '100740', '100741', '100742', '100743', '100744', '100745', '100746', '100751', '100752', '100771', '100772', '100773', '100774')
+                           THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_SPECIALITY_' || flow.speciality_id)
+                           ELSE flow.speciality_name_snapshot
+                       END AS speciality_name_snapshot,
+                       CASE
+                           WHEN flow.requirement_id = MED.MD_REFERAL_RULES_PKG.DEFAULT_REQUIREMENT_ID()
+                           THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_REQUIREMENT_VALUE')
+                           ELSE flow.requirement_snapshot
+                       END AS requirement_snapshot,
+                       flow.admission_snapshot,
+                       flow.letter_date,
+                       flow.available_from,
+                       flow.valid_to,
+                       flow.current_approval_sequence,
+                       CASE flow.status
+                           WHEN 'PENDING_APPROVAL' THEN 'بانتظار الاعتماد'
+                           WHEN 'APPROVED_PENDING_ACTIVATION' THEN 'معتمد — بانتظار التفعيل'
+                           WHEN 'VALID' THEN 'معتمد وساري'
+                           WHEN 'REJECTED' THEN 'مرفوض'
+                           WHEN 'CANCELLED' THEN 'ملغى'
+                           WHEN 'EXPIRED' THEN 'منتهي الصلاحية'
+                           WHEN 'DRAFT' THEN 'مسودة'
+                           WHEN 'SUSPENDED' THEN 'موقوف'
+                           ELSE 'حالة غير معروفة'
+                       END AS status,
+                       CASE flow.status_reason
+                           WHEN 'EMPLOYEE_REQUEST' THEN 'ألغاه مقدم الطلب'
+                           WHEN 'TASK_CANCELLED' THEN 'ألغاه مقدم المهمة'
+                           WHEN 'APPROVAL_DELAY' THEN 'انتهت المدة المتاحة للاعتماد'
+                           WHEN 'PROCESS_LIFECYCLE' THEN 'انتهى مسار الطلب'
+                           ELSE CASE WHEN REGEXP_LIKE(flow.status_reason, '^[A-Z_]+$') THEN NULL ELSE flow.status_reason END
+                       END AS status_reason,
+                       flow.document_status,
+                       flow.document_error,
+                       doc.document_version,
+                       doc.file_name,
+                       doc.file_size,
+                       doc.token_status,
+                       doc.created_at,
+                       case when doc.file_name is not null then
+                           '<div class="p109-detail-card p109-document-meta"><strong>' ||
+                           apex_escape.html(apex_lang.message('FILE')) || '</strong> ' ||
+                           apex_escape.html(doc.file_name) || ' (' ||
+                           apex_escape.html(apex_lang.message('MEDICAL_REFERRAL_ATTACHMENT_SIZE')) || ' ' ||
+                           apex_escape.html(to_char(doc.file_size)) || ')<br><strong>' ||
+                           apex_escape.html(apex_lang.message('MEDICAL_REFERRAL_STATUS')) || '</strong> ' ||
+                           apex_escape.html(CASE flow.document_status WHEN 'DOCUMENT_ERROR' THEN 'تعذر تجهيز المستند' WHEN 'GENERATED' THEN 'المستند جاهز' WHEN 'READY' THEN 'المستند جاهز' WHEN 'PENDING' THEN 'جارٍ تجهيز المستند' ELSE 'حالة المستند' END) || ' (' ||
+                           apex_escape.html(flow.document_error) || ')<br>' ||
+                           apex_escape.html(apex_lang.message('CREATED_AT')) || ' ' ||
+                           apex_escape.html(to_char(doc.created_at, 'DD-MON-YYYY HH24:MI')) || '</div>'
+                       end as document_info_html
+                from med.md_referal_flow flow
+                  left join task_parameters params
+                    on params.T_REQUEST_ID = flow.referal_id
+                  left join latest_document doc
+                    on doc.referal_id = flow.referal_id
+                   and doc.document_rank = 1
+                 where flow.referal_id = :P109_REFERAL_ID
+                   and (:P109_TASK_ID is null or (
+                        params.T_REQUEST_TYPE_ID = 106
+                        and params.T_REQUEST_ID = flow.referal_id
+                        and exists (select 1 from visible_task)))
+                   and (
+                        flow.emp_id_snapshot = :APP_USER
+                        or :P109_IS_MEDICAL_ADMIN = 'Y'
+                        or (
+                            params.T_REQUEST_TYPE_ID = 106
+                            and
+                            flow.status <> 'CANCELLED'
+                            and exists (select 1 from visible_task)
+                        )
+                   )
+                ```
+            pageItemsToSubmit: [
+                P109_TASK_ID
+                P109_REFERAL_ID
+                P109_IS_MEDICAL_ADMIN
+            ]
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--hideHeader
+                t-Region--noUI
+            ]
+            cssClasses: p109-referral-card
+        }
+        componentAppearance {
+            display: partial
+        }
+        settings {
+            overline: &APP_TEXT$MEDICAL_REFERRAL_REQUEST_DETAILS. &REFERAL_ID.
+            title: &EMP_NAME_SNAPSHOT!HTML. (&EMP_ID_SNAPSHOT!HTML.)
+            description:
+                ```html
+                <div class="p109-detail-grid">
+                  <div><strong>&APP_TEXT$PROJECT.</strong>&PROJECT_SNAPSHOT!HTML.</div>
+                  <div><strong>&APP_TEXT$MEDICAL_REFERRAL_BENEFICIARY.</strong>&BENEFICIARY_NAME_SNAPSHOT!HTML. (&BENEFICIARY_RELATION_SNAPSHOT!HTML.)</div>
+                  <div><strong>&APP_TEXT$MEDICAL_REFERRAL_PROVIDER.</strong>&PROVIDER_NAME_SNAPSHOT!HTML. (&PROVIDER_TYPE_SNAPSHOT!HTML.)<br>&PROVIDER_ADDRESS_SNAPSHOT!HTML.</div>
+                  <div><strong>&APP_TEXT$MEDICAL_REFERRAL_SPECIALITY.</strong>&SPECIALITY_NAME_SNAPSHOT!HTML.</div>
+                  <div><strong>&APP_TEXT$MEDICAL_REFERRAL_REQUIREMENT.</strong>&REQUIREMENT_SNAPSHOT!HTML.</div>
+                  <div><strong>&APP_TEXT$MEDICAL_REFERRAL_ADMISSION.</strong>&ADMISSION_SNAPSHOT!HTML.</div>
+                  <div><strong>&APP_TEXT$MEDICAL_REFERRAL_LETTER_DATE.</strong>&LETTER_DATE.</div>
+                  <div class="p109-status-cell"><strong>&APP_TEXT$MEDICAL_REFERRAL_STATUS.</strong>&STATUS!HTML.<br>&STATUS_REASON!HTML.</div>
+                  &DOCUMENT_INFO_HTML!RAW.
+                </div>
+                ```
+        }
+
+        column ADMISSION_SNAPSHOT (
+            layout {
+                sequence: 120
+            }
+            source {
+                databaseColumn: ADMISSION_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column AVAILABLE_FROM (
+            layout {
+                sequence: 140
+            }
+            source {
+                databaseColumn: AVAILABLE_FROM
+                dataType: date
+            }
+        )
+
+        column BENEFICIARY_NAME_SNAPSHOT (
+            layout {
+                sequence: 50
+            }
+            source {
+                databaseColumn: BENEFICIARY_NAME_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column BENEFICIARY_RELATION_SNAPSHOT (
+            layout {
+                sequence: 60
+            }
+            source {
+                databaseColumn: BENEFICIARY_RELATION_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column CREATED_AT (
+            layout {
+                sequence: 250
+            }
+            source {
+                databaseColumn: CREATED_AT
+                dataType: timestamp
+            }
+        )
+
+        column CURRENT_APPROVAL_SEQUENCE (
+            layout {
+                sequence: 160
+            }
+            source {
+                databaseColumn: CURRENT_APPROVAL_SEQUENCE
+                dataType: number
+            }
+        )
+
+        column DOCUMENT_ERROR (
+            layout {
+                sequence: 200
+            }
+            source {
+                databaseColumn: DOCUMENT_ERROR
+                dataType: varchar2
+            }
+        )
+
+        column DOCUMENT_INFO_HTML (
+            layout {
+                sequence: 260
+            }
+            source {
+                databaseColumn: DOCUMENT_INFO_HTML
+                dataType: clob
+            }
+        )
+
+        column DOCUMENT_STATUS (
+            layout {
+                sequence: 190
+            }
+            source {
+                databaseColumn: DOCUMENT_STATUS
+                dataType: varchar2
+            }
+        )
+
+        column DOCUMENT_VERSION (
+            layout {
+                sequence: 210
+            }
+            source {
+                databaseColumn: DOCUMENT_VERSION
+                dataType: number
+            }
+        )
+
+        column EMP_ID_SNAPSHOT (
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: EMP_ID_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column EMP_NAME_SNAPSHOT (
+            layout {
+                sequence: 20
+            }
+            source {
+                databaseColumn: EMP_NAME_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column FILE_NAME (
+            layout {
+                sequence: 220
+            }
+            source {
+                databaseColumn: FILE_NAME
+                dataType: varchar2
+            }
+        )
+
+        column FILE_SIZE (
+            layout {
+                sequence: 230
+            }
+            source {
+                databaseColumn: FILE_SIZE
+                dataType: number
+            }
+        )
+
+        column LETTER_DATE (
+            layout {
+                sequence: 130
+            }
+            source {
+                databaseColumn: LETTER_DATE
+                dataType: date
+            }
+        )
+
+        column PROJECT_SNAPSHOT (
+            layout {
+                sequence: 40
+            }
+            source {
+                databaseColumn: PROJECT_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column PROVIDER_ADDRESS_SNAPSHOT (
+            layout {
+                sequence: 90
+            }
+            source {
+                databaseColumn: PROVIDER_ADDRESS_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column PROVIDER_NAME_SNAPSHOT (
+            layout {
+                sequence: 70
+            }
+            source {
+                databaseColumn: PROVIDER_NAME_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column PROVIDER_TYPE_SNAPSHOT (
+            layout {
+                sequence: 80
+            }
+            source {
+                databaseColumn: PROVIDER_TYPE_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column REFERAL_ID (
+            layout {
+                sequence: 10
+            }
+            source {
+                databaseColumn: REFERAL_ID
+                dataType: number
+            }
+        )
+
+        column REQUIREMENT_SNAPSHOT (
+            layout {
+                sequence: 110
+            }
+            source {
+                databaseColumn: REQUIREMENT_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column SPECIALITY_NAME_SNAPSHOT (
+            layout {
+                sequence: 100
+            }
+            source {
+                databaseColumn: SPECIALITY_NAME_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column STATUS (
+            layout {
+                sequence: 170
+            }
+            source {
+                databaseColumn: STATUS
+                dataType: varchar2
+            }
+        )
+
+        column STATUS_REASON (
+            layout {
+                sequence: 180
+            }
+            source {
+                databaseColumn: STATUS_REASON
+                dataType: varchar2
+            }
+        )
+
+        column TOKEN_STATUS (
+            layout {
+                sequence: 240
+            }
+            source {
+                databaseColumn: TOKEN_STATUS
+                dataType: varchar2
+            }
+        )
+
+        column VALID_TO (
+            layout {
+                sequence: 150
+            }
+            source {
+                databaseColumn: VALID_TO
+                dataType: date
+            }
+        )
+
+    )
+
+    region medical-rejection-dialog (
+        name: Medical Rejection Reason
+        title: &APP_TEXT$MEDICAL_REFERRAL_REJECTION_REASON.
+        type: staticContent
+        layout {
+            sequence: 90
+            slot: contentBody
+        }
+        appearance {
+            template: @inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-size600x400
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            htmlDomId: p109_medical_rejection_dialog
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    region medical-rejection-dialog-buttons (
+        name: Medical Rejection Dialog Buttons
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @medical-rejection-dialog
+            slot: regionBody
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    region selected-examination-summary (
+        name: Selected examination summary
+        title: &APP_TEXT$P109_SELECTED_EXAMS_TITLE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                with selected_ids as (
+                    select to_number(trim(column_value)) exam_id
+                      from table(apex_string.split(nvl(:P109_LAB_ITEMS, ' '), ':'))
+                     where regexp_like(trim(column_value), '^[0-9]+$')
+                       and nvl(:P109_CAN_REVIEW, 'N') = 'Y'
+                    union
+                    select to_number(trim(column_value)) exam_id
+                      from table(apex_string.split(nvl(:P109_RADIOLOGY_ITEMS, ' '), ':'))
+                     where regexp_like(trim(column_value), '^[0-9]+$')
+                       and nvl(:P109_CAN_REVIEW, 'N') = 'Y'
+                    union
+                    select i.exam_id
+                      from med.md_referal_request_item i
+                     where i.referal_id = :P109_REFERAL_ID
+                       and nvl(:P109_CAN_REVIEW, 'N') <> 'Y'
+                )
+                select case c.provider_category
+                           when 'LABORATORY' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_LAB')
+                           when 'RADIOLOGY' then
+                               case
+                                   when exists (
+                                       select 1
+                                         from med.md_referal_request_category rc
+                                        where rc.referal_id = :P109_REFERAL_ID
+                                          and rc.provider_category = 'RADIOLOGY_CENTER'
+                                   ) then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_RADIOLOGY_CENTER')
+                                   else apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_MEDICAL_CENTER')
+                               end
+                       end selection_group,
+                       case c.modality
+                           when 'CT' then apex_lang.message('P109_MODALITY_CT')
+                           when 'X_RAY' then apex_lang.message('P109_MODALITY_XRAY')
+                           when 'MRI' then apex_lang.message('P109_MODALITY_MRI')
+                           else null
+                       end modality_name,
+                       case
+                           when regexp_like(c.source_code, '[0-9]+$')
+                           then regexp_substr(c.source_code, '[0-9]+$')
+                           else null
+                       end exam_code,
+                       coalesce(
+                           case when lower(v('APP_LANGUAGE')) like 'en%' then c.name_en else c.name_ar end,
+                           c.name_en,
+                           c.name_ar
+                       ) examination_name,
+                       c.display_order sort_order,
+                       c.exam_id
+                  from selected_ids s
+                  join med.md_referal_exam_catalog c on c.exam_id = s.exam_id
+                 where exists (
+                       select 1
+                         from med.md_referal_request_category rc
+                        where rc.referal_id = :P109_REFERAL_ID
+                          and ((rc.provider_category = 'LAB' and c.provider_category = 'LABORATORY')
+                            or (rc.provider_category in ('MEDICAL_CENTER','RADIOLOGY_CENTER') and c.provider_category = 'RADIOLOGY'))
+                 )
+                 order by selection_group, modality_name, sort_order, c.exam_id
+                ```
+            pageItemsToSubmit: [
+                P109_LAB_ITEMS
+                P109_RADIOLOGY_ITEMS
+                P109_CAN_REVIEW
+                P109_TASK_ID
+                P109_REFERAL_ID
+            ]
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+            cssClasses: p109-selection-summary
+        }
+        advanced {
+            htmlDomId: p109_selected_examination_summary
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from med.md_referal_request_category where referal_id = :P109_REFERAL_ID and provider_category in ('LAB','MEDICAL_CENTER','RADIOLOGY_CENTER')
+        }
+        security {
+            authorizationScheme: @medical-referral-request-viewer
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$P109_SELECTED_EXAMS_EMPTY.
+        }
+
+        column EXAMINATION_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P109_EXAMINATION_HEADING.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EXAM_CODE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P109_CODE_HEADING.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EXAM_ID (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column MODALITY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P109_MODALITY_HEADING.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column SELECTION_GROUP (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P109_CATEGORY_HEADING.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column SORT_ORDER (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 50
+            }
+        )
+
+    )
+
+    region selected-provider-types (
+        name: Selected medical provider types
+        title: &APP_TEXT$MEDICAL_REFERRAL_PROVIDER_TYPES.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select case provider_category
+                           when 'MEDICAL_CENTER' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_MEDICAL_CENTER')
+                           when 'LAB' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_LAB')
+                           when 'DENTAL_CLINIC' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_DENTAL_CLINIC')
+                       when 'PHYSIOTHERAPY' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_PHYSIOTHERAPY')
+                       when 'RADIOLOGY_CENTER' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_RADIOLOGY_CENTER')
+                       when 'OPHTHALMOLOGY' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_OPHTHALMOLOGY')
+                       when 'HOSPITAL' then apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_HOSPITAL')
+                           else apex_lang.message('MEDICAL_REFERRAL_PROVIDER_TYPE_HOSPITAL')
+                       end as provider_type,
+                       provider_category
+                  from med.md_referal_request_category
+                 where referal_id = :P109_REFERAL_ID
+                 order by provider_category
+                ```
+            pageItemsToSubmit: P109_REFERAL_ID
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                js-showMaximizeButton
+                t-Region--scrollBody
+                t-Form--xlarge
+                t-Form--stretchInputs
+            ]
+            cssClasses: p109-provider-card
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+
+        column PROVIDER_CATEGORY (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column PROVIDER_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_PROVIDER_TYPE.
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+    )
+
+    pageItem P109_ADMIN_CANCEL_REASON (
+        type: textarea
+        label {
+            label: سبب إلغاء الطلب
+        }
+        layout {
+            sequence: 10
+            region: @administrative-cancel-dialog
+            slot: regionBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            height: 5
+        }
+        validation {
+            maxLength: 4000
+        }
+    )
+
+    pageItem P109_CAN_REVIEW (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @medical-referral-details
+            slot: regionBody
+        }
+        default {
+            type: static
+            staticValue: N
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P109_DETAIL_WARNING (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        default {
+            type: expression
+            plsqlExpression: MED.MD_REFERAL_EXT_PKG.MISSING_DETAIL_WARNING(:P109_REFERAL_ID)
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P109_IS_MEDICAL_ADMIN (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        default {
+            type: static
+            staticValue: N
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P109_LAB_ITEMS (
+        type: selectMany
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_LABORATORY_ITEMS.
+            alignment: left
+        }
+        settings {
+            infiniteScroll: false
+            fetchOnSearch: true
+            useDefaults: false
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select trim(regexp_replace(
+                           case
+                               when lower(v('APP_LANGUAGE')) like 'en%' then coalesce(c.name_en, c.name_ar)
+                               else coalesce(c.name_ar, c.name_en)
+                           end,
+                           '\[[^]]*\]', ''
+                       )) display_value,
+                       c.exam_id return_value
+                  from med.md_referal_exam_catalog c
+                 where c.provider_category = 'LABORATORY'
+                   and c.active_yn = 'Y'
+                 order by c.display_order, c.exam_id
+                ```
+        }
+        layout {
+            sequence: 50
+            region: @doctor-selection-workspace
+            slot: regionBody
+            alignment: left
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue:
+                ```sql
+                select listagg(to_char(i.exam_id), ':') within group (order by i.exam_id)
+                  from med.md_referal_request_item i
+                  join med.md_referal_exam_catalog c on c.exam_id = i.exam_id
+                 where i.referal_id = :P109_REFERAL_ID
+                   and c.provider_category = 'LABORATORY'
+                ```
+        }
+        sessionState {
+            storage: request
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from med.md_referal_request_category where referal_id = :P109_REFERAL_ID and provider_category = 'LAB' and :P109_TASK_ID is not null and NVL(:P109_CAN_REVIEW, 'N') = 'Y'
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    pageItem P109_RADIOLOGY_FILTER (
+        type: selectList
+        label {
+            label: &APP_TEXT$P109_MODALITY_HEADING.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from (
+                    select apex_lang.message('APEXIR_ALL') display_value, 'ALL' return_value, 1 sort_order from dual
+                    union all
+                    select apex_lang.message('P109_MODALITY_CT'), 'CT', 2 from dual
+                    union all
+                    select apex_lang.message('P109_MODALITY_XRAY'), 'X_RAY', 3 from dual
+                    union all
+                    select apex_lang.message('P109_MODALITY_MRI'), 'MRI', 4 from dual
+                  )
+                 order by sort_order
+                ```
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @doctor-selection-workspace
+            slot: regionBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+            cssClasses: p109-filter-item
+        }
+        default {
+            type: static
+            staticValue: ALL
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from med.md_referal_request_category where referal_id = :P109_REFERAL_ID and provider_category in ('MEDICAL_CENTER','RADIOLOGY_CENTER') and :P109_TASK_ID is not null and NVL(:P109_CAN_REVIEW, 'N') = 'Y'
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    pageItem P109_RADIOLOGY_ITEMS (
+        type: selectMany
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_RADIOLOGY_ITEMS.
+            alignment: left
+        }
+        settings {
+            infiniteScroll: false
+            fetchOnSearch: true
+            useCache: false
+            useDefaults: false
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select trim(regexp_replace(
+                           case
+                               when lower(v('APP_LANGUAGE')) like 'en%' then coalesce(c.name_en, c.name_ar)
+                               else coalesce(c.name_ar, c.name_en)
+                           end,
+                           '\[[^]]*\]', ''
+                       )) display_value,
+                       c.exam_id return_value
+                  from med.md_referal_exam_catalog c
+                 where c.provider_category = 'RADIOLOGY'
+                   and c.active_yn = 'Y'
+                   and (nvl(:P109_RADIOLOGY_FILTER, 'ALL') = 'ALL'
+                        or c.modality = :P109_RADIOLOGY_FILTER
+                        or to_char(c.exam_id) in (
+                            select trim(column_value)
+                              from table(apex_string.split(:P109_RADIOLOGY_ITEMS, ':'))
+                        ))
+                 order by c.modality, c.display_order, c.exam_id
+                ```
+        }
+        cascadingLov {
+            parentItems: P109_RADIOLOGY_FILTER
+            itemsToSubmit: [
+                P109_RADIOLOGY_FILTER
+                P109_RADIOLOGY_ITEMS
+            ]
+            parentRequired: false
+        }
+        layout {
+            sequence: 60
+            region: @doctor-selection-workspace
+            slot: regionBody
+            alignment: left
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue:
+                ```sql
+                select listagg(to_char(i.exam_id), ':') within group (order by i.exam_id)
+                  from med.md_referal_request_item i
+                  join med.md_referal_exam_catalog c on c.exam_id = i.exam_id
+                 where i.referal_id = :P109_REFERAL_ID
+                   and c.provider_category = 'RADIOLOGY'
+                ```
+        }
+        sessionState {
+            storage: request
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from med.md_referal_request_category where referal_id = :P109_REFERAL_ID and provider_category in ('MEDICAL_CENTER','RADIOLOGY_CENTER') and :P109_TASK_ID is not null and NVL(:P109_CAN_REVIEW, 'N') = 'Y'
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    pageItem P109_REFERAL_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+            encryptSessionState: false
+        }
+    )
+
+    pageItem P109_REJECT_REASON (
+        type: textarea
+        label {
+            label: &APP_TEXT$THE_REASON.
+        }
+        layout {
+            sequence: 10
+            region: @medical-rejection-dialog
+            slot: regionBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 3
+        }
+        validation {
+            maxLength: 4000
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P109_REQUIREMENT_ID (
+        type: selectList
+        label {
+            label: &APP_TEXT$MEDICAL_REFERRAL_REQUIREMENT.
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_name, requirement_id
+                  from med.md_referal_requirement_option
+                 where active_yn = 'Y'
+                 order by display_order
+                ```
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 20
+            region: @doctor-selection-workspace
+            slot: regionBody
+            columnSpan: 12
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+                t-Form-fieldContainer--xlarge
+            ]
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue:
+                ```sql
+                select requirement_id
+                  from med.md_referal_flow
+                 where referal_id = :P109_REFERAL_ID
+                ```
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: NVL(:P109_CAN_REVIEW, 'N') = 'Y' AND :P109_TASK_ID IS NOT NULL
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    pageItem P109_TASK_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+            encryptSessionState: false
+        }
+    )
+
+    button admin-cancel (
+        buttonName: ADMIN_CANCEL
+        label: &APP_TEXT$MEDICAL_REFERRAL_CANCEL.
+        layout {
+            sequence: 40
+            region: @action-bar
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--iconLeft
+            ]
+            icon: fa-ban
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT t.task_id
+                  FROM med.md_referal_flow flow
+                  JOIN apex_tasks t ON t.application_id = 104
+                                  AND LOWER(t.task_def_static_id) = 'approval-task'
+                 WHERE flow.referal_id = :P109_REFERAL_ID
+                   AND flow.status = 'PENDING_APPROVAL'
+                   AND UPPER(TRIM(flow.emp_id_snapshot)) = UPPER(TRIM(:APP_USER))
+                   AND UPPER(TRIM(t.initiator)) = UPPER(TRIM(:APP_USER))
+                   AND t.state_code NOT IN ('COMPLETED','CANCELLED','CANCELED','ERRORED','FAILED')
+                   AND (:P109_TASK_ID IS NULL OR t.task_id = :P109_TASK_ID)
+                   AND (flow.current_task_id IS NULL OR flow.current_task_id = t.task_id)
+                   AND EXISTS (SELECT 1 FROM apex_task_parameters p WHERE p.task_id=t.task_id
+                                AND p.param_static_id='T_REQUEST_TYPE_ID' AND TRIM(p.param_value)='106')
+                   AND EXISTS (SELECT 1 FROM apex_task_parameters p WHERE p.task_id=t.task_id
+                                AND p.param_static_id='T_REQUEST_ID'
+                                AND TO_NUMBER(p.param_value DEFAULT NULL ON CONVERSION ERROR)=flow.referal_id)
+                ```
+        }
+        security {
+            authorizationScheme: mustNotBePublicUser
+        }
+    )
+
+    button admin-cancel-confirm (
+        buttonName: ADMIN_CANCEL_CONFIRM
+        label: &APP_TEXT$MEDICAL_REFERRAL_CANCEL.
+        layout {
+            sequence: 20
+            region: @administrative-cancel-dialog-buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--iconLeft
+            ]
+            icon: fa-ban
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$MEDICAL_REFERRAL_CANCEL_CONFIRMATION.
+            style: danger
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT t.task_id
+                  FROM med.md_referal_flow flow
+                  JOIN apex_tasks t ON t.application_id = 104
+                                  AND LOWER(t.task_def_static_id) = 'approval-task'
+                 WHERE flow.referal_id = :P109_REFERAL_ID
+                   AND flow.status = 'PENDING_APPROVAL'
+                   AND UPPER(TRIM(flow.emp_id_snapshot)) = UPPER(TRIM(:APP_USER))
+                   AND UPPER(TRIM(t.initiator)) = UPPER(TRIM(:APP_USER))
+                   AND t.state_code NOT IN ('COMPLETED','CANCELLED','CANCELED','ERRORED','FAILED')
+                   AND (:P109_TASK_ID IS NULL OR t.task_id = :P109_TASK_ID)
+                   AND (flow.current_task_id IS NULL OR flow.current_task_id = t.task_id)
+                   AND EXISTS (SELECT 1 FROM apex_task_parameters p WHERE p.task_id=t.task_id
+                                AND p.param_static_id='T_REQUEST_TYPE_ID' AND TRIM(p.param_value)='106')
+                   AND EXISTS (SELECT 1 FROM apex_task_parameters p WHERE p.task_id=t.task_id
+                                AND p.param_static_id='T_REQUEST_ID'
+                                AND TO_NUMBER(p.param_value DEFAULT NULL ON CONVERSION ERROR)=flow.referal_id)
+                ```
+        }
+        security {
+            authorizationScheme: mustNotBePublicUser
+        }
+    )
+
+    button approve (
+        buttonName: APPROVE
+        label: &APP_TEXT$ITR_PAGE52_APPROVE.
+        layout {
+            sequence: 20
+            region: @action-bar
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--success
+                t-Button--iconLeft
+            ]
+            icon: fa-check
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                BEGIN
+                    IF :P109_TASK_ID IS NULL OR NVL(:P109_CAN_REVIEW, 'N') <> 'Y' THEN
+                        RETURN FALSE;
+                    END IF;
+                    BEGIN
+                        RETURN apex_human_task.is_allowed(
+                                   p_task_id   => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_approve)
+                            OR apex_human_task.is_allowed(
+                                   p_task_id   => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_claim);
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            RETURN FALSE;
+                        WHEN OTHERS THEN
+                            IF SQLCODE = -1403 THEN
+                                RETURN FALSE;
+                            END IF;
+                            RAISE;
+                    END;
+                END;
+                ```
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    button claim (
+        buttonName: CLAIM
+        label: &APP_TEXT$ITR_PAGE52_CLAIM.
+        layout {
+            sequence: 10
+            region: @action-bar
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    button close (
+        buttonName: CLOSE
+        label: &APP_TEXT$ITR_PAGE52_CLOSE.
+        layout {
+            sequence: 70
+            region: @action-bar
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+            executeValidations: false
+        }
+
+        triggerAction native-dialog-close (
+            action: closeDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button close-admin-cancel (
+        buttonName: CLOSE_ADMIN_CANCEL
+        label: &APP_TEXT$ITR_PAGE52_CLOSE.
+        layout {
+            sequence: 10
+            region: @administrative-cancel-dialog-buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-arrow-left
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+        security {
+            authorizationScheme: mustNotBePublicUser
+        }
+    )
+
+    button close-medical-reject (
+        buttonName: CLOSE_MEDICAL_REJECT
+        label: &APP_TEXT$ITR_PAGE52_CLOSE.
+        layout {
+            sequence: 10
+            region: @medical-rejection-dialog-buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button reject (
+        buttonName: REJECT
+        label: &APP_TEXT$ITR_PAGE52_REJECT.
+        layout {
+            sequence: 30
+            region: @action-bar
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--iconLeft
+            ]
+            icon: fa-times-circle-o
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                BEGIN
+                    IF :P109_TASK_ID IS NULL OR NVL(:P109_CAN_REVIEW, 'N') <> 'Y' THEN
+                        RETURN FALSE;
+                    END IF;
+                    BEGIN
+                        RETURN apex_human_task.is_allowed(
+                                   p_task_id   => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_reject)
+                            OR apex_human_task.is_allowed(
+                                   p_task_id => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_claim);
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            RETURN FALSE;
+                        WHEN OTHERS THEN
+                            IF SQLCODE = -1403 THEN
+                                RETURN FALSE;
+                            END IF;
+                            RAISE;
+                    END;
+                END;
+                ```
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    button reject-confirm (
+        buttonName: REJECT_CONFIRM
+        label: &APP_TEXT$ITR_PAGE52_REJECT.
+        layout {
+            sequence: 20
+            region: @medical-rejection-dialog-buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--iconLeft
+            ]
+            icon: fa-times-circle-o
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                BEGIN
+                    IF :P109_TASK_ID IS NULL OR NVL(:P109_CAN_REVIEW, 'N') <> 'Y' THEN
+                        RETURN FALSE;
+                    END IF;
+                    BEGIN
+                        RETURN apex_human_task.is_allowed(
+                                   p_task_id   => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_reject)
+                            OR apex_human_task.is_allowed(
+                                   p_task_id => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_claim);
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            RETURN FALSE;
+                        WHEN OTHERS THEN
+                            IF SQLCODE = -1403 THEN
+                                RETURN FALSE;
+                            END IF;
+                            RAISE;
+                    END;
+                END;
+                ```
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    button retry-document (
+        buttonName: RETRY_DOCUMENT
+        label: &APP_TEXT$MEDICAL_REFERRAL_RETRY_DOCUMENT.
+        layout {
+            sequence: 50
+            region: @action-bar
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: #DEFAULT#
+            icon: fa-refresh
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                  from med.md_referal_flow flow
+                 where flow.referal_id = :P109_REFERAL_ID
+                   and flow.document_status = 'DOCUMENT_ERROR'
+                   and :P109_IS_MEDICAL_ADMIN = 'Y'
+                ```
+        }
+        security {
+            authorizationScheme: @medical-team
+        }
+    )
+
+    button rotate-public-token (
+        buttonName: ROTATE_PUBLIC_TOKEN
+        label: &APP_TEXT$MEDICAL_REFERRAL_REFRESH_SECURE_LINK.
+        layout {
+            sequence: 60
+            region: @action-bar
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: #DEFAULT#
+            icon: fa-refresh
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                  from med.md_referal_flow flow
+                 where flow.referal_id = :P109_REFERAL_ID
+                   and flow.status in ('APPROVED_PENDING_ACTIVATION', 'VALID')
+                   and :P109_IS_MEDICAL_ADMIN = 'Y'
+                   and exists (
+                       select 1
+                         from med.md_referal_document doc
+                        where doc.referal_id = flow.referal_id
+                          and doc.token_status = 'ACTIVE'
+                          and doc.pdf_blob is not null
+                   )
+                ```
+        }
+        security {
+            authorizationScheme: @medical-team
+        }
+    )
+
+    dynamicAction close-admin-cancel-dialog (
+        name: Close Administrative Cancellation Dialog
+        execution {
+            sequence: 88
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-admin-cancel
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @administrative-cancel-dialog
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-medical-reject-dialog (
+        name: Close Medical Rejection Dialog
+        execution {
+            sequence: 86
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-medical-reject
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @medical-rejection-dialog
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction open-admin-cancel-dialog (
+        name: Open Administrative Cancellation Dialog
+        execution {
+            sequence: 87
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @admin-cancel
+        }
+
+        action native-open-region (
+            action: openRegion
+            affectedElements {
+                selectionType: region
+                region: @administrative-cancel-dialog
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction open-medical-reject-dialog (
+        name: Open Medical Rejection Dialog
+        execution {
+            sequence: 85
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @reject
+        }
+
+        action native-open-region (
+            action: openRegion
+            affectedElements {
+                selectionType: region
+                region: @medical-rejection-dialog
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-selected-examination-summary (
+        name: Refresh selected examination summary
+        execution {
+            sequence: 84
+        }
+        when {
+            selectionType: items
+            items: [
+                P109_LAB_ITEMS
+                P109_RADIOLOGY_ITEMS
+            ]
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if (window.p109SelectionFeedback) {
+                        window.p109SelectionFeedback.showLoading();
+                    }
+                    ```
+            }
+            execution {
+                sequence: 5
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @selected-examination-summary
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    validation admin-cancel-reason-required (
+        name: Administrative cancellation reason required
+        execution {
+            sequence: 30
+        }
+        validation {
+            plsqlExpression: TRIM(:P109_ADMIN_CANCEL_REASON) IS NOT NULL
+        }
+        error {
+            errorMessage: يرجى كتابة سبب إلغاء الطلب.
+            displayLocation: inlineWithField
+            associatedItem: @P109_ADMIN_CANCEL_REASON
+        }
+        serverSideCondition {
+            whenButtonPressed: @admin-cancel-confirm
+        }
+        security {
+            authorizationScheme: mustNotBePublicUser
+        }
+    )
+
+    validation medical-admin-context-authorized (
+        name: Medical admin context authorized
+        execution {
+            sequence: 40
+        }
+        validation {
+            type: rowsReturned
+            sqlQuery: select 1 from med.md_referal_flow flow where flow.referal_id = :P109_REFERAL_ID
+        }
+        error {
+            errorMessage: &APP_TEXT$MEDICAL_REFERRAL_ADMIN_CONTEXT_INVALID.
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P109_REFERAL_ID is not null and :P109_IS_MEDICAL_ADMIN = 'Y'
+        }
+        security {
+            authorizationScheme: @medical-team
+        }
+    )
+
+    validation medical-reject-reason-required (
+        name: Medical rejection reason required
+        execution {
+            sequence: 20
+        }
+        validation {
+            plsqlExpression: TRIM(:P109_REJECT_REASON) IS NOT NULL
+        }
+        error {
+            errorMessage: &APP_TEXT$MEDICAL_REFERRAL_REJECTION_REASON_REQUIRED.
+            displayLocation: inlineWithField
+            associatedItem: @P109_REJECT_REASON
+        }
+        serverSideCondition {
+            whenButtonPressed: @reject-confirm
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    validation medical-task-context-authorized (
+        name: Medical task context authorized
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                with visible_task as (
+                    select task_id
+                      from table(apex_human_task.get_tasks(
+                               p_context => 'SINGLE_TASK',
+                               p_task_id => :P109_TASK_ID))
+                ),
+                task_parameter as (
+                    select max(case when param_static_id = 'T_REQUEST_ID' then to_number(param_value) end) as T_REQUEST_ID,
+                           max(case when param_static_id = 'T_REQUEST_TYPE_ID' then to_number(param_value) end) as T_REQUEST_TYPE_ID
+                      from apex_task_parameters
+                     where task_id = :P109_TASK_ID
+                )
+                select 1
+                  from task_parameter p
+                 where p.T_REQUEST_ID = :P109_REFERAL_ID
+                   and p.T_REQUEST_TYPE_ID = 106
+                   and exists (select 1 from visible_task)
+                   and med.apr_med_approver_task_api.has_medical_task_access(:APP_USER,52,:P109_TASK_ID) = 'Y'
+                ```
+        }
+        error {
+            errorMessage: &APP_TEXT$MEDICAL_REFERRAL_APPROVAL_TASK_UNAVAILABLE.
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CLAIM,APPROVE,REJECT_CONFIRM
+        }
+    )
+
+    process admin-cancel (
+        name: Cancel request by task initiator
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_task_id NUMBER;
+                    l_workflow_id NUMBER;
+                    l_workflow_state VARCHAR2(30);
+                BEGIN
+                    -- Repeat ownership and request binding on the server, including forged submits.
+                SELECT t.task_id INTO l_task_id
+                  FROM med.md_referal_flow flow
+                  JOIN apex_tasks t ON t.application_id = 104
+                                  AND LOWER(t.task_def_static_id) = 'approval-task'
+                 WHERE flow.referal_id = :P109_REFERAL_ID
+                   AND flow.status = 'PENDING_APPROVAL'
+                   AND UPPER(TRIM(flow.emp_id_snapshot)) = UPPER(TRIM(:APP_USER))
+                   AND UPPER(TRIM(t.initiator)) = UPPER(TRIM(:APP_USER))
+                   AND t.state_code NOT IN ('COMPLETED','CANCELLED','CANCELED','ERRORED','FAILED')
+                   AND (:P109_TASK_ID IS NULL OR t.task_id = :P109_TASK_ID)
+                   AND (flow.current_task_id IS NULL OR flow.current_task_id = t.task_id)
+                   AND EXISTS (SELECT 1 FROM apex_task_parameters p WHERE p.task_id=t.task_id
+                                AND p.param_static_id='T_REQUEST_TYPE_ID' AND TRIM(p.param_value)='106')
+                   AND EXISTS (SELECT 1 FROM apex_task_parameters p WHERE p.task_id=t.task_id
+                                AND p.param_static_id='T_REQUEST_ID'
+                                AND TO_NUMBER(p.param_value DEFAULT NULL ON CONVERSION ERROR)=flow.referal_id);
+                    IF NOT apex_human_task.is_allowed(p_task_id=>l_task_id,
+                                                     p_operation=>apex_human_task.c_task_op_cancel) THEN
+                        RAISE_APPLICATION_ERROR(-20439, 'إلغاء الطلب متاح لمقدم المهمة فقط قبل اكتمالها.');
+                    END IF;
+                    SELECT workflow_id INTO l_workflow_id
+                      FROM med.md_referal_flow WHERE referal_id=:P109_REFERAL_ID;
+                    IF l_workflow_id IS NOT NULL THEN
+                        SELECT state_code INTO l_workflow_state FROM apex_workflows
+                         WHERE application_id=104 AND workflow_id=l_workflow_id;
+                        IF l_workflow_state NOT IN ('ACTIVE','SUSPENDED','FAULTED') THEN
+                            RAISE_APPLICATION_ERROR(-20441, 'مسار الطلب لم يعد مفتوحًا للإلغاء.');
+                        END IF;
+                        -- Termination cancels its waiting task. Do not cancel that task twice.
+                        apex_workflow.terminate(p_instance_id=>l_workflow_id);
+                    ELSE
+                        apex_human_task.cancel_task(p_task_id=>l_task_id);
+                    END IF;
+                    -- Native on-cancel action updates the clinical request; retain the entered reason.
+                    UPDATE med.md_referal_flow
+                       SET status_reason = TRIM(:P109_ADMIN_CANCEL_REASON),
+                           cancelled_by = TRIM(:APP_USER)
+                     WHERE referal_id = :P109_REFERAL_ID AND status = 'CANCELLED'
+                       AND UPPER(TRIM(emp_id_snapshot)) = UPPER(TRIM(:APP_USER));
+                    IF SQL%ROWCOUNT <> 1 THEN
+                        RAISE_APPLICATION_ERROR(-20440, 'تعذر تأكيد إلغاء الطلب. أعد فتحه وحاول مرة أخرى.');
+                    END IF;
+                    :P109_TASK_ID := NULL;
+                    :P109_CAN_REVIEW := 'N';
+                EXCEPTION
+                    WHEN NO_DATA_FOUND OR TOO_MANY_ROWS THEN
+                        RAISE_APPLICATION_ERROR(-20439, 'إلغاء الطلب متاح لمقدم المهمة فقط قبل اكتمالها.');
+                END;
+                ```
+        }
+        execution {
+            sequence: 60
+        }
+        advanced {
+            executionMappingIdentifier: 52407024862262064
+        }
+        serverSideCondition {
+            whenButtonPressed: @admin-cancel-confirm
+        }
+        security {
+            authorizationScheme: mustNotBePublicUser
+        }
+        comments {
+            comments:
+                ```
+                owner: MED
+                package: MD_REFERAL_WF_PKG
+                procedureOrFunction: CANCEL_TASK (native on-cancel action)
+                ```
+        }
+    )
+
+    process approve (
+        name: Approve
+        type: humanTaskManage
+        humanTask {
+            taskIdItem: P109_TASK_ID
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 52406833585262064
+        }
+        serverSideCondition {
+            whenButtonPressed: @approve
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    process claim (
+        name: Auto claim before medical decision
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    IF :P109_TASK_ID IS NULL
+                       OR :REQUEST IS NULL
+                       OR :REQUEST NOT IN ('APPROVE', 'REJECT_CONFIRM')
+                       OR NOT apex_authorization.is_authorized(
+                                  p_authorization_name => 'Medical_Referral_Task_Reviewer') THEN
+                        raise_application_error(-20426, 'This medical task is not available to the current reviewer.');
+                    END IF;
+                
+                    IF :REQUEST = 'REJECT_CONFIRM' AND TRIM(:P109_REJECT_REASON) IS NULL THEN
+                        raise_application_error(-20428,
+                            apex_lang.message('MEDICAL_REFERRAL_REJECTION_REASON_REQUIRED'));
+                    END IF;
+                
+                    IF apex_human_task.is_allowed(
+                           p_task_id => :P109_TASK_ID,
+                           p_operation => apex_human_task.c_task_op_claim) THEN
+                        apex_human_task.claim_task(p_task_id => :P109_TASK_ID);
+                    END IF;
+                
+                    IF :REQUEST = 'APPROVE' THEN
+                        IF NOT apex_human_task.is_allowed(
+                                   p_task_id => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_approve) THEN
+                            raise_application_error(-20427, 'This medical task cannot be approved by the current reviewer.');
+                        END IF;
+                    ELSE
+                        IF NOT apex_human_task.is_allowed(
+                                   p_task_id => :P109_TASK_ID,
+                                   p_operation => apex_human_task.c_task_op_reject) THEN
+                            raise_application_error(-20429, 'This medical task cannot be rejected by the current reviewer.');
+                        END IF;
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 52406788039262064
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: APPROVE,REJECT_CONFIRM
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    process load-medical-admin-state (
+        name: Load medical admin state
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    :P109_IS_MEDICAL_ADMIN := 'N';
+                    :P109_CAN_REVIEW := 'N';
+                    IF apex_authorization.is_authorized(
+                           p_authorization_name => 'Medical_Team') THEN
+                        :P109_IS_MEDICAL_ADMIN := 'Y';
+                    END IF;
+                    IF apex_authorization.is_authorized(p_authorization_name => 'Medical_Referral_Task_Reviewer') THEN
+                        :P109_CAN_REVIEW := 'Y';
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 52406505305262064
+        }
+    )
+
+    process medical-rejection-comment (
+        name: Persist medical rejection reason
+        type: humanTaskManage
+        action {
+            type: comment
+        }
+        humanTask {
+            taskIdItem: P109_TASK_ID
+            commentText: &P109_REJECT_REASON.
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 52406681761262064
+        }
+        serverSideCondition {
+            whenButtonPressed: @reject-confirm
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    process reject (
+        name: Reject
+        type: humanTaskManage
+        action {
+            type: reject
+        }
+        humanTask {
+            taskIdItem: P109_TASK_ID
+        }
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 52406903168262064
+        }
+        serverSideCondition {
+            whenButtonPressed: @reject-confirm
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    process resolve-request-context (
+        name: Resolve exact request from selected task
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_request_id NUMBER;
+                    l_owner VARCHAR2(128);
+                    l_initiator VARCHAR2(128);
+                BEGIN
+                    -- A task is the authoritative source of its request, never the previous drawer.
+                    IF :P109_TASK_ID IS NOT NULL THEN
+                        SELECT TO_NUMBER(rp.param_value DEFAULT NULL ON CONVERSION ERROR), t.initiator
+                          INTO l_request_id, l_initiator
+                          FROM apex_tasks t
+                          JOIN apex_task_parameters rp ON rp.task_id=t.task_id
+                                                      AND rp.param_static_id='T_REQUEST_ID'
+                         WHERE t.task_id=TO_NUMBER(:P109_TASK_ID)
+                           AND t.application_id=104
+                           AND LOWER(t.task_def_static_id)='approval-task'
+                           AND EXISTS (SELECT 1 FROM apex_task_parameters tp
+                                        WHERE tp.task_id=t.task_id
+                                          AND tp.param_static_id='T_REQUEST_TYPE_ID'
+                                          AND TRIM(tp.param_value)='106');
+                        IF l_request_id IS NULL THEN
+                            RAISE_APPLICATION_ERROR(-20442, 'تعذر تحديد الطلب المرتبط بالمهمة.');
+                        END IF;
+                        SELECT emp_id_snapshot INTO l_owner FROM med.md_referal_flow
+                         WHERE referal_id=l_request_id;
+                        IF NVL(UPPER(TRIM(l_owner)), CHR(0)) <> NVL(UPPER(TRIM(:APP_USER)), CHR(1))
+                           OR NVL(UPPER(TRIM(l_initiator)), CHR(0)) <> NVL(UPPER(TRIM(:APP_USER)), CHR(1)) THEN
+                            IF NVL(med.apr_med_approver_task_api.has_medical_task_access(
+                                       :APP_USER, 52, TO_NUMBER(:P109_TASK_ID)), 'N') <> 'Y' THEN
+                                RAISE_APPLICATION_ERROR(-20442, 'لا يمكنك فتح بيانات هذه المهمة.');
+                            END IF;
+                        END IF;
+                        :P109_REFERAL_ID := l_request_id;
+                    END IF;
+                    IF :P109_REFERAL_ID IS NULL THEN
+                        RAISE_APPLICATION_ERROR(-20442, 'اختر الطلب من قائمة الطلبات لعرض بياناته.');
+                    END IF;
+                    SELECT emp_id_snapshot INTO l_owner FROM med.md_referal_flow
+                     WHERE referal_id=TO_NUMBER(:P109_REFERAL_ID);
+                    IF NVL(UPPER(TRIM(l_owner)), CHR(0)) <> NVL(UPPER(TRIM(:APP_USER)), CHR(1))
+                       AND NOT apex_authorization.is_authorized(p_authorization_name=>'Medical_Team')
+                       AND NVL(med.apr_med_approver_task_api.has_medical_request_task_access(
+                                   :APP_USER,106,TO_NUMBER(:P109_REFERAL_ID)), 'N') <> 'Y' THEN
+                        RAISE_APPLICATION_ERROR(-20442, 'لا يمكنك فتح بيانات هذا الطلب.');
+                    END IF;
+                EXCEPTION
+                    WHEN NO_DATA_FOUND OR TOO_MANY_ROWS OR VALUE_ERROR THEN
+                        RAISE_APPLICATION_ERROR(-20442, 'تعذر تحديد الطلب. افتحه مجددًا من قائمة الطلبات.');
+                END;
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 78183034731133856
+        }
+    )
+
+    process retry-document (
+        name: Retry document
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    MED.MD_REFERAL_WF_PKG.RETRY_DOCUMENT(:P109_REFERAL_ID,:APP_USER);
+                END;
+                ```
+        }
+        execution {
+            sequence: 70
+        }
+        advanced {
+            executionMappingIdentifier: 52407421436262065
+        }
+        serverSideCondition {
+            whenButtonPressed: @retry-document
+        }
+        security {
+            authorizationScheme: @medical-team
+        }
+        comments {
+            comments:
+                ```
+                owner: MED
+                package: MD_REFERAL_WF_PKG
+                procedureOrFunction: RETRY_DOCUMENT
+                ```
+        }
+    )
+
+    process rotate-public-token (
+        name: Rotate public token
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    MED.MD_REFERAL_WF_PKG.ROTATE_PUBLIC_TOKEN(
+                        P_REFERAL_ID => :P109_REFERAL_ID,
+                        P_ACTOR      => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 80
+        }
+        advanced {
+            executionMappingIdentifier: 52407788574262065
+        }
+        serverSideCondition {
+            whenButtonPressed: @rotate-public-token
+        }
+        security {
+            authorizationScheme: @medical-team
+        }
+    )
+
+    process save-doctor-requirement (
+        name: Save doctor requirement decision
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    MED.MD_REFERAL_RULES_PKG.APPLY_DOCTOR_REQUIREMENT(
+                        P_REFERAL_ID    => :P109_REFERAL_ID,
+                        P_REQUIREMENT_ID => :P109_REQUIREMENT_ID,
+                        P_ACTOR         => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 34
+        }
+        advanced {
+            executionMappingIdentifier: 58707304050439206
+        }
+        serverSideCondition {
+            whenButtonPressed: @approve
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    process save-doctor-selections (
+        name: Save doctor examination selections
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_lab_requested       PLS_INTEGER;
+                    l_radiology_requested PLS_INTEGER;
+                    l_lab_exam_ids        VARCHAR2(4000) := :P109_LAB_ITEMS;
+                    l_radiology_exam_ids  VARCHAR2(4000) := :P109_RADIOLOGY_ITEMS;
+                BEGIN
+                    SELECT COUNT(CASE WHEN provider_category = 'LAB' THEN 1 END),
+                           COUNT(CASE WHEN provider_category IN ('MEDICAL_CENTER','RADIOLOGY_CENTER') THEN 1 END)
+                      INTO l_lab_requested,
+                           l_radiology_requested
+                      FROM MED.MD_REFERAL_REQUEST_CATEGORY
+                     WHERE referal_id = :P109_REFERAL_ID;
+                
+                    IF l_lab_requested = 0 THEN
+                        l_lab_exam_ids := NULL;
+                    END IF;
+                
+                    IF l_radiology_requested = 0 THEN
+                        l_radiology_exam_ids := NULL;
+                    END IF;
+                
+                    MED.MD_REFERAL_EXT_PKG.SAVE_DOCTOR_SELECTIONS(
+                        P_REFERAL_ID         => :P109_REFERAL_ID,
+                        P_LAB_EXAM_IDS       => l_lab_exam_ids,
+                        P_RADIOLOGY_EXAM_IDS => l_radiology_exam_ids,
+                        P_ACTOR              => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 35
+        }
+        advanced {
+            executionMappingIdentifier: 58707304050439205
+        }
+        serverSideCondition {
+            whenButtonPressed: @approve
+        }
+        security {
+            authorizationScheme: @medical-referral-task-reviewer
+        }
+    )
+
+    process validate-request-context (
+        name: Validate exact request before decision
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_request_id NUMBER;
+                    l_owner VARCHAR2(128);
+                    l_initiator VARCHAR2(128);
+                BEGIN
+                    -- A task is the authoritative source of its request, never the previous drawer.
+                    IF :P109_TASK_ID IS NOT NULL THEN
+                        SELECT TO_NUMBER(rp.param_value DEFAULT NULL ON CONVERSION ERROR), t.initiator
+                          INTO l_request_id, l_initiator
+                          FROM apex_tasks t
+                          JOIN apex_task_parameters rp ON rp.task_id=t.task_id
+                                                      AND rp.param_static_id='T_REQUEST_ID'
+                         WHERE t.task_id=TO_NUMBER(:P109_TASK_ID)
+                           AND t.application_id=104
+                           AND LOWER(t.task_def_static_id)='approval-task'
+                           AND EXISTS (SELECT 1 FROM apex_task_parameters tp
+                                        WHERE tp.task_id=t.task_id
+                                          AND tp.param_static_id='T_REQUEST_TYPE_ID'
+                                          AND TRIM(tp.param_value)='106');
+                        IF l_request_id IS NULL THEN
+                            RAISE_APPLICATION_ERROR(-20442, 'تعذر تحديد الطلب المرتبط بالمهمة.');
+                        END IF;
+                        SELECT emp_id_snapshot INTO l_owner FROM med.md_referal_flow
+                         WHERE referal_id=l_request_id;
+                        IF NVL(UPPER(TRIM(l_owner)), CHR(0)) <> NVL(UPPER(TRIM(:APP_USER)), CHR(1))
+                           OR NVL(UPPER(TRIM(l_initiator)), CHR(0)) <> NVL(UPPER(TRIM(:APP_USER)), CHR(1)) THEN
+                            IF NVL(med.apr_med_approver_task_api.has_medical_task_access(
+                                       :APP_USER, 52, TO_NUMBER(:P109_TASK_ID)), 'N') <> 'Y' THEN
+                                RAISE_APPLICATION_ERROR(-20442, 'لا يمكنك فتح بيانات هذه المهمة.');
+                            END IF;
+                        END IF;
+                        IF :P109_REFERAL_ID IS NULL OR TO_NUMBER(:P109_REFERAL_ID) <> l_request_id THEN
+                            RAISE_APPLICATION_ERROR(-20442, 'تغير سياق الطلب. افتح المهمة مجددًا قبل اتخاذ القرار.');
+                        END IF;
+                    END IF;
+                    IF :P109_REFERAL_ID IS NULL THEN
+                        RAISE_APPLICATION_ERROR(-20442, 'اختر الطلب من قائمة الطلبات لعرض بياناته.');
+                    END IF;
+                    SELECT emp_id_snapshot INTO l_owner FROM med.md_referal_flow
+                     WHERE referal_id=TO_NUMBER(:P109_REFERAL_ID);
+                    IF NVL(UPPER(TRIM(l_owner)), CHR(0)) <> NVL(UPPER(TRIM(:APP_USER)), CHR(1))
+                       AND NOT apex_authorization.is_authorized(p_authorization_name=>'Medical_Team')
+                       AND NVL(med.apr_med_approver_task_api.has_medical_request_task_access(
+                                   :APP_USER,106,TO_NUMBER(:P109_REFERAL_ID)), 'N') <> 'Y' THEN
+                        RAISE_APPLICATION_ERROR(-20442, 'لا يمكنك فتح بيانات هذا الطلب.');
+                    END IF;
+                EXCEPTION
+                    WHEN NO_DATA_FOUND OR TOO_MANY_ROWS OR VALUE_ERROR THEN
+                        RAISE_APPLICATION_ERROR(-20442, 'تعذر تحديد الطلب. افتحه مجددًا من قائمة الطلبات.');
+                END;
+                ```
+        }
+        execution {
+            sequence: 5
+            point: afterSubmit
+        }
+        advanced {
+            executionMappingIdentifier: 78183145508133856
+        }
+    )
+
+    branch (
+        name: Close dialog
+        execution {
+            sequence: 90
+        }
+        behavior {
+            target: {
+                type: url
+                url: javascript:apex.navigation.dialog.close(true)
+            }
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CLOSE
+        }
+    )
+
+    branch (
+        name: Close dialog after medical decision or requester cancellation
+        execution {
+            sequence: 95
+        }
+        behavior {
+            target: {
+                type: url
+                url: javascript:apex.navigation.dialog.close(true)
+            }
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: APPROVE,REJECT_CONFIRM,ADMIN_CANCEL_CONFIRM
+        }
+    )
+
+    branch (
+        name: Reload medical referral context
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 109
+                items: {
+                    P109_REFERAL_ID: &P109_REFERAL_ID.
+                    P109_TASK_ID: &P109_TASK_ID.
+                }
+            }
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CLAIM,RETRY_DOCUMENT,ROTATE_PUBLIC_TOKEN
+        }
+    )
+
+)

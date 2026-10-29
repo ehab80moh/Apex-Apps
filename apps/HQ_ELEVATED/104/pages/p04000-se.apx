@@ -1,0 +1,1800 @@
+page 4000 (
+    name: الخدمات الالكترونية للموظف
+    alias: SE
+    title: &APP_TEXT$ELECTRONIC_SERVICES_FOR_THE_EMPLOYEE.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .imgs {
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+              width: 30%;
+            }
+            
+            .service-card-grid .imgs,
+            .service-department .imgs {
+              display: block;
+              width: 34%;
+              max-width: 7rem;
+              min-width: 4.5rem;
+              margin-inline: auto;
+              object-fit: contain;
+              filter: drop-shadow(0 3px 6px rgba(15, 23, 42, 0.09));
+              transition: transform 200ms ease;
+            }
+            
+            .service-card-grid .t-Card:hover .imgs,
+            .service-card-grid .a-CardView:hover .imgs,
+            .service-card-grid .a-CardView-card:hover .imgs,
+            .service-department .t-Card:hover .imgs,
+            .service-department .a-CardView:hover .imgs,
+            .service-department .a-CardView-card:hover .imgs {
+              transform: scale(1.04);
+            }
+            
+            :root {
+              --ut-region-header-min-height: 1.75rem;
+              --ut-region-header-padding: 0.35rem 0.75rem;
+            }
+            
+            .t-Region-header {
+              min-height: 1.75rem;
+              padding: 0.35rem 0.75rem;
+            }
+            
+            .t-Region-headerItems,
+            .t-Region-headerItems--title,
+            .t-Region-headerItems--controls,
+            .t-Region-headerItems--buttons {
+              padding-block: 0 !important;
+            }
+            
+            .t-Region-header .t-Region-title {
+              font-size: 0.95rem;
+              line-height: 1.2;
+            }
+            
+            .t-Region-header .t-Region-titleButton {
+              padding: 0.1rem 0.35rem;
+              min-height: unset;
+              line-height: 1.2;
+            }
+            
+            .t-Region-header .t-Button--hideShow {
+              width: 1.5rem;
+              height: 1.5rem;
+              min-height: 1.5rem;
+              line-height: 1.5rem;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+            }
+            
+            .t-Region-header .t-Region-headerItems--controls {
+              min-height: 1.5rem;
+              display: inline-flex;
+              align-items: center;
+            }
+            
+            .service-department {
+              margin-block: 0.85rem;
+              border: 0;
+              border-radius: 1.25rem;
+              overflow: hidden;
+              box-shadow: 0 0.35rem 1.4rem rgba(24, 39, 75, 0.08);
+            }
+            
+            .service-department > .t-Region-header {
+              min-height: 1.85rem;
+              padding: 0.55rem 0.9rem;
+              padding-block: 0.35rem;
+              background: linear-gradient(135deg, #123d5a, #1c6b7f);
+              color: #fff;
+            }
+            
+            .service-department > .t-Region-header .t-Region-title {
+              font-size: 1rem;
+              font-weight: 700;
+              line-height: 1.2;
+            }
+            
+            .service-department > .t-Region-body {
+              padding: 1.15rem;
+              background: #f8fafc;
+            }
+            
+            .service-department--compact {
+              margin-block: 0.45rem;
+              border: 1px solid rgba(14, 116, 144, 0.16);
+              border-radius: 0.8rem;
+              box-shadow: 0 0.2rem 0.8rem rgba(15, 118, 110, 0.08);
+            }
+            
+            .service-department--compact > .t-Region-header {
+              min-height: 1.75rem;
+              padding: 0.55rem 0.9rem;
+              padding-block: 0.3rem;
+              background: linear-gradient(135deg, #3f5a73, #3f5a73);
+            }
+            
+            .service-department--compact > .t-Region-header .t-Region-title {
+              font-size: 0.92rem;
+              line-height: 1.2;
+            }
+            
+            .service-department--compact > .t-Region-header .t-Region-titleButton {
+              padding: 0.1rem 0.35rem;
+            }
+            
+            .service-department--compact > .t-Region-header .t-Button--hideShow {
+              width: 1.5rem;
+              height: 1.5rem;
+              min-height: 1.5rem;
+              line-height: 1.5rem;
+            }
+            
+            .service-department--compact > .t-Region-header .t-Region-headerItems--controls {
+              min-height: 1.5rem;
+            }
+            
+            .service-department--compact .t-Region-body {
+              padding: 0.7rem;
+            }
+            
+            .service-department--secondary {
+              border-color: rgba(71, 85, 105, 0.2);
+            }
+            
+            .service-department--secondary > .t-Region-header {
+              background: linear-gradient(135deg, #3f5a73, #3f5a73);
+            }
+            
+            .service-card-grid .t-Cards-item,
+            .service-card-grid .a-CardView-item,
+            .service-department .t-Cards-item,
+            .service-department .a-CardView-item {
+              min-height: 15rem;
+            }
+            
+            .service-card-grid .t-Card,
+            .service-card-grid .a-CardView,
+            .service-card-grid .a-CardView-card,
+            .service-card-grid .a-CardView-item .a-CardView,
+            .service-department .t-Card,
+            .service-department .a-CardView,
+            .service-department .a-CardView-card,
+            .service-department .a-CardView-item .a-CardView {
+              position: relative;
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              border-radius: 1.1rem;
+              border: 1px solid rgba(203, 213, 225, 0.85);
+              background: linear-gradient(180deg, #ffffff 0%, #fbfcfd 55%, #f4f6f9 100%);
+              box-shadow:
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.95),
+                inset 0 -1px 0 0 rgba(15, 23, 42, 0.04),
+                0 0.2rem 0.6rem -0.1rem rgba(15, 23, 42, 0.06),
+                0 0.45rem 1.1rem -0.2rem rgba(15, 118, 110, 0.07);
+              transition: transform 200ms cubic-bezier(0.34, 1.4, 0.64, 1),
+                          box-shadow 200ms ease,
+                          border-color 200ms ease;
+              overflow: hidden;
+            }
+            
+            .service-card-grid .t-Card:hover,
+            .service-card-grid .t-Card:focus-within,
+            .service-card-grid .a-CardView:hover,
+            .service-card-grid .a-CardView:focus-within,
+            .service-card-grid .a-CardView-card:hover,
+            .service-card-grid .a-CardView-card:focus-within,
+            .service-card-grid .a-CardView-item .a-CardView:hover,
+            .service-card-grid .a-CardView-item .a-CardView:focus-within,
+            .service-department .t-Card:hover,
+            .service-department .t-Card:focus-within,
+            .service-department .a-CardView:hover,
+            .service-department .a-CardView:focus-within,
+            .service-department .a-CardView-card:hover,
+            .service-department .a-CardView-card:focus-within,
+            .service-department .a-CardView-item .a-CardView:hover,
+            .service-department .a-CardView-item .a-CardView:focus-within {
+              transform: translateY(-0.35rem);
+              border-color: rgba(61, 69, 72, 0.38);
+              box-shadow:
+                inset 0 1px 0 0 #ffffff,
+                inset 0 -1px 0 0 rgba(15, 23, 42, 0.05),
+                0 0.85rem 1.85rem -0.25rem rgba(15, 118, 110, 0.16),
+                0 0.35rem 0.85rem -0.2rem rgba(15, 23, 42, 0.08);
+            }
+            
+            .service-card-grid .t-Card-wrap,
+            .service-department .t-Card-wrap {
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              flex: 1 1 auto;
+            }
+            
+            .service-card-grid .t-Card-icon,
+            .service-card-grid .a-CardView-icon,
+            .service-department .t-Card-icon,
+            .service-department .a-CardView-icon {
+              color: #2f3736;
+              font-size: 2.75rem;
+              filter: drop-shadow(0 2px 4px rgba(15, 118, 110, 0.18));
+              transition: transform 200ms ease, color 200ms ease;
+            }
+            
+            .service-card-grid .t-Card:hover .t-Card-icon,
+            .service-card-grid .a-CardView:hover .a-CardView-icon,
+            .service-card-grid .a-CardView-card:hover .a-CardView-icon,
+            .service-department .t-Card:hover .t-Card-icon,
+            .service-department .a-CardView:hover .a-CardView-icon,
+            .service-department .a-CardView-card:hover .a-CardView-icon {
+              transform: scale(1.06);
+              color: #3c494d;
+            }
+            
+            .service-card-grid .service-card-icon {
+              display: block;
+              width: 34%;
+              max-width: 7rem;
+              min-width: 4.5rem;
+              margin-inline: auto;
+              object-fit: contain;
+              filter: drop-shadow(0 3px 6px rgba(15, 23, 42, 0.09));
+              transition: transform 200ms ease;
+            }
+            
+            .service-card-grid .t-Card:hover .service-card-icon,
+            .service-card-grid .a-CardView:hover .service-card-icon,
+            .service-card-grid .a-CardView-card:hover .service-card-icon {
+              transform: scale(1.04);
+            }
+            
+            .service-card-grid .t-Card-title,
+            .service-card-grid .a-CardView-title,
+            .service-department .t-Card-title,
+            .service-department .a-CardView-title {
+              font-weight: 700;
+              color: #0f172a;
+              line-height: 1.55;
+              letter-spacing: -0.01em;
+            }
+            
+            .service-card-grid .t-Card-body,
+            .service-card-grid .a-CardView-body,
+            .service-department .t-Card-body,
+            .service-department .a-CardView-body {
+              flex: 1 1 auto;
+              min-height: 5rem;
+              color: #3f5a73;
+            }
+            
+            /* Carved action container at card bottom */
+            .service-card-grid .t-Card-actions,
+            .service-card-grid .a-CardView-actions,
+            .service-department .t-Card-actions,
+            .service-department .a-CardView-actions {
+              margin-top: auto;
+              padding: 0.6rem 0.9rem;
+              border-top: 1px solid rgba(226, 232, 240, 0.85);
+              background: linear-gradient(180deg, rgba(248, 250, 252, 0.6) 0%, rgba(241, 245, 249, 0.85) 100%);
+              box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.85);
+            }
+            
+            /* Previous orders action buttons matching t-Region-header */
+            .service-card-grid .t-Card-actions .t-Button,
+            .service-card-grid .a-CardView-actions .t-Button,
+            .service-card-grid .a-CardView-actions .a-CardView-button,
+            .service-department .t-Card-actions .t-Button,
+            .service-department .a-CardView-actions .t-Button,
+            .service-department .a-CardView-actions .a-CardView-button,
+            .service-department .t-Card .t-Button--hot,
+            .service-card-grid .t-Card .t-Button--hot,
+            .service-card-grid .t-Card .u-pullLeft.t-Button,
+            .service-department .t-Card .u-pullLeft.t-Button,
+            .a-CardView-button.u-pullLeft,
+            a.a-CardView-button--hot.u-pullLeft,
+            .service-card-btn-prev {
+              display: inline-flex !important;
+              align-items: center;
+              justify-content: center;
+              gap: 0.45rem;
+              padding: 0.38rem 0.95rem !important;
+              min-height: 2.15rem;
+              border-radius: 0.6rem !important;
+              background: linear-gradient(135deg, #3f5a73 0%, #115971 100%) !important;
+              color: #ffffff !important;
+              font-size: 0.86rem !important;
+              font-weight: 600 !important;
+              line-height: 1.3 !important;
+              border: 1px solid rgba(255, 255, 255, 0.22) !important;
+              box-shadow: 0 2px 6px rgba(15, 118, 110, 0.28),
+                          inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+              text-decoration: none !important;
+              cursor: pointer;
+              transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .service-card-grid .t-Card-actions .t-Button .t-Icon,
+            .service-card-grid .a-CardView-actions .t-Button .t-Icon,
+            .service-card-grid .a-CardView-actions .a-CardView-button .t-Icon,
+            .service-card-grid .a-CardView-actions .a-CardView-button .a-Icon,
+            .service-department .t-Card-actions .t-Button .t-Icon,
+            .service-department .a-CardView-actions .t-Button .t-Icon,
+            .service-department .a-CardView-actions .a-CardView-button .t-Icon,
+            .service-department .a-CardView-actions .a-CardView-button .a-Icon,
+            .service-department .t-Card .t-Button--hot .t-Icon,
+            .service-card-grid .t-Card .t-Button--hot .t-Icon,
+            .service-card-grid .t-Card .u-pullLeft.t-Button .t-Icon,
+            .service-department .t-Card .u-pullLeft.t-Button .t-Icon,
+            .service-card-btn-prev .t-Icon,
+            .service-card-btn-prev .a-Icon,
+            .service-card-btn-prev [class*="fa-"] {
+              color: #ffffff !important;
+              font-size: 0.92rem !important;
+              opacity: 0.95;
+              transition: transform 200ms ease;
+            }
+            
+            .service-card-btn-prev .t-Button-label,
+            .service-card-btn-prev .a-CardView-button-label {
+              color: #ffffff !important;
+            }
+            
+            .service-card-grid .t-Card-actions .t-Button:hover,
+            .service-card-grid .a-CardView-actions .t-Button:hover,
+            .service-card-grid .a-CardView-actions .a-CardView-button:hover,
+            .service-department .t-Card-actions .t-Button:hover,
+            .service-department .a-CardView-actions .t-Button:hover,
+            .service-department .a-CardView-actions .a-CardView-button:hover,
+            .service-department .t-Card .t-Button--hot:hover,
+            .service-card-grid .t-Card .t-Button--hot:hover,
+            .service-card-grid .t-Card .u-pullLeft.t-Button:hover,
+            .service-department .t-Card .u-pullLeft.t-Button:hover,
+            .service-card-btn-prev:hover {
+              background: linear-gradient(135deg, #24a3a3 0%, #5499ae 100%) !important;
+              color: #ffffff !important;
+              border-color: rgba(255, 255, 255, 0.38) !important;
+              transform: translateY(-1px);
+              box-shadow: 0 4px 14px rgba(61, 68, 67, 0.38),
+                          inset 0 1px 0 rgba(255, 255, 255, 0.32) !important;
+            }
+            
+            .service-card-grid .t-Card-actions .t-Button:hover .t-Icon,
+            .service-card-grid .a-CardView-actions .t-Button:hover .t-Icon,
+            .service-card-grid .a-CardView-actions .a-CardView-button:hover .t-Icon,
+            .service-card-grid .a-CardView-actions .a-CardView-button:hover .a-Icon,
+            .service-department .t-Card-actions .t-Button:hover .t-Icon,
+            .service-department .a-CardView-actions .t-Button:hover .t-Icon,
+            .service-department .a-CardView-actions .a-CardView-button:hover .t-Icon,
+            .service-department .a-CardView-actions .a-CardView-button:hover .a-Icon,
+            .service-department .t-Card .t-Button--hot:hover .t-Icon,
+            .service-card-grid .t-Card .t-Button--hot:hover .t-Icon,
+            .service-card-grid .t-Card .u-pullLeft.t-Button:hover .t-Icon,
+            .service-department .t-Card .u-pullLeft.t-Button:hover .t-Icon,
+            .service-card-btn-prev:hover .t-Icon,
+            .service-card-btn-prev:hover .a-Icon,
+            .service-card-btn-prev:hover [class*="fa-"] {
+              transform: rotate(-20deg);
+            }
+            
+            .service-card-grid .t-Card-actions .t-Button:active,
+            .service-card-grid .a-CardView-actions .t-Button:active,
+            .service-card-grid .a-CardView-actions .a-CardView-button:active,
+            .service-department .t-Card-actions .t-Button:active,
+            .service-department .a-CardView-actions .t-Button:active,
+            .service-department .a-CardView-actions .a-CardView-button:active,
+            .service-department .t-Card .t-Button--hot:active,
+            .service-card-grid .t-Card .t-Button--hot:active,
+            .service-card-grid .t-Card .u-pullLeft.t-Button:active,
+            .service-department .t-Card .u-pullLeft.t-Button:active,
+            .service-card-btn-prev:active {
+              transform: translateY(0);
+              box-shadow: 0 1px 3px rgba(136, 141, 139, 0.341),
+                          inset 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+            }
+            
+            .service-card-grid .t-Card-actions .t-Button:focus-visible,
+            .service-department .t-Card-actions .t-Button:focus-visible,
+            .service-card-btn-prev:focus-visible {
+              outline: 2px solid #626b74 !important;
+              outline-offset: 2px;
+            }
+            
+            @media (max-width: 640px) {
+              .service-department > .t-Region-body {
+                padding: 0.75rem;
+              }
+            
+              .service-card-grid .t-Cards-item,
+              .service-card-grid .a-CardView-item,
+              .service-department .t-Cards-item,
+              .service-department .a-CardView-item {
+                min-height: 13rem;
+              }
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region information-systems-department (
+        name: إدارة نظم المعلومات
+        title: &APP_TEXT$INFORMATION_SYSTEMS_MANAGEMENT.
+        type: staticContent
+        layout {
+            sequence: 80
+            slot: body
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+            cssClasses: [
+                service-department
+                service-department--compact
+            ]
+        }
+    )
+
+    region it-service-request (
+        name: IT Service Request
+        title: &APP_TEXT$IT_SERVICE_REQUEST.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 104 REQUEST_TYPE_ID,
+                       APEX_LANG.MESSAGE('IT_SERVICE_REQUEST') REQUEST_TYPE_NAME,
+                       APEX_LANG.MESSAGE('IT_SERVICE_REQUEST_DESCRIPTION') REQUEST_DESCRIPTION,
+                       'IT' AUDIT_CODE,
+                       '' STATUS,
+                       'IT' OWNER_DEPARTMENT,
+                       'No' REQUIRED_ATTACHMENT,
+                       'Yes' IS_ACTIVE,
+                       '#APP_FILES#it-request-logo.png' IMG_URL,
+                       APEX_PAGE.GET_URL(
+                           p_application => 104,
+                           p_page        => 701,
+                           p_triggering_element => '#it-service-request'
+                       ) REQUEST_URL,
+                       APEX_PAGE.GET_URL(
+                           p_application => 104,
+                           p_page        => 700
+                       ) PREV_REQ_URL
+                  FROM DUAL
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @information-systems-department
+            slot: subRegions
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+                t-Form--stretchInputs
+                margin-top-sm
+                margin-bottom-none
+            ]
+            cssClasses: service-card-grid
+        }
+        componentAppearance {
+            gridColumns: 4
+        }
+        title {
+            column: REQUEST_TYPE_NAME
+            cssClasses: u-textCenter
+        }
+        body {
+            column: REQUEST_DESCRIPTION
+        }
+        media {
+            source: imageUrl
+            url: &IMG_URL.
+            appearance: square
+            cssClasses: imgs
+        }
+        pagination {
+            type: page
+            cardsPerPage: 4
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &REQUEST_URL.
+            }
+        )
+
+        action action-2 (
+            label: &APP_TEXT$PREVIOUS_ORDERS.
+            layout {
+                sequence: 40
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &PREV_REQ_URL.
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-history
+                hot: true
+                cssClasses: [
+                    u-pullLeft
+                    service-card-btn-prev
+                ]
+            }
+        )
+
+    )
+
+    region medical-department (
+        name: &APP_TEXT$P4000_MEDICAL_SERVICES.
+        type: staticContent
+        layout {
+            sequence: 70
+            slot: body
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+            cssClasses: [
+                service-department
+                service-department--compact
+            ]
+        }
+    )
+
+    region new (
+        name: medical
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT
+                    REQUEST_TYPE_ID,
+                    APEX_LANG.MESSAGE(
+                        CASE REQUEST_TYPE_ID
+                            WHEN 201 THEN 'MEDICAL_REFERRAL_REQUEST_FORM'
+                            WHEN 202 THEN 'MEDICAL_PRESCRIPTION_REQUEST_FORM'
+                            ELSE REQUEST_TYPE_NAME
+                        END
+                    ) AS REQUEST_TYPE_NAME,
+                    APEX_LANG.MESSAGE(
+                        CASE REQUEST_TYPE_ID
+                            WHEN 201 THEN 'MEDICAL_REFERRAL_REQUEST_BODY'
+                            WHEN 202 THEN 'MEDICAL_PRESCRIPTION_REQUEST_BODY'
+                            ELSE REQUEST_DESCRIPTION
+                        END
+                    ) AS REQUEST_DESCRIPTION,
+                    AUDIT_CODE,
+                    STATUS,
+                    OWNER_DEPARTMENT,
+                    REQUIRED_ATTACHMENT,
+                    IS_ACTIVE,
+                    CASE
+                      WHEN REQUEST_TYPE_ID = 201 THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 106, p_triggering_element => '#new')
+                      WHEN REQUEST_TYPE_ID = 202 THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 111, p_triggering_element => '#new')
+                    END AS request_url,
+                    CASE
+                      WHEN REQUEST_TYPE_ID IN (201, 202) THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 107)
+                    END AS prev_req_url,
+                    CASE
+                      WHEN REQUEST_TYPE_ID = 201 THEN 'fa-notes-medical'
+                      WHEN REQUEST_TYPE_ID = 202 THEN 'fa-file-prescription'
+                    END AS card_icon,
+                    CASE
+                      WHEN REQUEST_TYPE_ID = 201 THEN '#APP_FILES#medical-letter-card.png'
+                      WHEN REQUEST_TYPE_ID = 202 THEN '#APP_FILES#prescription-card.png'
+                    END AS card_image
+                FROM CENTRAL.APR_REQUESTS_LIST
+                 WHERE IS_ACTIVE = 'Yes'
+                   AND REQUEST_TYPE_ID IN (201, 202)
+                 ORDER BY CASE REQUEST_TYPE_ID
+                             WHEN 201 THEN 1
+                             WHEN 202 THEN 2
+                           ELSE 9999
+                         END;
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @medical-department
+            slot: subRegions
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+            ]
+            cssClasses: service-card-grid
+        }
+        card {
+            primaryKeyColumn1: REQUEST_TYPE_ID
+        }
+        title {
+            column: REQUEST_TYPE_NAME
+            cssClasses: u-textCenter
+        }
+        body {
+            column: REQUEST_DESCRIPTION
+        }
+        media {
+            source: imageUrl
+            url: &CARD_IMAGE.
+            appearance: square
+            cssClasses: service-card-icon
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &REQUEST_URL.
+            }
+        )
+
+        action action-2 (
+            label: &APP_TEXT$PREVIOUS_ORDERS.
+            layout {
+                sequence: 40
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &PREV_REQ_URL.
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-history
+                hot: true
+                cssClasses: [
+                    u-pullLeft
+                    service-card-btn-prev
+                ]
+            }
+        )
+
+    )
+
+    region page_plug (
+        name: employee-services
+        title: &APP_TEXT$P4000_EMPLOYEE_SERVICES.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                SELECT REQUEST_TYPE_ID,
+                       APEX_LANG.MESSAGE(
+                           CASE
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('LEAVE_REQUEST_1', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'LEAVE_REQUEST_1'
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('REQUEST_PERMISSION', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'REQUEST_PERMISSION'
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('TASK_REQUEST', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'TASK_REQUEST'
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('REQUEST_FOR_ADDITIONAL_WORKING_HOURS_OVERTIME_REST_PUBLIC', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'REQUEST_FOR_ADDITIONAL_WORKING_HOURS_OVERTIME_REST_PUBLIC'
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_CHANGE_PROFILE', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_CHANGE_PROFILE'
+                               ELSE REQUEST_TYPE_NAME
+                           END
+                       ) REQUEST_TYPE_NAME,
+                       APEX_LANG.MESSAGE(
+                           CASE
+                               WHEN INSTR(REQUEST_DESCRIPTION, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_LEAVE_BODY', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_LEAVE_BODY'
+                               WHEN INSTR(REQUEST_DESCRIPTION, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_PERMISSION_BODY', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_PERMISSION_BODY'
+                               WHEN INSTR(REQUEST_DESCRIPTION, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_TASK_BODY', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_TASK_BODY'
+                               WHEN INSTR(REQUEST_DESCRIPTION, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_OVERTIME_BODY', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_OVERTIME_BODY'
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_CHANGE_PROFILE', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_CHANGE_PROFILE_BODY'
+                               ELSE REQUEST_DESCRIPTION
+                           END
+                       ) REQUEST_DESCRIPTION,
+                       AUDIT_CODE,
+                       STATUS,
+                       OWNER_DEPARTMENT,
+                       REQUIRED_ATTACHMENT,
+                       IS_ACTIVE,
+                       IMG_URL IMG_URL,
+                       CASE 
+                           WHEN REQUEST_TYPE_ID = 59 THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 15)
+                           WHEN REQUEST_TYPE_ID = 61 THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 28)
+                           WHEN REQUEST_TYPE_ID = 72 THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 29)
+                           WHEN REQUEST_TYPE_ID = 76 THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 30)
+                           WHEN REQUEST_TYPE_ID = 181 THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 79)
+                       END prev_req_url
+                  FROM CENTRAL.APR_REQUESTS_LIST
+                 WHERE REQUEST_TYPE_ID = 0
+                 UNION ALL
+                SELECT NULL,
+                       APEX_LANG.MESSAGE('UPLOAD_RELATIVES_ATTACHMENTS') REQUEST_TYPE_NAME,
+                       APEX_LANG.MESSAGE('UPLOAD_ATTACHMENTS_ID_CARD_BIRTH_CERTIFICATE_MARRIAGE_CERTIFICATE') REQUEST_DESCRIPTION,
+                       'aud_code' AUDIT_CODE,
+                       '' STATUS,
+                       'HR' OWNER_DEPARTMENT,
+                       '' REQUIRED_ATTACHMENT,
+                       'Yes' IS_ACTIVE,
+                       '/apex/hq_elevated/g/attach/1679091c5a880faf6fb5e6087eb1b2dc' IMG_URL,
+                       APEX_PAGE.GET_URL(p_application => 115, p_page => 9) prev_req_url
+                  FROM dual
+                 UNION ALL
+                SELECT NULL,
+                       APEX_LANG.MESSAGE('CHANGE_PROFILE_PICTURE_AND_RELATIVES_PICTURES') REQUEST_TYPE_NAME,
+                       APEX_LANG.MESSAGE('EDIT_PROFILE_PICTURE_AND_RELATIVES_PICTURES') REQUEST_DESCRIPTION,
+                       'aud_code' AUDIT_CODE,
+                       '' STATUS,
+                       'HR' OWNER_DEPARTMENT,
+                       '' REQUIRED_ATTACHMENT,
+                       'Yes' IS_ACTIVE,
+                       '/apex/hq_elevated/g/attach/eccbc87e4b5ce2fe28308fd9f2a7baf3' IMG_URL,
+                       '/apex/r/epromhq/photo-upload?session=&SESSION.' prev_req_url
+                  FROM dual
+                 UNION ALL
+                SELECT NULL,
+                       APEX_LANG.MESSAGE('BENEFICIARIES_IN_CASE_OF_DEATH_AND_EMERGENCY_NUMBERS') REQUEST_TYPE_NAME,
+                       APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_FUNERAL_BENEFICIARIES_BODY') REQUEST_DESCRIPTION,
+                       'aud_code' AUDIT_CODE,
+                       '' STATUS,
+                       'HR' OWNER_DEPARTMENT,
+                       '' REQUIRED_ATTACHMENT,
+                       'Yes' IS_ACTIVE,
+                       '/apex/hq_elevated/g/attach/1c383cd30b7c298ab50293adfecb7b18' IMG_URL,
+                       APEX_PAGE.GET_URL(p_application => 115, p_page => 2) prev_req_url
+                  FROM dual
+                  UNION ALL
+                SELECT NULL,
+                       APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_CHANGE_PROFILE') REQUEST_TYPE_NAME,
+                       APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_CHANGE_PROFILE_BODY') REQUEST_DESCRIPTION,
+                       'aud_code' AUDIT_CODE,
+                       '' STATUS,
+                       'HR' OWNER_DEPARTMENT,
+                       '' REQUIRED_ATTACHMENT,
+                       'Yes' IS_ACTIVE,
+                       '/apex/hq_elevated/g/attach/a87ff679a2f3e71d9181a67b7542122c' IMG_URL,
+                       APEX_PAGE.GET_URL(
+                         p_application => 104,
+                         p_page        => 57,
+                         p_items       => 'P57_EMP_ID',
+                         p_values      => TO_CHAR(:P4000_EMP_ID)
+                       )      FROM dual;
+                ```
+        }
+        layout {
+            sequence: 60
+            parentRegion: @الموارد-البشرية
+            slot: subRegions
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent14
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+            cssClasses: [
+                service-department
+                service-department--compact
+                service-department--secondary
+            ]
+        }
+        componentAppearance {
+            gridColumns: 5
+        }
+        title {
+            column: REQUEST_TYPE_NAME
+            cssClasses: u-textCenter
+        }
+        body {
+            column: REQUEST_DESCRIPTION
+        }
+        media {
+            source: imageUrl
+            url: &IMG_URL.
+            appearance: square
+            cssClasses: imgs
+        }
+        pagination {
+            type: page
+            cardsPerPage: 5
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &PREV_REQ_URL.
+            }
+        )
+
+    )
+
+    region أظهر-المزيد (
+        name: أظهر المزيد ...
+        title: &APP_TEXT$SHOW_MORE.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                SELECT REQUEST_TYPE_ID,
+                       APEX_LANG.MESSAGE(
+                           CASE
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('LEAVE_REQUEST_1', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'LEAVE_REQUEST_1'
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('REQUEST_PERMISSION', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'REQUEST_PERMISSION'
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('TASK_REQUEST', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'TASK_REQUEST'
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('REQUEST_FOR_ADDITIONAL_WORKING_HOURS_OVERTIME_REST_PUBLIC', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'REQUEST_FOR_ADDITIONAL_WORKING_HOURS_OVERTIME_REST_PUBLIC'
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_CHANGE_PROFILE', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_CHANGE_PROFILE'
+                               ELSE REQUEST_TYPE_NAME
+                           END
+                       ) REQUEST_TYPE_NAME,
+                       APEX_LANG.MESSAGE(
+                           CASE
+                               WHEN INSTR(REQUEST_DESCRIPTION, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_LEAVE_BODY', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_LEAVE_BODY'
+                               WHEN INSTR(REQUEST_DESCRIPTION, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_PERMISSION_BODY', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_PERMISSION_BODY'
+                               WHEN INSTR(REQUEST_DESCRIPTION, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_TASK_BODY', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_TASK_BODY'
+                               WHEN INSTR(REQUEST_DESCRIPTION, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_OVERTIME_BODY', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_OVERTIME_BODY'
+                               WHEN INSTR(REQUEST_TYPE_NAME, APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_CHANGE_PROFILE', p_lang => 'ar-ae', p_application_id => 104)) = 1 THEN 'P4000_EMPLOYEE_SERVICE_CHANGE_PROFILE_BODY'
+                               ELSE REQUEST_DESCRIPTION
+                           END
+                       ) REQUEST_DESCRIPTION,
+                       AUDIT_CODE,
+                       STATUS,
+                       OWNER_DEPARTMENT,
+                       REQUIRED_ATTACHMENT,
+                       IS_ACTIVE,
+                       IMG_URL IMG_URL,
+                       CASE 
+                           WHEN REQUEST_TYPE_ID = 59 THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 15)
+                           WHEN REQUEST_TYPE_ID = 61 THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 28)
+                           WHEN REQUEST_TYPE_ID = 72 THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 29)
+                           WHEN REQUEST_TYPE_ID = 76 THEN APEX_PAGE.GET_URL(p_application => 104, p_page => 30)
+                           WHEN REQUEST_TYPE_ID = 47 THEN APEX_PAGE.GET_URL(p_application => 104, p_page =>30)
+                       END prev_req_url
+                  FROM CENTRAL.APR_REQUESTS_LIST
+                 WHERE REQUEST_TYPE_ID = 0
+                 UNION ALL
+                SELECT NULL, 
+                       APEX_LANG.MESSAGE('REQUEST_FOR_FINANCIAL_SUPPORT_FOR_HAJJ') REQUEST_TYPE_NAME,
+                       APEX_LANG.MESSAGE('') REQUEST_DESCRIPTION,
+                       'aud_code' AUDIT_CODE,
+                       '' STATUS,
+                       'HR' OWNER_DEPARTMENT,
+                       '' REQUIRED_ATTACHMENT,
+                       'Yes' IS_ACTIVE,
+                       '#APP_FILES#route.png' IMG_URL,
+                       APEX_PAGE.GET_URL(p_application => 105, p_page => 31) prev_req_url
+                  FROM dual
+                 UNION ALL
+                SELECT NULL, 
+                       APEX_LANG.MESSAGE('REQUEST_FOR_FINANCIAL_SUPPORT_FOR_UMRAH') REQUEST_TYPE_NAME,
+                       APEX_LANG.MESSAGE('') REQUEST_DESCRIPTION,
+                       'aud_code' AUDIT_CODE,
+                       '' STATUS,
+                       'HR' OWNER_DEPARTMENT,
+                       '' REQUIRED_ATTACHMENT,
+                       'Yes' IS_ACTIVE,
+                       '#APP_FILES#religion.png' IMG_URL,
+                       APEX_PAGE.GET_URL(p_application => 105, p_page => 33) prev_req_url
+                  FROM dual
+                 UNION ALL
+                SELECT NULL, 
+                       APEX_LANG.MESSAGE('REQUEST_FOR_OBTAINING_A_SOCIAL_LOAN') REQUEST_TYPE_NAME,
+                       APEX_LANG.MESSAGE('') REQUEST_DESCRIPTION,
+                       'aud_code' AUDIT_CODE,
+                       '' STATUS,
+                       'HR' OWNER_DEPARTMENT,
+                       '' REQUIRED_ATTACHMENT,
+                       'Yes' IS_ACTIVE,
+                       '#APP_FILES#cash.png' IMG_URL,
+                       APEX_PAGE.GET_URL(p_application => 105, p_page => 35) prev_req_url
+                  FROM dual
+                 UNION ALL
+                SELECT NULL, 
+                       APEX_LANG.MESSAGE('REQUEST_FOR_A_MARRIAGE_LOAN') REQUEST_TYPE_NAME,
+                       APEX_LANG.MESSAGE('') REQUEST_DESCRIPTION,
+                       'aud_code' AUDIT_CODE,
+                       '' STATUS,
+                       'HR' OWNER_DEPARTMENT,
+                       '' REQUIRED_ATTACHMENT,
+                       'Yes' IS_ACTIVE,
+                       '#APP_FILES#5.jpg' IMG_URL,
+                        APEX_PAGE.GET_URL(p_application => 105, p_page => 39) prev_req_url
+                   FROM dual
+                  UNION ALL
+                 SELECT NULL,
+                        APEX_LANG.MESSAGE('APPLYING_FOR_A_SCHOOL_LOAN') REQUEST_TYPE_NAME,
+                        APEX_LANG.MESSAGE('REQUEST_FOR_A_SCHOOL_ADVANCE') REQUEST_DESCRIPTION,
+                        'aud_code' AUDIT_CODE,
+                        '' STATUS,
+                        'HR' OWNER_DEPARTMENT,
+                        '' REQUIRED_ATTACHMENT,
+                        'Yes' IS_ACTIVE,
+                        '#WORKSPACE_FILES#school (1).jfif' IMG_URL,
+                        APEX_PAGE.GET_URL(p_application => 105, p_page => 48) prev_req_url
+                   FROM dual
+                  UNION ALL
+                 SELECT NULL,
+                        APEX_LANG.MESSAGE('P4000_TRAVEL_ALLOWANCE_TITLE') REQUEST_TYPE_NAME,
+                        APEX_LANG.MESSAGE('P4000_TRAVEL_ALLOWANCE_DESCRIPTION') REQUEST_DESCRIPTION,
+                       'aud_code' AUDIT_CODE,
+                       '' STATUS,
+                       'HR' OWNER_DEPARTMENT,
+                       '' REQUIRED_ATTACHMENT,
+                       'Yes' IS_ACTIVE,
+                       '#WORKSPACE_FILES#mobile-app_13972406.png' IMG_URL,
+                       APEX_PAGE.GET_URL(p_application => 105, p_page => 68) prev_req_url
+                  FROM dual;
+                  
+                ```
+        }
+        layout {
+            sequence: 40
+            parentRegion: @العلاقات-العامة
+            slot: regionBody
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @for-test
+        }
+        componentAppearance {
+            gridColumns: 3
+        }
+        title {
+            column: REQUEST_TYPE_NAME
+            cssClasses: u-textCenter
+        }
+        body {
+            column: REQUEST_DESCRIPTION
+        }
+        media {
+            source: imageUrl
+            url: &IMG_URL.
+            appearance: square
+            cssClasses: imgs
+        }
+        pagination {
+            type: page
+            cardsPerPage: 10
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &PREV_REQ_URL.
+            }
+        )
+
+    )
+
+    region الطلبات-المتاحه-تقديمها-الكترونيا (
+        name: الطلبات المتاحه تقديمها الكترونيا
+        title: &APP_TEXT$APPLICATIONS_CAN_BE_SUBMITTED_ELECTRONICALLY.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select REQUEST_TYPE_ID,
+                       CASE REQUEST_TYPE_ID
+                           WHEN 59 THEN APEX_LANG.MESSAGE('LEAVE_REQUEST_1')
+                           WHEN 61 THEN APEX_LANG.MESSAGE('REQUEST_PERMISSION')
+                           WHEN 72 THEN APEX_LANG.MESSAGE('TASK_REQUEST')
+                           WHEN 76 THEN APEX_LANG.MESSAGE('REQUEST_FOR_ADDITIONAL_WORKING_HOURS_OVERTIME_REST_PUBLIC')
+                           ELSE REQUEST_TYPE_NAME
+                       END REQUEST_TYPE_NAME,
+                       CASE REQUEST_TYPE_ID
+                           WHEN 59 THEN APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_LEAVE_BODY')
+                           WHEN 61 THEN APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_PERMISSION_BODY')
+                           WHEN 72 THEN APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_TASK_BODY')
+                           WHEN 76 THEN APEX_LANG.MESSAGE('P4000_EMPLOYEE_SERVICE_OVERTIME_BODY')
+                           ELSE REQUEST_DESCRIPTION
+                       END REQUEST_DESCRIPTION,
+                       AUDIT_CODE,
+                       STATUS,
+                       OWNER_DEPARTMENT,
+                       REQUIRED_ATTACHMENT,
+                       IS_ACTIVE,
+                IMG_URL IMG_URL
+                ,case when REQUEST_TYPE_ID=59
+                then APEX_PAGE.GET_URL (p_application=>104, p_page   => 15)
+                when REQUEST_TYPE_ID=61
+                then APEX_PAGE.GET_URL (p_application=>104, p_page   => 28)
+                when REQUEST_TYPE_ID=72
+                then APEX_PAGE.GET_URL (p_application=>104, p_page   => 29)
+                when REQUEST_TYPE_ID=76
+                then APEX_PAGE.GET_URL (p_application=>104, p_page   => 30)
+                end  prev_req_url
+                  from CENTRAL.APR_REQUESTS_LIST
+                where  (REQUEST_TYPE_ID in (72,59,61,76) )
+                
+                ```
+        }
+        layout {
+            sequence: 50
+            parentRegion: @الموارد-البشرية
+            slot: subRegions
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+                t-Form--stretchInputs
+                margin-top-sm
+                margin-bottom-none
+            ]
+            cssClasses: service-card-grid
+        }
+        componentAppearance {
+            gridColumns: 4
+        }
+        title {
+            column: REQUEST_TYPE_NAME
+            cssClasses: u-textCenter
+        }
+        body {
+            column: REQUEST_DESCRIPTION
+        }
+        media {
+            source: imageUrl
+            url: &IMG_URL.
+            appearance: square
+            cssClasses: imgs
+        }
+        pagination {
+            type: page
+            cardsPerPage: 4
+        }
+
+        action action (
+            label: &APP_TEXT$PREVIOUS_ORDERS.
+            layout {
+                sequence: 40
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &PREV_REQ_URL.
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-history
+                hot: true
+                cssClasses: [
+                    u-pullLeft
+                    service-card-btn-prev
+                ]
+            }
+        )
+
+        action action-2 (
+            type: fullCard
+            layout {
+                sequence: 20
+            }
+            behavior {
+                target: {
+                    page: 20
+                    items: {
+                        P20_REQUEST_TYPE_ID: &REQUEST_TYPE_ID.
+                        P20_EMP_ID: &P4000_EMP_ID.
+                    }
+                }
+            }
+        )
+
+    )
+
+    region الطلبات-المتاحه-تقديمها-الكترونيا-2 (
+        name: الطلبات المتاحه تقديمها الكترونيا
+        title: &APP_TEXT$APPLICATIONS_CAN_BE_SUBMITTED_ELECTRONICALLY.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 
+                    REQUEST_TYPE_ID,
+                    CASE REQUEST_TYPE_ID
+                        WHEN 107 THEN APEX_LANG.MESSAGE('HOTEL_RESERVATION_REQUEST')
+                        WHEN 35 THEN APEX_LANG.MESSAGE('REQUEST_A_CAR_FOR_WORK')
+                        ELSE REQUEST_TYPE_NAME
+                    END REQUEST_TYPE_NAME,
+                    CASE REQUEST_TYPE_ID
+                        WHEN 107 THEN APEX_LANG.MESSAGE('HOTEL_RESERVATION_REQUEST_FOR_ASSIGNMENTS_IS_SUBMITTED_AFTER_REQUESTING_A_MISSION_WORK_OR_TRAINING_MISSION')
+                        WHEN 35 THEN APEX_LANG.MESSAGE('REQUESTING_A_MICROBUS_OR_LIMOUSINE_FOR_WORK_OUTSIDE_OR_INSIDE_THE_CITY')
+                        ELSE REQUEST_DESCRIPTION
+                    END REQUEST_DESCRIPTION,
+                    AUDIT_CODE,
+                    STATUS,
+                    OWNER_DEPARTMENT,
+                    REQUIRED_ATTACHMENT,
+                    IS_ACTIVE,
+                    IMG_URL IMG_URL,
+                    CASE 
+                        WHEN REQUEST_TYPE_ID = 107 THEN APEX_PAGE.GET_URL(p_application => 105, p_page => 28)
+                        WHEN REQUEST_TYPE_ID = 35  THEN APEX_PAGE.GET_URL(p_application => 105, p_page => 20)
+                    END prev_req_url
+                FROM CENTRAL.APR_REQUESTS_LIST
+                WHERE IS_ACTIVE = 'Yes'
+                  AND REQUEST_TYPE_ID IN (107, 35)
+                
+                ```
+        }
+        layout {
+            sequence: 30
+            parentRegion: @العلاقات-العامة
+            slot: regionBody
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+                t-Form--stretchInputs
+            ]
+            cssClasses: service-card-grid
+        }
+        serverSideCondition {
+            type: never
+        }
+        componentAppearance {
+            gridColumns: 4
+        }
+        title {
+            column: REQUEST_TYPE_NAME
+            cssClasses: u-textCenter
+        }
+        body {
+            column: REQUEST_DESCRIPTION
+        }
+        media {
+            source: imageUrl
+            url: &IMG_URL.
+            appearance: square
+            cssClasses: imgs
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 20
+                    items: {
+                        P20_REQUEST_TYPE_ID: &REQUEST_TYPE_ID.
+                        P20_EMP_ID: &P4000_EMP_ID.
+                    }
+                }
+            }
+        )
+
+        action action-2 (
+            label: &APP_TEXT$PREVIOUS_ORDERS.
+            layout {
+                sequence: 20
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &PREV_REQ_URL.
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-history
+                hot: true
+                cssClasses: [
+                    u-pullLeft
+                    service-card-btn-prev
+                ]
+            }
+        )
+
+    )
+
+    region الطلبات-المتاحه-تقديمها-الكترونيا-3 (
+        name: الطلبات المتاحه تقديمها الكترونيا
+        title: &APP_TEXT$APPLICATIONS_CAN_BE_SUBMITTED_ELECTRONICALLY.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 
+                    REQUEST_TYPE_ID,
+                    CASE REQUEST_TYPE_ID
+                        WHEN 107 THEN APEX_LANG.MESSAGE('HOTEL_RESERVATION_REQUEST')
+                        WHEN 35 THEN APEX_LANG.MESSAGE('REQUEST_A_CAR_FOR_WORK')
+                        WHEN 47 THEN APEX_LANG.MESSAGE('TRANSPORT_ALLOWANCE')
+                        WHEN 46 THEN APEX_LANG.MESSAGE('HAJJ_SUPPORT_REQUEST')
+                        WHEN 45 THEN APEX_LANG.MESSAGE('UMRAH_SUPPORT_REQUEST')
+                        WHEN 44 THEN APEX_LANG.MESSAGE('SOCIAL_LOAN_REQUEST_ALT')
+                        WHEN 43 THEN APEX_LANG.MESSAGE('MARRIAGE_LOAN_REQUEST')
+                        ELSE REQUEST_TYPE_NAME
+                    END REQUEST_TYPE_NAME,
+                    CASE REQUEST_TYPE_ID
+                        WHEN 107 THEN APEX_LANG.MESSAGE('HOTEL_RESERVATION_REQUEST_FOR_ASSIGNMENTS_IS_SUBMITTED_AFTER_REQUESTING_A_MISSION_WORK_OR_TRAINING_MISSION')
+                        WHEN 35 THEN APEX_LANG.MESSAGE('REQUESTING_A_MICROBUS_OR_LIMOUSINE_FOR_WORK_OUTSIDE_OR_INSIDE_THE_CITY')
+                        WHEN 47 THEN APEX_LANG.MESSAGE('P4000_TRAVEL_ALLOWANCE_DESCRIPTION')
+                        WHEN 46 THEN APEX_LANG.MESSAGE('REQUEST_FOR_FINANCIAL_SUPPORT_FOR_HAJJ')
+                        WHEN 45 THEN APEX_LANG.MESSAGE('REQUEST_FOR_FINANCIAL_SUPPORT_FOR_UMRAH')
+                        WHEN 44 THEN APEX_LANG.MESSAGE('REQUEST_FOR_OBTAINING_A_SOCIAL_LOAN')
+                        WHEN 43 THEN APEX_LANG.MESSAGE('REQUEST_FOR_A_MARRIAGE_LOAN')
+                        ELSE REQUEST_DESCRIPTION
+                    END REQUEST_DESCRIPTION,
+                    AUDIT_CODE,
+                    STATUS,
+                    OWNER_DEPARTMENT,
+                    REQUIRED_ATTACHMENT,
+                    IS_ACTIVE,
+                    IMG_URL                   AS IMG_URL,
+                    CASE 
+                      WHEN REQUEST_TYPE_ID = 107 THEN APEX_PAGE.GET_URL(p_application => 105, p_page => 28)
+                      WHEN REQUEST_TYPE_ID = 35  THEN APEX_PAGE.GET_URL(p_application => 105, p_page => 20)
+                      WHEN REQUEST_TYPE_ID = 47  THEN APEX_PAGE.GET_URL(p_application => 105, p_page => 80)
+                      WHEN REQUEST_TYPE_ID IN (46,45,44,43)
+                        THEN APEX_PAGE.GET_URL(
+                               p_application => 105,
+                               p_page        => 88,
+                               p_items       => 'P88_REQUEST_TYPE_ID',
+                               p_values      => TO_CHAR(REQUEST_TYPE_ID)
+                             )
+                    END AS prev_req_url
+                FROM CENTRAL.APR_REQUESTS_LIST
+                WHERE IS_ACTIVE = 'Yes'
+                  AND REQUEST_TYPE_ID IN (107,35,47,46,45,44,43)
+                ORDER BY CASE REQUEST_TYPE_ID
+                           WHEN 107 THEN 1
+                           WHEN 35  THEN 2
+                           WHEN 47  THEN 3
+                           WHEN 43  THEN 4
+                           WHEN 46  THEN 5
+                           WHEN 45  THEN 6
+                           WHEN 44  THEN 7
+                           ELSE 9999
+                         END;
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @العلاقات-العامة
+            slot: regionBody
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+                t-Form--stretchInputs
+            ]
+            cssClasses: service-card-grid
+        }
+        componentAppearance {
+            gridColumns: 4
+        }
+        title {
+            column: REQUEST_TYPE_NAME
+            cssClasses: u-textCenter
+        }
+        body {
+            column: REQUEST_DESCRIPTION
+        }
+        media {
+            source: imageUrl
+            url: &IMG_URL.
+            appearance: square
+            cssClasses: imgs
+        }
+
+        action action (
+            label: &APP_TEXT$PREVIOUS_ORDERS.
+            layout {
+                sequence: 40
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &PREV_REQ_URL.
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-history
+                hot: true
+                cssClasses: [
+                    u-pullLeft
+                    service-card-btn-prev
+                ]
+            }
+        )
+
+        action action-2 (
+            type: fullCard
+            layout {
+                sequence: 20
+            }
+            behavior {
+                target: {
+                    page: 20
+                    items: {
+                        P20_REQUEST_TYPE_ID: &REQUEST_TYPE_ID.
+                        P20_EMP_ID: &P4000_EMP_ID.
+                    }
+                }
+            }
+        )
+
+    )
+
+    region العلاقات-العامة (
+        name: العلاقات العامة
+        title: &APP_TEXT$PUBLIC_RELATIONS.
+        type: staticContent
+        layout {
+            sequence: 60
+            slot: body
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+            cssClasses: [
+                service-department
+                service-department--compact
+            ]
+        }
+    )
+
+    region الموارد-البشرية (
+        name: الموارد البشرية
+        title: &APP_TEXT$HUMAN_RESOURCES.
+        type: staticContent
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent15
+                t-Region--scrollBody
+            ]
+            cssClasses: [
+                service-department
+                service-department--compact
+            ]
+        }
+    )
+
+    region بيانات-صاحب-الطلب (
+        name: بيانات صاحب الطلب
+        title: &APP_TEXT$DATA_OF_THE_APPLICANT.
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select XXAPEX_HR_EMP_DATA.EMP_NAME as EMP_NAME,
+                    XXAPEX_HR_EMP_DATA.EMP_NUMBER as EMP_NUMBER,
+                    XXAPEX_HR_EMP_DATA.EXCEL_POS as EXCEL_POS,
+                    XXAPEX_HR_EMP_DATA.PROJECT as PROJECT,
+                    XXAPEX_HR_EMP_DATA.EMP_POSITION_NAME as EMP_POSITION_NAME ,
+                    ORGANIZATION_NAME as ORG_NAME
+                 from XXAPEX_HR_EMP_DATA XXAPEX_HR_EMP_DATA
+                 where emp_number=:p4000_EMP_ID
+                ```
+            pageItemsToSubmit: P4000_EMP_ID
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                declare 
+                begin
+                if :P4000_EMP_ID<> :app_user then
+                return true;
+                else
+                return false;
+                end if;
+                end;
+                ```
+        }
+    )
+
+    region تنبيه (
+        name: تنبيه
+        title: &APP_TEXT$ALERT.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_10!RAW.
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--colorBG
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--warning
+                t-Alert--removeHeading js-removeLandmark
+                t-Form--slimPadding
+                t-Form--stretchInputs
+            ]
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: LOWER(CENTRAL.GET_emp_lang(:APP_USER)) = 'ar-ae'
+        }
+        settings {
+            expandShortcuts: true
+        }
+    )
+
+    region تنبيه-2 (
+        name: تنبيه
+        title: &APP_TEXT$ALERT.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_11!RAW.
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--colorBG
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--warning
+                t-Alert--removeHeading js-removeLandmark
+                t-Form--slimPadding
+                t-Form--stretchInputs
+            ]
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: LOWER(CENTRAL.GET_emp_lang(:APP_USER)) = 'en-us'
+        }
+        settings {
+            expandShortcuts: true
+        }
+    )
+
+    region تنبيه-3 (
+        name: تنبيه
+        title: &APP_TEXT$ALERT.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_12!RAW.
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--colorBG
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--warning
+                t-Alert--removeHeading js-removeLandmark
+                t-Form--slimPadding
+                t-Form--stretchInputs
+            ]
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P4000_EMP_ID (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 80
+            slot: body
+        }
+    )
+
+    pageItem P4000_EMP_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$EMP_NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @بيانات-صاحب-الطلب
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+        }
+        source {
+            formRegion: @بيانات-صاحب-الطلب
+            column: EMP_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P4000_EMP_NUMBER (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$EMP_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @بيانات-صاحب-الطلب
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @بيانات-صاحب-الطلب
+            column: EMP_NUMBER
+            dataType: varchar2
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P4000_EXCEL_POS (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$POSITION.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @بيانات-صاحب-الطلب
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @بيانات-صاحب-الطلب
+            column: EXCEL_POS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P4000_ORG_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$DEPARTMENT_NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @بيانات-صاحب-الطلب
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @بيانات-صاحب-الطلب
+            column: ORG_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P4000_PROJECT (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$LOCATION_PROJECT.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @بيانات-صاحب-الطلب
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @بيانات-صاحب-الطلب
+            column: PROJECT
+            dataType: varchar2
+        }
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: jQuerySelector
+            jquerySelector: BODY
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if ( this.data.successMessage ) {
+                    
+                      apex.message.showPageSuccess(this.data.successMessage.text);
+                    
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process enter-emp-id (
+        name: Enter_emp_id
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                :P4000_EMP_ID:=NVL(:P4000_EMP_ID,:APP_USER);
+                :p4000_EMP_NUMBER:=:P4000_EMP_ID;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 38285454331689025
+        }
+    )
+
+    process initialize-form-الخدمات-الالكترونية-للموظف (
+        name: Initialize form الخدمات الالكترونية للموظف
+        type: formInitialization
+        formRegion: @بيانات-صاحب-الطلب
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 38284644558689014
+        }
+    )
+
+    process new (
+        name: New
+        type: clearSessionState
+        clear {
+            type: items
+            items: P4000_EMP_ID
+        }
+        execution {
+            sequence: 10
+            point: afterFooter
+        }
+        advanced {
+            executionMappingIdentifier: 38285892082689026
+        }
+    )
+
+)

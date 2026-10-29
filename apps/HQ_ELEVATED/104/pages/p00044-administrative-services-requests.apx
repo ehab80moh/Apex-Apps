@@ -1,0 +1,411 @@
+page 44 (
+    name: طلبات الخدمات الادارية
+    alias: ADMINISTRATIVE-SERVICES-REQUESTS
+    title: &APP_TEXT$ADMINISTRATIVE_SERVICES_REQUESTS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .imgs {
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+              width: 30%;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region الطلبات-المتاحه-تقديمها-الكترونيا (
+        name: الطلبات المتاحه تقديمها الكترونيا
+        title: &APP_TEXT$APPLICATIONS_CAN_BE_SUBMITTED_ELECTRONICALLY.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select REQUEST_TYPE_ID,
+                       REQUEST_TYPE_NAME,
+                       REQUEST_DESCRIPTION,
+                       AUDIT_CODE,
+                       STATUS,
+                       OWNER_DEPARTMENT,
+                       REQUIRED_ATTACHMENT,
+                       IS_ACTIVE,
+                IMG_URL IMG_URL
+                ,case when REQUEST_TYPE_ID=107
+                then APEX_PAGE.GET_URL (p_application=>105, p_page   => 28)
+                when REQUEST_TYPE_ID=35
+                then APEX_PAGE.GET_URL (p_application=>105, p_page   => 20)
+                end  prev_req_url
+                  from CENTRAL.APR_REQUESTS_LIST
+                where  (REQUEST_TYPE_ID in (107,35) )
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            gridColumns: 3
+        }
+        title {
+            column: REQUEST_TYPE_NAME
+            cssClasses: u-textCenter
+        }
+        body {
+            column: REQUEST_DESCRIPTION
+        }
+        media {
+            source: imageUrl
+            url: &IMG_URL.
+            appearance: square
+            cssClasses: imgs
+        }
+
+        action action (
+            label: &APP_TEXT$PREVIOUS_ORDERS.
+            layout {
+                sequence: 40
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &PREV_REQ_URL.
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-history
+                hot: true
+                cssClasses: u-pullLeft
+            }
+        )
+
+        action action-2 (
+            type: fullCard
+            layout {
+                sequence: 20
+            }
+            behavior {
+                target: {
+                    page: 20
+                    items: {
+                        P20_REQUEST_TYPE_ID: &REQUEST_TYPE_ID.
+                        P20_EMP_ID: &P44_EMP_ID.
+                    }
+                }
+            }
+        )
+
+    )
+
+    region بيانات-صاحب-الطلب (
+        name: بيانات صاحب الطلب
+        title: &APP_TEXT$DATA_OF_THE_APPLICANT.
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select XXAPEX_HR_EMP_DATA.EMP_NAME as EMP_NAME,
+                    XXAPEX_HR_EMP_DATA.EMP_NUMBER as EMP_NUMBER,
+                    XXAPEX_HR_EMP_DATA.EXCEL_POS as EXCEL_POS,
+                    XXAPEX_HR_EMP_DATA.PROJECT as PROJECT,
+                    XXAPEX_HR_EMP_DATA.EMP_POSITION_NAME as EMP_POSITION_NAME ,
+                    ORGANIZATION_NAME as ORG_NAME
+                 from XXAPEX_HR_EMP_DATA XXAPEX_HR_EMP_DATA
+                 where emp_number=:p44_EMP_ID
+                ```
+            pageItemsToSubmit: P44_EMP_ID
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                declare 
+                begin
+                if :P44_EMP_ID<> :app_user then
+                return true;
+                else
+                return false;
+                end if;
+                end;
+                ```
+        }
+    )
+
+    region تنبيه (
+        name: تنبيه
+        title: &APP_TEXT$ALERT.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_1!RAW.
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--colorBG
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--info
+                t-Form--stretchInputs
+            ]
+        }
+    )
+
+    pageItem P44_EMP_ID (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+    )
+
+    pageItem P44_EMP_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$EMP_NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @بيانات-صاحب-الطلب
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+        }
+        source {
+            formRegion: @بيانات-صاحب-الطلب
+            column: EMP_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P44_EMP_NUMBER (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$EMP_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @بيانات-صاحب-الطلب
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @بيانات-صاحب-الطلب
+            column: EMP_NUMBER
+            dataType: varchar2
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P44_EXCEL_POS (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$POSITION.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @بيانات-صاحب-الطلب
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @بيانات-صاحب-الطلب
+            column: EXCEL_POS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P44_ORG_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$DEPARTMENT_NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @بيانات-صاحب-الطلب
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @بيانات-صاحب-الطلب
+            column: ORG_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P44_PROJECT (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$LOCATION_PROJECT.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @بيانات-صاحب-الطلب
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @بيانات-صاحب-الطلب
+            column: PROJECT
+            dataType: varchar2
+        }
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: jQuerySelector
+            jquerySelector: BODY
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if ( this.data.successMessage ) {
+                    
+                      apex.message.showPageSuccess(this.data.successMessage.text);
+                    
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process enter-emp-id (
+        name: Enter_emp_id
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                :P44_EMP_ID:=NVL(:P44_EMP_ID,:APP_USER);
+                :p44_EMP_NUMBER:=:P44_EMP_ID;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 24475841733953897
+        }
+    )
+
+    process initialize-form-الخدمات-الالكترونية-للموظف (
+        name: Initialize form الخدمات الالكترونية للموظف
+        type: formInitialization
+        formRegion: @بيانات-صاحب-الطلب
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 24475186933953880
+        }
+    )
+
+    process new (
+        name: New
+        type: clearSessionState
+        clear {
+            type: items
+            items: P44_EMP_ID
+        }
+        execution {
+            sequence: 10
+            point: afterFooter
+        }
+        advanced {
+            executionMappingIdentifier: 24476266901953897
+        }
+    )
+
+)

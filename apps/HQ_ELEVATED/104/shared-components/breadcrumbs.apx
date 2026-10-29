@@ -1,0 +1,598 @@
+breadcrumb breadcrumb (
+    name: Breadcrumb
+
+    entry absence-data (
+        name: &APP_TEXT$ABSENCE_DATA.
+        pageNumber: 15
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 15
+            }
+        }
+    )
+
+    entry admin-tasks (
+        name: &APP_TEXT$ADMIN_TASKS.
+        pageNumber: 300
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 300
+            }
+        }
+    )
+
+    entry administration (
+        name: &APP_TEXT$ADMINISTRATION.
+        pageNumber: 10000
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 10000
+            }
+        }
+    )
+
+    entry change-password (
+        name: &APP_TEXT$CHANGE_PASSWORD.
+        pageNumber: 8888
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 8888
+            }
+        }
+    )
+
+    entry claims-payables (
+        name: Claims Payables
+        pageNumber: 72
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 72
+            }
+        }
+    )
+
+    entry eprom-innovates-admin (
+        name: إدارة مسابقة إيبروم تبتكر
+        pageNumber: 88
+        execution {
+            sequence: 20
+        }
+        link {
+            target: {
+                page: 88
+            }
+        }
+    )
+
+    entry ideas (
+        name: &APP_TEXT$IDEAS.
+        pageNumber: 36
+        execution {
+            sequence: 10
+        }
+        appearance {
+            parentEntry: @الرئيسية
+        }
+        link {
+            target: {
+                page: 36
+            }
+        }
+    )
+
+    entry iis (
+        name: &APP_TEXT$IIS.
+        pageNumber: 73
+        execution {
+            sequence: 10
+        }
+        appearance {
+            parentEntry: @الرئيسية
+        }
+        link {
+            target: {
+                page: 73
+            }
+        }
+    )
+
+    entry it-request-setup (
+        name: IT Request Setup
+        pageNumber: 710
+        execution {
+            sequence: 30
+        }
+        link {
+            target: {
+                page: 710
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-request-setup-validation (
+        name: IT Request Setup Validation
+        pageNumber: 719
+        execution {
+            sequence: 120
+        }
+        appearance {
+            parentEntry: @it-request-setup
+        }
+        link {
+            target: {
+                page: 719
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-request-type-detail-form (
+        name: IT Request Type Detail Form
+        pageNumber: 718
+        execution {
+            sequence: 110
+        }
+        appearance {
+            parentEntry: @it-request-type-details
+        }
+        link {
+            target: {
+                page: 718
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-request-type-details (
+        name: IT Request Type Details
+        pageNumber: 717
+        execution {
+            sequence: 100
+        }
+        appearance {
+            parentEntry: @it-request-types
+        }
+        link {
+            target: {
+                page: 717
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-request-type-form (
+        name: IT Request Type Form
+        pageNumber: 716
+        execution {
+            sequence: 90
+        }
+        appearance {
+            parentEntry: @it-request-types
+        }
+        link {
+            target: {
+                page: 716
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-request-types (
+        name: IT Request Types
+        pageNumber: 715
+        execution {
+            sequence: 80
+        }
+        appearance {
+            parentEntry: @it-request-setup
+        }
+        link {
+            target: {
+                page: 715
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-team-form (
+        name: IT Team Form
+        pageNumber: 712
+        execution {
+            sequence: 50
+        }
+        appearance {
+            parentEntry: @it-teams
+        }
+        link {
+            target: {
+                page: 712
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-team-member-form (
+        name: IT Team Member Form
+        pageNumber: 714
+        execution {
+            sequence: 70
+        }
+        appearance {
+            parentEntry: @it-team-members
+        }
+        link {
+            target: {
+                page: 714
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-team-members (
+        name: IT Team Members
+        pageNumber: 713
+        execution {
+            sequence: 60
+        }
+        appearance {
+            parentEntry: @it-teams
+        }
+        link {
+            target: {
+                page: 713
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry it-teams (
+        name: IT Teams
+        pageNumber: 711
+        execution {
+            sequence: 40
+        }
+        appearance {
+            parentEntry: @it-request-setup
+        }
+        link {
+            target: {
+                page: 711
+            }
+        }
+        security {
+            authorizationScheme: @it-request-setup-admin
+        }
+    )
+
+    entry medical-referral-attachment (
+        name: Medical Referral Attachment
+        pageNumber: 110
+        execution {
+            sequence: 130
+        }
+        link {
+            target: {
+                page: 110
+            }
+        }
+    )
+
+    entry national-id-for-email (
+        name: &APP_TEXT$NATIONAL_ID_FOR_EMAIL_1.
+        pageNumber: 84
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 84
+            }
+        }
+    )
+
+    entry news-page (
+        name: &APP_TEXT$NEWSPAGE.
+        pageNumber: 35
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 35
+            }
+        }
+    )
+
+    entry not-in-hq (
+        name: &APP_TEXT$NOTINHQ.
+        pageNumber: 888
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 888
+            }
+        }
+    )
+
+    entry page (
+        name: سجل الحضور والطلبات الموحد
+        pageNumber: 450
+        execution {
+            sequence: 140
+        }
+        link {
+            target: {
+                page: 450
+            }
+        }
+    )
+
+    entry payslips (
+        name: &APP_TEXT$PAYSLIPS.
+        pageNumber: 6
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 6
+            }
+        }
+    )
+
+    entry personal-informations (
+        name: &APP_TEXT$PERSONAL_INFORMATIONS.
+        pageNumber: 10
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 10
+            }
+        }
+    )
+
+    entry relatives (
+        name: &APP_TEXT$RELATIVES.
+        pageNumber: 5
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 5
+            }
+        }
+    )
+
+    entry rest-password (
+        name: &APP_TEXT$RESTPASSWORD.
+        pageNumber: 9991
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 9991
+            }
+        }
+    )
+
+    entry sample-dashboard (
+        name: &APP_TEXT$SAMPLE_DASHBOARD.
+        pageNumber: 26
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 26
+            }
+        }
+    )
+
+    entry surveys (
+        name: &APP_TEXT$SURVEYS.
+        pageNumber: 501
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 501
+            }
+        }
+    )
+
+    entry الأخبار (
+        name: &APP_TEXT$NEWS.
+        pageNumber: 53
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 53
+            }
+        }
+    )
+
+    entry الإعلانات (
+        name: &APP_TEXT$ADVERTISEMENTS.
+        pageNumber: 67
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 67
+            }
+        }
+    )
+
+    entry الإعلانات-2 (
+        name: &APP_TEXT$ADVERTISEMENTS.
+        pageNumber: 65
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 65
+            }
+        }
+    )
+
+    entry الرئيسية (
+        name: &APP_TEXT$HOME.
+        pageNumber: 1
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 1
+            }
+        }
+    )
+
+    entry بدل-انتقالات (
+        name: &APP_TEXT$TRANSFER_ALLOWANCE.
+        pageNumber: 86
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 86
+            }
+        }
+    )
+
+    entry بيانات-العُهد (
+        name: &APP_TEXT$COVENANT_DATA.
+        pageNumber: 55
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 55
+            }
+        }
+    )
+
+    entry تعديل-البيانات-الشخصية-والعائلية (
+        name: &APP_TEXT$MODIFYING_PERSONAL_AND_FAMILY_DATA.
+        pageNumber: 57
+        execution {
+            sequence: 10
+        }
+    )
+
+    entry تعديل-المواقع-الطبية (
+        name: &APP_TEXT$EDITING_MEDICAL_WEBSITES.
+        pageNumber: 8
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 8
+            }
+        }
+    )
+
+    entry تنبيهات-الخدمات-الذاتية (
+        name: &APP_TEXT$SELF_SERVICE_ALERTS.
+        pageNumber: 18
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 18
+            }
+        }
+    )
+
+    entry جميع-الطلبات-المعلقة (
+        name: &APP_TEXT$ALL_PENDING_ORDERS.
+        pageNumber: 71
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 71
+            }
+        }
+    )
+
+    entry عرض-الطـــلبات (
+        name: &APP_TEXT$VIEW_ORDERS.
+        pageNumber: 45
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 45
+            }
+        }
+    )
+
+    entry متابعة-جميع-الطلبات (
+        name: &APP_TEXT$FOLLOW_UP_ON_ALL_ORDERS.
+        pageNumber: 61
+        execution {
+            sequence: 10
+        }
+        appearance {
+            parentEntry: @الرئيسية
+        }
+        link {
+            target: {
+                page: 61
+            }
+        }
+    )
+
+)

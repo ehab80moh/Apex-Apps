@@ -1,0 +1,114 @@
+page 51 (
+    name: Translate
+    alias: TRANSLATE
+    title: &APP_TEXT$TRANSLATION.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @wizard-modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        chained: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    pageItem P51_LANG (
+        type: selectList
+        label {
+            label: &APP_TEXT$LANGUAGE.
+            alignment: left
+        }
+        settings {
+            pageActionOnSelection: submitPage
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:العربية;ar-ae,English;en-us
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 30
+            slot: wizardBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        default {
+            type: expression
+            plsqlExpression: nvl(APEX_UTIL.GET_SESSION_LANG,'ar-ae')
+        }
+        sessionState {
+            storage: user
+        }
+    )
+
+    button save (
+        buttonName: Save
+        label: &APP_TEXT$SAVE.
+        layout {
+            sequence: 40
+            slot: wizardBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--success
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process set-lang (
+        name: set lang
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                    APEX_UTIL.SET_SESSION_LANG( P_LANG => :P51_LANG);
+                    CENTRAL.set_emp_lang (
+                    p_emp_id => :APP_USER,
+                    p_lang_code =>:P51_LANG
+                    );
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 71835704067458850
+        }
+    )
+
+    branch (
+        name: go home
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 1
+                successMessage: false
+            }
+        }
+    )
+
+)

@@ -1,0 +1,889 @@
+page 19 (
+    name: AttachmentsW
+    alias: ATTACHMENTS
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        height: 750
+        attributes: closeOnEscape:false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region attachments (
+        name: Attachments
+        type: form
+        source {
+            location: localDatabase
+            tableName: SUP_SUPPLIERS_ATTACHES
+            whereClause: SUPPLIER_ID = :P19_SUPPLIER_ID
+            pageItemsToSubmit: P19_SUPPLIER_ID
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region classic-report (
+        name: Classic_Report
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                /*select ATTACH_ID,
+                       SUPPLIER_ID,
+                       STATIC_NAME,
+                       FILE_NAME,
+                       MIME_TYPE,
+                       FILE_CONTENT,
+                       ORIGINAL_NAME,
+                       UPLOAD_DATE
+                  from SUP_SUPPLIERS_ATTACHES
+                 where supplier_id = :p19_supplier_id  */
+                
+                 select attach_id,
+                       supplier_id,
+                       STATIC_NAME,
+                       FILE_NAME,
+                       MIME_TYPE,
+                       FILE_CONTENT,
+                       ORIGINAL_NAME,
+                       UPLOAD_DATE,
+                    --    apex_util.prepare_url(
+                    --        'f?p=' || :APP_ID || ':19:' || :APP_SESSION ||
+                    --        '::::P19_DELETE_ID:' || attach_id
+                    --    ) as 
+                       
+                       '--' delete_link
+                from sup_suppliers_attaches
+                where supplier_id = :P19_SUPPLIER_ID
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        accessibility {
+            landmarkType: region
+        }
+        reportLayout {
+            numberOfRows: 10
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column ATTACH_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column DELETE_LINK (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Delete
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: url
+                    url: #
+                }
+                linkText: <span class="fa fa-trash del-attach" data-id="#ATTACH_ID#" title="Delete"></span>
+                linkAttributes: #ATTACH_ID#
+            }
+        )
+
+        column FILE_CONTENT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column FILE_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 40
+            }
+        )
+
+        column MIME_TYPE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Attachment Type
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+        )
+
+        column ORIGINAL_NAME (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column STATIC_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Attachment Name
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+        )
+
+        column SUPPLIER_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column UPLOAD_DATE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Upload Date
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+    region notes (
+        name: NOTES
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="t-Alert t-Alert--warning t-Alert--horizontal" role="alert">
+                  <div class="t-Alert-wrap">
+                    <div class="t-Alert-content">
+                      <div class="t-Alert-body">
+                        <strong>Important:</strong>
+                        Upload all documents.
+                        The "Construction &amp; Building Contractors Certificate"
+                        is optional.
+                        All files must be clear, valid, and compliant with registration rules.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @attachments
+            slot: regionBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region wizard-progress (
+        name: Wizard Progress
+        title: " Attachment Progress"
+        type: list
+        source {
+            list: @suppliers-registration
+        }
+        layout {
+            sequence: 10
+            slot: dialogHeader
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            listTemplate: @/wizard-progress
+            templateOptions: [
+                #DEFAULT#
+                t-WizardSteps--displayLabels
+            ]
+        }
+    )
+
+    pageItem P19_APPLY_AS (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @attachments
+            slot: regionBody
+        }
+    )
+
+    pageItem P19_ATTACH_ID (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @attachments
+            slot: regionBody
+        }
+        source {
+            formRegion: @attachments
+            column: ATTACH_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P19_DELETE_ID (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        source {
+            used: always
+        }
+    )
+
+    pageItem P19_FILE_CONTENT (
+        type: fileUpload
+        label {
+            label: File Content
+            alignment: left
+        }
+        storage {
+            mimeTypeColumn: MIME_TYPE
+            filenameColumn: ORIGINAL_NAME
+            bobLastUpdatedColumn: FILE_CONTENT
+        }
+        layout {
+            sequence: 90
+            region: @attachments
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            icon: fa-upload
+            width: 50
+        }
+        source {
+            formRegion: @attachments
+            column: FILE_CONTENT
+            dataType: blob
+        }
+    )
+
+    pageItem P19_FILE_NAME (
+        type: hidden
+        layout {
+            sequence: 60
+            region: @attachments
+            slot: regionBody
+        }
+        source {
+            formRegion: @attachments
+            column: FILE_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P19_MIME_TYPE (
+        type: hidden
+        layout {
+            sequence: 70
+            region: @attachments
+            slot: regionBody
+        }
+        source {
+            formRegion: @attachments
+            column: MIME_TYPE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P19_ORIGINAL_NAME (
+        type: hidden
+        layout {
+            sequence: 100
+            region: @attachments
+            slot: regionBody
+        }
+        source {
+            formRegion: @attachments
+            column: ORIGINAL_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P19_STATIC_NAME (
+        type: selectList
+        label {
+            label: Choose Attachment Name
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT display_name d,
+                       static_name r
+                FROM sup_attachment_types
+                WHERE static_name NOT IN (
+                        SELECT static_name
+                        FROM sup_suppliers_attaches
+                        WHERE supplier_id = :P19_SUPPLIER_ID
+                      )
+                AND (
+                        -- Supplier must NOT see the construction certificate
+                        :P19_APPLY_AS <> 'Supplier'
+                        OR static_name <> 'egy-constructor'
+                    )
+                ORDER BY attach_id;
+                ```
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 80
+            region: @attachments
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @attachments
+            column: STATIC_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P19_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @attachments
+            slot: regionBody
+        }
+        source {
+            formRegion: @attachments
+            column: SUPPLIER_ID
+            dataType: number
+        }
+    )
+
+    pageItem P19_UPLOAD_DATE (
+        type: hidden
+        layout {
+            sequence: 110
+            region: @attachments
+            slot: regionBody
+        }
+        source {
+            formRegion: @attachments
+            column: UPLOAD_DATE
+            dataType: date
+            queryOnly: true
+        }
+    )
+
+    button add-attach (
+        buttonName: ADD_ATTACH
+        label: Add Attach
+        layout {
+            sequence: 120
+            region: @attachments
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconRight
+                t-Button--hoverIconPush
+                t-Button--stretch
+                t-Button--padLeft
+                t-Button--padRight
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            icon: fa-plus
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Save & Continue Later
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button finish (
+        buttonName: FINISH
+        label: Finish
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Finish Registration ??
+        }
+    )
+
+    button previous (
+        buttonName: PREVIOUS
+        label: Previous
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: previous
+        }
+        appearance {
+            buttonTemplate: @/icon
+            templateOptions: #DEFAULT#
+            icon: fa-chevron-left
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction delete-attach (
+        name: delete attach
+        execution {
+            sequence: 20
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: .del-attach
+        }
+
+        action native-confirm (
+            action: confirm
+            settings {
+                message: are you sure to delete ?
+                style: warning
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    begin
+                        delete from sup_suppliers_attaches
+                        where attach_id = :P19_DELETE_ID;
+                    end;
+                    ```
+                itemsToSubmit: P19_DELETE_ID
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    var id = $(this.triggeringElement).data('id');
+                    console.log('id is: ' + id);
+                    $s('P19_DELETE_ID',id);
+                    ```
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action submit-page (
+            name: Submit page
+            action: submitPage
+            execution {
+                sequence: 40
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    validation validate-supplier-attachments (
+        name: Validate Supplier Attachments
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_required_types number;
+                    l_uploaded_required number;
+                begin
+                    ----------------------------------------------------------------
+                    -- 1. Count mandatory attachment TYPES
+                    ----------------------------------------------------------------
+                    select count(*)
+                      into l_required_types
+                      from sup_attachment_types
+                     where exclude_from is null;
+                
+                    ----------------------------------------------------------------
+                    -- 2. Count uploaded mandatory attachment TYPES
+                    ----------------------------------------------------------------
+                    select count(distinct a.static_name)
+                      into l_uploaded_required
+                      from sup_suppliers_attaches a
+                      join sup_attachment_types t
+                        on t.static_name = a.static_name
+                     where a.supplier_id = :p19_supplier_id
+                       and t.exclude_from is null;
+                
+                    ----------------------------------------------------------------
+                    -- VALIDATION
+                    ----------------------------------------------------------------
+                    if l_uploaded_required < l_required_types then
+                        return '⚠️ Please upload all mandatory attachments before continuing.';
+                    end if;
+                
+                    return null; -- VALID
+                end;
+                ```
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :REQUEST IN ('FINISH'/*,'PREVIOUS'*/)
+        }
+    )
+
+    process auto-dml (
+        name: Auto_DML
+        type: formAutoRowProcessing
+        formRegion: @attachments
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 131905812486953722
+        }
+        serverSideCondition {
+            whenButtonPressed: @add-attach
+            type: requestIsNotContainedInValue
+            value: FINISH
+        }
+    )
+
+    process clear (
+        name: Clear
+        type: clearSessionState
+        clear {
+            type: items
+            items: [
+                P19_FILE_CONTENT
+                P19_STATIC_NAME
+            ]
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 135398794909219628
+        }
+        serverSideCondition {
+            whenButtonPressed: @add-attach
+        }
+    )
+
+    process clearitems (
+        name: ClearItems
+        type: clearSessionState
+        clear {
+            type: items
+            items: [
+                P19_STATIC_NAME
+                P19_ATTACH_ID
+            ]
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 135398652876219627
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 131448928627963627
+        }
+        serverSideCondition {
+            whenButtonPressed: @finish
+        }
+    )
+
+    process initialize-form-attachmentsw (
+        name: Initialize form AttachmentsW
+        type: formInitialization
+        formRegion: @attachments
+        navigation {
+            nextPkItems: P19_SUPPLIER_ID
+        }
+        execution {
+            sequence: 30
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 131458045674988642
+        }
+        serverSideCondition {
+            whenButtonPressed: @add-attach
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1 
+                from sup_suppliers_attaches
+                where supplier_id = :supplier_id
+                
+                ```
+        }
+    )
+
+    process set-applat-as (
+        name: Set Applat as
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                select applay_as
+                into :P19_APPLY_AS
+                from sup_suppliers
+                where supplier_id = :P19_SUPPLIER_ID;
+                ```
+        }
+        execution {
+            sequence: 40
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 172280513921327124
+        }
+    )
+
+    process set-supplier (
+        name: Set Supplier
+        type: executeCode
+        source {
+            plsqlCode: :P19_SUPPLIER_ID := :SUP_SUPPLIER_ID;
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 140604544403306828
+        }
+    )
+
+    process update-supplier-status-after-attachments (
+        name: Update Supplier Status After Attachments
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_attach_cnt   NUMBER;
+                    l_status       sup_suppliers.status%TYPE;
+                BEGIN
+                    -- Count attachments
+                    SELECT COUNT(*)
+                      INTO l_attach_cnt
+                      FROM sup_suppliers_attaches
+                     WHERE supplier_id = :P19_SUPPLIER_ID;
+                
+                    -- Get current supplier status
+                    SELECT status
+                      INTO l_status
+                      FROM sup_suppliers
+                     WHERE supplier_id = :P19_SUPPLIER_ID
+                       FOR UPDATE;
+                
+                    ------------------------------------------------------------------
+                    -- RULE:
+                    -- First time completion ONLY
+                    ------------------------------------------------------------------
+                    IF l_attach_cnt >= 8
+                       AND l_status = 'ACTIVE'
+                    THEN
+                        UPDATE sup_suppliers
+                           SET status      = 'COMPLETE',
+                               is_modified = 'N'
+                         WHERE supplier_id = :P19_SUPPLIER_ID;
+                    END IF;
+                
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 205313465681615424
+        }
+        serverSideCondition {
+            whenButtonPressed: @finish
+        }
+    )
+
+    branch (
+        name: Go To Page 18
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 18
+                items: {
+                    P18_SUPPLIER_ID: &P19_SUPPLIER_ID.
+                }
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @previous
+        }
+    )
+
+)

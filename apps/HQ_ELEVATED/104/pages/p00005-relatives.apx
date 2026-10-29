@@ -1,0 +1,238 @@
+page 5 (
+    name: relatives
+    alias: RELATIVES
+    title: &APP_TEXT$RELATIVES.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            img{
+            width:8em;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region الاقارب (
+        name: "الاقارب "
+        title: &APP_TEXT$RELATIVES.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select RELATIVE_PERSON_ID,
+                     decode(insured,'Y','YES','NO')  INSURED,
+                       EMPLOYEE_NUMBER,
+                       EMPLOYEE_NAME,
+                       PROJECT,
+                       RELATIVE_TYPE,
+                       RELATIVE_NAME,
+                       IMAGE_ID,
+                      SYS.dbms_lob.getlength( IMAGE) image,
+                       CODE,
+                national_identifier IDD,
+                DATE_OF_BIRTH
+                  from CENTRAL.XXAPEX_HR_EMP_RELATIVES
+                 where EMPLOYEE_NUMBER = :APP_USER
+                order by 2 desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+
+        column CODE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column DATE_OF_BIRTH (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_OF_BIRTH.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EMPLOYEE_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 130
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 120
+            }
+        )
+
+        column IDD (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CARD_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column IMAGE (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: displayImage
+            heading {
+                heading: &APP_TEXT$PHOTO.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            blobAttributes {
+                tableOwner: CENTRAL
+                tableName: XXAPEX_HR_EMP_RELATIVES
+                blobColumn: IMAGE
+                primaryKeyColumn1: RELATIVE_PERSON_ID
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column IMAGE_ID (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 150
+            }
+        )
+
+        column INSURED (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$INSURED.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column PROJECT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 140
+            }
+        )
+
+        column RELATIVE_NAME (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME_OF_RELATIVE.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column RELATIVE_PERSON_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 110
+            }
+        )
+
+        column RELATIVE_TYPE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$KIND_OF_KINSHIP.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+)

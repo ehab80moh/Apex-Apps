@@ -1,0 +1,15 @@
+
+  CREATE OR REPLACE FORCE EDITIONABLE VIEW "EPROMHQ"."TASKS_PENDING_APPROVERS_TOTALS" ("CNT", "MOBILE", "EMP_NUMBER", "EMP_NAME", "NATIONAL_IDENTIFIER", "EMP_DATE_OF_BIRTH", "EMP_POSITION_NAME", "SITE_CODE", "ORGANIZATION_NAME", "ASSIGNMENTS_DATE", "GRADE_NAME", "PERMANENT_DATE", "EXCEL_POS", "PROJECT", "BASIC_SALARY", "EXP_DATE", "IMAGE", "IMAGE_ID", "COMP_EMAIL", "PAY_EMAIL", "EGPC_EMAIL", "MAR_STAT", "JOB_DATE", "PRIM_ADDRESS", "PERSON_ID", "FIN_PROJECT", "CON_TYP", "HIRE_DATE", "MAIN_DEPARTMENT") AS
+  select pt.cnt,EC.MOBILE,e."EMP_NUMBER",e."EMP_NAME",e."NATIONAL_IDENTIFIER",e."EMP_DATE_OF_BIRTH",e."EMP_POSITION_NAME",e."SITE_CODE",e."ORGANIZATION_NAME",e."ASSIGNMENTS_DATE",e."GRADE_NAME",e."PERMANENT_DATE",e."EXCEL_POS",e."PROJECT",e."BASIC_SALARY",e."EXP_DATE",e."IMAGE",e."IMAGE_ID",e."COMP_EMAIL",e."PAY_EMAIL",e."EGPC_EMAIL",e."MAR_STAT",e."JOB_DATE",e."PRIM_ADDRESS",e."PERSON_ID",e."FIN_PROJECT",e."CON_TYP",e."HIRE_DATE",e."MAIN_DEPARTMENT" from
+            (
+            select p.PARTICIPANT,count(*) cnt from apex_task_participants p
+               join apex_tasks t on t.task_id = p.task_id
+             and t.state_code IN ('ASSIGNED', 'UNASSIGNED', 'APEX.TASK.OUTCOME.')
+             and t.TASK_DEF_ID is not null
+            where p.PARTICIPANT_TYPE = 'POTENTIAL_OWNER'
+            group by p.PARTICIPANT
+            ) pt
+            JOIN        xxapex_hr_emp_data e ON e.emp_number = pt.PARTICIPANT
+            JOIN CENTRAL.EMP_CONTACT EC ON EC.EMP_ID =e.emp_number
+
+            order by pt.cnt desc;

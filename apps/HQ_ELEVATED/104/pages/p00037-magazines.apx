@@ -1,0 +1,308 @@
+page 37 (
+    name: المجلات
+    alias: MAGAZINES
+    title: &APP_TEXT$MAGAZINES.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        executeWhenPageLoads:
+            ```javascript-browser
+              lightbox.option({
+                //   'resizeDuration': 200,
+                  'wrapAround': true,
+                  'alwaysShowNavOnTouchDevices':true,
+                });
+            
+            ```
+    }
+    css {
+        inline:
+            ```css
+            td[headers="mag_cover"] > img{
+                height : 100px;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region card-holder (
+        name: card holder
+        title: &APP_TEXT$CARD_HOLDER.
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+                t-Form--xlarge
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+    )
+
+    region employee-transactions (
+        name: employee transactions
+        title: &APP_TEXT$EMPLOYEE_TRANSACTIONS.
+        type: calendar
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select trunc(trans_date)
+                + decode(trans_type,'OUT', (1/1440*1),0)
+                 t_date,trans_type,count(*)||' - '||trans_type cnt,
+                decode(trans_type,'IN','apex-cal-green','apex-cal-blue') 
+                css_class
+                
+                 from tms_emp_transactions_v
+                
+                group by trunc(trans_date),trans_type
+                order by 2
+                
+                ```
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        settings {
+            displayColumn: CNT
+            startDateColumn: T_DATE
+            additionalCalendarViews: [
+                list
+                navigation
+            ]
+            cssClass: CSS_CLASS
+        }
+    )
+
+    region magazines (
+        name: magazines
+        title: &APP_TEXT$MAGAZINES.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select "MAG_ID","MAG_NAME",MAG_COVER from "MAGAZINES"
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @card-holder
+            slot: subRegions
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+                t-Form--xlarge
+                t-Form--stretchInputs
+            ]
+        }
+        card {
+            primaryKeyColumn1: MAG_ID
+        }
+        title {
+            column: MAG_NAME
+        }
+        media {
+            source: blobColumn
+            blobColumn: MAG_COVER
+        }
+
+        action action (
+            label: &APP_TEXT$EDIT.
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 38
+                    items: {
+                        P38_MAG_ID: &MAG_ID.
+                    }
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-file-edit
+                hot: true
+            }
+            security {
+                authorizationScheme: @33318982090746440
+            }
+        )
+
+        action action-2 (
+            type: fullCard
+            layout {
+                sequence: 20
+            }
+            behavior {
+                target: {
+                    page: 39
+                    items: {
+                        P39_MAG_ID: &MAG_ID.
+                        P39_MAG_TITLE: &MAG_NAME.
+                    }
+                }
+            }
+        )
+
+    )
+
+    region news (
+        name: "news "
+        title: &APP_TEXT$NEWS.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select ID,
+                       IMAGE,
+                       ISRTL,
+                       TITLE,
+                       ARTICLE,
+                       DATETIME,
+                       regexp_replace("newsImage",'\[|\]|"','') newsImages
+                  from TMS_WEBSITENEWS
+                
+                  order by id desc
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleC
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            layout: horizontal
+        }
+        title {
+            column: TITLE
+        }
+        subtitle {
+            column: DATETIME
+        }
+        body {
+            advancedFormatting: true
+            htmlExpression: &ARTICLE!RAW.
+        }
+        secondaryBody {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <!-- https://www.w3schools.com/css/css_image_gallery.asp -->
+                <hr/>
+                <div class="thumbs-gal">
+                    {loop "," NEWSIMAGES/} 
+                    <a  data-lightbox="&ID." data-title="&TITLE." class="light-anchor"  href="&APEX$ITEM."    >
+                      <img src="&APEX$ITEM." alt="img" style="width:8em;" />
+                    </a>
+                {endloop/}
+                ```
+        }
+        iconAndBadge {
+            iconSource: imageUrl
+            imageUrl: &IMAGE.
+        }
+        pagination {
+            type: page
+            cardsPerPage: 5
+        }
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$ADD_NEW.
+        layout {
+            sequence: 10
+            region: @card-holder
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 38
+                clearCache: 38
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        security {
+            authorizationScheme: @33318982090746440
+        }
+    )
+
+    dynamicAction on-dialog-close (
+        name: on_dialog_close
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @card-holder
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @magazines
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

@@ -1,0 +1,679 @@
+page 112 (
+    name: Prescription Request Details
+    alias: PRESCRIPTION-REQUEST-DETAILS
+    title: &APP_TEXT$P112_PAGE_TITLE.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+        cssClasses: prescription-details-page
+    }
+    css {
+        inline:
+            ```css
+            .prescription-details-page {
+                --prescription-ink: #17324d;
+                --prescription-accent: #19758b;
+                --prescription-border: #dbe6ee;
+                background: #f4f7fa;
+            }
+            .prescription-details-page .t-Body-mainContent {
+                max-width: 1500px;
+                margin: 0 auto;
+            }
+            .prescription-details-page .t-Region {
+                border: 1px solid var(--prescription-border);
+                border-radius: 16px;
+                box-shadow: 0 8px 22px rgba(23, 50, 77, .07);
+                overflow: hidden;
+            }
+            .prescription-details-page .t-Region-title {
+                color: var(--prescription-ink);
+                font-weight: 800;
+            }
+            .prescription-details-summary .t-Region-body { padding: 0; }
+            .prescription-details-summary .t-Report-report {
+                width: 100%;
+                margin: 0;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            .prescription-details-summary .t-Report-colHead {
+                padding: .75rem 1rem;
+                background: #edf6f8;
+                color: #557083;
+                font-size: .82rem;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+            .prescription-details-summary .t-Report-cell {
+                padding: .9rem 1rem;
+                color: var(--prescription-ink);
+                font-weight: 700;
+                vertical-align: top;
+                overflow-wrap: anywhere;
+            }
+            .prescription-details-summary .t-Report-report tbody tr { background: #fff; }
+            .prescription-details-summary .t-Report-report tbody tr + tr { border-top: 1px solid var(--prescription-border); }
+            .prescription-details-summary .t-Report-cell:last-child { font-weight: 500; }
+            .prescription-details-notice {
+                border-color: #f2cf76 !important;
+                background: #fffaf0;
+            }
+            .prescription-details-notice .t-Region-body { padding: .85rem 1rem; }
+            .prescription-details-notice .p112-notice {
+                display: flex;
+                align-items: flex-start;
+                gap: .7rem;
+                color: #795b13;
+                line-height: 1.7;
+            }
+            .prescription-details-notice .p112-notice .t-Icon {
+                flex: 0 0 auto;
+                margin-top: .2rem;
+                color: #c58b14;
+                font-size: 1.15rem;
+            }
+            .prescription-details-report .t-Report {
+                width: 100%;
+                overflow-x: auto;
+            }
+            .prescription-details-report .t-Report-report {
+                min-width: 1120px;
+                margin: 0;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            .prescription-details-report .t-Report-colHead {
+                padding: .8rem .9rem;
+                background: #edf6f8;
+                border-bottom: 1px solid #cbdde5;
+                color: var(--prescription-ink);
+                font-weight: 800;
+                white-space: nowrap;
+            }
+            .prescription-details-report .t-Report-cell {
+                padding: .85rem .9rem;
+                border-bottom: 1px solid #e7eef3;
+                color: #29475c;
+                vertical-align: top;
+                overflow-wrap: anywhere;
+            }
+            .prescription-details-report .t-Report-report tbody tr:nth-child(even) { background: #f9fbfc; }
+            .prescription-details-report .t-Report-report tbody tr:hover { background: #eef8fb; }
+            .prescription-details-attachments .t-Report-report {
+                min-width: 760px;
+                margin: 0;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            .prescription-details-attachments .t-Report-colHead {
+                padding: .75rem .9rem;
+                background: #f5f8fa;
+                color: #557083;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+            .prescription-details-attachments .t-Report-cell {
+                padding: .8rem .9rem;
+                border-bottom: 1px solid #e7eef3;
+                color: #29475c;
+                vertical-align: top;
+                overflow-wrap: anywhere;
+            }
+            .prescription-details-attachments .t-Report-report tbody tr:nth-child(even) { background: #f9fbfc; }
+            .prescription-details-attachments .p112-attachment-link {
+                display: inline-flex;
+                align-items: center;
+                gap: .35rem;
+                color: var(--prescription-accent);
+                font-weight: 800;
+                text-decoration: none;
+            }
+            .prescription-details-attachments .p112-attachment-link:hover { text-decoration: underline; }
+            .prescription-details-actions { background: #fff; }
+            .prescription-details-actions .t-Region-body { padding: 1rem 1.1rem .8rem; }
+            .prescription-details-actions .p112-actions-help {
+                margin: 0 0 .75rem;
+                color: #60798a;
+                line-height: 1.7;
+            }
+            .prescription-details-actions .t-Form-label {
+                color: #315568;
+                font-weight: 800;
+            }
+            .prescription-details-actions .t-Button {
+                width: 100%;
+                border-radius: 9px;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+            .prescription-details-actions .t-Button--primary {
+                background: var(--prescription-accent);
+                border-color: var(--prescription-accent);
+            }
+            .prescription-details-actions .t-Button--danger {
+                color: #a42121;
+                border-color: #e5a8a8;
+                background: #fff7f7;
+            }
+            .prescription-details-page :focus-visible {
+                outline: 3px solid rgba(25, 117, 139, .3);
+                outline-offset: 2px;
+            }
+            @media (max-width: 700px) {
+                .prescription-details-summary .t-Report-report { min-width: 720px; }
+                .prescription-details-actions .t-Button { margin-bottom: .35rem; }
+            }
+            ```
+    }
+    security {
+        authorizationScheme: @self-service-allowed
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region employee-notice (
+        name: Employee notice
+        title: &APP_TEXT$P112_NOTICE_TITLE.
+        type: staticContent
+        source {
+            htmlCode: <div class="p112-notice"><span class="t-Icon fa fa-exclamation-triangle" aria-hidden="true"></span><div><strong>&APP_TEXT$P112_ORIGINAL_PRESCRIPTION_TITLE.</strong><br>&APP_TEXT$P112_ORIGINAL_PRESCRIPTION_NOTE.</div></div>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+            ]
+            cssClasses: prescription-details-notice
+        }
+    )
+
+    region request-actions (
+        name: Request actions
+        title: &APP_TEXT$P112_ACTIONS_TITLE.
+        type: staticContent
+        source {
+            htmlCode: <p class="p112-actions-help"><span class="t-Icon fa fa-info-circle" aria-hidden="true"></span> &APP_TEXT$P112_ACTIONS_HELP.</p>
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent4
+            ]
+            cssClasses: prescription-details-actions
+        }
+    )
+
+    region request-attachments (
+        name: Request attachments
+        title: &APP_TEXT$P112_ATTACHMENTS_TITLE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select a.attachment_id,
+                       a.original_filename,
+                       nvl(a.mime_type,'application/octet-stream') mime_type,
+                       round(a.file_size/1024,1) file_size_kb,
+                       a.uploaded_at,
+                       '<a class="p112-attachment-link" href="' ||
+                       apex_escape.html_attribute(
+                           apex_util.prepare_url(
+                               apex_page.get_url(
+                                   p_application=>200,
+                                   p_page=>177,
+                                   p_items=>'P177_REQUEST_ID,P177_ATTACHMENT_ID',
+                                   p_values=>to_char(a.request_id)||','||to_char(a.attachment_id)
+                               ),
+                               p_checksum_type=>'SESSION'
+                           )
+                       ) ||
+                       '"><span class="fa fa-eye" aria-hidden="true"></span><span>'||apex_escape.html(apex_lang.message('P112_OPEN_ATTACHMENT'))||'</span></a>' attachment_url
+                  from med.md_pres_request_attachment a
+                 where a.request_id=:P112_REQUEST_ID
+                   and med.md_pres_request_pkg.employee_can_view(a.request_id,:APP_USER)='Y'
+                 order by a.uploaded_at desc
+                ```
+        }
+        layout {
+            sequence: 25
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+            ]
+            cssClasses: prescription-details-attachments
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+
+        column ATTACHMENT_ID (
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column ATTACHMENT_URL (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_OPEN_ATTACHMENT.
+            }
+            layout {
+                sequence: 50
+            }
+            columnFormatting {
+                htmlExpression: #ATTACHMENT_URL!RAW#
+            }
+        )
+
+        column FILE_SIZE_KB (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_FILE_SIZE.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column MIME_TYPE (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_FILE_TYPE.
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column ORIGINAL_FILENAME (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_FILE_NAME.
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column UPLOADED_AT (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_UPLOADED_AT.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+    )
+
+    region request-details (
+        name: Request details
+        title: &APP_TEXT$P112_MEDICINE_DECISIONS_TITLE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select i.line_no,
+                       i.medicine_name_snapshot medicine_name,
+                       i.unit_name_snapshot unit_name,
+                       i.quantity,
+                       i.employee_note line_note,
+                       case i.doctor_decision
+                           when 'APPROVED' then apex_lang.message('P112_DOCTOR_APPROVED')
+                           when 'REJECTED' then apex_lang.message('P112_DOCTOR_REJECTED')
+                           else apex_lang.message('P112_DOCTOR_PENDING')
+                       end doctor_decision,
+                       case when i.dispense_mode='DAILY' then apex_lang.message('P112_DISPENSE_DAILY')
+                            when i.dispense_mode='PHARMACY' then i.pharmacy_name_snapshot
+                            else apex_lang.message('P112_DISPENSE_NOT_ISSUED')
+                       end dispense_method,
+                       case when i.doctor_decision='REJECTED' then i.rejection_reason
+                            when i.dispense_mode='NOT_DISPENSED' then i.not_dispensed_reason
+                       end doctor_reason
+                  from med.md_pres_request r
+                  join med.md_pres_request_item i on i.request_id=r.request_id
+                 where r.request_id=:P112_REQUEST_ID
+                   and med.md_pres_request_pkg.employee_can_view(r.request_id,:APP_USER)='Y'
+                 order by i.line_no
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+            ]
+            cssClasses: prescription-details-report
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+            ]
+        }
+
+        column DISPENSE_METHOD (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_DISPENSE_METHOD.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column DOCTOR_DECISION (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_DOCTOR_DECISION.
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column DOCTOR_REASON (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_DOCTOR_REASON.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+        column LINE_NO (
+            derivedColumn: N
+            heading {
+                heading: #
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column LINE_NOTE (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_EMPLOYEE_MEDICINE_NOTE.
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column MEDICINE_NAME (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_MEDICINE.
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column QUANTITY (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_QUANTITY.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column UNIT_NAME (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_UNIT.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+    )
+
+    region request-summary (
+        name: Request summary
+        title: &APP_TEXT$P112_SUMMARY_TITLE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select r.request_no,
+                       r.employee_number,
+                       r.employee_name_snapshot employee_name,
+                       r.beneficiary_name_snapshot beneficiary_name,
+                       r.beneficiary_person_id,
+                       r.beneficiary_relation_snapshot relation_name,
+                       case r.request_kind when 'MONTHLY' then apex_lang.message('P107_PRESCRIPTION_MONTHLY') else apex_lang.message('P107_PRESCRIPTION_ONE_TIME') end request_kind,
+                       case r.status
+                           when 'DRAFT' then apex_lang.message('P107_STATUS_DRAFT')
+                           when 'PENDING_DOCTOR' then apex_lang.message('P107_STATUS_PENDING_DOCTOR')
+                           when 'SUBMITTED' then apex_lang.message('P107_STATUS_SUBMITTED_TO_DOCTOR')
+                           when 'IN_REVIEW' then apex_lang.message('P107_STATUS_DOCTOR_REVIEW')
+                           when 'APPROVED' then apex_lang.message('P107_STATUS_APPROVED')
+                           when 'PARTIALLY_APPROVED' then apex_lang.message('P107_STATUS_PARTIALLY_APPROVED')
+                           when 'REJECTED' then apex_lang.message('P107_STATUS_REJECTED')
+                           when 'CANCELLED' then apex_lang.message('P107_STATUS_CANCELLED')
+                           else r.status
+                       end status_label,
+                       to_char(r.created_at,'DD/MM/YYYY HH24:MI') created_on,
+                       r.employee_note request_note
+                  from med.md_pres_request r
+                 where r.request_id=:P112_REQUEST_ID
+                   and med.md_pres_request_pkg.employee_can_view(r.request_id,:APP_USER)='Y'
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+            ]
+            cssClasses: prescription-details-summary
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+
+        column BENEFICIARY_NAME (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_BENEFICIARY.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column BENEFICIARY_PERSON_ID (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_PERSON_ID.
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column CREATED_ON (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_CREATED_AT.
+            }
+            layout {
+                sequence: 90
+            }
+        )
+
+        column EMPLOYEE_NAME (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_EMPLOYEE_NAME.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_EMPLOYEE_NUMBER.
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column RELATION_NAME (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_BENEFICIARY_RELATION.
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column REQUEST_KIND (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_TYPE.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column REQUEST_NO (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_REQUEST_NUMBER.
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column REQUEST_NOTE (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P112_EMPLOYEE_DOCTOR_NOTE.
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column STATUS_LABEL (
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_STATUS.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+    )
+
+    pageItem P112_REQUEST_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button cancel-request (
+        buttonName: CANCEL_REQUEST
+        label: &APP_TEXT$P112_CANCEL_REQUEST.
+        layout {
+            sequence: 60
+            region: @request-actions
+            slot: regionBody
+            startNewRow: false
+            columnSpan: 3
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+            cssClasses: t-Button--danger
+            icon: fa-times
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$P112_CANCEL_CONFIRMATION.
+            style: danger
+        }
+    )
+
+    process cancel-prescription (
+        name: Cancel prescription request
+        type: executeCode
+        source {
+            plsqlCode: begin med.md_pres_request_pkg.cancel_request(:P112_REQUEST_ID,:APP_USER,'Cancelled by employee'); end;
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 64381490377241183
+        }
+        serverSideCondition {
+            whenButtonPressed: @cancel-request
+        }
+    )
+
+)

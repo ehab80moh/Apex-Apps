@@ -1,0 +1,72 @@
+theme universal-theme-2 (
+    name: Universal Theme
+    themeNumber: 42
+    baseTheme: ut-26.1
+    style {
+        currentThemeStyle: @/iris
+    }
+    javaScript {
+        fileUrls: [
+            #APEX_FILES#libraries/apex/#MIN_DIRECTORY#widget.stickyWidget#MIN#.js?v=#APEX_VERSION#
+            #THEME_FILES#js/theme42#MIN#.js?v=#APEX_VERSION#
+        ]
+    }
+    css {
+        fileUrls: #THEME_FILES#css/Core#MIN#.css?v=#APEX_VERSION#
+    }
+    componentDefaults {
+        page: @/standard
+        navigationBarList: @/navigation-bar
+        navigationMenuListPosition: side
+        navigationMenuListTop: @/top-navigation-menu
+        navigationMenuListSide: @/side-navigation-menu
+        loginPage: @/login
+        errorPage: @/login
+        printerFriendlyPage: @/standard
+        breadcrumb: @/breadcrumb
+        button: @/text
+        defaultLabel: @/optional-floating
+        optionalLabel: @/optional-floating
+        requiredLabel: @/required-floating
+        list: @/links-list
+        region: @/standard
+        classicReport: @/standard
+    }
+    regionDefaults {
+        breadcrumbs: @/title-bar
+        charts: @/standard
+        forms: @/standard
+        lists: @/standard
+        reports: @/standard
+        wizards: @/standard
+        interactiveReports: @/interactive-report
+    }
+    dialogDefaults {
+        dialogContentRegion: @/blank-with-attributes
+        dialogButtonRegion: @/buttons-container
+        dialogPage: @/modal-dialog
+    }
+    icons {
+        library: fontApex
+    }
+    advanced {
+        filePrefix: #APEX_FILES#themes/theme_42/26.1/
+        identifier: UNIVERSAL_THEME
+    }
+
+    style main-theme-for-portal (
+        name: Main Theme For Portal
+        css {
+            fileUrls: #THEME_FILES#less/theme/Vita.less
+            cssClasses: #THEME_DB_FILES#32815565356074235.css
+        }
+        themeRollerAttributes {
+            inputParameterFileUrls: "{\"classes\":[],\"vars\":{\"@g_Accent-BG\":\"#3f5a73\",\"@g_Form-Item-BG\":\"#f0f4f0\",\"@g_Form-Item-FG\":\"#202020\",\"@irrBg\":\"#f8fcf9\",\"@Head-Height\":\"64px\",\"@g_Nav_Style\":\"dark\",\"@g_Nav-Active-BG\":\"#444a50\",\"@g_Nav-Active-FG\":\"#dce0dc\",\"@g_NavBarMenu-BG\":\"#FFFFFF\",\"@g_NavBarMenu-FG\":\"#262626\",\"@g_Nav-BG\":\"#29333c\",\"@g_Nav-FG\":\"#f2f2f2\",\"@g_NavBarMenu-Active-BG\":\"#425a70\",\"@g_NavBarMenu-Active-FG\":\"#ffffff\",\"@g_Nav-Icon\":\"#ffffff\",\"@g_Nav-Icon-Active\":\"#02f016\",\"@g_Button-BorderRadius\":\"8px\",\"@g_Info-BG\":\"#056ac8\",\"@g_Info-FG\":\"#ffffff\",\"@g_Button-BG\":\"#e9f1e8\",\"@g_Button-Text\":\"#4a0000\",\"@l_Button-Hot-BG\":\"#3f5a73\",\"@l_Button-Hot-Text\":\"#ffffff\",\"@l_Button-Primary-BG\":\"#acc0d2\",\"@l_Button-Primary-Text\":\"#000000\",\"@l_Button-Simple-BG\":\"#ffffff\",\"@l_Button-Simple-Text\":\"#404040\",\"@g_Color-Palette-14\":\"#afbac5\",\"@g_Color-Palette-14-FG\":\"#313a44\",\"@g_Color-Palette-15\":\"#6e8598\",\"@g_Color-Palette-15-FG\":\"#ffffff\",\"@g_Color-Palette-1\":\"#309fdb\",\"@g_Color-Palette-1-FG\":\"#ffffff\",\"@g_Disabled-BG\":\"#707070\",\"@g_Disabled-FG\":\"#ffffff\",\"@g_Primary-BG\":\"#acc0d2\",\"@g_Primary-FG\":\"#000000\",\"@g_Region-Header-BG\":\"#ffffff\",\"@g_Region-Header-FG\":\"#262626\",\"@g_Region-BG\":\"#ffffff\",\"@g_Region-FG\":\"#1d1111\",\"@g_Header-BG\":\"#3f5a73\",\"@g_Header-FG\":\"#ffffff\",\"@g_Form-Label\":\"#100a0a\"},\"customCSS\":\"\",\"useCustomLess\":\"N\"}"
+        }
+        advanced {
+            endUserCanPick: true
+            accessibilityTested: true
+        }
+    )
+
+)

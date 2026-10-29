@@ -1,0 +1,2253 @@
+page 27 (
+    name: البيانات الشخصية
+    alias: PERSONAL-DATA
+    title: &APP_TEXT$PERSONAL_DATA.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .ui-dialog.modal-dialog--pullout{
+               top: 0!important;
+            }
+            
+            .a-CardView-button {
+                margin-bottom: 1em;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region emp-card-desktop (
+        name: emp card desktop
+        title: &APP_TEXT$EMP_CARD_DESKTOP.
+        type: cards
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_EMP_DATA
+            whereClause:
+                ```sql
+                EMP_NUMBER = :P27_EMP_CURRENT
+                
+                
+                ```
+        }
+        layout {
+            sequence: 30
+            parentRegion: @emp-cards-mobile-and-desktop
+            slot: subRegions
+            column: 3
+            columnSpan: 6
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+                margin-top-lg
+            ]
+            cssClasses: hidden-sm-down
+        }
+        componentAppearance {
+            layout: horizontal
+        }
+        card {
+            primaryKeyColumn1: EMP_NUMBER
+        }
+        title {
+            column: EMP_NUMBER
+        }
+        subtitle {
+            column: EMP_NAME
+        }
+        body {
+            column: ORGANIZATION_NAME
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGE
+            position: first
+            appearance: widescreen
+        }
+        performance {
+            lazyLoading: true
+        }
+    )
+
+    region emp-card-mobile (
+        name: emp card mobile
+        title: &APP_TEXT$EMP_CARD_MOBILE.
+        type: cards
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_EMP_DATA
+            whereClause: EMP_NUMBER = :P27_EMP_CURRENT
+        }
+        layout {
+            sequence: 40
+            parentRegion: @emp-cards-mobile-and-desktop
+            slot: subRegions
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                margin-top-lg
+            ]
+            cssClasses: hidden-md-up
+        }
+        card {
+            primaryKeyColumn1: EMP_NUMBER
+        }
+        title {
+            column: EMP_NUMBER
+        }
+        subtitle {
+            column: EMP_NAME
+        }
+        body {
+            column: ORGANIZATION_NAME
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGE
+            position: first
+            appearance: widescreen
+        }
+        performance {
+            lazyLoading: true
+        }
+    )
+
+    region emp-cards-mobile-and-desktop (
+        name: emp cards mobile and desktop
+        title: &APP_TEXT$EMP_CARDS_MOBILE_AND_DESKTOP.
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--removeHeader js-removeLandmark
+                t-Region--textContent
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+    )
+
+    region البيانات-الشخصية (
+        name: "البيانات الشخصية "
+        title: &APP_TEXT$PERSONAL_DATA.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 
+                q.comments,
+                       EMP_NAME,
+                       NATIONAL_IDENTIFIER,
+                       EMP_DATE_OF_BIRTH,
+                       EMP_POSITION_NAME,
+                       SITE_CODE,
+                       ORGANIZATION_NAME,
+                       ASSIGNMENTS_DATE,
+                       REPLACE(GRADE_NAME,'EPROM.','') GRADE_NAME,
+                       PERMANENT_DATE,
+                       EXCEL_POS,
+                       PROJECT,
+                       BASIC_SALARY,
+                       EXP_DATE,
+                       SYS.dbms_lob.getlength(IMAGE) image,
+                       IMAGE_ID,
+                       COMP_EMAIL,
+                       PAY_EMAIL,
+                       EGPC_EMAIL,
+                       MAR_STAT,
+                       prim_address,
+                       a.town_or_city
+                  from CENTRAL.XXAPEX_HR_EMP_DATA D,
+                (select* from central.xxapex_hr_qualifications qq
+                    where 1=1 and qq.maon_or_not='Yes')q,
+                 (select* from central.XXAPEX_HR_EMP_ADDRESSES aa
+                  where 1=1 and aa.PRIMARY_ADD='Y') a
+                where EMP_NUMBER = :P27_SELECTED_EM_NUM
+                and q.employee_number (+) = d.emp_number
+                and a.employee_number (+) = d.emp_number
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--textContent
+                t-Region--scrollBody
+                margin-bottom-lg
+            ]
+            icon: fa-user
+        }
+        reportLayout {
+            numberOfRows: 1
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+            showNullValuesAs: -
+        }
+
+        column ASSIGNMENTS_DATE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 360
+            }
+        )
+
+        column BASIC_SALARY (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 410
+            }
+        )
+
+        column COMMENTS (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MAIN_QUALIFICATION.
+                alignment: center
+            }
+            layout {
+                sequence: 440
+            }
+        )
+
+        column COMP_EMAIL (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 180
+            }
+        )
+
+        column EGPC_EMAIL (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 200
+            }
+        )
+
+        column EMP_DATE_OF_BIRTH (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_OF_BIRTH.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column EMP_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column EMP_POSITION_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 330
+            }
+        )
+
+        column EXCEL_POS (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 390
+            }
+        )
+
+        column EXP_DATE (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 420
+            }
+        )
+
+        column GRADE_NAME (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 370
+            }
+        )
+
+        column IMAGE (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column IMAGE_ID (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 430
+            }
+        )
+
+        column MAR_STAT (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MARITAL_STATUS.
+                alignment: center
+            }
+            layout {
+                sequence: 320
+            }
+        )
+
+        column NATIONAL_IDENTIFIER (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NATIONAL_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 470
+            }
+        )
+
+        column ORGANIZATION_NAME (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 350
+            }
+        )
+
+        column PAY_EMAIL (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMAIL.
+                alignment: center
+            }
+            layout {
+                sequence: 190
+            }
+        )
+
+        column PERMANENT_DATE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 380
+            }
+        )
+
+        column PRIM_ADDRESS (
+            reportColumnQueryId: 21
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 450
+            }
+        )
+
+        column PROJECT (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 400
+            }
+        )
+
+        column SITE_CODE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 340
+            }
+        )
+
+        column TOWN_OR_CITY (
+            reportColumnQueryId: 22
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 460
+            }
+        )
+
+    )
+
+    region البيانات-الشخصية-2 (
+        name: "البيانات الشخصية "
+        title: &APP_TEXT$PERSONAL_DATA.
+        type: staticContent
+        layout {
+            sequence: 30
+            parentRegion: @البيانات-الشخصية
+            slot: regionBody
+        }
+        appearance {
+            template: @hero
+            templateOptions: [
+                #DEFAULT#
+                t-HeroRegion--iconsCircle
+            ]
+            icon: fa-user
+        }
+    )
+
+    region البيانات-الوظيفية (
+        name: البيانات الوظيفية
+        title: &APP_TEXT$FUNCTIONAL_DATA.
+        type: staticContent
+        layout {
+            sequence: 60
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @hero
+            templateOptions: [
+                #DEFAULT#
+                t-HeroRegion--iconsCircle
+            ]
+            icon: fa-suitcase
+        }
+    )
+
+    region البيانات-الوظيفية-2 (
+        name: البيانات الوظيفية
+        title: &APP_TEXT$FUNCTIONAL_DATA.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 
+                emp_number,
+                       EMP_POSITION_NAME,
+                       SITE_CODE,
+                       ORGANIZATION_NAME,
+                       ASSIGNMENTS_DATE,
+                       GRADE_NAME,
+                       PERMANENT_DATE,
+                       EXCEL_POS,
+                       PROJECT,
+                       BASIC_SALARY,
+                       EXP_DATE,
+                JOB_DATE
+                  from CENTRAL.XXAPEX_HR_EMP_DATA
+                where EMP_NUMBER = :P27_SELECTED_EM_NUM
+                ```
+        }
+        layout {
+            sequence: 70
+            slot: body
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--textContent
+                t-Region--scrollBody
+            ]
+            icon: fa-suitcase
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        reportLayout {
+            numberOfRows: 1
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+
+        column ASSIGNMENTS_DATE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column BASIC_SALARY (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 130
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$JOB_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column EMP_POSITION_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$JOB.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column EXCEL_POS (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column EXP_DATE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 110
+            }
+        )
+
+        column GRADE_NAME (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$JOB_GRADE.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column JOB_DATE (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_OBTAINED.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column ORGANIZATION_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MANAGEMENT.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column PERMANENT_DATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$INSTALLATION_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column PROJECT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PROJECT.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column SITE_CODE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THE_SITE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+    )
+
+    region التقييمات-السنوية (
+        name: التقييمات السنوية
+        title: &APP_TEXT$ANNUAL_EVALUATIONS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 
+                       had.YEARR,
+                       had.AQU_GRADE
+                  from CENTRAL.XXAPEX_HR_APPRAISAL_DATA had,
+                    central.xxapex_hr_emp_data       hed
+                WHERE
+                    hed.emp_number = had.employee_number
+                    and grade_name is not null
+                    and EMPloyee_NUMBER= :P27_SELECTED_EM_NUM
+                    order by had.YEARR;
+                ```
+            pageItemsToSubmit: P27_SELECTED_EM_NUM
+        }
+        layout {
+            sequence: 140
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+        }
+        reportLayout {
+            numberOfRows: 100
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-row
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+
+        column AQU_GRADE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$APPRECIATION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @تقدير
+            }
+            layout {
+                sequence: 50
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column YEARR (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$YEARR.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region التليفونات (
+        name: التليفونات
+        title: &APP_TEXT$TELEPHONES.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select p.PERSON_ID,
+                       p.EMPLOYEE_NUMBER,
+                       c.MOBILE as Phone_apex,
+                       p.FULL_NAME,
+                       p.TYPEE,
+                       replace(p.PHONE_NUMBER,' ','') PHONE_NUMBER,
+                       p.DATE_FROM,
+                       p.DATE_TO
+                  from CENTRAL.XXAPEX_HR_EMP_PHONES p join central.EMP_CONTACT c on c.emp_id = p.EMPLOYEE_NUMBER
+                 where p.EMPLOYEE_NUMBER=:P27_SELECTED_EM_NUM
+                ```
+        }
+        layout {
+            sequence: 90
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+                t-Region--accent14
+                t-Region--scrollBody
+                margin-top-lg
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        reportLayout {
+            numberOfRows: 1
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+
+        column DATE_FROM (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column DATE_TO (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 110
+            }
+        )
+
+        column PERSON_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column PHONE_APEX (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APEX_PHONE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column PHONE_NUMBER (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PHONE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TYPEE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TYPE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region الجزاءات (
+        name: الجزاءات
+        title: &APP_TEXT$PENALTIES.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select a.decision_number_ decision_no,
+                       a.decision_date,
+                       a.date_from,
+                       a.date_to,
+                       a.penalty_cause,
+                       a.penalty_source_,
+                       a.notes
+                from apr.active_disciplinaries_snap a
+                where EMPLOYEE_NUMBER = :P27_EMP_CURRENT
+                
+                
+                ```
+            pageItemsToSubmit: [
+                P27_SELECTED_EM_NUM
+                P27_EMP_CURRENT
+            ]
+        }
+        layout {
+            sequence: 160
+            slot: body
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+        }
+        reportLayout {
+            numberOfRows: 100
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_IS_NO_PREVIOUS_PENALTY.
+        }
+
+        column DATE_FROM (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_FROM.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column DATE_TO (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_TO.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column DECISION_DATE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DECISION_DATE.
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column DECISION_NO (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DECISION_NO.
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column NOTES (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NOTES.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column PENALTY_CAUSE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PENALTY_CAUSE.
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column PENALTY_SOURCE_ (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PENALTY_SOURCE.
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+    )
+
+    region الرصيد-الاعتيادي (
+        name: الرصيد الاعتيادي
+        title: &APP_TEXT$REGULAR_BALANCE.
+        type: chart
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMPLOYEE_NUMBER,
+                       FULL_NAME,
+                       ANNUAL_CREDIT,
+                       to_number(ANNUAL_CREDIT)-
+                       nvl(central.xxapex_general.get_apex_approved_leaves_count( :P27_SELECTED_EM_NUM,'H',ACC_START_DATE,ACC_END_DATE),0)
+                       Remain_annual,
+                       CASUAL_CREDIT,
+                       to_number(CASUAL_CREDIT)-
+                       nvl(central.xxapex_general.get_apex_approved_leaves_count(:P27_SELECTED_EM_NUM,'C',ACC_START_DATE,ACC_END_DATE),0)
+                       C_remain
+                ,HOURS_CREDIT
+                       
+                from CENTRAL.XXAPEX_OTL_LEAVE_CREDIT
+                where 1=1
+                AND EMPLOYEE_NUMBER = :P27_EMP_CURRENT
+                ORDER BY FULL_NAME
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @رصيد-الأجازات
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                js-headingLevel-2
+                t-Region--scrollBody
+                t-Form--slimPadding
+                t-Form--stretchInputs
+            ]
+        }
+        chartAppearance {
+            stack: true
+        }
+        chartLayout {
+            maxWidth: 800
+            height: 500
+        }
+        legend {
+            position: top
+            fontSize: 18
+            fontColor: #000000
+        }
+
+        series رصيد-ساعات (
+            name: &APP_TEXT$HOURS_BALANCE.
+            execution {
+                sequence: 30
+            }
+            source {
+                location: regionSource
+            }
+            columnMapping {
+                label: HOURS_CREDIT
+                value: HOURS_CREDIT
+            }
+            appearance {
+                color: #319a00
+            }
+            label {
+                show: true
+                position: center
+                fontSize: 18
+                fontColor: #000000
+            }
+        )
+
+        series رصيد-سنوي (
+            name: &APP_TEXT$ANNUAL_BALANCE.
+            execution {
+                sequence: 10
+            }
+            source {
+                location: regionSource
+            }
+            columnMapping {
+                label: ANNUAL_CREDIT
+                value: REMAIN_ANNUAL
+                customTooltip: REMAIN_ANNUAL
+                labelTooltip: REMAIN_ANNUAL
+            }
+            appearance {
+                color: #0bd1c0
+            }
+            label {
+                show: true
+                position: center
+                fontSize: 18
+                fontColor: #000000
+            }
+        )
+
+        series رصيد-عارضة (
+            name: &APP_TEXT$CASUAL_BALANCE.
+            execution {
+                sequence: 20
+            }
+            source {
+                location: regionSource
+            }
+            columnMapping {
+                label: CASUAL_CREDIT
+                value: CASUAL_CREDIT
+            }
+            appearance {
+                color: #f68300
+            }
+            label {
+                show: true
+                position: center
+                fontSize: 18
+                fontColor: #000000
+            }
+        )
+
+        axis x (
+            name: x
+            minorTicks {
+                show: false
+            }
+        )
+
+        axis y (
+            name: y
+            value {
+                format: decimal
+                decimalPlaces: 0
+                formatScaling: none
+            }
+            minorTicks {
+                show: false
+            }
+        )
+
+        axis y-1 (
+            name: y2
+            minorTicks {
+                show: false
+            }
+        )
+
+    )
+
+    region السجلات-التدريبية (
+        name: السجلات التدريبية
+        title: &APP_TEXT$TRAINING_RECORDS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select PERSON_ID,
+                       EMPLOYEE_NUMBER,
+                       FULL_NAME,
+                       COURSE_NAME,
+                       COURSE_START_DATE,
+                       COURSE_END_DATE,
+                       COURSE_CENTER,
+                       COURSE_COST,
+                       TRAINING_DAYS
+                  from CENTRAL.XXAPEX_HR_EMP_TRA_RECORDS
+                 where Employee_number=:P27_SELECTED_EM_NUM
+                ```
+        }
+        layout {
+            sequence: 110
+            slot: body
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        reportLayout {
+            numberOfRows: 10
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            partialPageRefresh: false
+        }
+
+        column COURSE_CENTER (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TRAINING_CENTER.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COURSE_COST (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column COURSE_END_DATE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$END_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COURSE_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$COURSE_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+        )
+
+        column COURSE_START_DATE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$START_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column PERSON_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column TRAINING_DAYS (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+    )
+
+    region بطاقة-الموظف (
+        name: بطاقة الموظف
+        title: &APP_TEXT$EMPLOYEE_CARD.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select s.employee_number,
+                       s.full_name,
+                       s.dept,
+                       s.position,
+                       s.project,
+                       s.grade,
+                       s.JOB_DATE,
+                       s.basic_salary,
+                       s.date_of_birth,
+                       s.age_years,
+                       s.total_experience,
+                       s.exp_y, s.exp_m, s.exp_d,
+                       s.ADEQ1Y,s.ADEQ2Y,s.ADEQ3Y,
+                       s.has_active_disciplinary_action,
+                       s.has_long_leave
+                from APR.active_employees_snap s
+                join APR.apr_emps e
+                  on e.emp_id = s.employee_number
+                where s.employee_number = :P27_SELECTED_EM_NUM
+                
+                
+                ```
+            pageItemsToSubmit: P27_SELECTED_EM_NUM
+        }
+        layout {
+            sequence: 80
+            slot: body
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+                t-Region--accent14
+                t-Region--scrollBody
+                t-Form--stretchInputs
+                t-Region-orderBy--center
+                margin-top-lg
+                margin-bottom-md
+            ]
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+
+        column ADEQ1Y (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$ESTIMATE_YEAR_2025.
+            }
+            lov {
+                type: sharedComponent
+                lov: @تقدير
+            }
+            layout {
+                sequence: 160
+            }
+        )
+
+        column ADEQ2Y (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$ESTIMATE_YEAR_2024.
+            }
+            lov {
+                type: sharedComponent
+                lov: @تقدير
+            }
+            layout {
+                sequence: 170
+            }
+        )
+
+        column ADEQ3Y (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$ESTIMATE_YEAR_2023.
+            }
+            lov {
+                type: sharedComponent
+                lov: @تقدير
+            }
+            layout {
+                sequence: 180
+            }
+        )
+
+        column AGE_YEARS (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$AGE_YEARS.
+                alignment: end
+            }
+            layout {
+                sequence: 110
+                columnAlignment: end
+            }
+        )
+
+        column BASIC_SALARY (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$BASIC_SALARY.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+        )
+
+        column DATE_OF_BIRTH (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_OF_BIRTH.
+            }
+            layout {
+                sequence: 100
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
+            }
+        )
+
+        column DEPT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MANAGEMENT.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$JOB_NUMBER.
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column EXP_D (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EXPERIENCE_DAY.
+                alignment: end
+            }
+            layout {
+                sequence: 150
+                columnAlignment: end
+            }
+        )
+
+        column EXP_M (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ONE_MONTH_OF_EXPERIENCE.
+                alignment: end
+            }
+            layout {
+                sequence: 140
+                columnAlignment: end
+            }
+        )
+
+        column EXP_Y (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ONE_YEAR_OF_EXPERIENCE.
+                alignment: end
+            }
+            layout {
+                sequence: 130
+                columnAlignment: end
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME.
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column GRADE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FUNCTIONAL_LEVEL.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+        column HAS_ACTIVE_DISCIPLINARY_ACTION (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$HE_CURRENTLY_HAS_PENALTIES.
+            }
+            lov {
+                type: staticValues
+                staticValues: STATIC2:لا يوجد;N,نعم لديه;Y
+            }
+            layout {
+                sequence: 190
+            }
+        )
+
+        column HAS_LONG_LEAVE (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$VACATION_WITHOUT_PAY.
+            }
+            lov {
+                type: staticValues
+                staticValues: STATIC2:لا يوجد اجازات بدون مرتب;N,نعم لديه اجازه بدون مرتب;Y
+            }
+            layout {
+                sequence: 200
+            }
+        )
+
+        column JOB_DATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$JOB_LEVEL_HISTORY.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column POSITION (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$JOB.
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column PROJECT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PROJECT.
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column TOTAL_EXPERIENCE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TOTAL_YEARS_OF_EXPERIENCE.
+            }
+            layout {
+                sequence: 120
+            }
+        )
+
+    )
+
+    region بيانات-المؤهلات (
+        name: بيانات المؤهلات
+        title: &APP_TEXT$QUALIFICATIONS_DATA.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select PERSON_ID,
+                       EMPLOYEE_NUMBER,
+                       FULL_NAME,
+                       NAME,
+                       TITLE,
+                       GRADE_ATTAINED,
+                       AWARDED_DATE,
+                       COMMENTS,
+                       QUAL_CAT,
+                       QUAL_CAT_NAME,
+                       QUAL_MEANING,
+                       QAUAL_DESC,
+                       MAON_OR_NOT
+                  from CENTRAL.XXAPEX_HR_QUALIFICATIONS
+                 where  EMPloyee_NUMBER = :P27_SELECTED_EM_NUM
+                ```
+        }
+        layout {
+            sequence: 100
+            slot: body
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        readOnly {
+            type: always
+        }
+        reportLayout {
+            numberOfRows: 4
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_REGISTERED_QUALIFICATIONS.
+        }
+
+        column AWARDED_DATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_OF_OBTAINING_THE_QUALIFICATION.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COMMENTS (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 110
+            }
+        )
+
+        column GRADE_ATTAINED (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPRECIATION.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column MAON_OR_NOT (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$BASIC_QUALIFICATION.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME_OF_QUALIFICATION.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column PERSON_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column QAUAL_DESC (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TYPE_OF_QUALIFICATION.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column QUAL_CAT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 120
+            }
+        )
+
+        column QUAL_CAT_NAME (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 130
+            }
+        )
+
+        column QUAL_MEANING (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 140
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$SPECIALIZATION.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region رصيد-الأجازات (
+        name: رصيد الأجازات
+        title: &APP_TEXT$VACATION_BALANCE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMPLOYEE_NUMBER,
+                       FULL_NAME,
+                       ANNUAL_CREDIT,
+                       to_number(ANNUAL_CREDIT)-
+                       nvl(central.xxapex_general.get_apex_approved_leaves_count( :P27_SELECTED_EM_NUM,'H',ACC_START_DATE,ACC_END_DATE),0)
+                       Remain_annual,
+                       CASUAL_CREDIT,
+                       to_number(CASUAL_CREDIT)-
+                       nvl(central.xxapex_general.get_apex_approved_leaves_count(:P27_SELECTED_EM_NUM,'C',ACC_START_DATE,ACC_END_DATE),0)
+                       C_remain,
+                       HOURS_CREDIT,
+                       EFF_DATE,
+                       annual_accrual,
+                       ACC_START_DATE,
+                       ACC_END_DATE
+                         from --CENTRAL.XXAPEX_OTL_LEAVE_CREDIT
+                  CENTRAL.XXAPEX_OTL_LEAVE_CREDIT
+                 where employee_number=:P27_SELECTED_EM_NUM
+                ```
+        }
+        layout {
+            sequence: 120
+            slot: body
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$PLEASE_VISIT_THE_ENTITLEMENTS_DEPARTMENT_TO_VIEW_BALANCES.
+        }
+
+        column ACC_END_DATE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$BALANCE_END_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column ACC_START_DATE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$BALANCE_START_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column ANNUAL_ACCRUAL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 110
+            }
+        )
+
+        column ANNUAL_CREDIT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ANNUAL_BALANCE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+        )
+
+        column CASUAL_CREDIT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$CASUAL_BALANCE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+        )
+
+        column C_REMAIN (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THE_REMAINING_BALANCE_OF_THE_MODEL.
+                alignment: center
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column EFF_DATE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column HOURS_CREDIT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$HOURS_BALANCE.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+        )
+
+        column REMAIN_ANNUAL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THE_REMAINING_REGULAR_BALANCE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+    )
+
+    region علاوة-الجدارة (
+        name: علاوة الجدارة
+        title: &APP_TEXT$MERIT_BONUS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMPLOYEE_NUMBER,
+                       FULL_NAME,
+                       DESC_DATE,
+                       COMMITE_S_H,
+                       YEAR_EXTRACTED
+                  from apr.XXAPEX_HR_EMP_GADARA_V V
+                  join apr.apr_emps e
+                  on e.emp_id = V.employee_number
+                where EMPLOYEE_NUMBER = :P27_EMP_CURRENT;
+                
+                ```
+            pageItemsToSubmit: [
+                P27_SELECTED_EM_NUM
+                P27_EMP_CURRENT
+            ]
+        }
+        layout {
+            sequence: 150
+            slot: body
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+        }
+        reportLayout {
+            numberOfRows: 100
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_IS_NO_PREVIOUS_MERIT_BONUS.
+        }
+
+        column COMMITE_S_H (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$COMMITTEE_NO.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column DESC_DATE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_OF_REGISTRATION_OF_THE_MERIT_BONUS.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FULL_NAME.
+                alignment: end
+            }
+            layout {
+                sequence: 20
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column YEAR_EXTRACTED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MERIT_BONUS_HISTORY.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    pageItem P27_EMP_CURRENT (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: body
+        }
+    )
+
+    pageItem P27_SELECTED_EM_NUM (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+    )
+
+    process pl-sql (
+        name: PL/SQL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                :P27_SELECTED_EM_NUM:= nvl(:P27_SELECTED_EM_NUM,:APP_USER);
+                :P27_EMP_CURRENT:=:P27_SELECTED_EM_NUM;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 9321588311698873
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+)

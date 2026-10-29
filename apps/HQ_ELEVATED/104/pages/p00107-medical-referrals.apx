@@ -1,0 +1,3409 @@
+page 107 (
+    name: &APP_TEXT$MEDICAL_REFERRAL_REQUESTS_TITLE.
+    alias: MEDICAL-REFERRALS
+    title: &APP_TEXT$MEDICAL_REFERRAL_REQUESTS_TITLE.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+        warnOnUnsavedChanges: false
+    }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            function p107EmailPattern(value) {
+              return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,63}$/.test(value);
+            }
+            
+            function p107DecodeHtmlEntities(value) {
+              const decoder = document.createElement('textarea');
+              let decoded = String(value || '');
+            
+              for (let pass = 0; pass < 2; pass += 1) {
+                decoder.innerHTML = decoded;
+            
+                if (decoder.value === decoded) {
+                  break;
+                }
+            
+                decoded = decoder.value;
+              }
+            
+              return decoded;
+            }
+            
+            function p107DownloadUrl(referalId) {
+              return apex.server.url({
+                p_request: 'DOWNLOAD_MEDICAL_REFERRAL',
+                x01: referalId
+              });
+            }
+            
+            function p107EmailDraftUrl(referalId, recipient) {
+            
+              apex.item('P107_REFERAL_ID').setValue(referalId);
+              apex.item('P107_EMAIL_RECIPIENT').setValue(recipient);
+            
+              return apex.server.url({
+                p_request: 'DOWNLOAD_MEDICAL_EMAIL_DRAFT',
+                pageItems: '#P107_REFERAL_ID,#P107_EMAIL_RECIPIENT,#P107_EMAIL_URL'
+              });
+            }
+            
+            function p107CancelMedicalReferral(referalId) {
+            
+              if (
+                !window.confirm(
+                  apex.lang.getMessage('MEDICAL_REFERRAL_CANCEL_CONFIRMATION')
+                )
+              ) {
+                return false;
+              }
+            
+              apex.server.process(
+                'CANCEL_MEDICAL_REFERRAL',
+                {
+                  x01: referalId
+                },
+                {
+                  dataType: 'text',
+            
+                  success: function () {
+                    window.location.reload();
+                  },
+            
+                  error: function () {
+                    apex.message.alert(
+                      apex.lang.getMessage('P107_ACTION_ERROR')
+                    );
+                  }
+                }
+              );
+            
+              return false;
+            }
+            
+            function p107OpenShareDialog() {
+            
+              const dialog = document.getElementById('p107-share-dialog');
+              const urlInput = document.getElementById('p107-share-url');
+            
+              const publicUrl =
+                apex.item('P107_PUBLIC_URL').getValue();
+            
+              if (!dialog || !urlInput || !publicUrl) {
+                return;
+              }
+            
+              urlInput.value = publicUrl;
+            
+              dialog.showModal();
+            }
+            
+            function p107ShareViaWhatsApp() {
+            
+              const publicUrl =
+                apex.item('P107_PUBLIC_URL').getValue();
+            
+              const message =
+                apex.lang.getMessage('MEDICAL_REFERRAL_SHARE');
+            
+              if (!publicUrl) {
+                return;
+              }
+            
+              window.open(
+                'https://wa.me/?text=' +
+                  encodeURIComponent(
+                    message + ' ' + publicUrl
+                  ),
+                '_blank',
+                'noopener,noreferrer'
+              );
+            }
+            
+            async function p107ShareMedicalReferral() {
+            
+              const publicUrl =
+                apex.item('P107_PUBLIC_URL').getValue();
+            
+              const referalId =
+                apex.item('P107_REFERAL_ID').getValue();
+            
+              const downloadUrl =
+                p107DownloadUrl(referalId);
+            
+              const message =
+                apex.lang.getMessage('MEDICAL_REFERRAL_SHARE');
+            
+              if (!publicUrl) {
+                return;
+              }
+            
+              if (
+                navigator.share &&
+                window.File &&
+                downloadUrl
+              ) {
+                try {
+            
+                  const response = await fetch(
+                    downloadUrl,
+                    {
+                      credentials: 'same-origin'
+                    }
+                  );
+            
+                  const contentType =
+                    (
+                      response.headers.get('Content-Type') || ''
+                    ).toLowerCase();
+            
+                  if (
+                    response.ok &&
+                    contentType.indexOf('application/pdf') === 0
+                  ) {
+            
+                    const blob =
+                      await response.blob();
+            
+                    const file =
+                      new File(
+                        [blob],
+                        'medical-referral.pdf',
+                        {
+                          type: 'application/pdf'
+                        }
+                      );
+            
+                    if (
+                      !navigator.canShare ||
+                      navigator.canShare({
+                        files: [file]
+                      })
+                    ) {
+            
+                      await navigator.share({
+                        title: message,
+                        text: message,
+                        url: publicUrl,
+                        files: [file]
+                      });
+            
+                      return;
+                    }
+                  }
+            
+                } catch (error) {
+            
+                  if (
+                    error &&
+                    error.name === 'AbortError'
+                  ) {
+                    return;
+                  }
+                }
+              }
+            
+              p107ShareViaWhatsApp();
+            }
+            
+            function p107OpenEmailDialog() {
+            
+              const dialog =
+                document.getElementById(
+                  'p107-email-dialog'
+                );
+            
+              const recipient =
+                document.getElementById(
+                  'p107-email-recipient'
+                );
+            
+              if (!dialog || !recipient) {
+                return;
+              }
+            
+              recipient.value =
+                apex
+                  .item('P107_EMAIL_RECIPIENT')
+                  .getValue() || '';
+            
+              p107SetEmailDialogContext();
+              p107RefreshEmailPreview();
+            
+              dialog.showModal();
+            
+              window.requestAnimationFrame(
+                function () {
+                  recipient.focus();
+                }
+              );
+            }
+            
+            function p107RefreshEmailPreview() {
+            
+              const recipientElement =
+                document.getElementById(
+                  'p107-email-recipient'
+                );
+            
+              if (!recipientElement) {
+                return;
+              }
+            
+              const recipient =
+                recipientElement.value.trim();
+            
+              const emailUrl =
+                p107DecodeHtmlEntities(
+                  apex
+                    .item('P107_EMAIL_URL')
+                    .getValue()
+                );
+            
+              const previewRecipient =
+                document.getElementById(
+                  'p107-email-preview-recipient'
+                );
+            
+              const previewBody =
+                document.getElementById(
+                  'p107-email-preview-body'
+                );
+            
+              const previewLink =
+                document.getElementById(
+                  'p107-email-preview-link'
+                );
+            
+              if (previewRecipient) {
+                previewRecipient.textContent =
+                  recipient || '—';
+              }
+            
+              if (previewBody) {
+                previewBody.textContent =
+                  p107EmailDocumentType() === 'PRESCRIPTION'
+                    ? apex.lang.getMessage(
+                        'MEDICAL_REFERRAL_EMAIL_PREVIEW_BODY'
+                      )
+                    : apex.lang.getMessage(
+                        'MEDICAL_REFERRAL_EMAIL_PREVIEW_BODY'
+                      );
+              }
+            
+              if (previewLink) {
+            
+                previewLink.href =
+                  emailUrl || '#';
+            
+                previewLink.setAttribute(
+                  'aria-disabled',
+                  emailUrl ? 'false' : 'true'
+                );
+              }
+            }
+            
+            async function p107CopyEmailLink() {
+            
+              const emailUrl =
+                p107DecodeHtmlEntities(
+                  apex
+                    .item('P107_EMAIL_URL')
+                    .getValue()
+                );
+            
+              const copyButton =
+                document.getElementById(
+                  'p107-email-copy-link'
+                );
+            
+              const copyLabel =
+                copyButton
+                  ? copyButton.querySelector(
+                      '.t-Button-label'
+                    )
+                  : null;
+            
+              if (
+                !emailUrl ||
+                !copyButton ||
+                !copyLabel
+              ) {
+            
+                apex.message.alert(
+                  apex.lang.getMessage(
+                    'P107_ACTION_ERROR'
+                  )
+                );
+            
+                return;
+              }
+            
+              let copied = false;
+            
+              try {
+            
+                if (
+                  navigator.clipboard &&
+                  window.isSecureContext
+                ) {
+            
+                  await navigator.clipboard.writeText(
+                    emailUrl
+                  );
+            
+                  copied = true;
+                }
+            
+              } catch (ignore) {
+            
+                copied = false;
+              }
+            
+              if (!copied) {
+            
+                const temporaryField =
+                  document.createElement(
+                    'textarea'
+                  );
+            
+                temporaryField.value =
+                  emailUrl;
+            
+                temporaryField.setAttribute(
+                  'readonly',
+                  ''
+                );
+            
+                temporaryField.className =
+                  'u-VisuallyHidden';
+            
+                document.body.appendChild(
+                  temporaryField
+                );
+            
+                temporaryField.select();
+            
+                copied =
+                  document.execCommand('copy');
+            
+                temporaryField.remove();
+              }
+            
+              if (copied) {
+            
+                const originalLabel =
+                  copyLabel.textContent;
+            
+                copyButton.classList.add(
+                  'is-copied'
+                );
+            
+                copyLabel.textContent =
+                  apex.lang.getMessage(
+                    'MEDICAL_REFERRAL_PERSONAL_EMAIL_COPIED'
+                  );
+            
+                window.setTimeout(
+                  function () {
+            
+                    copyButton.classList.remove(
+                      'is-copied'
+                    );
+            
+                    copyLabel.textContent =
+                      originalLabel;
+            
+                  },
+                  1800
+                );
+              }
+            }
+            function p107PrescriptionActionError() {
+              apex.message.alert(
+                apex.lang.getMessage('P107_PRESCRIPTION_ACTION_ERROR')
+              );
+            }
+            
+            function p107OpenPrescriptionEmail(requestId) {
+              const dialog = document.getElementById('p107-prescription-email-dialog');
+              const recipient = document.getElementById('p107-prescription-email-recipient');
+            
+              if (!dialog || !recipient || !requestId) {
+                return false;
+              }
+            
+              dialog.dataset.requestId = String(requestId);
+              recipient.value = '';
+              recipient.setCustomValidity('');
+              dialog.showModal();
+            
+              window.requestAnimationFrame(function () {
+                recipient.focus();
+              });
+            
+              return false;
+            }
+            
+            function p107SendPrescriptionEmail() {
+              const dialog = document.getElementById('p107-prescription-email-dialog');
+              const recipient = document.getElementById('p107-prescription-email-recipient');
+              const requestId = dialog ? dialog.dataset.requestId : '';
+              const value = recipient ? recipient.value.trim() : '';
+            
+              if (!dialog || !recipient || !requestId || !p107EmailPattern(value)) {
+                if (recipient) {
+                  recipient.setCustomValidity(
+                    apex.lang.getMessage('MEDICAL_REFERRAL_EMAIL_INVALID')
+                  );
+                  recipient.reportValidity();
+                  recipient.focus();
+                }
+                return false;
+              }
+            
+              recipient.setCustomValidity('');
+              apex.server.process(
+                'LEGACY_SEND_PRESCRIPTION_EMAIL',
+                { x01: requestId, x02: value },
+                {
+                  dataType: 'json',
+                  success: function (data) {
+                    if (!data || data.success !== true) {
+                      p107PrescriptionActionError();
+                      return;
+                    }
+            
+                    dialog.close();
+                    apex.message.showPageSuccess(
+                      apex.lang.getMessage('P107_PRESCRIPTION_EMAIL_SENT')
+                    );
+                  },
+                  error: p107PrescriptionActionError
+                }
+              );
+            
+              return false;
+            }
+            
+            /* Shared email-dialog context for both medical referrals and prescriptions. */
+            function p107EmailDocumentType() {
+              return apex.item('P107_EMAIL_DOCUMENT_TYPE').getValue() || 'MEDICAL_REFERRAL';
+            }
+            
+            function p107SetEmailDialogContext() {
+              const isPrescription = p107EmailDocumentType() === 'PRESCRIPTION';
+              const title = document.getElementById('p107-email-title');
+              const help = document.querySelector('#p107-email-dialog .p107-email-dialog__hero p');
+              const secureTitle = document.getElementById('p107-email-secure-title');
+              const secureHelp = document.querySelector('#p107-email-dialog .p107-email-link-card__status p');
+              const previewTitle = document.getElementById('p107-email-preview-title');
+              const openClient = document.querySelector('#p107-email-open-client .t-Button-label');
+            
+              if (isPrescription) {
+                if (title) title.textContent = apex.lang.getMessage('P107_EMAIL_DIALOG_PRESCRIPTION_TITLE');
+                if (help) help.textContent = apex.lang.getMessage('P107_EMAIL_DIALOG_PRESCRIPTION_DESCRIPTION');
+                if (secureTitle) secureTitle.textContent = apex.lang.getMessage('P107_EMAIL_DIALOG_PRESCRIPTION_LINK_READY');
+                if (secureHelp) secureHelp.textContent = apex.lang.getMessage('P107_EMAIL_DIALOG_PRESCRIPTION_LINK_HELP');
+                if (previewTitle) previewTitle.textContent = apex.lang.getMessage('P107_EMAIL_DIALOG_PRESCRIPTION_PREVIEW');
+                if (openClient) openClient.textContent = apex.lang.getMessage('P107_EMAIL_DIALOG_OPEN_DRAFT');
+              } else {
+                if (secureTitle) secureTitle.textContent = apex.lang.getMessage('P107_EMAIL_DIALOG_MEDICAL_LINK_READY');
+                if (secureHelp) secureHelp.textContent = apex.lang.getMessage('P107_EMAIL_DIALOG_MEDICAL_LINK_HELP');
+                if (previewTitle) previewTitle.textContent = apex.lang.getMessage('P107_EMAIL_DIALOG_MEDICAL_PREVIEW');
+              }
+            }
+            /* Later function declaration intentionally replaces the legacy simple prescription dialog. */
+            function p107OpenPrescriptionEmail(requestId) {
+              if (!requestId) {
+                return false;
+              }
+            
+              apex.server.process(
+                'PREPARE_PRESCRIPTION_EMAIL_DIALOG',
+                { x01: requestId },
+                {
+                  dataType: 'json',
+                  success: function (data) {
+                    const url = data && data.url ? p107DecodeHtmlEntities(data.url) : '';
+                    if (!url) {
+                      p107PrescriptionActionError();
+                      return;
+                    }
+            
+                    apex.item('P107_EMAIL_DOCUMENT_TYPE').setValue('PRESCRIPTION');
+                    apex.item('P107_PRESCRIPTION_ID').setValue(String(requestId));
+                    apex.item('P107_EMAIL_URL').setValue(url);
+                    apex.item('P107_EMAIL_RECIPIENT').setValue(data.recipient || '');
+                    p107OpenEmailDialog();
+                  },
+                  error: p107PrescriptionActionError
+                }
+              );
+            
+              return false;
+            }
+            
+            function p107OpenPrescriptionShare(requestId) {
+              const dialog = document.getElementById('p107-prescription-share-dialog');
+              const urlInput = document.getElementById('p107-prescription-share-url');
+            
+              if (!dialog || !urlInput || !requestId) {
+                return false;
+              }
+            
+              urlInput.value = '';
+              dialog.dataset.requestId = String(requestId);
+              apex.server.process(
+                'PREPARE_PRESCRIPTION_SHARE',
+                { x01: requestId },
+                {
+                  dataType: 'json',
+                  success: function (data) {
+                    const url = data && data.url ? p107DecodeHtmlEntities(data.url) : '';
+            
+                    if (!url) {
+                      p107PrescriptionActionError();
+                      return;
+                    }
+            
+                    urlInput.value = url;
+                    dialog.showModal();
+                  },
+                  error: p107PrescriptionActionError
+                }
+              );
+            
+              return false;
+            }
+            
+            async function p107SharePrescriptionUrl() {
+              const urlInput = document.getElementById('p107-prescription-share-url');
+              const url = urlInput ? urlInput.value : '';
+            
+              if (!url) {
+                p107PrescriptionActionError();
+                return;
+              }
+            
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title: apex.lang.getMessage('P107_PRESCRIPTION_SHARE_TITLE'),
+                    text: apex.lang.getMessage('P107_PRESCRIPTION_SHARE_LINK_TEXT'),
+                    url: url
+                  });
+                  return;
+                } catch (error) {
+                  if (error && error.name === 'AbortError') {
+                    return;
+                  }
+                }
+              }
+            
+              try {
+                await navigator.clipboard.writeText(url);
+                apex.message.showPageSuccess(
+                  apex.lang.getMessage('MEDICAL_REFERRAL_PERSONAL_EMAIL_COPIED')
+                );
+              } catch (ignore) {
+                urlInput.focus();
+                urlInput.select();
+                document.execCommand('copy');
+              }
+            }
+            
+            async function p107CopyPrescriptionShareUrl() {
+              const urlInput = document.getElementById('p107-prescription-share-url');
+            
+              if (!urlInput || !urlInput.value) {
+                p107PrescriptionActionError();
+                return;
+              }
+            
+              try {
+                await navigator.clipboard.writeText(urlInput.value);
+                apex.message.showPageSuccess(
+                  apex.lang.getMessage('MEDICAL_REFERRAL_PERSONAL_EMAIL_COPIED')
+                );
+              } catch (ignore) {
+                urlInput.focus();
+                urlInput.select();
+                document.execCommand('copy');
+              }
+            }
+            function p107SmsText(key) {
+              var ar = /^ar/i.test(document.documentElement.lang || '');
+              var text = {
+                title: ['Send PDF link by SMS', '\u0625\u0631\u0633\u0627\u0644 \u0631\u0627\u0628\u0637 PDF \u0628\u0631\u0633\u0627\u0644\u0629 SMS'],
+                mobile: ['Recipient mobile number', '\u0631\u0642\u0645 \u0645\u0648\u0628\u0627\u064a\u0644 \u0627\u0644\u0645\u0633\u062a\u0644\u0645'],
+                help: ['The recipient can verify and download the approved PDF. You may change the mobile number before sending.', '\u064a\u0633\u062a\u0637\u064a\u0639 \u0627\u0644\u0645\u0633\u062a\u0644\u0645 \u0627\u0644\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0645\u0633\u062a\u0646\u062f \u0627\u0644\u0645\u0639\u062a\u0645\u062f \u0648\u062a\u0646\u0632\u064a\u0644\u0647. \u064a\u0645\u0643\u0646\u0643 \u062a\u063a\u064a\u064a\u0631 \u0631\u0642\u0645 \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644 \u0642\u0628\u0644 \u0627\u0644\u0625\u0631\u0633\u0627\u0644.'],
+                send: ['Send SMS', '\u0625\u0631\u0633\u0627\u0644 SMS'],
+                cancel: ['Cancel', '\u0625\u0644\u063a\u0627\u0621'],
+                invalid: ['Enter a valid Egyptian mobile number.', '\u0627\u0643\u062a\u0628 \u0631\u0642\u0645 \u0645\u0648\u0628\u0627\u064a\u0644 \u0645\u0635\u0631\u064a \u0635\u062d\u064a\u062d.'],
+                error: ['SMS could not be sent. Check the number and document validity, then try again.', '\u062a\u0639\u0630\u0631 \u0625\u0631\u0633\u0627\u0644 SMS. \u0631\u0627\u062c\u0639 \u0627\u0644\u0631\u0642\u0645 \u0648\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0633\u062a\u0646\u062f\u060c \u062b\u0645 \u062d\u0627\u0648\u0644 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649.'],
+                gateway: ['The SMS service is unavailable or did not accept the message. Please try again later.', '\u062e\u062f\u0645\u0629 SMS \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u0623\u0648 \u0644\u0645 \u062a\u0642\u0628\u0644 \u0627\u0644\u0631\u0633\u0627\u0644\u0629. \u062d\u0627\u0648\u0644 \u0644\u0627\u062d\u0642\u064b\u0627.'],
+                success: ['SMS accepted for delivery to ', '\u062a\u0645 \u0642\u0628\u0648\u0644 \u0631\u0633\u0627\u0644\u0629 SMS \u0644\u0644\u0625\u0631\u0633\u0627\u0644 \u0625\u0644\u0649 ']
+              };
+              return (text[key] || [key, key])[ar ? 1 : 0];
+            }
+            function p107OpenSms(kind, id) {
+              apex.server.process('PREPARE_DOCUMENT_SMS', {x01: kind, x02: id}, {
+                dataType: 'json', success: function(data) {
+                  var dialog = document.getElementById('p107-sms-dialog');
+                  if (!data.success || !dialog) { apex.message.alert(p107SmsText('error')); return; }
+                  dialog.dataset.documentKind = kind;
+                  dialog.dataset.documentId = id;
+                  dialog.querySelectorAll('[data-sms-label]').forEach(function(el) { el.textContent = p107SmsText(el.dataset.smsLabel); });
+                  document.getElementById('p107-sms-mobile').value = data.mobile || '';
+                  document.getElementById('p107-sms-error').textContent = '';
+                  document.getElementById('p107-sms-send').disabled = false;
+                  dialog.showModal();
+                  document.getElementById('p107-sms-mobile').focus();
+                }, error: function() { apex.message.alert(p107SmsText('error')); }
+              });
+            }
+            function p107SendSms() {
+              var dialog = document.getElementById('p107-sms-dialog');
+              var input = document.getElementById('p107-sms-mobile');
+              var error = document.getElementById('p107-sms-error');
+              var mobile = input.value.trim().replace(/[+ ()-]/g, '');
+              if (/^20\d{10}$/.test(mobile)) { mobile = '0' + mobile.slice(2); }
+              if (!/^01[0125]\d{8}$/.test(mobile)) { error.textContent = p107SmsText('invalid'); input.focus(); return; }
+              var send = document.getElementById('p107-sms-send');
+              if (send.disabled) { return; }
+              send.disabled = true;
+              error.textContent = '';
+              apex.server.process('SEND_DOCUMENT_SMS', {x01: dialog.dataset.documentKind, x02: dialog.dataset.documentId, x03: mobile}, {
+                dataType: 'json', success: function(data) {
+                  send.disabled = false;
+                  if (!data.success) { error.textContent = p107SmsText(data.errorCode === 'GATEWAY_UNAVAILABLE' ? 'gateway' : 'error'); return; }
+                  dialog.close();
+                  apex.message.showPageSuccess(p107SmsText('success') + data.mobile);
+                }, error: function() { send.disabled = false; error.textContent = p107SmsText('error'); }
+              });
+            }
+            ```
+        executeWhenPageLoads:
+            ```javascript-browser
+            if (
+              apex.item('P107_SHOW_EMAIL_DIALOG').getValue() === 'Y'
+            ) {
+              p107OpenEmailDialog();
+            }
+            
+            if (
+              apex.item('P107_PUBLIC_URL').getValue()
+            ) {
+              p107OpenShareDialog();
+            }
+            
+            const p107EmailConfirm =
+              document.getElementById(
+                'p107-email-open-client'
+              );
+            
+            if (p107EmailConfirm) {
+            
+              p107EmailConfirm.addEventListener(
+                'click',
+                function () {
+            
+                  const recipientField =
+                    document.getElementById(
+                      'p107-email-recipient'
+                    );
+            
+                  if (!recipientField) {
+                    return;
+                  }
+            
+                  const recipient =
+                    recipientField.value.trim();
+            
+                  if (
+                    !p107EmailPattern(recipient)
+                  ) {
+            
+                    recipientField.setCustomValidity(
+                      apex.lang.getMessage(
+                        'MEDICAL_REFERRAL_EMAIL_INVALID'
+                      )
+                    );
+            
+                    recipientField.reportValidity();
+            
+                    recipientField.focus();
+            
+                    return;
+                  }
+            
+                  recipientField.setCustomValidity('');
+            
+                  const emailUrl =
+                    p107DecodeHtmlEntities(
+                      apex
+                        .item('P107_EMAIL_URL')
+                        .getValue()
+                    );
+            
+                  if (!emailUrl) {
+            
+                    apex.message.alert(
+                      apex.lang.getMessage(
+                        'P107_ACTION_ERROR'
+                      )
+                    );
+            
+                    return;
+                  }
+            
+                  const documentType = p107EmailDocumentType();
+                  const documentId =
+                    documentType === 'PRESCRIPTION'
+                      ? apex.item('P107_PRESCRIPTION_ID').getValue()
+                      : apex.item('P107_REFERAL_ID').getValue();
+                  const recipientProcess =
+                    documentType === 'PRESCRIPTION'
+                      ? 'PREPARE_PRESCRIPTION_EMAIL_RECIPIENT'
+                      : 'PREPARE_MEDICAL_EMAIL_RECIPIENT';
+            
+                  /*
+                   * مهم:
+                   * نحفظ الإيميل في الـ APEX Item
+                   * قبل إنشاء رابط الـ Process
+                   */
+                  apex.server.process(
+                    recipientProcess,
+                    { x01: recipient, x02: documentId },
+                    {
+                      dataType: 'json',
+                      success: function (pData) {
+                        const draftUrl = pData && pData.url;
+                        if (!draftUrl) {
+                          apex.message.alert(
+                            apex.lang.getMessage('P107_ACTION_ERROR')
+                          );
+                          return;
+                        }
+                        const dialog = document.getElementById('p107-email-dialog');
+                        if (dialog) {
+                          dialog.close();
+                        }
+                        window.location.href = p107DecodeHtmlEntities(draftUrl);
+                      },
+                      error: function () {
+                        apex.message.alert(
+                          apex.lang.getMessage('P107_ACTION_ERROR')
+                        );
+                      }
+                    }
+                  );
+                }
+              );
+            }
+            
+            const p107EmailRecipient =
+              document.getElementById(
+                'p107-email-recipient'
+              );
+            
+            const p107EmailCancel =
+              document.querySelector(
+                '#p107-email-dialog .p107-email-cancel'
+              );
+            
+            if (p107EmailCancel) {
+              p107EmailCancel.addEventListener(
+                'click',
+                function () {
+                  const dialog = document.getElementById('p107-email-dialog');
+                  if (dialog) {
+                    dialog.close();
+                  }
+                }
+              );
+            }
+            
+            if (p107EmailRecipient) {
+            
+              p107EmailRecipient.addEventListener(
+                'input',
+                p107RefreshEmailPreview
+              );
+            
+              p107EmailRecipient.addEventListener(
+                'input',
+                function () {
+                  this.setCustomValidity('');
+                }
+              );
+            }
+            
+            const p107EmailCopyLink =
+              document.getElementById(
+                'p107-email-copy-link'
+              );
+            
+            if (p107EmailCopyLink) {
+            
+              p107EmailCopyLink.addEventListener(
+                'click',
+                p107CopyEmailLink
+              );
+            }
+            
+            const p107NativeShare =
+              document.getElementById(
+                'p107-share-native'
+              );
+            
+            if (p107NativeShare) {
+            
+              p107NativeShare.addEventListener(
+                'click',
+                p107ShareMedicalReferral
+              );
+            }
+            
+            const p107WhatsAppShare =
+              document.getElementById(
+                'p107-share-whatsapp'
+              );
+            
+            if (p107WhatsAppShare) {
+            
+              p107WhatsAppShare.addEventListener(
+                'click',
+                p107ShareViaWhatsApp
+              );
+            }
+            
+            const p107CopyShare =
+              document.getElementById(
+                'p107-share-copy'
+              );
+            
+            if (p107CopyShare) {
+            
+              p107CopyShare.addEventListener(
+                'click',
+                async function () {
+            
+                  const urlInput =
+                    document.getElementById(
+                      'p107-share-url'
+                    );
+            
+                  if (!urlInput) {
+                    return;
+                  }
+            
+                  try {
+            
+                    await navigator.clipboard.writeText(
+                      urlInput.value
+                    );
+            
+                    apex.message.showPageSuccess(
+                      apex.lang.getMessage(
+                        'MEDICAL_REFERRAL_PERSONAL_EMAIL_COPIED'
+                      )
+                    );
+            
+                  } catch (ignore) {
+            
+                    urlInput.focus();
+            
+                    urlInput.select();
+            
+                    document.execCommand(
+                      'copy'
+                    );
+                  }
+                }
+              );
+            }
+            
+            const p107PrescriptionEmailSend =
+              document.getElementById('p107-prescription-email-send');
+            
+            if (p107PrescriptionEmailSend) {
+              p107PrescriptionEmailSend.addEventListener(
+                'click',
+                p107SendPrescriptionEmail
+              );
+            }
+            
+            const p107PrescriptionShareCopy =
+              document.getElementById('p107-prescription-share-copy');
+            
+            if (p107PrescriptionShareCopy) {
+              p107PrescriptionShareCopy.addEventListener(
+                'click',
+                p107CopyPrescriptionShareUrl
+              );
+            }
+            
+            const p107PrescriptionShareNative =
+              document.getElementById('p107-prescription-share-native');
+            
+            if (p107PrescriptionShareNative) {
+              p107PrescriptionShareNative.addEventListener(
+                'click',
+                p107SharePrescriptionUrl
+              );
+            }
+            
+            document.addEventListener('click', function (event) {
+              const emailLink = event.target && event.target.closest
+                ? event.target.closest('.p107-prescription-email-action')
+                : null;
+              const shareLink = event.target && event.target.closest
+                ? event.target.closest('.p107-prescription-share-action')
+                : null;
+            
+              if (emailLink) {
+                event.preventDefault();
+                p107OpenPrescriptionEmail(emailLink.dataset.prescriptionId);
+              } else if (shareLink) {
+                event.preventDefault();
+                p107OpenPrescriptionShare(shareLink.dataset.prescriptionId);
+              }
+            });
+            document.addEventListener('click', function(event) {
+              var action = event.target.closest('.p107-sms-action');
+              if (action) {
+                event.preventDefault();
+                p107OpenSms(action.dataset.documentKind, action.dataset.documentId);
+              }
+            });
+            document.getElementById('p107-sms-send').addEventListener('click', p107SendSms);
+            document.getElementById('p107-sms-cancel').addEventListener('click', function() {
+              if (!document.getElementById('p107-sms-send').disabled) { document.getElementById('p107-sms-dialog').close(); }
+            });
+            document.getElementById('p107-sms-dialog').addEventListener('cancel', function(event) {
+              if (document.getElementById('p107-sms-send').disabled) { event.preventDefault(); }
+            });
+            ```
+    }
+    css {
+        inline:
+            ```css
+            .p107-actions {
+              display: flex;
+              flex-wrap: wrap;
+              gap: .35rem;
+              align-items: center;
+              min-width: 18rem;
+            }
+            
+            .p107-action {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              gap: .35rem;
+              min-height: 2.25rem;
+              border-radius: .45rem;
+              white-space: nowrap;
+              text-decoration: none;
+              font-weight: 600;
+            }
+            
+            .p107-action--download {
+              background: var(--ut-palette-primary);
+              border-color: var(--ut-palette-primary);
+              color: var(--ut-palette-primary-contrast);
+            }
+            
+            .p107-action--email,
+            .p107-action--share {
+              background: var(--ut-component-background-color);
+              border-color: var(--ut-component-border-color);
+              color: var(--ut-body-text-color);
+            }
+            
+            .p107-action--cancel {
+              margin-inline-start: .15rem;
+            }
+            
+            .p107-action:hover,
+            .p107-action:focus-visible {
+              filter: brightness(.95);
+              text-decoration: none;
+            }
+            
+            .prescription-requests-region .t-Report-report {
+              min-width: 1120px;
+            }
+            
+            .prescription-requests-region .a-IRR-table {
+              min-width: 1120px;
+            }
+            
+            .prescription-requests-region .a-IRR-table th,
+            .prescription-requests-region .a-IRR-table td {
+              vertical-align: top;
+              overflow-wrap: anywhere;
+            }
+            
+            .prescription-requests-region .a-IRR-table th {
+              white-space: normal;
+            }
+            
+            .prescription-requests-region .t-Report-cell {
+              vertical-align: top;
+              overflow-wrap: anywhere;
+            }
+            
+            .p107-prescription-report .a-IRR-table {
+              border-collapse: separate;
+              border-spacing: 0;
+            }
+            
+            .p107-prescription-report .a-IRR-table th {
+              background: #eef6f8;
+              color: #17324d;
+              font-weight: 800;
+              white-space: normal;
+            }
+            
+            .p107-prescription-report .a-IRR-table td {
+              color: #29475c;
+              line-height: 1.55;
+            }
+            
+            .p107-prescription-report .a-IRR-table tbody tr:nth-child(even) {
+              background: #f9fbfc;
+            }
+            
+            .p107-prescription-report .a-IRR-table tbody tr:hover {
+              background: #eef8fb;
+            }
+            
+            .p107-prescription-report .t-Badge {
+              display: inline-flex;
+              align-items: center;
+              min-width: 7.5rem;
+              justify-content: center;
+              font-weight: 800;
+              white-space: nowrap;
+            }
+            
+            .p107-dispense-info {
+              display: grid;
+              gap: .4rem;
+              min-width: 12rem;
+            }
+            
+            .p107-dispense-info__item {
+              display: flex;
+              flex-wrap: wrap;
+              align-items: center;
+              justify-content: space-between;
+              gap: .45rem;
+              padding: .4rem .55rem;
+              border: 1px solid var(--ut-component-border-color);
+              border-radius: .65rem;
+              background: var(--ut-component-background-color);
+            }
+            
+            .p107-dispense-info__medicine {
+              color: #17324d;
+              font-weight: 800;
+            }
+            
+            .p107-prescription-report .p107-dispense-info .t-Badge {
+              min-width: 0;
+              max-width: 100%;
+              white-space: normal;
+              text-align: center;
+            }
+            .p107-prescription-actions {
+              min-width: 22rem;
+            }
+            
+            .p107-action--details {
+              background: color-mix(in srgb, var(--ut-palette-primary) 9%, var(--ut-component-background-color));
+              border-color: color-mix(in srgb, var(--ut-palette-primary) 22%, var(--ut-component-border-color));
+              color: var(--ut-palette-primary);
+            }
+            
+            .p107-action--disabled {
+              opacity: .48;
+              cursor: not-allowed;
+              pointer-events: none;
+              background: var(--ut-component-background-color);
+              border-color: var(--ut-component-border-color);
+              color: var(--ut-body-text-muted-color);
+            }
+            
+            #p107-prescription-email-dialog,
+            #p107-prescription-share-dialog {
+              width: min(38rem, calc(100vw - 2rem));
+              max-width: 38rem;
+              padding: 0;
+              border: 0;
+              border-radius: 1rem;
+              box-shadow: 0 1.5rem 4rem rgb(15 23 42 / 30%);
+              color: var(--ut-body-text-color);
+              background: var(--ut-component-background-color);
+            }
+            
+            #p107-prescription-share-dialog {
+              max-width: 34rem;
+            }
+            
+            #p107-prescription-email-dialog::backdrop,
+            #p107-prescription-share-dialog::backdrop {
+              background: rgb(0 0 0 / 45%);
+            }
+            
+            .p107-prescription-dialog__header {
+              display: flex;
+              align-items: center;
+              gap: .8rem;
+              padding: 1.25rem 1.4rem;
+              border-bottom: 1px solid var(--ut-component-border-color);
+              background: linear-gradient(135deg, color-mix(in srgb, var(--ut-palette-primary) 12%, var(--ut-component-background-color)), color-mix(in srgb, var(--ut-palette-success) 8%, var(--ut-component-background-color)));
+            }
+            
+            .p107-prescription-dialog__header .fa {
+              display: grid;
+              place-items: center;
+              width: 2.7rem;
+              height: 2.7rem;
+              border-radius: .75rem;
+              background: var(--ut-palette-primary);
+              color: var(--ut-palette-primary-contrast);
+              font-size: 1.1rem;
+            }
+            
+            .p107-prescription-dialog__header h2 {
+              margin: 0 0 .2rem;
+              font-size: 1.15rem;
+            }
+            
+            .p107-prescription-dialog__header p {
+              margin: 0;
+              color: var(--ut-body-text-muted-color);
+              line-height: 1.55;
+            }
+            
+            .p107-prescription-dialog__body {
+              display: grid;
+              gap: .7rem;
+              padding: 1.25rem 1.4rem;
+            }
+            
+            .p107-prescription-dialog__body label {
+              font-weight: 700;
+              color: var(--ut-body-title-text-color);
+            }
+            
+            .p107-prescription-dialog__body input {
+              min-height: 2.75rem;
+              width: 100%;
+              box-sizing: border-box;
+              border-radius: .6rem;
+            }
+            
+            #p107-prescription-share-url {
+              direction: ltr;
+              text-align: left;
+            }
+            
+            .p107-prescription-dialog__footer {
+              display: flex;
+              gap: .55rem;
+              justify-content: flex-end;
+              padding: 1rem 1.4rem;
+              border-top: 1px solid var(--ut-component-border-color);
+              background: color-mix(in srgb, var(--ut-component-background-color) 97%, var(--ut-palette-primary));
+            }
+            
+            .p107-prescription-dialog__footer .t-Button {
+              min-height: 2.6rem;
+              border-radius: .6rem;
+              font-weight: 700;
+            }
+            
+            #p107-email-dialog,
+            #p107-share-dialog {
+              padding: 0;
+              border: 0;
+              border-radius: 1rem;
+              box-shadow: 0 1.5rem 4rem rgb(15 23 42 / 30%);
+              color: var(--ut-body-text-color);
+              background: var(--ut-component-background-color);
+            }
+            
+            #p107-email-dialog {
+              width: min(38rem, calc(100vw - 2rem));
+              max-width: 38rem;
+              max-height: calc(100vh - 2rem);
+              overflow: hidden;
+            }
+            
+            #p107-share-dialog {
+              width: min(32rem, calc(100vw - 2rem));
+              max-width: 32rem;
+            }
+            
+            #p107-email-dialog::backdrop,
+            #p107-share-dialog::backdrop {
+              background: rgb(0 0 0 / 45%);
+            }
+            
+            .p107-dialog__form {
+              display: grid;
+              gap: 1rem;
+              padding: 1.25rem;
+            }
+            
+            .p107-dialog__form h2 {
+              margin: 0;
+              font-size: 1.2rem;
+            }
+            
+            .p107-dialog__form p {
+              margin: 0;
+              color: var(--ut-body-text-muted-color);
+            }
+            
+            .p107-dialog__form input {
+              width: 100%;
+              box-sizing: border-box;
+            }
+            
+            #p107-email-dialog .p107-dialog__form {
+              gap: 0;
+              padding: 0;
+              max-height: calc(100vh - 2rem);
+              overflow: auto;
+            }
+            
+            .p107-email-dialog__hero {
+              display: flex;
+              align-items: center;
+              gap: 1rem;
+              padding: 1.4rem 1.5rem;
+              border-bottom: 1px solid color-mix(in srgb, var(--ut-palette-primary) 18%, transparent);
+              background: linear-gradient(135deg, color-mix(in srgb, var(--ut-palette-primary) 13%, var(--ut-component-background-color)), color-mix(in srgb, var(--ut-palette-success) 8%, var(--ut-component-background-color)));
+            }
+            
+            .p107-email-dialog__icon {
+              display: grid;
+              place-items: center;
+              flex: 0 0 3rem;
+              width: 3rem;
+              height: 3rem;
+              border-radius: .9rem;
+              background: var(--ut-palette-primary);
+              color: var(--ut-palette-primary-contrast);
+              box-shadow: 0 .45rem 1rem color-mix(in srgb, var(--ut-palette-primary) 28%, transparent);
+              font-size: 1.25rem;
+            }
+            
+            .p107-email-dialog__hero h2 {
+              margin: 0 0 .3rem;
+              font-size: 1.35rem;
+              line-height: 1.35;
+            }
+            
+            .p107-email-dialog__hero p {
+              max-width: 30rem;
+              line-height: 1.65;
+            }
+            
+            .p107-email-dialog__body {
+              display: grid;
+              gap: 1rem;
+              padding: 1.25rem 1.5rem;
+            }
+            
+            .p107-email-field-card,
+            .p107-email-message-card {
+              display: grid;
+              gap: .65rem;
+            }
+            
+            .p107-email-field-card label,
+            .p107-email-message-card h3 {
+              margin: 0;
+              font-size: .95rem;
+              font-weight: 700;
+              color: var(--ut-body-title-text-color);
+            }
+            
+            .p107-email-field-card__heading {
+              display: flex;
+              align-items: center;
+              gap: .65rem;
+            }
+            
+            .p107-email-step {
+              display: inline-grid;
+              place-items: center;
+              width: 1.75rem;
+              height: 1.75rem;
+              border-radius: 50%;
+              background: color-mix(in srgb, var(--ut-palette-primary) 13%, transparent);
+              color: var(--ut-palette-primary);
+              font-weight: 800;
+            }
+            
+            #p107-email-recipient {
+              min-height: 2.85rem;
+              padding: .65rem .85rem;
+              border: 1px solid color-mix(in srgb, var(--ut-component-border-color) 82%, var(--ut-palette-primary));
+              border-radius: .65rem;
+              background: var(--ut-component-background-color);
+              color: var(--ut-body-text-color);
+              direction: ltr;
+              text-align: left;
+              font-size: 1rem;
+              box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+            }
+            
+            #p107-email-recipient:focus {
+              border-color: var(--ut-palette-primary);
+              outline: 3px solid color-mix(in srgb, var(--ut-palette-primary) 18%, transparent);
+              box-shadow: none;
+            }
+            
+            .p107-email-field-card__hint {
+              color: var(--ut-body-text-muted-color);
+              font-size: .82rem;
+              line-height: 1.55;
+            }
+            
+            .p107-email-link-card {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 1rem;
+              padding: 1rem;
+              border: 1px solid color-mix(in srgb, var(--ut-palette-success) 28%, var(--ut-component-border-color));
+              border-radius: .8rem;
+              background: color-mix(in srgb, var(--ut-palette-success) 7%, var(--ut-component-background-color));
+            }
+            
+            .p107-email-link-card__status {
+              display: flex;
+              align-items: flex-start;
+              gap: .7rem;
+              min-width: 0;
+            }
+            
+            .p107-email-link-card__icon {
+              color: var(--ut-palette-success);
+              font-size: 1.25rem;
+              margin-top: .1rem;
+            }
+            
+            .p107-email-link-card h3,
+            .p107-email-message-card h3 {
+              margin: 0;
+              font-size: 1rem;
+            }
+            
+            .p107-email-link-card p {
+              margin-top: .2rem;
+              font-size: .82rem;
+              line-height: 1.5;
+            }
+            
+            .p107-email-link-card__actions {
+              display: flex;
+              gap: .4rem;
+              flex: 0 0 auto;
+            }
+            
+            .p107-email-link-card__actions .t-Button {
+              min-height: 2.35rem;
+              border-radius: .55rem;
+            }
+            
+            #p107-email-copy-link.is-copied {
+              border-color: var(--ut-palette-success);
+              color: var(--ut-palette-success);
+            }
+            
+            .p107-email-message-card {
+              padding: 1rem;
+              border: 1px solid var(--ut-component-border-color);
+              border-radius: .8rem;
+              background: color-mix(in srgb, var(--ut-component-background-color) 96%, var(--ut-palette-primary));
+            }
+            
+            .p107-email-message-card__heading {
+              display: flex;
+              align-items: center;
+              gap: .5rem;
+            }
+            
+            .p107-email-message-card__heading .fa {
+              color: var(--ut-palette-primary);
+            }
+            
+            .p107-email-message-card__recipient {
+              display: flex;
+              gap: .35rem;
+              align-items: baseline;
+              padding-bottom: .65rem;
+              border-bottom: 1px solid var(--ut-component-border-color);
+              color: var(--ut-body-text-muted-color);
+              font-size: .82rem;
+            }
+            
+            #p107-email-preview-recipient {
+              color: var(--ut-body-text-color);
+              direction: ltr;
+              overflow-wrap: anywhere;
+            }
+            
+            #p107-email-preview-body {
+              margin: 0;
+              color: var(--ut-body-text-color);
+              line-height: 1.7;
+            }
+            
+            .p107-email-dialog__footer {
+              display: flex;
+              gap: .65rem;
+              align-items: center;
+              margin: 0;
+              padding: 1rem 1.5rem;
+              border-top: 1px solid var(--ut-component-border-color);
+              background: color-mix(in srgb, var(--ut-component-background-color) 97%, var(--ut-palette-primary));
+            }
+            
+            #p107-email-open-client {
+              flex: 1 1 auto;
+              min-height: 2.85rem;
+              border-radius: .65rem;
+              font-weight: 700;
+              box-shadow: 0 .35rem .8rem color-mix(in srgb, var(--ut-palette-primary) 18%, transparent);
+            }
+            
+            .p107-email-cancel {
+              min-height: 2.85rem;
+              border-radius: .65rem;
+            }
+            
+            .p107-dialog__actions {
+              display: flex;
+              flex-wrap: wrap;
+              gap: .5rem;
+              justify-content: flex-start;
+              margin: 0;
+              padding: 0;
+            }
+            
+            .p107-share-url-row {
+              display: flex;
+              gap: .5rem;
+              align-items: stretch;
+            }
+            
+            .p107-share-url-row input {
+              flex: 1;
+              direction: ltr;
+              text-align: left;
+            }
+            
+            @media (max-width: 640px) {
+              .p107-actions {
+                min-width: 0;
+              }
+            
+              .p107-action {
+                flex: 1 1 calc(50% - .35rem);
+              }
+            
+              .p107-action--cancel {
+                margin-inline-start: 0;
+              }
+            
+              #p107-email-dialog {
+                width: calc(100vw - 1rem);
+                max-height: calc(100vh - 1rem);
+                border-radius: .85rem;
+              }
+            
+              #p107-email-dialog .p107-dialog__form {
+                max-height: calc(100vh - 1rem);
+              }
+            
+              .p107-email-dialog__hero,
+              .p107-email-dialog__body,
+              .p107-email-dialog__footer {
+                padding-inline: 1rem;
+              }
+            
+              .p107-email-dialog__hero {
+                align-items: flex-start;
+                padding-block: 1rem;
+              }
+            
+              .p107-email-dialog__icon {
+                flex-basis: 2.6rem;
+                width: 2.6rem;
+                height: 2.6rem;
+              }
+            
+              .p107-email-dialog__hero h2 {
+                font-size: 1.15rem;
+              }
+            
+              .p107-email-link-card {
+                align-items: stretch;
+                flex-direction: column;
+              }
+            
+              .p107-email-link-card__actions .t-Button {
+                flex: 1 1 50%;
+              }
+            
+              .p107-email-dialog__footer {
+                flex-direction: column-reverse;
+              }
+            
+              #p107-email-open-client,
+              .p107-email-cancel {
+                width: 100%;
+              }
+            
+              .p107-prescription-dialog__footer {
+                flex-direction: column-reverse;
+              }
+            
+              .p107-prescription-dialog__footer .t-Button {
+                width: 100%;
+              }
+            }
+            #p107-sms-dialog {width:min(520px,calc(100vw - 32px));padding:0;border:1px solid #dbe3ec;border-radius:16px;box-shadow:0 16px 48px #0003;color:inherit;}
+            #p107-sms-dialog::backdrop {background:#10233780;}
+            #p107-sms-dialog .p107-email-dialog__body {padding:22px;display:grid;gap:12px;}
+            #p107-sms-mobile {width:100%;box-sizing:border-box;padding:12px;border:1px solid #bac8d7;border-radius:8px;font-size:16px;}
+            #p107-sms-error {color:#b42318;margin:0;}
+            .p107-action--sms {background:#f2f7ff;border-color:#b7d0ee;}
+            ```
+    }
+    security {
+        authorizationScheme: mustNotBePublicUser
+        formAutoComplete: false
+    }
+
+    region email-dialog (
+        name: &APP_TEXT$MEDICAL_REFERRAL_EMAIL.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <dialog id="p107-email-dialog" aria-labelledby="p107-email-title">
+                  <form method="dialog" class="p107-dialog__form">
+                    <header class="p107-email-dialog__hero">
+                      <span class="p107-email-dialog__icon fa fa-envelope" aria-hidden="true"></span>
+                      <div>
+                        <h2 id="p107-email-title">&APP_TEXT$MEDICAL_REFERRAL_PERSONAL_EMAIL_TITLE.</h2>
+                        <p>&APP_TEXT$MEDICAL_REFERRAL_PERSONAL_EMAIL_HELP.</p>
+                      </div>
+                    </header>
+                    <div class="p107-email-dialog__body p107-email-preview">
+                      <section class="p107-email-field-card">
+                        <div class="p107-email-field-card__heading">
+                          <span class="p107-email-step" aria-hidden="true">1</span>
+                          <label for="p107-email-recipient">&APP_TEXT$MEDICAL_REFERRAL_EMAIL_RECIPIENT.</label>
+                        </div>
+                        <input id="p107-email-recipient" type="email" maxlength="500" autocomplete="email" inputmode="email" placeholder="name@example.com" required>
+                        <span class="p107-email-field-card__hint">&APP_TEXT$MEDICAL_REFERRAL_EMAIL_HELP.</span>
+                      </section>
+                      <section class="p107-email-link-card" aria-labelledby="p107-email-secure-title">
+                        <div class="p107-email-link-card__status">
+                          <span class="p107-email-link-card__icon fa fa-shield" aria-hidden="true"></span>
+                          <div>
+                            <h3 id="p107-email-secure-title">&APP_TEXT$MEDICAL_REFERRAL_PERSONAL_EMAIL_SECURE_READY.</h3>
+                            <p>&APP_TEXT$MEDICAL_REFERRAL_PERSONAL_EMAIL_SECURE_HELP.</p>
+                          </div>
+                        </div>
+                        <div class="p107-email-link-card__actions">
+                          <a id="p107-email-preview-link" class="t-Button t-Button--small p107-email-preview__link" href="#" target="_blank" rel="noopener noreferrer"><span class="t-Icon t-Icon--left fa fa-external-link" aria-hidden="true"></span><span class="t-Button-label">&APP_TEXT$MEDICAL_REFERRAL_PERSONAL_EMAIL_OPEN_LINK.</span></a>
+                          <button id="p107-email-copy-link" class="t-Button t-Button--small" type="button"><span class="t-Icon t-Icon--left fa fa-copy" aria-hidden="true"></span><span class="t-Button-label">&APP_TEXT$MEDICAL_REFERRAL_PERSONAL_EMAIL_COPY_LINK.</span></button>
+                        </div>
+                      </section>
+                      <section class="p107-email-message-card" aria-live="polite" aria-labelledby="p107-email-preview-title">
+                        <div class="p107-email-message-card__heading">
+                          <span class="fa fa-comment-o" aria-hidden="true"></span>
+                          <h3 id="p107-email-preview-title">&APP_TEXT$MEDICAL_REFERRAL_PERSONAL_EMAIL_PREVIEW.</h3>
+                        </div>
+                        <div class="p107-email-message-card__recipient"><span>&APP_TEXT$MEDICAL_REFERRAL_EMAIL_RECIPIENT.:</span><strong id="p107-email-preview-recipient">—</strong></div>
+                        <p id="p107-email-preview-body">—</p>
+                      </section>
+                    </div>
+                    <footer class="p107-email-dialog__footer">
+                      <button class="t-Button p107-email-cancel" type="button">&APP_TEXT$MEDICAL_REFERRAL_CANCEL.</button>
+                      <button class="t-Button t-Button--hot" type="button" id="p107-email-open-client"><span class="t-Icon t-Icon--left fa fa-envelope-open" aria-hidden="true"></span><span class="t-Button-label">&APP_TEXT$MEDICAL_REFERRAL_PERSONAL_EMAIL_OPEN_CLIENT.</span></button>
+                    </footer>
+                  </form>
+                </dialog>
+                <dialog id="p107-sms-dialog" aria-labelledby="p107-sms-title">
+                  <form method="dialog" class="p107-dialog__form" onsubmit="event.preventDefault();p107SendSms();">
+                    <header class="p107-email-dialog__hero"><span class="p107-email-dialog__icon fa fa-commenting-o" aria-hidden="true"></span><div><h2 id="p107-sms-title" data-sms-label="title">Send PDF link by SMS</h2></div></header>
+                    <div class="p107-email-dialog__body">
+                      <p data-sms-label="help">The recipient can verify and download the approved PDF.</p>
+                      <label for="p107-sms-mobile" data-sms-label="mobile">Recipient mobile number</label>
+                      <input id="p107-sms-mobile" type="tel" maxlength="25" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="01xxxxxxxxx" required>
+                      <p id="p107-sms-error" role="alert" aria-live="assertive"></p>
+                    </div>
+                    <footer class="p107-email-dialog__footer"><button id="p107-sms-cancel" class="t-Button" type="button" data-sms-label="cancel">Cancel</button><button id="p107-sms-send" class="t-Button t-Button--hot" type="button" data-sms-label="send">Send SMS</button></footer>
+                  </form>
+                </dialog>
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader
+                t-Region--noUI
+            ]
+        }
+    )
+
+    region employee-medical-referrals (
+        name: &APP_TEXT$MEDICAL_REFERRAL_REQUESTS_TITLE.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                with referral_rows as (
+                    select f.*,
+                           case
+                             when f.speciality_id in ('0', '6', '26', '27', '28', '29', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '89', '90', '109', '490', '491', '492', '493', '494', '510', '511', '100731', '100732', '100733', '100734', '100735', '100736', '100737', '100738', '100739', '100740', '100741', '100742', '100743', '100744', '100745', '100746', '100751', '100752', '100771', '100772', '100773', '100774')
+                             then apex_lang.message('MEDICAL_REFERRAL_SPECIALITY_' || f.speciality_id)
+                             else f.speciality_name_snapshot
+                           end as display_speciality_name,
+                           case
+                             when f.status in ('VALID', 'APPROVED_PENDING_ACTIVATION')
+                              and systimestamp >= cast(f.valid_to + 1 as timestamp)
+                             then 'EXPIRED'
+                             else f.status
+                           end as display_status
+                      from med.md_referal_flow f
+                     where upper(trim(f.emp_id_snapshot)) = upper(trim(:APP_USER))
+                )
+                select f.created_at,
+                       '<span class="t-Badge t-Badge--subtle ' ||
+                       case f.display_status
+                         when 'VALID' then 't-Badge--success'
+                         when 'REJECTED' then 't-Badge--danger'
+                         when 'CANCELLED' then 't-Badge--danger'
+                         when 'EXPIRED' then 't-Badge--warning'
+                         when 'APPROVED_PENDING_ACTIVATION' then 't-Badge--warning'
+                         else 't-Badge--info'
+                       end || '">' ||
+                       apex_escape.html(
+                         case f.display_status
+                           when 'PENDING_APPROVAL' then apex_lang.message('MEDICAL_REFERRAL_STATUS_PENDING_APPROVAL')
+                           when 'REJECTED' then apex_lang.message('MEDICAL_REFERRAL_STATUS_REJECTED')
+                           when 'APPROVED_PENDING_ACTIVATION' then apex_lang.message('MEDICAL_REFERRAL_STATUS_APPROVED_PENDING_ACTIVATION')
+                           when 'VALID' then apex_lang.message('MEDICAL_REFERRAL_STATUS_VALID')
+                           when 'EXPIRED' then apex_lang.message('MEDICAL_REFERRAL_STATUS_EXPIRED')
+                           when 'CANCELLED' then apex_lang.message('MEDICAL_REFERRAL_STATUS_CANCELLED')
+                           else apex_lang.message('MEDICAL_REFERRAL_STATUS_UNKNOWN')
+                         end
+                       ) || '</span>' as status_pill,
+                       f.display_status as status,
+                       f.letter_date,
+                       f.beneficiary_name_snapshot,
+                       f.provider_name_snapshot,
+                       f.display_speciality_name as speciality_name_snapshot,
+                       nvl(
+                         med.md_referal_wf_pkg.approved_by_names(
+                             f.referal_id,
+                             :APP_USER
+                         ),
+                         apex_lang.message('MEDICAL_REFERRAL_NO_APPROVALS_YET')
+                       ) as approved_by,
+                       nvl(
+                         case f.status_reason
+                           when 'EMPLOYEE_REQUEST' then apex_lang.message('MEDICAL_REFERRAL_REASON_EMPLOYEE_CANCELLED')
+                           when 'APPROVAL_DELAY' then apex_lang.message('MEDICAL_REFERRAL_REASON_APPROVAL_DELAY')
+                           when 'TASK_CANCELLED' then apex_lang.message('MEDICAL_REFERRAL_REASON_TASK_CANCELLED')
+                           else f.status_reason
+                         end,
+                         unistr('\2014')
+                       ) as status_reason,
+                       f.available_from,
+                       f.valid_to,
+                       '<div class="p107-actions" role="group" aria-label="' ||
+                       apex_escape.html_attribute(apex_lang.message('MEDICAL_REFERRAL_ACTIONS')) ||
+                       '"><a class="t-Button t-Button--small p107-action" title="' ||
+                       apex_escape.html_attribute(apex_lang.message('MEDICAL_REFERRAL_REQUEST_DETAILS')) ||
+                       '" aria-label="' ||
+                       apex_escape.html_attribute(apex_lang.message('MEDICAL_REFERRAL_REQUEST_DETAILS')) ||
+                       '" href="' ||
+                       apex_escape.html_attribute(apex_util.prepare_url(
+                         apex_page.get_url(
+                           p_page => 109,
+                           p_items => 'P109_REFERAL_ID',
+                           p_values => to_char(f.referal_id)
+                         ),
+                         p_checksum_type => 'SESSION'
+                       )) || '"><span class="t-Icon t-Icon--left fa fa-info-circle" aria-hidden="true"></span><span class="t-Button-label">' ||
+                       apex_escape.html(apex_lang.message('MEDICAL_REFERRAL_REQUEST_DETAILS')) ||
+                       '</span></a>' ||
+                       case
+                         when med.md_referal_wf_pkg.employee_document_allowed(
+                                  f.referal_id,
+                                  :APP_USER
+                              ) = 'Y'
+                         then
+                           '<a class="t-Button t-Button--small t-Button--hot p107-action p107-action--download" title="' ||
+                           apex_escape.html_attribute(apex_lang.message('MEDICAL_REFERRAL_DOWNLOAD')) ||
+                           '" aria-label="' ||
+                           apex_escape.html_attribute(apex_lang.message('MEDICAL_REFERRAL_DOWNLOAD')) ||
+                           '" href="' ||
+                           apex_escape.html_attribute(apex_util.prepare_url(
+                             apex_page.get_url(
+                               p_page => 107,
+                               p_request => 'DOWNLOAD_MEDICAL_REFERRAL',
+                               p_items => 'P107_REFERAL_ID',
+                               p_values => to_char(f.referal_id)
+                             ),
+                             p_checksum_type => 'SESSION'
+                             )) || '" target="_blank" rel="noopener noreferrer"><span class="t-Icon t-Icon--left fa fa-download" aria-hidden="true"></span><span class="t-Button-label">' ||
+                           apex_escape.html(apex_lang.message('MEDICAL_REFERRAL_DOWNLOAD')) ||
+                           '</span></a>' ||
+                           '<a class="t-Button t-Button--small p107-action p107-action--email" title="' ||
+                           apex_escape.html_attribute(apex_lang.message('MEDICAL_REFERRAL_EMAIL')) ||
+                           '" aria-label="' ||
+                           apex_escape.html_attribute(apex_lang.message('MEDICAL_REFERRAL_EMAIL')) ||
+                           '" href="' ||
+                           apex_escape.html_attribute(apex_util.prepare_url(
+                             apex_page.get_url(
+                               p_page => 107,
+                               p_request => 'OPEN_MEDICAL_EMAIL_DIALOG',
+                               p_items => 'P107_REFERAL_ID',
+                               p_values => to_char(f.referal_id)
+                             ),
+                             p_checksum_type => 'SESSION'
+                           )) || '">' ||
+                           '<span class="t-Icon t-Icon--left fa fa-envelope" aria-hidden="true"></span><span class="t-Button-label">' ||
+                           apex_escape.html(apex_lang.message('MEDICAL_REFERRAL_EMAIL')) ||
+                           '</span></a>' ||
+                           '<a class="t-Button t-Button--small p107-action p107-action--sms p107-sms-action" href="#" title="SMS" aria-label="SMS" data-document-kind="REFERRAL" data-document-id="'||to_char(f.referal_id)||'"><span class="t-Icon t-Icon--left fa fa-commenting-o" aria-hidden="true"></span><span class="t-Button-label">SMS</span></a>' ||
+                           '<a class="t-Button t-Button--small p107-action p107-action--share" title="' ||
+                           apex_escape.html_attribute(apex_lang.message('MEDICAL_REFERRAL_SHARE')) ||
+                           '" aria-label="' ||
+                           apex_escape.html_attribute(apex_lang.message('MEDICAL_REFERRAL_SHARE')) ||
+                           '" href="' ||
+                           apex_escape.html_attribute(apex_util.prepare_url(
+                             apex_page.get_url(
+                               p_page => 107,
+                               p_request => 'SHARE',
+                               p_items => 'P107_REFERAL_ID',
+                               p_values => to_char(f.referal_id)
+                             ),
+                             p_checksum_type => 'SESSION'
+                           )) || '">' ||
+                           '<span class="t-Icon t-Icon--left fa fa-share-alt" aria-hidden="true"></span><span class="t-Button-label">' ||
+                           apex_escape.html(apex_lang.message('MEDICAL_REFERRAL_SHARE')) ||
+                           '</span></a>'
+                         else
+                           '<span class="p107-document-unavailable" role="status">' ||
+                           apex_escape.html(
+                             case
+                               when f.document_status = 'DOCUMENT_ERROR'
+                               then apex_lang.message('P107_DOCUMENT_GENERATION_ERROR')
+                               else apex_lang.message('P107_DOCUMENT_UNAVAILABLE')
+                             end
+                           ) ||
+                           '</span>'
+                       end ||
+                       '</div>' ||
+                       case
+                         when med.md_referal_wf_pkg.employee_cancel_allowed(
+                                  f.referal_id,
+                                  :APP_USER
+                              ) = 'Y' then
+                           '<button type="button" class="t-Button t-Button--small t-Button--danger p107-action p107-action--cancel" title="' ||
+                           apex_escape.html_attribute(apex_lang.message('MEDICAL_REFERRAL_CANCEL')) ||
+                           '" aria-label="' ||
+                           apex_escape.html_attribute(apex_lang.message('MEDICAL_REFERRAL_CANCEL')) ||
+                           '" onclick="return p107CancelMedicalReferral(' ||
+                           apex_escape.html_attribute(to_char(f.referal_id)) ||
+                           ');"><span class="t-Icon t-Icon--left fa fa-times" aria-hidden="true"></span><span class="t-Button-label">' ||
+                           apex_escape.html(apex_lang.message('MEDICAL_REFERRAL_CANCEL')) ||
+                           '</span></button>'
+                       end as actions
+                  from referral_rows f
+                 order by f.created_at desc, f.referal_id desc
+                ```
+            pageItemsToSubmit: APP_USER
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        searchBar {
+            reportsSelectList: false
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            selectColumns: false
+            saveReport: false
+            reset: false
+            help: false
+        }
+        download {
+            sendAsEmail: false
+        }
+        advanced {
+            savedReportMappingIdentifier: 52397535334262018
+        }
+
+        column ACTIONS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_ACTIONS.
+            }
+            layout {
+                sequence: 110
+            }
+            columnFormatting {
+                htmlExpression: #ACTIONS!RAW#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column APPROVED_BY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_APPROVED_BY.
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column AVAILABLE_FROM (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_AVAILABLE_FROM.
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column BENEFICIARY_NAME_SNAPSHOT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_BENEFICIARY.
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column CREATED_AT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_REQUEST_DATE.
+            }
+            layout {
+                sequence: 25
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column LETTER_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_LETTER_DATE.
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column PROVIDER_NAME_SNAPSHOT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_PROVIDER.
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column SPECIALITY_NAME_SNAPSHOT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_SPECIALITY.
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column STATUS_PILL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_STATUS.
+            }
+            layout {
+                sequence: 20
+            }
+            columnFormatting {
+                htmlExpression: #STATUS_PILL!RAW#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column STATUS_REASON (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_STATUS_REASON.
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column VALID_TO (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MEDICAL_REFERRAL_VALID_TO.
+            }
+            layout {
+                sequence: 100
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn ACTIONS (
+                sequence: 11
+            )
+
+            displayColumn APPROVED_BY (
+                sequence: 7
+            )
+
+            displayColumn AVAILABLE_FROM (
+                sequence: 9
+            )
+
+            displayColumn BENEFICIARY_NAME_SNAPSHOT (
+                sequence: 4
+            )
+
+            displayColumn CREATED_AT (
+                sequence: 2
+            )
+
+            displayColumn LETTER_DATE (
+                sequence: 3
+            )
+
+            displayColumn PROVIDER_NAME_SNAPSHOT (
+                sequence: 5
+            )
+
+            displayColumn SPECIALITY_NAME_SNAPSHOT (
+                sequence: 6
+            )
+
+            displayColumn STATUS_PILL (
+                sequence: 1
+            )
+
+            displayColumn STATUS_REASON (
+                sequence: 8
+            )
+
+            displayColumn VALID_TO (
+                sequence: 10
+            )
+
+        )
+
+    )
+
+    region employee-prescription-requests (
+        name: &APP_TEXT$P107_PRESCRIPTION_REQUESTS_TITLE.
+        title: &APP_TEXT$P107_PRESCRIPTION_REQUESTS_TITLE.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select r.request_id,
+                       r.created_at,
+                       case r.request_kind
+                           when 'MONTHLY' then '<span class="t-Badge t-Badge--subtle t-Badge--info">'||apex_escape.html(apex_lang.message('P107_PRESCRIPTION_MONTHLY'))||'</span>'
+                           else '<span class="t-Badge t-Badge--subtle t-Badge--success">'||apex_escape.html(apex_lang.message('P107_PRESCRIPTION_ONE_TIME'))||'</span>'
+                       end request_category,
+                       r.request_no,
+                       r.beneficiary_name_snapshot beneficiary_name,
+                       r.beneficiary_person_id,
+                       case
+                           when r.status='APPROVED' then '<span class="t-Badge t-Badge--subtle t-Badge--success">'||apex_escape.html(apex_lang.message('P107_STATUS_APPROVED'))||'</span>'
+                           when r.status='PARTIALLY_APPROVED' then '<span class="t-Badge t-Badge--subtle t-Badge--warning">'||apex_escape.html(apex_lang.message('P107_STATUS_PARTIALLY_APPROVED'))||'</span>'
+                           when r.status='REJECTED' then '<span class="t-Badge t-Badge--subtle t-Badge--danger">'||apex_escape.html(apex_lang.message('P107_STATUS_REJECTED'))||'</span>'
+                           when r.status='CANCELLED' then '<span class="t-Badge t-Badge--subtle t-Badge--danger">'||apex_escape.html(apex_lang.message('P107_STATUS_CANCELLED'))||'</span>'
+                           else '<span class="t-Badge t-Badge--subtle t-Badge--warning">'||apex_escape.html(apex_lang.message('P107_STATUS_DOCTOR_REVIEW'))||'</span>'
+                       end status_label,
+                       (select case
+                                  when count(*)=0 then to_char(unistr('\2014'))
+                                  else '<div class="p107-dispense-info">'||
+                                       listagg(
+                                           '<div class="p107-dispense-info__item"><strong class="p107-dispense-info__medicine">'||apex_escape.html(i.medicine_name_snapshot)||'</strong>'||
+                                           '<span class="t-Badge t-Badge--subtle '||
+                                           case
+                                               when i.doctor_decision='PENDING' then 't-Badge--warning'
+                                               when i.doctor_decision='REJECTED' then 't-Badge--danger'
+                                               when i.dispense_mode='DAILY' then 't-Badge--info'
+                                               when i.dispense_mode='PHARMACY' then 't-Badge--success'
+                                               else 't-Badge--danger'
+                                           end||'">'||
+                                           case
+                                               when i.doctor_decision='PENDING' then apex_escape.html(apex_lang.message('P107_ITEM_STATUS_PENDING'))
+                                               when i.doctor_decision='REJECTED' then apex_escape.html(apex_lang.message('P107_ITEM_STATUS_REJECTED'))
+                                               when i.dispense_mode='DAILY' then apex_escape.html(apex_lang.message('P107_DISPENSE_DAILY'))
+                                               when i.dispense_mode='PHARMACY' then apex_escape.html(apex_lang.message('P107_DISPENSE_PHARMACY'))||': '||apex_escape.html(nvl(i.pharmacy_name_snapshot, apex_lang.message('P107_VALUE_UNSPECIFIED')))
+                                               when i.dispense_mode='NOT_DISPENSED' then apex_escape.html(apex_lang.message('P107_DISPENSE_NOT_ISSUED'))
+                                               else apex_escape.html(apex_lang.message('P107_VALUE_UNSPECIFIED'))
+                                           end||'</span></div>',
+                                           ''
+                                       ) within group(order by i.line_no)||
+                                       '</div>'
+                              end
+                         from med.md_pres_request_item i
+                        where i.request_id=r.request_id) dispense_info,
+                       (select listagg(case when i.doctor_decision='REJECTED' then i.medicine_name_snapshot||': '||i.rejection_reason when i.dispense_mode='NOT_DISPENSED' then i.medicine_name_snapshot||': '||i.not_dispensed_reason end, apex_lang.message('P107_LIST_SEPARATOR')) within group(order by i.line_no) from med.md_pres_request_item i where i.request_id=r.request_id) doctor_reasons,
+                       '<a class="t-Button t-Button--small p107-action p107-action--details" href="'||apex_escape.html_attribute(apex_util.prepare_url(apex_page.get_url(p_page=>112,p_items=>'P112_REQUEST_ID',p_values=>to_char(r.request_id)),p_checksum_type=>'SESSION'))||'"><span class="t-Icon t-Icon--left fa fa-info-circle" aria-hidden="true"></span><span class="t-Button-label">'||apex_escape.html(apex_lang.message('P107_OPEN_DETAILS'))||'</span></a>' details,
+                       r.document_status,
+                       case
+                         when r.status in ('APPROVED','PARTIALLY_APPROVED')
+                          and r.document_status='READY' then
+                           '<div class="p107-actions p107-prescription-actions" role="group" aria-label="'||apex_escape.html_attribute(apex_lang.message('P107_PRESCRIPTION_ACTIONS'))||'">' ||
+                           '<a class="t-Button t-Button--small p107-action p107-action--download" title="'||apex_escape.html_attribute(apex_lang.message('P107_PRESCRIPTION_DOWNLOAD_TITLE'))||'" aria-label="'||apex_escape.html_attribute(apex_lang.message('P107_PRESCRIPTION_DOWNLOAD_TITLE'))||'" target="_blank" rel="noopener noreferrer" href="'||apex_escape.html_attribute(apex_util.prepare_url(apex_page.get_url(p_page=>107,p_request=>'DOWNLOAD_PRESCRIPTION',p_items=>'P107_PRESCRIPTION_ID',p_values=>to_char(r.request_id)),p_checksum_type=>'SESSION'))||'"><span class="t-Icon t-Icon--left fa fa-download" aria-hidden="true"></span><span class="t-Button-label">'||apex_escape.html(apex_lang.message('P107_DOWNLOAD_PDF'))||'</span></a>' ||
+                           '<a class="t-Button t-Button--small p107-action p107-action--email p107-prescription-email-action" title="'||apex_escape.html_attribute(apex_lang.message('P107_PRESCRIPTION_EMAIL_ACTION'))||'" aria-label="'||apex_escape.html_attribute(apex_lang.message('P107_PRESCRIPTION_EMAIL_ACTION'))||'" href="#" data-prescription-id="'||to_char(r.request_id)||'"><span class="t-Icon t-Icon--left fa fa-envelope" aria-hidden="true"></span><span class="t-Button-label">'||apex_escape.html(apex_lang.message('P107_SEND_BY_EMAIL'))||'</span></a>' ||
+                           '<a class="t-Button t-Button--small p107-action p107-action--sms p107-sms-action" href="#" title="SMS" aria-label="SMS" data-document-kind="PRESCRIPTION" data-document-id="'||to_char(r.request_id)||'"><span class="t-Icon t-Icon--left fa fa-commenting-o" aria-hidden="true"></span><span class="t-Button-label">SMS</span></a>' ||
+                           '<a class="t-Button t-Button--small p107-action p107-action--share p107-prescription-share-action" title="'||apex_escape.html_attribute(apex_lang.message('P107_PRESCRIPTION_SHARE_ACTION'))||'" aria-label="'||apex_escape.html_attribute(apex_lang.message('P107_PRESCRIPTION_SHARE_ACTION'))||'" href="#" data-prescription-id="'||to_char(r.request_id)||'"><span class="t-Icon t-Icon--left fa fa-share-alt" aria-hidden="true"></span><span class="t-Button-label">'||apex_escape.html(apex_lang.message('MEDICAL_REFERRAL_SHARE'))||'</span></a></div>'
+                         else
+                           '<div class="p107-actions p107-prescription-actions" role="group" aria-label="'||apex_escape.html_attribute(apex_lang.message('P107_PRESCRIPTION_ACTIONS'))||'"><span class="t-Button t-Button--small p107-action p107-action--disabled is-disabled" aria-disabled="true" title="'||apex_escape.html_attribute(apex_lang.message('P107_PRESCRIPTION_ACTIONS_AFTER_APPROVAL'))||'"><span class="t-Icon t-Icon--left fa fa-lock" aria-hidden="true"></span><span class="t-Button-label">'||apex_escape.html(apex_lang.message('P107_PRESCRIPTION_ACTIONS_AFTER_APPROVAL'))||'</span></span></div>'
+                       end actions
+                  from med.md_pres_request r
+                 where upper(trim(r.employee_number))=upper(trim(:APP_USER))
+                 order by r.created_at desc, r.request_id desc
+                ```
+            pageItemsToSubmit: APP_USER
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+            cssClasses: [
+                p107-prescription-report
+                prescription-requests-region
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        searchBar {
+            reportsSelectList: false
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            selectColumns: false
+            saveReport: false
+            reset: false
+            help: false
+        }
+        download {
+            sendAsEmail: false
+        }
+        advanced {
+            savedReportMappingIdentifier: 64371386160241065
+        }
+
+        column ACTIONS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_ACTIONS.
+            }
+            layout {
+                sequence: 110
+            }
+            columnFormatting {
+                htmlExpression: #ACTIONS!RAW#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column BENEFICIARY_NAME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_BENEFICIARY.
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column BENEFICIARY_PERSON_ID (
+            type: plainText
+            heading {
+                heading: Person ID / Relative ID
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column CREATED_AT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_CREATED_AT.
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column DETAILS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$P107_OPEN_DETAILS.
+            }
+            layout {
+                sequence: 100
+            }
+            columnFormatting {
+                htmlExpression: #DETAILS!RAW#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column DISPENSE_INFO (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$P107_DISPENSE_METHOD_PHARMACY.
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column DOCTOR_REASONS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$P107_DOCTOR_REASONS.
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column DOCUMENT_STATUS (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_DOCUMENT_STATUS.
+            }
+            layout {
+                sequence: 2
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column REQUEST_CATEGORY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_TYPE.
+            }
+            layout {
+                sequence: 30
+            }
+            columnFormatting {
+                htmlExpression: #REQUEST_CATEGORY!RAW#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column REQUEST_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_REQUEST_NUMBER.
+            }
+            layout {
+                sequence: 1
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column REQUEST_NO (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_REQUEST_NUMBER.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column STATUS_LABEL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$P107_PRESCRIPTION_STATUS.
+            }
+            layout {
+                sequence: 60
+            }
+            columnFormatting {
+                htmlExpression: #STATUS_LABEL!RAW#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn ACTIONS (
+                sequence: 12
+            )
+
+            displayColumn BENEFICIARY_NAME (
+                sequence: 6
+            )
+
+            displayColumn BENEFICIARY_PERSON_ID (
+                sequence: 7
+            )
+
+            displayColumn CREATED_AT (
+                sequence: 4
+            )
+
+            displayColumn DETAILS (
+                sequence: 11
+            )
+
+            displayColumn DISPENSE_INFO (
+                sequence: 9
+            )
+
+            displayColumn DOCTOR_REASONS (
+                sequence: 10
+            )
+
+            displayColumn DOCUMENT_STATUS (
+                sequence: 2
+            )
+
+            displayColumn REQUEST_CATEGORY (
+                sequence: 5
+            )
+
+            displayColumn REQUEST_ID (
+                sequence: 1
+            )
+
+            displayColumn REQUEST_NO (
+                sequence: 3
+            )
+
+            displayColumn STATUS_LABEL (
+                sequence: 8
+            )
+
+        )
+
+    )
+
+    region prescription-display-selector (
+        name: &APP_TEXT$P107_MEDICAL_SERVICES.
+        type: regionDisplaySelector
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+            ]
+        }
+        settings {
+            displayRegionIcons: true
+            includeShowAll: false
+        }
+    )
+
+    region prescription-email-dialog (
+        name: &APP_TEXT$P107_PRESCRIPTION_EMAIL_DIALOG.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <dialog id="p107-prescription-email-dialog" aria-labelledby="p107-prescription-email-title">
+                  <form method="dialog" class="p107-dialog__form">
+                    <header class="p107-prescription-dialog__header">
+                      <span class="fa fa-envelope" aria-hidden="true"></span>
+                      <div>
+                        <h2 id="p107-prescription-email-title">&APP_TEXT$P107_PRESCRIPTION_EMAIL_TITLE.</h2>
+                        <p>&APP_TEXT$P107_PRESCRIPTION_EMAIL_DESCRIPTION.</p>
+                      </div>
+                    </header>
+                    <div class="p107-prescription-dialog__body">
+                      <label for="p107-prescription-email-recipient">&APP_TEXT$P107_EMAIL_RECIPIENT.</label>
+                      <input id="p107-prescription-email-recipient" type="email" maxlength="500" autocomplete="email" inputmode="email" placeholder="name@example.com" required>
+                    </div>
+                    <footer class="p107-prescription-dialog__footer">
+                      <button class="t-Button" value="cancel">&APP_TEXT$P107_CANCEL.</button>
+                      <button class="t-Button t-Button--hot" type="button" id="p107-prescription-email-send"><span class="t-Icon t-Icon--left fa fa-send" aria-hidden="true"></span><span class="t-Button-label">&APP_TEXT$P107_PRESCRIPTION_SEND.</span></button>
+                    </footer>
+                  </form>
+                </dialog>
+                ```
+        }
+        layout {
+            sequence: 28
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader
+                t-Region--noUI
+            ]
+        }
+    )
+
+    region prescription-share-dialog (
+        name: &APP_TEXT$P107_PRESCRIPTION_SHARE_DIALOG.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <dialog id="p107-prescription-share-dialog" aria-labelledby="p107-prescription-share-title">
+                  <form method="dialog" class="p107-dialog__form">
+                    <header class="p107-prescription-dialog__header">
+                      <span class="fa fa-share-alt" aria-hidden="true"></span>
+                      <div>
+                        <h2 id="p107-prescription-share-title">&APP_TEXT$P107_PRESCRIPTION_SHARE_TITLE.</h2>
+                        <p>&APP_TEXT$P107_PRESCRIPTION_SHARE_DESCRIPTION.</p>
+                      </div>
+                    </header>
+                    <div class="p107-prescription-dialog__body">
+                      <label for="p107-prescription-share-url">&APP_TEXT$P107_SECURE_SHARE_LINK.</label>
+                      <div class="p107-share-url-row">
+                        <input id="p107-prescription-share-url" type="url" readonly aria-label="&APP_TEXT$P107_SECURE_SHARE_LINK.">
+                        <button class="t-Button t-Button--small" type="button" id="p107-prescription-share-copy"><span class="t-Icon t-Icon--left fa fa-copy" aria-hidden="true"></span><span class="t-Button-label">&APP_TEXT$P107_COPY.</span></button>
+                      </div>
+                    </div>
+                    <footer class="p107-prescription-dialog__footer">
+                      <button class="t-Button" value="cancel">&APP_TEXT$P107_CLOSE.</button>
+                      <button class="t-Button t-Button--hot" type="button" id="p107-prescription-share-native"><span class="t-Icon t-Icon--left fa fa-share-alt" aria-hidden="true"></span><span class="t-Button-label">&APP_TEXT$MEDICAL_REFERRAL_SHARE.</span></button>
+                    </footer>
+                  </form>
+                </dialog>
+                ```
+        }
+        layout {
+            sequence: 29
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader
+                t-Region--noUI
+            ]
+        }
+    )
+
+    region share-dialog (
+        name: &APP_TEXT$MEDICAL_REFERRAL_SHARE.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <dialog id="p107-share-dialog" aria-labelledby="p107-share-title">
+                  <form method="dialog" class="p107-dialog__form">
+                    <h2 id="p107-share-title">&APP_TEXT$P107_MEDICAL_SHARE_TITLE.</h2>
+                    <p>&APP_TEXT$P107_MEDICAL_SHARE_DESCRIPTION.</p>
+                    <div class="p107-share-url-row">
+                      <input id="p107-share-url" type="url" readonly aria-label="&APP_TEXT$P107_SECURE_SHARE_LINK.">
+                      <button class="t-Button t-Button--small" type="button" id="p107-share-copy"><span class="t-Icon t-Icon--left fa fa-copy" aria-hidden="true"></span><span class="t-Button-label">&APP_TEXT$P107_COPY.</span></button>
+                    </div>
+                    <menu class="p107-dialog__actions">
+                      <button class="t-Button t-Button--small t-Button--hot" type="button" id="p107-share-native"><span class="t-Icon t-Icon--left fa fa-share-alt" aria-hidden="true"></span><span class="t-Button-label">&APP_TEXT$MEDICAL_REFERRAL_SHARE.</span></button>
+                      <button class="t-Button t-Button--small" type="button" id="p107-share-whatsapp"><span class="t-Icon t-Icon--left fa fa-whatsapp" aria-hidden="true"></span><span class="t-Button-label">WhatsApp</span></button>
+                      <button class="t-Button t-Button--small" value="cancel">&APP_TEXT$MEDICAL_REFERRAL_CANCEL.</button>
+                    </menu>
+                  </form>
+                </dialog>
+                ```
+        }
+        layout {
+            sequence: 25
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader
+                t-Region--noUI
+            ]
+        }
+    )
+
+    pageItem P107_DOWNLOAD_URL (
+        type: hidden
+        layout {
+            sequence: 50
+            slot: body
+        }
+    )
+
+    pageItem P107_EMAIL_DOCUMENT_TYPE (
+        type: hidden
+        layout {
+            sequence: 24
+            slot: body
+        }
+    )
+
+    pageItem P107_EMAIL_EMP_NAME (
+        type: hidden
+        layout {
+            sequence: 27
+            slot: body
+        }
+    )
+
+    pageItem P107_EMAIL_EMP_NUMBER (
+        type: hidden
+        layout {
+            sequence: 26
+            slot: body
+        }
+    )
+
+    pageItem P107_EMAIL_RECIPIENT (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: body
+        }
+    )
+
+    pageItem P107_EMAIL_SPECIALITY (
+        type: hidden
+        layout {
+            sequence: 28
+            slot: body
+        }
+    )
+
+    pageItem P107_EMAIL_URL (
+        type: hidden
+        layout {
+            sequence: 25
+            slot: body
+        }
+    )
+
+    pageItem P107_PRESCRIPTION_ID (
+        type: hidden
+        layout {
+            sequence: 11
+            slot: body
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P107_PUBLIC_URL (
+        type: hidden
+        layout {
+            sequence: 40
+            slot: body
+        }
+    )
+
+    pageItem P107_REFERAL_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+    )
+
+    pageItem P107_SHOW_EMAIL_DIALOG (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: body
+        }
+    )
+
+    process cancel-medical-referral (
+        name: CANCEL_MEDICAL_REFERRAL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_referal_id MED.md_referal_flow.referal_id%TYPE := to_number(apex_application.g_x01);
+                    l_workflow_id MED.md_referal_flow.workflow_id%TYPE;
+                BEGIN
+                    med.md_referal_wf_pkg.cancel_by_employee(
+                        p_referal_id => l_referal_id,
+                        p_app_user => :APP_USER
+                    );
+                    SELECT workflow_id
+                      INTO l_workflow_id
+                      FROM med.md_referal_flow
+                     WHERE referal_id = l_referal_id;
+                    IF l_workflow_id IS NOT NULL THEN
+                        apex_workflow.terminate(p_instance_id => l_workflow_id);
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 30
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 52399788393262021
+        }
+    )
+
+    process download-medical-email-draft (
+        name: DOWNLOAD_MEDICAL_EMAIL_DRAFT
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_referal_id NUMBER :=
+                        TO_NUMBER(NVL(apex_application.g_x01, :P107_REFERAL_ID));
+                    l_recipient VARCHAR2(500) :=
+                        TRIM(NVL(apex_application.g_x02, :P107_EMAIL_RECIPIENT));
+                    l_subject VARCHAR2(1000);
+                    l_body_text VARCHAR2(4000);
+                    l_emp_number VARCHAR2(200);
+                    l_emp_name VARCHAR2(500);
+                    l_speciality VARCHAR2(500);
+                BEGIN
+                    IF l_referal_id IS NULL THEN
+                        RAISE_APPLICATION_ERROR(-20080, 'Medical referral request was not identified');
+                    END IF;
+                
+                    BEGIN
+                        SELECT f.emp_id_snapshot,
+                               f.emp_name_snapshot,
+                               CASE
+                                   WHEN f.speciality_id IN ('0', '6', '26', '27', '28', '29', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '89', '90', '109', '490', '491', '492', '493', '494', '510', '511', '100731', '100732', '100733', '100734', '100735', '100736', '100737', '100738', '100739', '100740', '100741', '100742', '100743', '100744', '100745', '100746', '100751', '100752', '100771', '100772', '100773', '100774')
+                                   THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_SPECIALITY_' || f.speciality_id)
+                                   ELSE f.speciality_name_snapshot
+                               END
+                          INTO l_emp_number,
+                               l_emp_name,
+                               l_speciality
+                          FROM med.md_referal_flow f
+                         WHERE f.referal_id = l_referal_id;
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            RAISE_APPLICATION_ERROR(-20080, 'Medical referral request was not found');
+                    END;
+                
+                    l_subject := apex_lang.message(
+                        'MEDICAL_REFERRAL_EMAIL_SUBJECT',
+                        l_emp_number,
+                        l_emp_name,
+                        l_speciality
+                    );
+                    l_body_text := REPLACE(
+                        apex_lang.message(
+                            'MEDICAL_REFERRAL_EMAIL_BODY',
+                            :P107_EMAIL_URL
+                        ),
+                        '\' || 'n',
+                        CHR(10)
+                    );
+                
+                    med.md_referal_wf_pkg.download_employee_email_draft(
+                        p_referal_id => l_referal_id,
+                        p_app_user => :APP_USER,
+                        p_recipient => l_recipient,
+                        p_public_url => :P107_EMAIL_URL,
+                        p_subject => l_subject,
+                        p_body_text => l_body_text
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 55
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 54519353804998090
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: DOWNLOAD_MEDICAL_EMAIL_DRAFT
+        }
+    )
+
+    process download-medical-referral-document (
+        name: DOWNLOAD_MEDICAL_REFERRAL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    med.md_referal_wf_pkg.download_employee_document(
+                        p_referal_id => :P107_REFERAL_ID,
+                        p_app_user => :APP_USER
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 50
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 52399914641262021
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: DOWNLOAD_MEDICAL_REFERRAL
+        }
+    )
+
+    process download-prescription-document (
+        name: DOWNLOAD_PRESCRIPTION
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                    med.md_pres_document_pkg.download_employee_document(
+                        p_request_id => :P107_PRESCRIPTION_ID,
+                        p_app_user => :APP_USER
+                    );
+                end;
+                ```
+        }
+        execution {
+            sequence: 45
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 64705498182729163
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: DOWNLOAD_PRESCRIPTION
+        }
+    )
+
+    process download-prescription-email-draft (
+        name: DOWNLOAD_PRESCRIPTION_EMAIL_DRAFT
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_request_id NUMBER := TO_NUMBER(NVL(APEX_APPLICATION.G_X01, :P107_PRESCRIPTION_ID));
+                    l_recipient VARCHAR2(500) := TRIM(NVL(APEX_APPLICATION.G_X02, :P107_EMAIL_RECIPIENT));
+                    l_public_url VARCHAR2(4000) := TRIM(:P107_EMAIL_URL);
+                    l_subject VARCHAR2(1000);
+                    l_body_text VARCHAR2(4000);
+                    l_request_no VARCHAR2(100);
+                BEGIN
+                    IF l_request_id IS NULL THEN
+                        RAISE_APPLICATION_ERROR(-20302, APEX_LANG.MESSAGE('P107_PRESCRIPTION_REQUEST_NOT_IDENTIFIED'));
+                    END IF;
+                
+                    IF l_public_url IS NULL THEN
+                        med.md_pres_document_pkg.create_share_url(
+                            p_request_id => l_request_id,
+                            p_app_user => :APP_USER,
+                            p_public_url => l_public_url
+                        );
+                    END IF;
+                
+                    SELECT request_no
+                      INTO l_request_no
+                      FROM med.md_pres_request
+                     WHERE request_id = l_request_id;
+                
+                    l_subject := 'EPROM - Prescription ' || l_request_no;
+                    l_body_text :=
+                        'Please find attached the approved EPROM prescription.' || CHR(10) ||
+                        'Open the secure verification link: ' || l_public_url;
+                
+                    med.md_pres_document_pkg.download_employee_email_draft(
+                        p_request_id => l_request_id,
+                        p_app_user => :APP_USER,
+                        p_recipient => l_recipient,
+                        p_public_url => l_public_url,
+                        p_subject => l_subject,
+                        p_body_text => l_body_text
+                    );
+                END;
+                ```
+        }
+        execution {
+            sequence: 75
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 65386952471397899
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: DOWNLOAD_PRESCRIPTION_EMAIL_DRAFT
+        }
+    )
+
+    process prepare-document-sms (
+        name: PREPARE_DOCUMENT_SMS
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_kind VARCHAR2(20) := UPPER(TRIM(APEX_APPLICATION.G_X01));
+                    l_id NUMBER := TO_NUMBER(APEX_APPLICATION.G_X02);
+                    l_owner VARCHAR2(128);
+                    l_mobile VARCHAR2(99);
+                    l_count NUMBER;
+                BEGIN
+                    IF l_kind = 'REFERRAL' THEN
+                        SELECT emp_id_snapshot INTO l_owner FROM med.md_referal_flow WHERE referal_id=l_id;
+                        IF med.md_referal_wf_pkg.employee_document_allowed(l_id,:APP_USER)<>'Y' THEN
+                            RAISE_APPLICATION_ERROR(-20490,'This medical document is not available for SMS sharing.');
+                        END IF;
+                    ELSIF l_kind = 'PRESCRIPTION' THEN
+                        SELECT employee_number INTO l_owner FROM med.md_pres_request WHERE request_id=l_id AND status IN ('APPROVED','PARTIALLY_APPROVED');
+                        SELECT COUNT(*) INTO l_count FROM med.md_pres_document
+                         WHERE request_id=l_id AND token_status='ACTIVE' AND pdf_blob IS NOT NULL;
+                        IF l_count=0 THEN RAISE_APPLICATION_ERROR(-20490,'The approved PDF is unavailable.');END IF;
+                    ELSE
+                        RAISE_APPLICATION_ERROR(-20490,'Invalid medical document type.');
+                    END IF;
+                    IF l_owner IS NULL OR :APP_USER IS NULL OR UPPER(TRIM(l_owner))<>UPPER(TRIM(:APP_USER)) THEN
+                        RAISE_APPLICATION_ERROR(-20490,'This medical document belongs to another employee.');
+                    END IF;
+                    l_mobile:=central.sms_pkg.get_emp_mobile(:APP_USER);
+                    APEX_JSON.OPEN_OBJECT;
+                    APEX_JSON.WRITE('success',TRUE);
+                    APEX_JSON.WRITE('mobile',NVL(l_mobile,''));
+                    APEX_JSON.CLOSE_OBJECT;
+                END;
+                ```
+        }
+        execution {
+            sequence: 90
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 99010410720261011
+        }
+    )
+
+    process prepare-email-dialog (
+        name: Prepare medical referral email dialog
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_request VARCHAR2(100) := :REQUEST;
+                BEGIN
+                    :P107_SHOW_EMAIL_DIALOG := 'N';
+                    :P107_EMAIL_DOCUMENT_TYPE := 'MEDICAL_REFERRAL';
+                    IF l_request = 'OPEN_MEDICAL_EMAIL_DIALOG' THEN
+                        med.md_referal_wf_pkg.create_employee_share_url(
+                            p_referal_id => :P107_REFERAL_ID,
+                            p_app_user => :APP_USER,
+                            p_public_url => :P107_EMAIL_URL
+                        );
+                        SELECT f.emp_id_snapshot,
+                               f.emp_name_snapshot,
+                               CASE
+                                   WHEN f.speciality_id IN ('0', '6', '26', '27', '28', '29', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '89', '90', '109', '490', '491', '492', '493', '494', '510', '511', '100731', '100732', '100733', '100734', '100735', '100736', '100737', '100738', '100739', '100740', '100741', '100742', '100743', '100744', '100745', '100746', '100751', '100752', '100771', '100772', '100773', '100774')
+                                   THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_SPECIALITY_' || f.speciality_id)
+                                   ELSE f.speciality_name_snapshot
+                               END
+                          INTO :P107_EMAIL_EMP_NUMBER,
+                               :P107_EMAIL_EMP_NAME,
+                               :P107_EMAIL_SPECIALITY
+                          FROM med.md_referal_flow f
+                         WHERE f.referal_id = :P107_REFERAL_ID
+                           AND f.emp_id_snapshot = :APP_USER;
+                        BEGIN
+                            SELECT comp_email
+                              INTO :P107_EMAIL_RECIPIENT
+                              FROM central.xxapex_hr_emp_data
+                             WHERE upper(trim(emp_number)) = upper(trim(:APP_USER));
+                        EXCEPTION
+                            WHEN NO_DATA_FOUND THEN
+                                :P107_EMAIL_RECIPIENT := NULL;
+                        END;
+                        :P107_SHOW_EMAIL_DIALOG := 'Y';
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 52399597379262021
+        }
+    )
+
+    process prepare-medical-email-recipient (
+        name: PREPARE_MEDICAL_EMAIL_RECIPIENT
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_recipient VARCHAR2(500) := TRIM(apex_application.g_x01);
+                    l_referal_id NUMBER := TO_NUMBER(apex_application.g_x02);
+                BEGIN
+                    IF l_referal_id IS NULL THEN
+                        RAISE_APPLICATION_ERROR(-20080, 'Medical referral request was not identified');
+                    END IF;
+                
+                    IF l_recipient IS NULL
+                       OR NOT REGEXP_LIKE(
+                              l_recipient,
+                              '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,63}$'
+                          )
+                    THEN
+                        RAISE_APPLICATION_ERROR(-20071, APEX_LANG.MESSAGE('P107_DOCUMENT_EMAIL_INVALID'));
+                    END IF;
+                
+                    apex_json.open_object;
+                    apex_json.write(
+                        'url',
+                        apex_util.prepare_url(
+                            apex_page.get_url(
+                                p_page => 107,
+                                p_request => 'DOWNLOAD_MEDICAL_EMAIL_DRAFT',
+                                p_items => 'P107_REFERAL_ID,P107_EMAIL_RECIPIENT',
+                                p_values => to_char(l_referal_id) || ',' || l_recipient
+                            ),
+                            p_checksum_type => 'SESSION'
+                        )
+                    );
+                    apex_json.close_object;
+                END;
+                ```
+        }
+        execution {
+            sequence: 52
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 54519353804998091
+        }
+    )
+
+    process prepare-medical-referral-share (
+        name: Prepare guarded medical referral share URL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_request VARCHAR2(100) := :REQUEST;
+                BEGIN
+                    :P107_PUBLIC_URL := NULL;
+                    :P107_DOWNLOAD_URL := NULL;
+                    IF l_request = 'SHARE' THEN
+                        med.md_referal_wf_pkg.create_employee_share_url(
+                            p_referal_id => :P107_REFERAL_ID,
+                            p_app_user => :APP_USER,
+                            p_public_url => :P107_PUBLIC_URL
+                        );
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 52399684202262021
+        }
+    )
+
+    process prepare-prescription-email-dialog (
+        name: PREPARE_PRESCRIPTION_EMAIL_DIALOG
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_request_id NUMBER := TO_NUMBER(APEX_APPLICATION.G_X01);
+                    l_public_url VARCHAR2(4000);
+                    l_recipient VARCHAR2(500);
+                BEGIN
+                    IF l_request_id IS NULL THEN
+                        RAISE_APPLICATION_ERROR(-20302, APEX_LANG.MESSAGE('P107_PRESCRIPTION_REQUEST_NOT_IDENTIFIED'));
+                    END IF;
+                
+                    med.md_pres_document_pkg.create_share_url(
+                        p_request_id => l_request_id,
+                        p_app_user => :APP_USER,
+                        p_public_url => l_public_url
+                    );
+                
+                    BEGIN
+                        SELECT comp_email
+                          INTO l_recipient
+                          FROM central.xxapex_hr_emp_data
+                         WHERE UPPER(TRIM(emp_number)) = UPPER(TRIM(:APP_USER));
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            l_recipient := NULL;
+                    END;
+                
+                    :P107_EMAIL_DOCUMENT_TYPE := 'PRESCRIPTION';
+                    :P107_PRESCRIPTION_ID := TO_CHAR(l_request_id);
+                    :P107_EMAIL_URL := l_public_url;
+                    :P107_EMAIL_RECIPIENT := l_recipient;
+                
+                    APEX_JSON.OPEN_OBJECT;
+                    APEX_JSON.WRITE('success', TRUE);
+                    APEX_JSON.WRITE('url', l_public_url);
+                    APEX_JSON.WRITE('recipient', l_recipient);
+                    APEX_JSON.CLOSE_OBJECT;
+                END;
+                ```
+        }
+        execution {
+            sequence: 73
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 65386720380397899
+        }
+    )
+
+    process prepare-prescription-email-recipient (
+        name: PREPARE_PRESCRIPTION_EMAIL_RECIPIENT
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_recipient VARCHAR2(500) := TRIM(APEX_APPLICATION.G_X01);
+                    l_request_id NUMBER := TO_NUMBER(APEX_APPLICATION.G_X02);
+                BEGIN
+                    IF l_request_id IS NULL THEN
+                        RAISE_APPLICATION_ERROR(-20302, APEX_LANG.MESSAGE('P107_PRESCRIPTION_REQUEST_NOT_IDENTIFIED'));
+                    END IF;
+                
+                    IF l_recipient IS NULL
+                       OR NOT REGEXP_LIKE(
+                              l_recipient,
+                              '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,63}$'
+                          )
+                    THEN
+                        RAISE_APPLICATION_ERROR(-20071, APEX_LANG.MESSAGE('P107_DOCUMENT_EMAIL_INVALID'));
+                    END IF;
+                
+                    :P107_EMAIL_DOCUMENT_TYPE := 'PRESCRIPTION';
+                    :P107_PRESCRIPTION_ID := TO_CHAR(l_request_id);
+                    :P107_EMAIL_RECIPIENT := l_recipient;
+                
+                    APEX_JSON.OPEN_OBJECT;
+                    APEX_JSON.WRITE(
+                        'url',
+                        APEX_UTIL.PREPARE_URL(
+                            APEX_PAGE.GET_URL(
+                                p_page => 107,
+                                p_request => 'DOWNLOAD_PRESCRIPTION_EMAIL_DRAFT',
+                                p_items => 'P107_PRESCRIPTION_ID,P107_EMAIL_RECIPIENT',
+                                p_values => TO_CHAR(l_request_id) || ',' || l_recipient
+                            ),
+                            p_checksum_type => 'SESSION'
+                        )
+                    );
+                    APEX_JSON.CLOSE_OBJECT;
+                END;
+                ```
+        }
+        execution {
+            sequence: 74
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 65386832980397899
+        }
+    )
+
+    process prepare-prescription-share (
+        name: PREPARE_PRESCRIPTION_SHARE
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_request_id NUMBER := TO_NUMBER(APEX_APPLICATION.G_X01);
+                    l_public_url VARCHAR2(4000);
+                BEGIN
+                    IF l_request_id IS NULL THEN
+                        RAISE_APPLICATION_ERROR(-20301, APEX_LANG.MESSAGE('P107_PRESCRIPTION_REQUEST_NOT_IDENTIFIED'));
+                    END IF;
+                
+                    med.md_pres_document_pkg.create_share_url(
+                        p_request_id => l_request_id,
+                        p_app_user => :APP_USER,
+                        p_public_url => l_public_url
+                    );
+                
+                    APEX_JSON.OPEN_OBJECT;
+                    APEX_JSON.WRITE('success', TRUE);
+                    APEX_JSON.WRITE('url', l_public_url);
+                    APEX_JSON.CLOSE_OBJECT;
+                END;
+                ```
+        }
+        execution {
+            sequence: 70
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 64372990506241068
+        }
+    )
+
+    process send-document-sms (
+        name: SEND_DOCUMENT_SMS
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_kind VARCHAR2(20) := UPPER(TRIM(APEX_APPLICATION.G_X01));
+                    l_id NUMBER := TO_NUMBER(APEX_APPLICATION.G_X02);
+                    l_mobile VARCHAR2(99) := TRIM(APEX_APPLICATION.G_X03);
+                    l_owner VARCHAR2(128);
+                    l_url VARCHAR2(4000);
+                    l_prefix VARCHAR2(200);
+                    l_message VARCHAR2(4000);
+                    l_result NUMBER;
+                    l_recent NUMBER;
+                    l_count NUMBER;
+                BEGIN
+                    IF l_mobile IS NULL OR NOT REGEXP_LIKE(l_mobile,'^[+0-9 ()-]+$') THEN
+                        RAISE_APPLICATION_ERROR(-20491,'Enter a valid Egyptian mobile number.');
+                    END IF;
+                    l_mobile:=REGEXP_REPLACE(l_mobile,'[+ ()-]','');
+                    IF SUBSTR(l_mobile,1,2)='20' AND LENGTH(l_mobile)=12 THEN
+                        l_mobile:='0'||SUBSTR(l_mobile,3);
+                    END IF;
+                    IF NOT REGEXP_LIKE(l_mobile,'^01[0125][0-9]{8}$') THEN
+                        RAISE_APPLICATION_ERROR(-20491,'Enter a valid Egyptian mobile number.');
+                    END IF;
+                    IF l_kind='REFERRAL' THEN
+                        SELECT emp_id_snapshot INTO l_owner FROM med.md_referal_flow WHERE referal_id=l_id;
+                        IF NVL(med.md_referal_wf_pkg.employee_document_allowed(l_id,:APP_USER),'N')<>'Y' THEN
+                            RAISE_APPLICATION_ERROR(-20490,'This medical document is not available for SMS sharing.');
+                        END IF;
+                        l_prefix:='EPROM: Medical referral #'||TO_CHAR(l_id)||CHR(10);
+                    ELSIF l_kind='PRESCRIPTION' THEN
+                        SELECT employee_number INTO l_owner FROM med.md_pres_request WHERE request_id=l_id AND status IN ('APPROVED','PARTIALLY_APPROVED');
+                        SELECT COUNT(*) INTO l_count FROM med.md_pres_document
+                         WHERE request_id=l_id AND token_status='ACTIVE' AND pdf_blob IS NOT NULL;
+                        IF l_count=0 THEN RAISE_APPLICATION_ERROR(-20490,'The approved PDF is unavailable.');END IF;
+                        l_prefix:='EPROM: Prescription #'||TO_CHAR(l_id)||CHR(10);
+                    ELSE
+                        RAISE_APPLICATION_ERROR(-20490,'Invalid medical document type.');
+                    END IF;
+                    IF l_owner IS NULL OR :APP_USER IS NULL OR UPPER(TRIM(l_owner))<>UPPER(TRIM(:APP_USER)) THEN
+                        RAISE_APPLICATION_ERROR(-20490,'This medical document belongs to another employee.');
+                    END IF;
+                    SELECT COUNT(*) INTO l_recent FROM central.sms_log
+                     WHERE send_date>SYSDATE-60/86400
+                       AND SUBSTR(msg,1,LENGTH(l_prefix))=l_prefix
+                       AND DBMS_LOB.COMPARE(mob,TO_CLOB(l_mobile))=0;
+                    IF l_recent>0 THEN
+                        RAISE_APPLICATION_ERROR(-20492,'Please wait one minute before resending this document to the same number.');
+                    END IF;
+                    SAVEPOINT p107_sms_share;
+                    IF l_kind='REFERRAL' THEN
+                        med.md_referal_wf_pkg.create_employee_share_url(l_id,:APP_USER,l_url);
+                    ELSE
+                        med.md_pres_document_pkg.create_share_url(l_id,:APP_USER,l_url);
+                    END IF;
+                    IF l_url IS NULL OR SUBSTR(l_url,1,8)<>'https://' THEN
+                        RAISE_APPLICATION_ERROR(-20490,'A secure medical document URL could not be prepared.');
+                    END IF;
+                    l_message:=l_prefix||l_url;
+                    -- Existing supported sender accepts one recipient and records the provider response.
+                    -- Unlike SEND_SINGLE on server42, this route actually calls the SMS gateway.
+                    BEGIN
+                        l_result:=central.sms_pkg.send_multi(MSG=>l_message,MOBILES=>TO_CLOB(l_mobile));
+                    EXCEPTION WHEN OTHERS THEN
+                        -- The shared sender logs only completed HTTP responses. Record transport failures
+                        -- through its existing autonomous logger without committing document changes.
+                        central.log_sms_attempt(P_MSG=>l_message,P_MOB=>l_mobile,
+                            P_LOG=>TO_CLOB('ERROR '||SQLCODE||': '||SUBSTR(SQLERRM,1,2000)||' [PAGE107_DOCUMENT_SMS]'));
+                        ROLLBACK TO p107_sms_share;
+                        l_result:=0;
+                    END;
+                    IF NVL(l_result,0)<>1 THEN
+                        APEX_JSON.OPEN_OBJECT;
+                        APEX_JSON.WRITE('success',FALSE);
+                        APEX_JSON.WRITE('errorCode','GATEWAY_UNAVAILABLE');
+                        APEX_JSON.CLOSE_OBJECT;
+                        RETURN;
+                    END IF;
+                    APEX_JSON.OPEN_OBJECT;
+                    APEX_JSON.WRITE('success',TRUE);
+                    APEX_JSON.WRITE('mobile',SUBSTR(l_mobile,1,3)||'*****'||SUBSTR(l_mobile,-3));
+                    APEX_JSON.CLOSE_OBJECT;
+                END;
+                ```
+        }
+        execution {
+            sequence: 95
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 99010410720261012
+        }
+    )
+
+    process send-prescription-email (
+        name: LEGACY_SEND_PRESCRIPTION_EMAIL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_request_id NUMBER := TO_NUMBER(APEX_APPLICATION.G_X01);
+                    l_recipient VARCHAR2(500) := TRIM(APEX_APPLICATION.G_X02);
+                BEGIN
+                    IF l_request_id IS NULL THEN
+                        RAISE_APPLICATION_ERROR(-20302, APEX_LANG.MESSAGE('P107_PRESCRIPTION_REQUEST_NOT_IDENTIFIED'));
+                    END IF;
+                
+                    med.md_pres_document_pkg.send_document_email(
+                        p_request_id => l_request_id,
+                        p_app_user => :APP_USER,
+                        p_recipient => l_recipient
+                    );
+                
+                    APEX_JSON.OPEN_OBJECT;
+                    APEX_JSON.WRITE('success', TRUE);
+                    APEX_JSON.CLOSE_OBJECT;
+                END;
+                ```
+        }
+        execution {
+            sequence: 80
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 64373055280241068
+        }
+    )
+
+)

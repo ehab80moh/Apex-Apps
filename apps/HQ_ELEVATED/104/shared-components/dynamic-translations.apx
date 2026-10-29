@@ -1,0 +1,11 @@
+dynamicTranslation (
+    language: en-us
+    fromText: 203 - حسام أسعد حسنين سعيد
+    toText: 203 - Hossam Asaad Hassanein Said
+)
+
+dynamicTranslation (
+    language: en-us
+    fromText: جديد
+    toText: Open
+)

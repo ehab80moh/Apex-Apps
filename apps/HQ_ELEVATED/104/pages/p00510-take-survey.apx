@@ -1,0 +1,501 @@
+page 510 (
+    name: نموذج إبداء رغبة
+    alias: TAKE-SURVEY
+    title: &APP_TEXT$EXPRESSION_OF_INTEREST_FORM.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+                #baloons    {
+                    height:200px;
+                }
+            #BTN_RG{
+               z-index: 9999999;
+               position: relative;
+            }
+            
+                #P510_RESPONSE_CONTAINER{
+                    z-index: 9999999;
+                    position: relative;
+                }
+            .apex-item-group--rc input+label {
+                display: inline-block;
+                margin-block-end: .25rem;
+                margin-block-start: .25rem;
+                min-height: var(--a-checkbox-size, 1rem);
+                font-size: medium;}
+                
+                .t-Form-itemWrapper .a-Button, .t-Form-itemWrapper .apex-item-display-only, .t-Form-itemWrapper .apex-item-multi, .t-Form-itemWrapper input, .t-Form-itemWrapper select, .t-Form-itemWrapper textarea {
+                order: 3;
+                font-size: medium;}
+            
+            
+                .t-Form-fieldContainer--floatingLabel .t-Form-inputContainer .display_only apex-item-display-only {
+                flex-grow: 1;
+                flex-wrap: wrap;
+                grid-area: field;
+                max-width: 100%;
+                min-inline-size: 0;
+                order: 3;
+                padding: 0;
+                font-size: medium;
+            }
+            
+            .t-Form-fieldContainer--floatingLabel .apex-item-display-only{
+            
+            border-color:#d3ded300;
+            
+            }
+            
+            
+            
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region baloons (
+        name: baloons
+        title: &APP_TEXT$BALOONS.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_25!RAW.
+        }
+        layout {
+            sequence: 51
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: #baloons
+        }
+    )
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: BTN_RG
+        }
+    )
+
+    region response (
+        name: response
+        title: &APP_TEXT$RESPONSE.
+        type: staticContent
+        layout {
+            sequence: 81
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region text (
+        name: text
+        title: &APP_TEXT$TEXT.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_27!RAW.
+        }
+        layout {
+            sequence: 91
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P510_IS_LAST_QUESTION (
+        type: hidden
+        layout {
+            sequence: 31
+            slot: contentBody
+        }
+    )
+
+    pageItem P510_QUESTION_ID (
+        type: hidden
+        layout {
+            sequence: 41
+            slot: contentBody
+        }
+    )
+
+    pageItem P510_QUESTION_TEXT (
+        type: displayOnly
+        label {
+            alignment: left
+        }
+        settings {
+            format: html
+        }
+        layout {
+            sequence: 10
+            region: @response
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                margin-top-lg
+                margin-bottom-none
+            ]
+        }
+    )
+
+    pageItem P510_RESPONSE (
+        type: radioGroup
+        label {
+            alignment: left
+        }
+        settings {
+            pageActionOnSelection: submitPage
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT
+                    
+                    answer_text,
+                        answer_id
+                FROM
+                    EPROMHQ.gen_survey_answers
+                    WHERE question_id = :P510_QUESTION_ID
+                    ORDER BY     ord ;
+                ```
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 20
+            region: @response
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                margin-top-none
+            ]
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue:
+                ```sql
+                  SELECT 
+                          C003 AS ANSWER_ID
+                     FROM APEX_COLLECTIONS
+                    WHERE COLLECTION_NAME = 'SURVEY_' || TO_CHAR(:P510_SURVEY_ID)
+                    AND C002 = :P510_QUESTION_ID;
+                ```
+        }
+    )
+
+    pageItem P510_RESPONSE_ID (
+        type: hidden
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+    )
+
+    pageItem P510_SURVEY_ID (
+        type: hidden
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+    )
+
+    button close (
+        buttonName: CLOSE
+        label: &APP_TEXT$CLOSE.
+        layout {
+            sequence: 10
+            region: @new
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button done (
+        buttonName: DONE
+        label: &APP_TEXT$SAVE_CHANGES.
+        layout {
+            sequence: 10
+            region: @new
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P510_IS_LAST_QUESTION =1 AND :P510_RESPONSE IS NOT NULL
+        }
+    )
+
+    process close-dialog (
+        name: CLOSE DIALOG
+        type: closeDialog
+        execution {
+            sequence: 60
+        }
+        successMessage {
+            successMessage: &APP_TEXT$SELECTION_MADE_SUCCESSFULLY.
+        }
+        advanced {
+            executionMappingIdentifier: 98162269568312712
+        }
+        serverSideCondition {
+            type: request=Value
+            value: DONE
+        }
+    )
+
+    process fill-first-question-create-collection (
+        name: FILL FIRST QUESTION create collection
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                   L_QUERY VARCHAR2(500);
+                BEGIN
+                   L_QUERY := 'SELECT
+                    response_id,    question_id,    answer_id
+                FROM    EPROMHQ.gen_survey_responses 
+                    where     user_id  = '
+                              || :APP_USER
+                              || 'and     survey_id ='
+                              || :P510_SURVEY_ID;
+                   APEX_COLLECTION.CREATE_COLLECTION_FROM_QUERY(
+                      P_COLLECTION_NAME    => 'SURVEY_' || :P510_SURVEY_ID,
+                      P_QUERY              => L_QUERY,
+                      P_GENERATE_MD5       => 'YES',
+                      P_TRUNCATE_IF_EXISTS => 'YES'
+                   );
+                
+                   SELECT QUESTION_ID,
+                          QUESTION_TEXT
+                     INTO
+                      :P510_QUESTION_ID,
+                      :P510_QUESTION_TEXT
+                     FROM EPROMHQ.GEN_SURVEY_QUESTIONS
+                    WHERE SURVEY_ID = :P510_SURVEY_ID
+                      AND ROWNUM = 1
+                    ORDER BY QUESTION_NUMBER;
+                
+                
+                END;
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeRegions
+        }
+        advanced {
+            executionMappingIdentifier: 98161302600312703
+        }
+        serverSideCondition {
+            type: itemIsNullOrZero
+            item: P510_QUESTION_ID
+        }
+    )
+
+    process final-save (
+        name: FINAL SAVE
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                   CURSOR CR IS
+                   SELECT SEQ_ID,
+                          C001 AS RESPONSE_ID,
+                          C002 AS QUESTION_ID,
+                          C003 AS ANSWER_ID
+                     FROM APEX_COLLECTIONS
+                    WHERE COLLECTION_NAME = 'SURVEY_' || TO_CHAR(:P510_SURVEY_ID);
+                
+                BEGIN
+                   FOR C IN CR LOOP
+                      MERGE INTO EPROMHQ.GEN_SURVEY_RESPONSES DST
+                      USING (
+                         SELECT :P510_SURVEY_ID AS SURVEY_ID,
+                                C.QUESTION_ID AS QUESTION_ID,
+                                C.ANSWER_ID AS ANSWER_ID,
+                                :APP_USER AS USER_ID
+                           FROM DUAL
+                      ) SRC ON ( DST.SURVEY_ID = SRC.SURVEY_ID
+                         AND DST.QUESTION_ID = SRC.QUESTION_ID
+                         AND DST.USER_ID = SRC.USER_ID )
+                      WHEN MATCHED THEN UPDATE
+                      SET DST.ANSWER_ID = SRC.ANSWER_ID
+                      WHEN NOT MATCHED THEN
+                      INSERT (
+                         SURVEY_ID,
+                         QUESTION_ID,
+                         ANSWER_ID,
+                         USER_ID )
+                      VALUES
+                         ( SRC.SURVEY_ID,
+                           SRC.QUESTION_ID,
+                           SRC.ANSWER_ID,
+                           SRC.USER_ID );
+                   END LOOP;
+                END;
+                ```
+        }
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 98162166910312711
+        }
+        serverSideCondition {
+            type: request=Value
+            value: DONE
+        }
+    )
+
+    process save-and-set-next (
+        name: SAVE AND SET NEXT
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                L_SEQ_ID VARCHAR2(99);
+                BEGIN
+                BEGIN
+                
+                SELECT SEQ_ID
+                INTO L_SEQ_ID
+                FROM APEX_COLLECTIONS
+                WHERE COLLECTION_NAME = 'SURVEY_' || TO_CHAR(:P510_SURVEY_ID)
+                AND C002 = :P510_QUESTION_ID;
+                
+                    APEX_COLLECTION.DELETE_MEMBER(
+                        p_collection_name => 'SURVEY_' || TO_CHAR(:P510_SURVEY_ID),
+                        p_seq => L_SEQ_ID);
+                EXCEPTION WHEN NO_DATA_FOUND THEN NULL;
+                END;
+                
+                APEX_COLLECTION.ADD_MEMBER(
+                        p_collection_name => 'SURVEY_' || TO_CHAR(:P510_SURVEY_ID),
+                        p_c001            => NULL,
+                        p_c002            => :P510_QUESTION_ID,
+                        p_C003            => :P510_RESPONSE
+                        );
+                
+                
+                IF NVL(
+                   :P510_IS_LAST_QUESTION,
+                   0
+                ) <> 1 THEN 
+                   :P510_RESPONSE := NULL;
+                   BEGIN
+                      SELECT Q.QUESTION_ID,
+                             Q.QUESTION_TEXT,
+                             CASE
+                                WHEN (
+                                   SELECT MAX(QUESTION_NUMBER)
+                                     FROM EPROMHQ.GEN_SURVEY_QUESTIONS QS
+                                    WHERE QS.SURVEY_ID = :P510_SURVEY_ID
+                                ) = Q.QUESTION_NUMBER THEN
+                                   1
+                                ELSE
+                                   0
+                             END
+                        INTO
+                         :P510_QUESTION_ID,
+                         :P510_QUESTION_TEXT,
+                         :P510_IS_LAST_QUESTION
+                        FROM EPROMHQ.GEN_SURVEY_QUESTIONS Q
+                       WHERE Q.SURVEY_ID = :P510_SURVEY_ID
+                         AND Q.QUESTION_ID <> :P510_QUESTION_ID
+                         AND Q.QUESTION_NUMBER > (
+                         SELECT QUESTION_NUMBER
+                           FROM EPROMHQ.GEN_SURVEY_QUESTIONS QS
+                          WHERE QS.SURVEY_ID = :P510_SURVEY_ID
+                            AND QS.QUESTION_ID = :P510_QUESTION_ID
+                      )
+                         AND ROWNUM = 1
+                       ORDER BY Q.QUESTION_NUMBER;
+                
+                   EXCEPTION
+                      WHEN NO_DATA_FOUND 
+                       THEN
+                :P510_IS_LAST_QUESTION :=1;
+                   END;
+                
+                END IF;
+                END;
+                ```
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 98161640183312706
+        }
+        serverSideCondition {
+            type: request!=Value
+            value: DONE
+        }
+    )
+
+)

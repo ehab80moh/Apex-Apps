@@ -1,0 +1,37 @@
+appComputation not-count (
+    itemName: NOT_COUNT
+    execution {
+        sequence: 10
+        point: beforeHeader
+    }
+    computation {
+        type: sqlQuerySingleValue
+        sqlQuery:
+            ```sql
+            select count(*) from central.emp_notifications
+            where emp_id=:APP_USER
+            and seen=0
+            ```
+    }
+)
+
+appComputation task-count (
+    itemName: TASK_COUNT
+    execution {
+        sequence: 10
+        point: beforeHeader
+    }
+    computation {
+        type: sqlQuerySingleValue
+        sqlQuery:
+            ```sql
+            select count(*)
+              from table ( apex_approval.get_tasks ( p_context => 'MY_TASKS' ) )
+                        
+            ```
+    }
+    serverSideCondition {
+        type: currentPage=page
+        page: 1
+    }
+)

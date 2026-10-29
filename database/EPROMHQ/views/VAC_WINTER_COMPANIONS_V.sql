@@ -1,0 +1,25 @@
+
+  CREATE OR REPLACE FORCE EDITIONABLE VIEW "EPROMHQ"."VAC_WINTER_COMPANIONS_V" ("COMPANION_ID", "PERSON_ID", "PERSON_NAME", "PERSON_RELATION", "PERSON_BIRTHDATE", "WINTER_APP_ID", "EXTRA_ATTACH1", "EXTRA_ATTACH2", "EMP_ID", "DEL", "NOTES", "NAME1", "NAME2") AS
+  select
+    c.COMPANION_ID,
+    c.PERSON_ID,
+            c.PERSON_NAME,
+    NVL(r.RELATIVE_TYPE, c.PERSON_RELATION) as PERSON_RELATION,
+    NVL(r.DATE_OF_BIRTH, c.PERSON_BIRTHDATE) as PERSON_BIRTHDATE,
+
+    c.WINTER_APP_ID,
+c.EXTRA_ATTACH1,
+    c.EXTRA_ATTACH2,
+
+    c.EMP_ID,
+    null as del
+   ,CASE  WHEN ROWNUM < 5 THEN ''
+   ELSE 'خارج الدعم '
+   END
+    AS NOTES,
+    'attach_' || c.COMPANION_ID || '.jpeg' AS NAME1,   -- اسم الملف
+        'attach_' || c.COMPANION_ID || '.jpeg' AS NAME2   -- اسم الملف
+
+from EPROMHQ.VAC_WINTER_COMPANIONS c
+     left join CENTRAL.XXAPEX_HR_EMP_RELATIVES r
+   on   c.PERSON_id = r.relative_person_id;

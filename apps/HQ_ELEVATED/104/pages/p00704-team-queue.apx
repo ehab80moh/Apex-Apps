@@ -1,0 +1,391 @@
+page 704 (
+    name: team-queue
+    alias: TEAM-QUEUE
+    title: &APP_TEXT$PORTAL_PAGE_704_TITLE.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @it
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region team-requests (
+        name: Requests Assigned to Your Team(s)
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select r.REQUEST_ID,
+                       r.REQUEST_NO,
+                       r.EMP_ID,
+                       r.EMP_INTERNAL_NUMBER,
+                       central.get_emp_name(r.EMP_ID) as REQUESTER_NAME,
+                       r.DESCRIPTION,
+                       r.REQUEST_DATE,
+                       t.name as CATEGORY,
+                       d.title as SUBCATEGORY,
+                       r.CRITICALITY,
+                       case 
+                           when r.STATUS = 100 then 'Assigned - Unclaimed'
+                           when r.STATUS = 110 then 'In Progress'
+                           else 'Other'
+                       end as STATUS_LABEL,
+                       r.STATUS,
+                       at.name as ASSIGNED_TEAM,
+                       r.ASSIGNED_TO
+                  from ITR_TEAM_QUEUE_ITEMS qi
+                  join ITR_REQUESTS r on r.REQUEST_ID = qi.REQUEST_ID
+                  left join ITR_REQUEST_TYPES t on r.REQUEST_TYPE = t.id
+                  left join ITR_REQUEST_TYPE_DETAILS d on r.REQUEST_TYPE_DETAIL_ID = d.id
+                  left join ITR_TEAMS at on r.ASSIGNED_TEAM_ID = at.id
+                 where qi.QUEUE_STATUS in ('TEAM_PENDING', 'MEMBER_ASSIGNED', 'IN_PROGRESS')
+                   and r.STATUS in (100, 110)
+                   and (r.ASSIGNED_TO = :APP_USER or r.ASSIGNED_TO is null)
+                   and r.ASSIGNED_TEAM_ID in (
+                       select team_id 
+                         from ITR_TEAM_MEMBERS 
+                        where username = :APP_USER
+                   )
+                 order by case when r.CRITICALITY = 'urgent' then 1 else 2 end,
+                          qi.QUEUE_POSITION,
+                          qi.ENQUEUED_DATE
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 705
+                items: {
+                    P705_REQUEST_ID: \#REQUEST_ID#\
+                }
+                clearCache: 705
+            }
+            linkIcon: <span class="fa fa-edit" aria-hidden="true" title="Action Request"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 34421761590321345
+        }
+
+        column ASSIGNED_TEAM (
+            type: plainText
+            heading {
+                heading: Assigned Team
+            }
+            layout {
+                sequence: 110
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        column ASSIGNED_TO (
+            type: plainText
+            heading {
+                heading: Assigned To
+            }
+            layout {
+                sequence: 120
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column CATEGORY (
+            type: plainText
+            heading {
+                heading: Category
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column CRITICALITY (
+            type: plainText
+            heading {
+                heading: Criticality
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column DESCRIPTION (
+            type: plainText
+            heading {
+                heading: Description
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column EMP_ID (
+            type: plainText
+            heading {
+                heading: Employee No
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column EMP_INTERNAL_NUMBER (
+            type: plainText
+            heading {
+                heading: Internal Extension
+            }
+            layout {
+                sequence: 35
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        column REQUESTER_NAME (
+            type: plainText
+            heading {
+                heading: Requester Name
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column REQUEST_DATE (
+            type: plainText
+            heading {
+                heading: Request Date
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column REQUEST_ID (
+            type: hidden
+            heading {
+                heading: Request ID
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column REQUEST_NO (
+            type: plainText
+            heading {
+                heading: Request No
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column STATUS_LABEL (
+            type: plainText
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 100
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column SUBCATEGORY (
+            type: plainText
+            heading {
+                heading: Subcategory
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn ASSIGNED_TEAM (
+                sequence: 11
+            )
+
+            displayColumn ASSIGNED_TO (
+                sequence: 12
+            )
+
+            displayColumn CATEGORY (
+                sequence: 7
+            )
+
+            displayColumn CRITICALITY (
+                sequence: 9
+            )
+
+            displayColumn DESCRIPTION (
+                sequence: 5
+            )
+
+            displayColumn EMP_ID (
+                sequence: 3
+            )
+
+            displayColumn EMP_INTERNAL_NUMBER (
+                sequence: 13
+            )
+
+            displayColumn REQUESTER_NAME (
+                sequence: 4
+            )
+
+            displayColumn REQUEST_DATE (
+                sequence: 6
+            )
+
+            displayColumn REQUEST_ID (
+                sequence: 1
+            )
+
+            displayColumn REQUEST_NO (
+                sequence: 2
+            )
+
+            displayColumn STATUS_LABEL (
+                sequence: 10
+            )
+
+            displayColumn SUBCATEGORY (
+                sequence: 8
+            )
+
+        )
+
+    )
+
+    dynamicAction refresh-team-report (
+        name: Refresh Team Report on Modal Close
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @team-requests
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @team-requests
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

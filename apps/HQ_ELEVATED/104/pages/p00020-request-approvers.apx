@@ -1,0 +1,467 @@
+page 20 (
+    name: معتمدين الطلب
+    alias: REQUEST-APPROVERS
+    title: &APP_TEXT$APPROVING_THE_REQUEST.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            
+            ul.team{
+                list-style: none;
+                margin: auto;
+            }
+            ul.team li{
+                    font-size: 1em;
+                line-height: normal;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region معتمدين-الطلب (
+        name: معتمدين الطلب
+        title: &APP_TEXT$APPROVING_THE_REQUEST.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_NUMBER,
+                       REQUEST_TYPE_ID,
+                       REQUEST_TYPE_NAME,
+                       epromhq.emp_to_ul(   P_EMP_LIST => approver,
+                    P_SHOW_NAMES => 'Y') APPROVER, 
+                       APPROVAL_GROUP_NAME,
+                       APPROVAL_SEQUENCE,
+                       APPROVAL_GROUP_TYPE,
+                       APPROVE_TYPE,
+                       IS_MANDATORY
+                  from CENTRAL.APR_APPROVAL_RESULT_V
+                 where EMP_NUMBER=:P20_EMP_ID
+                and :P20_REQUEST_TYPE_ID=REQUEST_TYPE_ID
+                and approver not in ('-1','-2')
+                order by APPROVAL_SEQUENCE ASC
+                
+                ```
+            pageItemsToSubmit: [
+                P20_REQUEST_TYPE_ID
+                P20_EMP_ID
+            ]
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+            column: 2
+            columnSpan: 10
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            partialPageRefresh: false
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$PLUG_QUERY_NO_DATA_FOUND.
+        }
+
+        column APPROVAL_GROUP_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column APPROVAL_GROUP_TYPE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column APPROVAL_SEQUENCE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 40
+            }
+        )
+
+        column APPROVER (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$APPROVERS.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression: #APPROVER!RAW#
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVE_TYPE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$TYPE_OF_ACCREDITATION.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @approve-type
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EMP_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column IS_MANDATORY (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column REQUEST_TYPE_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+    )
+
+    pageItem P20_EMP_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+    )
+
+    pageItem P20_REQUEST_TYPE_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+    )
+
+    pageItem P20_REQUEST_URL (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+    )
+
+    button create-request (
+        buttonName: create_request
+        label: &APP_TEXT$SUBMIT_THE_APPLICATION.
+        layout {
+            sequence: 10
+            region: @معتمدين-الطلب
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: &P20_REQUEST_URL.
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                declare 
+                v_approvers number;
+                begin
+                select count(*)
+                into v_approvers
+                  from CENTRAL.APR_APPROVAL_RESULT_V
+                 where EMP_NUMBER=:P20_EMP_ID
+                and REQUEST_TYPE_ID = :P20_REQUEST_TYPE_ID
+                and approve_type='FYA'
+                and approver not in ('-1','-2');
+                if v_approvers =0 then
+                 return false;
+                 end if;
+                
+                if :P20_EMP_ID <> :app_user then
+                return false;
+                else
+                return true;
+                end if;
+                end;
+                ```
+        }
+    )
+
+    computation p20-request-url (
+        itemName: P20_REQUEST_URL
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        computation {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                
+                
+                
+                BEGIN
+                  CASE
+                    WHEN :P20_REQUEST_TYPE_ID = 35 THEN RETURN 'f?p=105:16:' || V('SESSION');
+                    WHEN :P20_REQUEST_TYPE_ID = 59 THEN RETURN 'f?p=115:13:' || V('SESSION');
+                    WHEN :P20_REQUEST_TYPE_ID = 61 THEN RETURN 'f?p=115:45:' || V('SESSION');
+                    WHEN :P20_REQUEST_TYPE_ID = 72 THEN RETURN 'f?p=115:25:' || V('SESSION');
+                    WHEN :P20_REQUEST_TYPE_ID = 76 THEN RETURN 'f?p=115:55:' || V('SESSION');
+                    WHEN :P20_REQUEST_TYPE_ID = 107 THEN RETURN 'f?p=105:9:' || V('SESSION');
+                    WHEN :P20_REQUEST_TYPE_ID = 96 THEN RETURN 'f?p=124:9:' || V('SESSION');
+                    WHEN :P20_REQUEST_TYPE_ID = 47 THEN RETURN 'f?p=105:94:' || V('SESSION');
+                    ELSE RETURN NULL;
+                  END CASE;
+                END;
+                ```
+        }
+    )
+
+    process clear-session (
+        name: CLEAR SESSION
+        type: clearSessionState
+        clear {
+            type: pages
+            pages: 20
+        }
+        execution {
+            sequence: 10
+            point: afterRegions
+        }
+        advanced {
+            executionMappingIdentifier: 26663869904054334
+        }
+    )
+
+    process compute-req-owner (
+        name: Compute Req owner
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                :p20_EMP_ID:=NVL(:P20_EMP_ID,:APP_USER);
+                
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 26664418809054340
+        }
+    )
+
+    branch (
+        name: Go To Page 48 سلفة مدارس
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        behavior {
+            target: {
+                type: otherApp
+                app: 105
+                page: 48
+                items: {
+                    P48_REQUEST_TYPE_ID: &P20_REQUEST_TYPE_ID.
+                    P48_EMP_ID: &P20_EMP_ID.
+                }
+            }
+        }
+        serverSideCondition {
+            type: item=value
+            item: P20_REQUEST_TYPE_ID
+            value: 141
+        }
+    )
+
+    branch (
+        name: "Go To Page 48 حج "
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        behavior {
+            target: {
+                type: otherApp
+                app: 105
+                page: 31
+                items: {
+                    P48_REQUEST_TYPE_ID: &P20_REQUEST_TYPE_ID.
+                    P48_EMP_ID: &P20_EMP_ID.
+                }
+            }
+        }
+        serverSideCondition {
+            type: item=value
+            item: P20_REQUEST_TYPE_ID
+            value: 46
+        }
+    )
+
+    branch (
+        name: Go To Page 48 عمرة
+        execution {
+            sequence: 30
+            point: beforeHeader
+        }
+        behavior {
+            target: {
+                type: otherApp
+                app: 105
+                page: 33
+                items: {
+                    P48_REQUEST_TYPE_ID: &P20_REQUEST_TYPE_ID.
+                    P48_EMP_ID: &P20_EMP_ID.
+                }
+            }
+        }
+        serverSideCondition {
+            type: item=value
+            item: P20_REQUEST_TYPE_ID
+            value: 45
+        }
+    )
+
+    branch (
+        name: "Go To Page 48 قرض اجتماعي "
+        execution {
+            sequence: 40
+            point: beforeHeader
+        }
+        behavior {
+            target: {
+                type: otherApp
+                app: 105
+                page: 35
+                items: {
+                    P48_REQUEST_TYPE_ID: &P20_REQUEST_TYPE_ID.
+                    P48_EMP_ID: &P20_EMP_ID.
+                }
+            }
+        }
+        serverSideCondition {
+            type: item=value
+            item: P20_REQUEST_TYPE_ID
+            value: 44
+        }
+    )
+
+    branch (
+        name: Go To Page 48 قرض زواج
+        execution {
+            sequence: 50
+            point: beforeHeader
+        }
+        behavior {
+            target: {
+                type: otherApp
+                app: 105
+                page: 39
+                items: {
+                    P48_REQUEST_TYPE_ID: &P20_REQUEST_TYPE_ID.
+                    P48_EMP_ID: &P20_EMP_ID.
+                }
+            }
+        }
+        serverSideCondition {
+            type: item=value
+            item: P20_REQUEST_TYPE_ID
+            value: 43
+        }
+    )
+
+)

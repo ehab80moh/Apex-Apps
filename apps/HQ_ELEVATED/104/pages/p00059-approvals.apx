@@ -1,0 +1,130 @@
+page 59 (
+    name: approvals
+    alias: APPROVALS
+    title: &APP_TEXT$CREDITS.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region الاعتمادات (
+        name: الاعتمادات
+        title: &APP_TEXT$CREDITS.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 
+                        a.request_type_name,a.approval_sequence,a.approve_type
+                    FROM 
+                        CENTRAL.APR_APPROVAL_RESULT_V a
+                    WHERE 
+                        EXISTS (
+                            SELECT 1 
+                            FROM TABLE(APEX_STRING.SPLIT(a.approver, ':')) t
+                            WHERE t.COLUMN_VALUE = :APP_USER
+                        )
+                        and a.emp_number = :P59_EMP_NO
+                        ;
+                
+                ```
+        }
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlightOff
+                t-Report--hideNoPagination
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column APPROVAL_SEQUENCE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$RANKING_OF_CREDITS.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column APPROVE_TYPE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$REQUEST_TYPE.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @approve-type
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column REQUEST_TYPE_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TYPE_OF_ACCREDITATION.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    pageItem P59_EMP_NO (
+        type: hidden
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+    )
+
+)

@@ -1,0 +1,1350 @@
+page 79 (
+    name: نموذج إستيفاء بيانات
+    alias: HR-EMPLOYEE-AND-WIFE-INFO
+    title: &APP_TEXT$DATA_COMPLETION_FORM.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            
+            .a-Toolbar-toggleButton.js-actionToggle.a-Toolbar-item[data-action="edit"] {
+              display: none !important;
+            }
+            
+            
+            .a-Toolbar-item.a-Button[data-action="save"] {
+              display: none !important;
+            }
+            
+            
+            #R142799968144980306_ig_toolbar_actions_button {
+              display: none !important;
+            }
+            
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region hr-employee-and-family-info (
+        name: HR_EMPLOYEE_AND_FAMILY_INFO
+        title: &APP_TEXT$HREMPLOYEEANDFAMILYINFO.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: HR_EMPLOYEE_AND_FAMILY_INFO
+            whereClause: emp_id = :P79_EMP_ID
+            pageItemsToSubmit: P79_EMP_ID
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                not exists(
+                select 1 from epromhq.HR_EMPLOYEE_AND_FAMILY_INFO
+                where emp_id = :P79_EMP_ID)
+                ```
+        }
+    )
+
+    region page_plug (
+        name: " ."
+        title: &APP_TEXT$TITLE_2.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_24!RAW.
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+        appearance {
+            template: @alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--info
+                t-Alert--removeHeading js-removeLandmark
+                margin-bottom-none
+            ]
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                not exists(
+                select 1 from epromhq.HR_EMPLOYEE_AND_FAMILY_INFO
+                where emp_id = :P79_EMP_ID)
+                ```
+        }
+    )
+
+    region show-hr-employee-req (
+        name: Show_HR_EMPLOYEE_REQ
+        title: &APP_TEXT$SHOWHREMPLOYEEREQ.
+        type: classicReport
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: HR_EMPLOYEE_AND_FAMILY_INFO
+            whereClause: emp_id = :P79_EMP_ID
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                exists(
+                select 1 from epromhq.HR_EMPLOYEE_AND_FAMILY_INFO
+                where emp_id = :P79_EMP_ID)
+                ```
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+        pagination {
+            partialPageRefresh: false
+        }
+
+        column ADDRESS1 (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MSG_1_ADDRESSES_REGISTERED_IN_THE_SERVICE_FILE_BASIC.
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column ADDRESS2 (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MSG_2_ADDRESSES_REGISTERED_IN_THE_SERVICE_FILE.
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column ADDRESS3 (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MSG_3_ADDRESSES_REGISTERED_IN_THE_SERVICE_FILE.
+            }
+            layout {
+                sequence: 70
+            }
+        )
+
+        column CREATED_BY (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 140
+            }
+        )
+
+        column CREATED_DATE (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 130
+            }
+        )
+
+        column EMP_ID (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column EMP_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NAME.
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column PHONE_HOME (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$HOME_PHONE_NUMBER.
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+        column PHONE_MOBILE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MOBILE_PHONE.
+            }
+            layout {
+                sequence: 90
+            }
+        )
+
+        column WIFE_EDU (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$QUALIFICATION.
+            }
+            layout {
+                sequence: 110
+            }
+        )
+
+        column WIFE_EDU_2 (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$QUALIFICATION.
+            }
+            layout {
+                sequence: 160
+            }
+        )
+
+        column WIFE_JOB (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WIFE_S_JOB.
+            }
+            layout {
+                sequence: 120
+            }
+        )
+
+        column WIFE_JOB_2 (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WIFE_S_JOB.
+            }
+            layout {
+                sequence: 170
+            }
+        )
+
+        column WIFE_NAME (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$WIFE_S_NAME.
+            }
+            layout {
+                sequence: 100
+            }
+        )
+
+        column WIFE_NAME_2 (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME_OF_THE_SECOND_WIFE.
+            }
+            layout {
+                sequence: 150
+            }
+        )
+
+    )
+
+    region sons (
+        name: SONS
+        title: &APP_TEXT$SONS.
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: HR_EMPLOYEE_AND_SONS
+            whereClause: emp_id = :P79_EMP_ID
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-Form--noPadding
+                t-Form--stretchInputs
+                margin-top-md
+                margin-bottom-md
+                margin-left-md
+                margin-right-md
+            ]
+        }
+        edit {
+            enabled: true
+            allowedOperations: add
+        }
+        pagination {
+            showTotalCount: false
+        }
+        toolbar {
+            controls: [
+                actionsMenu
+                saveButton
+            ]
+        }
+        enableUsersTo {
+            flashback: false
+            defineChartView: false
+            download: false
+        }
+        advanced {
+            savedReportMappingIdentifier: 142800001916980307
+        }
+
+        savedReport 1434357 (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @SON_ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @EMP_ID
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @SON_NAME
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @SON_BIRTH
+                layout {
+                    sequence: 4
+                }
+            )
+
+            displayColumn (
+                column: @SON_EDU
+                layout {
+                    sequence: 5
+                }
+            )
+
+            displayColumn (
+                column: @SON_JOB
+                layout {
+                    sequence: 6
+                }
+            )
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+        )
+
+        column APEX$ROW_ACTION (
+            type: hidden
+            layout {
+                sequence: 20
+            }
+            source {
+                type: none
+            }
+        )
+
+        column APEX$ROW_SELECTOR (
+            type: hidden
+            layout {
+                sequence: 10
+            }
+            source {
+                type: none
+            }
+        )
+
+        column EMP_ID (
+            type: hidden
+            layout {
+                sequence: 40
+            }
+            source {
+                databaseColumn: EMP_ID
+                dataType: number
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column SON_BIRTH (
+            type: datePicker
+            heading {
+                heading: &APP_TEXT$DATE_OF_BIRTH_OF_THE_SON.
+                alignment: center
+            }
+            settings {
+                useDefaults: false
+                appearanceBehavior: [
+                    monthPicker
+                    yearPicker
+                ]
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            source {
+                databaseColumn: SON_BIRTH
+                dataType: date
+            }
+            default {
+                duplicateCopiesExistingValue: false
+            }
+            columnFilter {
+                enabled: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            enableUsersTo {
+                sort: false
+                hide: false
+            }
+        )
+
+        column SON_EDU (
+            type: textField
+            heading {
+                heading: &APP_TEXT$JR_FULLY_QUALIFIED.
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                databaseColumn: SON_EDU
+                dataType: varchar2
+            }
+            default {
+                duplicateCopiesExistingValue: false
+            }
+            columnFilter {
+                enabled: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            enableUsersTo {
+                sort: false
+                hide: false
+            }
+        )
+
+        column SON_ID (
+            type: hidden
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: SON_ID
+                dataType: number
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column SON_JOB (
+            type: textField
+            heading {
+                heading: &APP_TEXT$SON_S_JOB.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            validation {
+                maxLength: 100
+            }
+            source {
+                databaseColumn: SON_JOB
+                dataType: varchar2
+            }
+            default {
+                duplicateCopiesExistingValue: false
+            }
+            columnFilter {
+                enabled: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            enableUsersTo {
+                sort: false
+                hide: false
+            }
+        )
+
+        column SON_NAME (
+            type: textField
+            heading {
+                heading: &APP_TEXT$SON_S_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            validation {
+                maxLength: 200
+            }
+            source {
+                databaseColumn: SON_NAME
+                dataType: varchar2
+            }
+            default {
+                duplicateCopiesExistingValue: false
+            }
+            columnFilter {
+                enabled: false
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+            enableUsersTo {
+                sort: false
+                hide: false
+            }
+        )
+
+    )
+
+    pageItem P79_ADDRESS1 (
+        type: textarea
+        label {
+            label: &APP_TEXT$MSG_1_ADDRESSES_REGISTERED_IN_THE_SERVICE_FILE_BASIC.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: ADDRESS1
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_ADDRESS2 (
+        type: textarea
+        label {
+            label: &APP_TEXT$MSG_2_ADDRESSES_REGISTERED_IN_THE_SERVICE_FILE.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: ADDRESS2
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_ADDRESS3 (
+        type: textarea
+        label {
+            label: &APP_TEXT$MSG_3_ADDRESSES_REGISTERED_IN_THE_SERVICE_FILE.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        validation {
+            maxLength: 4000
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: ADDRESS3
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_CREATED_BY (
+        type: hidden
+        layout {
+            sequence: 170
+            region: @hr-employee-and-family-info
+            slot: regionBody
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: CREATED_BY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_CREATED_DATE (
+        type: hidden
+        layout {
+            sequence: 160
+            region: @hr-employee-and-family-info
+            slot: regionBody
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: CREATED_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P79_EMP_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @hr-employee-and-family-info
+            slot: regionBody
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: EMP_ID
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    pageItem P79_EMP_NAME (
+        type: textField
+        label {
+            label: &APP_TEXT$EMPLOYEE_NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: EMP_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @hr-employee-and-family-info
+            slot: regionBody
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P79_PHONE_HOME (
+        type: textField
+        label {
+            label: &APP_TEXT$HOME_PHONE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 20
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: PHONE_HOME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_PHONE_MOBILE (
+        type: textField
+        label {
+            label: &APP_TEXT$MOBILE_PHONE.
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 20
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: PHONE_MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_WIFE_EDU (
+        type: textField
+        label {
+            label: &APP_TEXT$QUALIFICATION.
+            alignment: left
+        }
+        layout {
+            sequence: 110
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 100
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: WIFE_EDU
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_WIFE_EDU_2 (
+        type: textField
+        label {
+            label: &APP_TEXT$QUALIFICATION.
+            alignment: left
+        }
+        layout {
+            sequence: 140
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: WIFE_EDU_2
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_WIFE_JOB (
+        type: textField
+        label {
+            label: &APP_TEXT$OCCUPATION_OF_WIFE_HUSBAND.
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 100
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: WIFE_JOB
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_WIFE_JOB_2 (
+        type: textField
+        label {
+            label: &APP_TEXT$WIFE_S_JOB.
+            alignment: left
+        }
+        layout {
+            sequence: 150
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: WIFE_JOB_2
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_WIFE_NAME (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME_OF_WIFE_HUSBAND.
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: WIFE_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P79_WIFE_NAME_2 (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME_OF_THE_SECOND_WIFE.
+            alignment: left
+        }
+        layout {
+            sequence: 130
+            region: @hr-employee-and-family-info
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @hr-employee-and-family-info
+            column: WIFE_NAME_2
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$PRESENTATION.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$CONFIRM_MESSAGE.
+            style: warning
+        }
+        serverSideCondition {
+            type: noRowsReturned
+            sqlQuery:
+                ```sql
+                
+                select 1 from epromhq.HR_EMPLOYEE_AND_FAMILY_INFO
+                where emp_id = :App_user
+                ```
+        }
+    )
+
+    button delete (
+        buttonName: Delete
+        label: &APP_TEXT$DEMAND_AND_CHILDREN_SURVEY_MODIFIABLE.
+        layout {
+            sequence: 10
+            region: @sons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--danger
+                t-Button--stretch
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                exists(
+                select 1 from epromhq.HR_EMPLOYEE_AND_FAMILY_INFO
+                where emp_id = :P79_EMP_ID)
+                ```
+        }
+    )
+
+    validation check-phone (
+        name: CHECK PHONE
+        execution {
+            sequence: 20
+        }
+        validation {
+            type: itemMatchesRegexp
+            item: P79_PHONE_MOBILE
+            regexp: "^01\\d{9}$"
+        }
+        error {
+            errorMessage: &APP_TEXT$PLEASE_ENTER_THE_MOBILE_NUMBER_CORRECTLY.
+            associatedItem: @P79_PHONE_MOBILE
+        }
+        serverSideCondition {
+            whenButtonPressed: @create
+        }
+    )
+
+    validation don-t-dublicate (
+        name: DON'T DUBLICATE
+        execution {
+            sequence: 10
+        }
+        validation {
+            language: sql
+            sqlExpression:
+                ```sql
+                NOT EXISTS (
+                  SELECT 1 
+                  FROM Epromhq.HR_EMPLOYEE_AND_FAMILY_INFO
+                  WHERE EMP_ID = :P79_EMP_ID
+                )
+                ```
+        }
+        error {
+            errorMessage: &APP_TEXT$THE_APPLICATION_HAS_ALREADY_BEEN_SUBMITTED_AND_CANNOT_BE_APPLIED_AGAIN.
+        }
+        serverSideCondition {
+            whenButtonPressed: @create
+        }
+    )
+
+    validation valid-on-emp-name (
+        name: Valid on emp name
+        execution {
+            sequence: 30
+        }
+        validation {
+            language: sql
+            sqlExpression: LENGTH(TRIM(:P79_EMP_NAME)) > 0
+        }
+        error {
+            errorMessage: &APP_TEXT$EMPLOYEE_NAME_CANNOT_BE_EMPTY.
+        }
+        serverSideCondition {
+            whenButtonPressed: @create
+        }
+    )
+
+    validation valid-on-emp-phone (
+        name: Valid on emp phone
+        execution {
+            sequence: 40
+        }
+        validation {
+            language: sql
+            sqlExpression: LENGTH(TRIM(:P79_PHONE_MOBILE)) > 0
+        }
+        error {
+            errorMessage: &APP_TEXT$MOBILE_NUMBER_CANNOT_BE_EMPTY.
+        }
+        serverSideCondition {
+            whenButtonPressed: @create
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 143404439718444487
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process delete (
+        name: Delete
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                Begin
+                DELETE FROM EPROMHQ.HR_EMPLOYEE_AND_SONS
+                WHERE EMP_ID = :APP_USER;
+                
+                DELETE FROM EPROMHQ.HR_EMPLOYEE_AND_FAMILY_INFO
+                WHERE EMP_ID = :APP_USER;
+                end;
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                ```
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 142801587963980322
+        }
+        serverSideCondition {
+            whenButtonPressed: @delete
+        }
+    )
+
+    process initialize-form-hr-employee-and-family-info (
+        name: Initialize form HR_EMPLOYEE_AND_FAMILY_INFO
+        type: formInitialization
+        formRegion: @hr-employee-and-family-info
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 143403689879444486
+        }
+    )
+
+    process insert-into-family (
+        name: INSERT INTO FAMILY
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                  v_new_id epromhq.HR_EMPLOYEE_AND_FAMILY_INFO.ID%TYPE;
+                BEGIN
+                  INSERT INTO epromhq.HR_EMPLOYEE_AND_FAMILY_INFO (
+                    EMP_NAME, EMP_ID, ADDRESS1, ADDRESS2, ADDRESS3,
+                    PHONE_HOME, PHONE_MOBILE,
+                    WIFE_NAME, WIFE_EDU, WIFE_JOB,
+                    CREATED_BY,WIFE_NAME_2,
+                WIFE_EDU_2,
+                WIFE_JOB_2
+                  ) VALUES (
+                    :P79_EMP_NAME,
+                    :APP_USER,
+                    :P79_ADDRESS1,
+                    :P79_ADDRESS2,
+                    :P79_ADDRESS3,
+                    :P79_PHONE_HOME,
+                    :P79_PHONE_MOBILE,
+                    :P79_WIFE_NAME,
+                    :P79_WIFE_EDU,
+                    :P79_WIFE_JOB,
+                    :APP_USER,
+                    :P79_WIFE_NAME_2,
+                    :P79_WIFE_EDU_2,
+                    :P79_WIFE_JOB_2
+                  );
+                
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 142801088723980317
+        }
+        serverSideCondition {
+            whenButtonPressed: @create
+        }
+    )
+
+    process insert-into-sons-save-interactive-grid-data (
+        name: INSERT INTO SONS - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @sons
+        target {
+            targetType: plsqlCode
+            dmlPlsqlCode:
+                ```plsql
+                INSERT INTO EPROMHQ.HR_EMPLOYEE_AND_SONS (
+                  EMP_ID,
+                  SON_NAME, 
+                  SON_BIRTH, 
+                  SON_EDU, 
+                  SON_JOB
+                ) VALUES (
+                  :APP_USER,
+                  :SON_NAME, 
+                  :SON_BIRTH, 
+                  :SON_EDU, 
+                  :SON_JOB
+                );
+                
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 142801315730980320
+        }
+        serverSideCondition {
+            whenButtonPressed: @create
+        }
+    )
+
+    branch (
+        name: Go To Page 9
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                type: otherApp
+                app: 115
+                page: 9
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @create
+        }
+    )
+
+)

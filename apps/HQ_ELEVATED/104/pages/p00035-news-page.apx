@@ -1,0 +1,119 @@
+page 35 (
+    name: أخبار الشركة
+    alias: NEWS-PAGE
+    title: &APP_TEXT$COMPANY_NEWS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .a-CardView-title{
+                color: #3f5a73;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region أخبار-الشركة (
+        name: أخبار الشركة
+        title: &APP_TEXT$COMPANY_NEWS.
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--accent15
+                t-Region--noBorder
+                t-Region--scrollBody
+                margin-top-none
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+    )
+
+    region الاخبار (
+        name: الاخبار
+        title: &APP_TEXT$NEWS.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select ID,
+                       IMAGE,
+                       ISRTL,
+                       TITLE,
+                       ARTICLE,
+                       DATETIME,
+                       regexp_replace("newsImage",'\[|\]|"','') newsImages
+                  from TMS_WEBSITENEWS
+                
+                  order by DATETIME desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            layout: horizontal
+        }
+        title {
+            column: TITLE
+        }
+        subtitle {
+            column: DATETIME
+        }
+        body {
+            advancedFormatting: true
+            htmlExpression: &ARTICLE!RAW.
+        }
+        secondaryBody {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <!-- https://www.w3schools.com/css/css_image_gallery.asp -->
+                <hr/>
+                <div class="thumbs-gal">
+                    {loop "," NEWSIMAGES/} 
+                    <a  data-lightbox="&ID." data-title="&TITLE." class="light-anchor"  href="&APEX$ITEM."    >
+                      <img src="&APEX$ITEM." alt="img" style="width:8em;" />
+                    </a>
+                {endloop/}
+                ```
+        }
+        iconAndBadge {
+            iconSource: imageUrl
+            imageUrl: &IMAGE.
+        }
+        pagination {
+            type: page
+            showTotalCount: true
+            cardsPerPage: 10
+        }
+    )
+
+)

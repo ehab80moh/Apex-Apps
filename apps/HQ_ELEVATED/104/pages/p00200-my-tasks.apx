@@ -1,0 +1,1135 @@
+page 200 (
+    name: طلبات المرؤوسين
+    alias: MY-TASKS
+    title: &APP_TEXT$SUBORDINATES_REQUESTS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: [
+            #DEFAULT#
+            js-pageStickyMobileHeader
+        ]
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .a-CardView-items--row .has-media{
+            grid-template-columns: minmax(32px,90px) minmax(0,var(--a-cv-icon-spacer,44px)) 1fr minmax(0,auto)
+            
+            
+            
+            }
+            
+            .t-Form--stretchInputs .apex-item-select,.t-Form--stretchInputs .datetimepicker_newMonth,.t-Form--stretchInputs .u-TF-item--select,.t-Form--stretchInputs select.group_selectlist,.t-Form-fieldContainer--floatingLabel .apex-item-select,.t-Form-fieldContainer--floatingLabel .datetimepicker_newMonth,.t-Form-fieldContainer--floatingLabel .u-TF-item--select,.t-Form-fieldContainer--floatingLabel select.group_selectlist
+            { width: auto}
+            
+            .previous-requests-panel,
+            .previous-requests-strip {
+                margin-block: .35rem .9rem;
+                border: 1px solid var(--ut-component-border-color, #d7dee7);
+                border-radius: .65rem;
+                background: var(--ut-component-background-color, #fff);
+                box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+                overflow: hidden;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-header {
+                border-bottom: 1px solid var(--ut-component-border-color, #d7dee7);
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body {
+                display: flex;
+                flex-wrap: nowrap;
+                align-items: stretch;
+                gap: .5rem;
+                padding: .55rem .75rem;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action {
+                flex: 1 1 0;
+                min-width: 0;
+                width: auto;
+                max-width: none;
+                padding-inline: 0;
+                min-height: 2.55rem;
+                border: 1px solid #365b7d;
+                border-radius: .55rem;
+                color: #fff;
+                justify-content: center;
+                gap: .45rem;
+                white-space: nowrap;
+                box-shadow: 0 2px 5px rgb(26 58 86 / 18%);
+                transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:nth-of-type(1) {
+                background: #356b8f;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:nth-of-type(2) {
+                background: #4d78a6;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:nth-of-type(3) {
+                background: #3e887c;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:nth-of-type(4) {
+                background: #696b9b;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action .t-Icon--right {
+                display: none;
+            }
+            
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:hover,
+            .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action:focus-visible {
+                transform: translateY(-1px);
+                filter: brightness(1.08);
+                box-shadow: 0 4px 10px rgb(26 58 86 / 28%);
+            }
+            
+            @media (max-width: 700px) {
+                .previous-requests-strip .t-ContentBlock-body {
+                    flex-wrap: wrap;
+                    gap: .35rem;
+                }
+            
+                .previous-requests-strip .t-ContentBlock-body > .t-Button.previous-requests-action {
+                    flex: 1 1 calc(50% - .35rem);
+                    min-width: calc(50% - .35rem);
+                    min-height: 2.4rem;
+                    font-size: .82rem;
+                }
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region my-tasks-report (
+        name: My Tasks - Report
+        title: &APP_TEXT$MY_TASKS_REPORT.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select t1.*,
+                 pc.committee_name portal_committee_name,pc.role_name portal_role_name,
+                 pc.specialty portal_specialty,pc.requested_by portal_applicant_user
+                ,case
+                    when med.apr_med_approver_task_api.has_medical_task_access(
+                             :APP_USER, 52, t1.task_id) = 'Y'
+                     and exists (
+                         select 1 from apex_task_parameters tp
+                          where tp.task_id = t1.task_id
+                            and tp.param_static_id = 'T_REQUEST_TYPE_ID'
+                            and trim(tp.param_value) = '106')
+                    then apex_page.get_url(
+                             p_application => 104,
+                             p_page => 109,
+                             p_clear_cache => '109',
+                             p_items => 'P109_REFERAL_ID,P109_TASK_ID',
+                             p_values => (select max(trim(rp.param_value))
+                                            from apex_task_parameters rp
+                                           where rp.task_id = t1.task_id
+                                             and rp.param_static_id = 'T_REQUEST_ID')
+                                         || ',' || t1.task_id)
+                    else t1.details_link_target
+                 end medical_review_link_target
+                ,case
+                    when pc.task_id is not null then pc.card_title
+                    when regexp_substr(t1.subject, '([[:digit:]]+)[[:space:]]*[(]([[:digit:]]+)[)]$', 1, 1, null, 1)
+                       = regexp_substr(t1.subject, '([[:digit:]]+)[[:space:]]*[(]([[:digit:]]+)[)]$', 1, 1, null, 2)
+                    then regexp_replace(
+                        regexp_replace(t1.subject, '^تم تقديم طلب طلب ', 'تم تقديم طلب '),
+                        '[[:space:]]*[(][[:digit:]]+[)]$'
+                    )
+                    else regexp_replace(t1.subject, '^تم تقديم طلب طلب ', 'تم تقديم طلب ')
+                 end subject_normalized
+                ,case 
+                when t1.state='Canceled' then 'u-danger'
+                when t1.state= 'Assigned' then 'u-warning'
+                when t1.state= 'Unassigned' then 'u-warning'
+                when t1.outcome_code='REJECTED' then 'u-danger'
+                when t1.outcome_code= '' then 'u-warning'
+                
+                else
+                'u-success' end badge_class_2
+                ,case
+                when nvl(upper(trim(t1.state)), 'NONE') in ('CANCELED', 'CANCELLED')
+                  or nvl(upper(trim(t1.outcome)), 'NONE') in ('CANCELED', 'CANCELLED')
+                  or nvl(upper(trim(t1.outcome_code)), 'NONE') in ('CANCELED', 'CANCELLED') then 'ملغي'
+                when nvl(upper(trim(t1.outcome)), 'NONE') in ('APPROVED', 'APPROVAL', 'APPROVE')
+                  or nvl(upper(trim(t1.outcome_code)), 'NONE') in ('APPROVED', 'APPROVAL', 'APPROVE') then 'تمت الموافقة'
+                when nvl(upper(trim(t1.outcome)), 'NONE') in ('REJECTED', 'REJECT')
+                  or nvl(upper(trim(t1.outcome_code)), 'NONE') in ('REJECTED', 'REJECT') then 'مرفوض'
+                when nvl(upper(trim(t1.outcome)), 'NONE') in ('EXPIRED', 'EXPIRE')
+                  or nvl(upper(trim(t1.outcome_code)), 'NONE') in ('EXPIRED', 'EXPIRE') then 'منتهي'
+                when nvl(upper(trim(t1.state)), 'NONE') in ('COMPLETED', 'COMPLETE') then 'مكتمل'
+                when nvl(upper(trim(t1.state)), 'NONE') in ('ASSIGNED', 'UNASSIGNED', 'CLAIMED', 'DELEGATED', 'WAITING', 'PENDING')
+                  or nvl(upper(trim(t1.outcome)), 'NONE') in ('APEX.TASK.OUTCOME.', 'PENDING', 'PENDING_APPROVAL', 'UNDER_APPROVAL', 'IN_PROGRESS')
+                  or nvl(upper(trim(t1.outcome_code)), 'NONE') = 'NONE' then 'قيد المراجعة'
+                else 'قيد المتابعة' end outcome_2
+                ,case
+                when pc.context_kind='MEMBER_TASK' then 'رأي عضو اللجنة'
+                when pc.context_kind='FINAL_TASK' then 'قرار رئيس اللجنة النهائي'
+                when nvl(upper(trim(t1.task_def_static_id)), 'NONE') = 'APPROVAL_TASK'
+                  or nvl(upper(trim(t1.task_def_name)), 'NONE') in ('APPROVAL TASK', 'APPROVAL_TASK') then 'مهمة الاعتماد'
+                else nvl(nullif(trim(t1.task_def_name), ''), 'مهمة الطلب') end task_def_name_display
+                ,central.get_emp_name(ACTUAL_OWNER_LOWER) owner_name
+                ,e.IMAGE
+                ,e.emp_name
+                from(  
+                 select * from table ( apex_approval.get_tasks ( p_context => 'MY_TASKS', p_show_expired_tasks => 'Y') )
+                    )t1
+                left join EPROMHQ.PRC_PORTAL_CARDS_V pc
+                  on pc.task_id=t1.task_id and pc.context_kind in('MEMBER_TASK','FINAL_TASK')
+                join central.xxapex_hr_emp_data E
+                  on e.emp_number=case when pc.task_id is not null then pc.requested_by else t1.initiator end
+                where t1.TASK_DEF_STATIC_ID not in('REQUEST_FOR_A_MARRIAGE_LOAN','REQUEST_FOR_FINANCIAL_SUPPORT_FOR_UMRAH','REQUEST_FOR_OBTAINING_A_SOCIAL_LOAN','REQUEST_FOR_FINANCIAL_SUPPORT_FOR_HAJJ')
+                and not exists (
+                    select 1
+                      from apex_task_parameters request_type_param
+                      join apex_task_parameters request_id_param
+                        on request_id_param.task_id = request_type_param.task_id
+                       and request_id_param.param_static_id = 'T_REQUEST_ID'
+                      join med.md_referal_flow flow
+                        on flow.referal_id = case
+                             when validate_conversion(request_id_param.param_value as number) = 1
+                             then to_number(request_id_param.param_value)
+                           end
+                     where request_type_param.task_id = t1.task_id
+                       and request_type_param.param_static_id = 'T_REQUEST_TYPE_ID'
+                       and request_type_param.param_value = '106'
+                       and flow.status = 'CANCELLED'
+                )
+                order by created_on desc
+                ```
+            optimizerHint: APEX$USE_NO_GROUPING_SETS
+        }
+        orderBy {
+            type: item
+            item: {
+                itemName: P200_SORT_BY
+                orderBys: {
+                    CREATED_ON: created_on desc
+                    DUE_ON: priority asc, due_on asc nulls last
+                }
+            }
+        }
+        layout {
+            sequence: 41
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        componentAppearance {
+            layout: horizontal
+        }
+        card {
+            primaryKeyColumn1: TASK_ID
+        }
+        title {
+            column: SUBJECT_NORMALIZED
+        }
+        subtitle {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                
+                {if PORTAL_COMMITTEE_NAME/}
+                <small><strong>دورك: &PORTAL_ROLE_NAME!HTML. — &PORTAL_SPECIALTY!HTML.</strong><br>
+                اللجنة: &PORTAL_COMMITTEE_NAME!HTML.<br>
+                مقدم الطلب: &EMP_NAME!HTML. (&PORTAL_APPLICANT_USER!HTML.)</small>
+                {else/}
+                <small><strong>&TASK_DEF_NAME_DISPLAY!HTML.</strong>
+                {if INITIATOR/}
+                    &middot; Initiated by &INITIATOR_LOWER!HTML. 
+                {endif/}
+                {if !IS_COMPLETED/}
+                    {case DUE_CODE/}
+                        {when OVERDUE/}
+                            &middot <strong class="u-danger-text">Due &DUE_IN.</strong>
+                        {when NEXT_HOUR/}
+                            &middot <strong class="u-danger-text">Due &DUE_IN.</strong>
+                        {when NEXT_24_HOURS/}
+                            &middot <span class="u-danger-text">Due &DUE_IN.</span>
+                    {endcase/}
+                {endif/} 
+                {if !IS_COMPLETED/}
+                    {case PRIORITY/}
+                        {when 1/}
+                            &middot <strong class="u-danger-text">Urgent</strong>
+                        {when 2/}
+                            &middot <span class="u-danger-text">High priority</span>
+                    {endcase/}
+                {endif/} 
+                </small>
+                {endif/}
+                ```
+        }
+        iconAndBadge {
+            badgeColumn: OUTCOME_2
+            badgeLabel: &OUTCOME_2.
+            badgeCssClasses: &BADGE_CLASS_2.
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGE
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_IS_NO_CURRENT_DATA.
+            noDataFoundIcon: fa-clipboard-check-alt fa-lg
+        }
+
+        action action (
+            type: title
+            layout {
+                sequence: 10
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &MEDICAL_REVIEW_LINK_TARGET.
+            }
+        )
+
+        action action-2 (
+            label: &APP_TEXT$APPROVE.
+            layout {
+                position: secondary
+                sequence: 20
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: #
+                linkAttributes: data-id="&TASK_ID."
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-check-square u-success-text
+                cssClasses: approve
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        action action-3 (
+            label: &APP_TEXT$REJECT.
+            layout {
+                position: secondary
+                sequence: 30
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: #
+                linkAttributes: data-id="&TASK_ID."
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-times u-danger-text
+                cssClasses: reject
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+    )
+
+    region my-tasks-smart-filters (
+        name: My Tasks - Smart Filters
+        title: &APP_TEXT$MY_TASKS_SMART_FILTERS.
+        type: smartFilters
+        source {
+            filteredRegion: @my-tasks-report
+        }
+        layout {
+            sequence: 20
+            parentRegion: @متابعة-الطلبات-الحالية-للمرؤوسين
+            slot: searchFieldAndSmartFilters
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        settings {
+            compactNosThreshold: 10000
+        }
+
+        filter P200_APPLICATION (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$APPLICATION.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 60
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: DETAILS_APP_NAME
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P200_DUE (
+            type: range
+            label {
+                label: &APP_TEXT$DUE.
+            }
+            settings {
+                selectMultiple: true
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-due
+            }
+            layout {
+                sequence: 20
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: DUE_IN_HOURS
+                dataType: number
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P200_EMP_NAME (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$EMPLOYEE_NAME.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                databaseColumn: EMP_NAME
+            }
+        )
+
+        filter P200_INITIATED (
+            type: range
+            label {
+                label: &APP_TEXT$INITIATED.
+            }
+            settings {
+                selectMultiple: true
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-initiated
+            }
+            layout {
+                sequence: 80
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: CREATED_AGO_HOURS
+                dataType: number
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P200_INITIATOR (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$INITIATOR.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 70
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: INITIATOR_LOWER
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P200_PRIORITY (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$PRIORITY.
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-priority
+            }
+            layout {
+                sequence: 40
+            }
+            listEntries {
+                sortByTopCounts: false
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: PRIORITY
+                dataType: number
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P200_SEARCH (
+            type: search
+            label {
+                label: &APP_TEXT$RESEARCH.
+            }
+            layout {
+                sequence: 10
+            }
+            appearance {
+                valuePlaceholder: &APP_TEXT$SEARCH_AND_FILTER_ORDERS.
+            }
+        )
+
+        filter P200_STATE (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$STATE.
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-state
+            }
+            layout {
+                sequence: 50
+            }
+            listEntries {
+                sortByTopCounts: false
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: STATE_CODE
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        filter P200_TYPE (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$TYPE.
+            }
+            lov {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select case
+                               when TASK_DEF_STATIC_ID='PRC_COMMITTEE_VOTE' then 'رأي عضو اللجنة'
+                               when TASK_DEF_STATIC_ID='PRC_COMMITTEE_FINAL' then 'قرار رئيس اللجنة النهائي'
+                               when nvl(upper(trim(TASK_DEF_STATIC_ID)), 'NONE') = 'APPROVAL_TASK'
+                                 or nvl(upper(trim(TASK_DEF_NAME)), 'NONE') in ('APPROVAL TASK', 'APPROVAL_TASK') then 'مهمة الاعتماد'
+                               else nvl(nullif(trim(TASK_DEF_NAME), ''), 'مهمة الطلب')
+                           end as TASK_DEF_NAME,
+                           TASK_DEF_STATIC_ID
+                      from table ( apex_approval.get_tasks ( p_context => 'MY_TASKS' ) )
+                      group by TASK_DEF_NAME,TASK_DEF_STATIC_ID;
+                    ```
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: TASK_DEF_STATIC_ID
+            }
+        )
+
+    )
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        layout {
+            sequence: 11
+            slot: body
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-ButtonRegion--noBorder
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select * from table ( apex_approval.get_tasks ( p_context => 'MY_TASKS', p_show_expired_tasks => 'Y') )
+        }
+    )
+
+    region الطلبات-السابقة (
+        name: الطلبات السابقة
+        title: &APP_TEXT$PREVIOUS_REQUESTS_FROM_SUBORDINATES.
+        type: staticContent
+        source {
+            htmlCode: <span class='u-VisuallyHidden'>&APP_TEXT$PREVIOUS_REQUESTS_SUBORDINATES_HINT!RAW.</span>
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @content-block
+            templateOptions: [
+                #DEFAULT#
+                t-ContentBlock--h3
+                t-ContentBlock--lightBG
+            ]
+            cssClasses: [
+                previous-requests-panel
+                previous-requests-strip
+            ]
+        }
+    )
+
+    region متابعة-الطلبات-الحالية-للمرؤوسين (
+        name: متابعة الطلبات الحالية للمرؤوسين
+        title: &APP_TEXT$FOLLOW_UP_ON_CURRENT_REQUESTS_OF_SUBORDINATES.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 20
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useRegionTitle
+                t-Form--stretchInputs
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+        }
+    )
+
+    pageItem P200_SORT_BY (
+        type: selectList
+        label {
+            label: &APP_TEXT$SORT_BY.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:تاريخ الطلب;CREATED_ON,تاريخ الإستحقاق;DUE_ON
+            displayNullValue: false
+        }
+        layout {
+            sequence: 30
+            region: @my-tasks-report
+            slot: sortOrder
+            alignment: left
+        }
+        appearance {
+            template: @hidden
+            templateOptions: [
+                #DEFAULT#
+                margin-bottom-sm
+            ]
+            cssClasses: u-pullRight
+            height: 1
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: user
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P200_TASK_ID (
+        type: hidden
+        layout {
+            sequence: 31
+            slot: body
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            encryptSessionState: false
+        }
+    )
+
+    button approve-all (
+        buttonName: Approve_All
+        label: &APP_TEXT$APPROVAL_OF_ALL_REQUESTS.
+        layout {
+            sequence: 10
+            region: @new
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 115
+                page: 24
+                clearCache: 24
+                action: clearRegions
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                
+                            select * from table ( apex_approval.get_tasks ( p_context => 'MY_TASKS', p_show_expired_tasks => 'Y') )
+                ```
+        }
+    )
+
+    button leaves (
+        buttonName: leaves
+        label: &APP_TEXT$VACATIONS.
+        layout {
+            sequence: 10
+            region: @الطلبات-السابقة
+            slot: regionBody
+            columnSpan: 3
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--primary
+                t-Button--stretch
+            ]
+            cssClasses: previous-requests-action
+            icon: fa-calendar
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 16
+                items: {
+                    P16_REQUEST_TYPE_ID: 59
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button missions (
+        buttonName: missions
+        label: &APP_TEXT$MISSIONS.
+        layout {
+            sequence: 30
+            region: @الطلبات-السابقة
+            slot: regionBody
+            columnSpan: 3
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--primary
+                t-Button--stretch
+            ]
+            cssClasses: previous-requests-action
+            icon: fa-briefcase
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 32
+                items: {
+                    P16_REQUEST_TYPE_ID:
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button overtime (
+        buttonName: OverTime
+        label: &APP_TEXT$EXTRA_HOURS.
+        layout {
+            sequence: 40
+            region: @الطلبات-السابقة
+            slot: regionBody
+            columnSpan: 3
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--primary
+                t-Button--stretch
+            ]
+            cssClasses: previous-requests-action
+            icon: fa-hourglass-half
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 34
+                items: {
+                    P16_REQUEST_TYPE_ID:
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button permission (
+        buttonName: permission
+        label: &APP_TEXT$PERMISSIONS.
+        layout {
+            sequence: 20
+            region: @الطلبات-السابقة
+            slot: regionBody
+            columnSpan: 3
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--primary
+                t-Button--stretch
+            ]
+            cssClasses: previous-requests-action
+            icon: fa-clock-o
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 31
+                items: {
+                    P16_REQUEST_TYPE_ID: 61
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction approve (
+        name: Approve
+        execution {
+            sequence: 10
+            eventScope: dynamic
+            staticContainer: body
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: a.approve
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    
+                    apex_approval.approve_task (
+                        p_task_id   => :P200_TASK_ID,
+                        p_autoclaim => true );
+                                    
+                    ```
+                itemsToSubmit: P200_TASK_ID
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode: apex.message.showPageSuccess('Task approved');
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @my-tasks-smart-filters
+            }
+            execution {
+                sequence: 40
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-2 (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @my-tasks-report
+            }
+            execution {
+                sequence: 50
+                fireOnInit: false
+            }
+        )
+
+        action native-set-value (
+            action: setValue
+            settings {
+                type: jsExpression
+                jsExpression: this.triggeringElement.dataset.id
+            }
+            affectedElements {
+                selectionType: items
+                items: P200_TASK_ID
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-my-tasks-report (
+        name: Refresh - My Tasks - Report
+        execution {
+            sequence: 20
+        }
+        when {
+            event: apexafterclosecanceldialog
+            selectionType: region
+            region: @my-tasks-report
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @my-tasks-smart-filters
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-2 (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @my-tasks-report
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction reject (
+        name: Reject
+        execution {
+            sequence: 20
+            eventScope: dynamic
+            staticContainer: body
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: a.reject
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    
+                    apex_approval.reject_task (
+                        p_task_id   => :P200_TASK_ID,
+                        p_autoclaim => true );
+                                    
+                    ```
+                itemsToSubmit: P200_TASK_ID
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode: apex.message.showPageSuccess('Task rejected');
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @my-tasks-smart-filters
+            }
+            execution {
+                sequence: 40
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-2 (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @my-tasks-report
+            }
+            execution {
+                sequence: 50
+                fireOnInit: false
+            }
+        )
+
+        action native-set-value (
+            action: setValue
+            settings {
+                type: jsExpression
+                jsExpression: this.triggeringElement.dataset.id
+            }
+            affectedElements {
+                selectionType: items
+                items: P200_TASK_ID
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction show-success-message (
+        name: Show Success Message
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosecanceldialog
+            selectionType: jQuerySelector
+            jquerySelector: body
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    
+                    var dialogData = this.data || {};
+                    var successMessage = dialogData.successMessage;
+                    var messageText = typeof successMessage === "string"
+                        ? successMessage
+                        : successMessage && successMessage.text;
+                    
+                    if ( messageText ) {
+                        apex.message.showPageSuccess(messageText);
+                    }
+                                
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process create-collection (
+        name: create collection
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                  APEX_COLLECTION.CREATE_OR_TRUNCATE_COLLECTION(p_collection_name => 'USER_TASKS');
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 118244782537841130
+        }
+        serverSideCondition {
+            whenButtonPressed: @approve-all
+        }
+    )
+
+)

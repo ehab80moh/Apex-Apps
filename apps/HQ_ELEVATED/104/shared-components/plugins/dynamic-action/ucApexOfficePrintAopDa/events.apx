@@ -1,0 +1,11 @@
+event aop-file-error (
+    name: &APP_TEXT$AOP_PRINT_FILE_ERROR.
+)
+
+event aop-file-progress (
+    name: &APP_TEXT$AOP_PRINT_FILE_PROGRESS.
+)
+
+event aop-file-success (
+    name: &APP_TEXT$AOP_PRINT_FILE_SUCCESS.
+)

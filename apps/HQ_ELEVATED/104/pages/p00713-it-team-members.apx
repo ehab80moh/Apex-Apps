@@ -1,0 +1,205 @@
+page 713 (
+    name: IT Team Members
+    alias: IT-TEAM-MEMBERS
+    title: IT Team Members
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    security {
+        authorizationScheme: @it-request-setup-admin
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region team-members-report (
+        name: Team Members
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery: select tm.id, tm.username, tm.member_name, tm.emp_id, tm.role from ITR_TEAM_MEMBERS tm where tm.team_id = :P713_TEAM_ID order by case upper(tm.role) when 'LEADER' then 1 when 'COORDINATOR' then 2 else 3 end, tm.member_name, tm.username
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: rowRangesXToYNoPagination
+        }
+        messages {
+            whenNoDataFound: No data found
+        }
+
+        column EMP_ID (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Emp Id
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Id
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+            link {
+                target: {
+                    page: 714
+                    items: {
+                        P714_ID: #ID#
+                    }
+                }
+                linkText: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+            }
+        )
+
+        column MEMBER_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Member Name
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column ROLE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column USERNAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Username
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+    )
+
+    pageItem P713_TEAM_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @team-members-report
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button new-member (
+        buttonName: NEW-MEMBER
+        label: New Member
+        layout {
+            sequence: 10
+            region: @team-members-report
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 714
+                items: {
+                    P714_TEAM_ID: &P713_TEAM_ID.
+                }
+                clearCache: 714
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction refresh-team-members-report-on-close (
+        name: Refresh on Dialog Close (team-members-report)
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @team-members-report
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @team-members-report
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

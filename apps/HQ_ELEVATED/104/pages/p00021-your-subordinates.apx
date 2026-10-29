@@ -1,0 +1,207 @@
+page 21 (
+    name: الخدمات الالكترونية للمديرين
+    alias: YOUR-SUBORDINATES
+    title: &APP_TEXT$ELECTRONIC_SERVICES_FOR_MANAGERS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .imgs {
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+              width: 50%;
+            }
+            
+            .nums {
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+              width: 50%;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region موظفين-تحت-ادراتك (
+        name: موظفين تحت ادراتك
+        title: &APP_TEXT$EMPLOYEES_UNDER_YOUR_MANAGEMENT.
+        type: cards
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_EMP_DATA
+            whereClause:
+                ```sql
+                1=1 AND(
+                    (
+                    EMP_NUMBER IN (
+                            SELECT
+                            DISTINCT  positions.c_pos_holders
+                        FROM
+                            CENTRAL.XXAPEX_HR_POSITON_HIERARCHY
+                             positions
+                        START WITH
+                            positions.parent_id||'' IN ( 
+                                SELECT DISTINCT
+                                    s.parent_id||''
+                                FROM
+                                    CENTRAL.xxapex_hr_positon_hierarchy s
+                                WHERE
+                                    ':'
+                                    || s.p_pos_holders
+                                    || ':' LIKE '%:'
+                                                || :app_user
+                                                || ':%'
+                union all
+                
+                                select distinct approver_result from central.apr_delegation aa where                    
+                                                    ':'
+                                    || aa.DELEGATES
+                                    || ':' LIKE '%:'
+                                                || :app_user
+                                                || ':%'
+                                                and approver_type='P'
+                            )
+                        CONNECT BY
+                            PRIOR positions.child_id = positions.parent_id
+                    )
+                )
+                
+                )
+                ```
+        }
+        orderBy {
+            type: item
+            item: {
+                itemName: P21_ORDER_BY
+                orderBys: {
+                    EMP_NAME: "EMP_NAME" asc
+                    COMP_EMAIL: "COMP_EMAIL" asc
+                    GRADE_NAME: "GRADE_NAME" asc
+                }
+            }
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: #DEFAULT#
+        }
+        card {
+            primaryKeyColumn1: EMP_NUMBER
+        }
+        title {
+            column: EMP_NAME
+        }
+        subtitle {
+            column: GRADE_NAME
+        }
+        body {
+            column: EXCEL_POS
+        }
+        secondaryBody {
+            column: PAY_EMAIL
+        }
+        iconAndBadge {
+            badgeColumn: EMP_NUMBER
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGE
+            position: first
+            appearance: widescreen
+            cssClasses: imgs
+        }
+        performance {
+            lazyLoading: true
+        }
+        pagination {
+            type: page
+            showTotalCount: true
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 14
+                    items: {
+                        P14_EMP_ID: &EMP_NUMBER.
+                    }
+                }
+            }
+        )
+
+    )
+
+    pageItem P21_ORDER_BY (
+        type: selectList
+        label {
+            label: &APP_TEXT$SORT_BY.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Employee Name;EMP_NAME,Email;COMP_EMAIL,Grade;GRADE_NAME
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @موظفين-تحت-ادراتك
+            slot: sortOrder
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        default {
+            type: static
+            staticValue: EMP_NAME
+        }
+    )
+
+    button new (
+        buttonName: New
+        label: &APP_TEXT$NEW.
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 9
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+)

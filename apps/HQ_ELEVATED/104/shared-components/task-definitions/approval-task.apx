@@ -1,0 +1,265 @@
+taskDefinition approval-task (
+    name: Approval_Task
+    type: approval
+    task {
+        subject: Approval Task
+        initiatorCanComplete: true
+    }
+    advanced {
+        detailsPage: {
+            page: 52
+            items: {
+                P52_TASK_ID: &TASK_ID.
+            }
+            clearCache: 52
+            action: resetPagination
+        }
+    }
+
+    parameter T_EMP_ID (
+        label: T_EMP_ID
+    )
+
+    parameter T_EMP_NAME (
+        label: T_EMP_NAME
+    )
+
+    parameter T_REQUEST_ID (
+        label: T_REQUEST_ID
+    )
+
+    parameter T_REQUEST_SOURCE (
+        label: T_REQUEST_SOURCE
+    )
+
+    parameter T_REQUEST_TYPE_ID (
+        label: T_REQUEST_TYPE_ID
+    )
+
+    parameter T_STEP (
+        label: T_STEP
+    )
+
+    action on-cancel (
+        name: on cancel
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    IF TO_NUMBER(:T_REQUEST_TYPE_ID) = 202 THEN
+                        MED.MD_PRES_REQUEST_PKG.PROCESS_TASK_ACTION(
+                            P_ACTION     => 'CANCEL',
+                            P_REQUEST_ID => TO_NUMBER(:T_REQUEST_ID),
+                            P_ACTOR      => :APP_USER,
+                            P_SEQUENCE   => TO_NUMBER(:T_STEP),
+                            P_TASK_ID    => :APEX$TASK_ID,
+                            P_COMMENT    => NULL
+                        );
+                    ELSIF TO_NUMBER(:T_REQUEST_TYPE_ID) = 106 THEN
+                        MED.MD_REFERAL_WF_PKG.PROCESS_TASK_ACTION(
+                            P_ACTION     => 'CANCEL',
+                            P_REFERAL_ID => TO_NUMBER(:T_REQUEST_ID),
+                            P_EMP_ID     => :T_EMP_ID,
+                            P_SEQUENCE   => TO_NUMBER(:T_STEP),
+                            P_TASK_ID    => :APEX$TASK_ID,
+                            P_ACTOR      => :APP_USER,
+                            P_COMMENT    => NULL
+                        );
+                    ELSE
+                    IF UPPER(TRIM(NVL(:T_REQUEST_SOURCE, '-'))) NOT LIKE 'ITR:%' THEN
+                        hq_elevated.gen_wf_action_pkg.process_action(
+                            p_request_type_id => TO_NUMBER(:T_REQUEST_TYPE_ID),
+                            p_action          => 'CANCEL',
+                            p_request_id      => TO_NUMBER(:T_REQUEST_ID),
+                            p_emp_id          => TO_NUMBER(:T_EMP_ID),
+                            p_task_id         => :APEX$TASK_ID,
+                            p_app_user        => :APEX$TASK_INITIATOR,
+                            p_seq_no          => NVL(TO_NUMBER(:T_STEP), 1),
+                            p_task_subject    => :APEX$TASK_SUBJECT,
+                            p_task_initiator  => :APEX$TASK_INITIATOR
+                        );
+                    END IF;
+                    END IF;
+                
+                    hq_elevated.gen_wf_log_pkg.capture_task_log(
+                        p_task_id => :APEX$TASK_ID
+                    );
+                
+                    IF :APEX$WORKFLOW_ID IS NOT NULL THEN
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END IF;
+                END;
+                ```
+        }
+        execution {
+            onEvent: cancel
+            sequence: 30
+        }
+    )
+
+    action on-complete (
+        name: On Complete
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_outcome VARCHAR2(30) := UPPER(TRIM(:APEX$TASK_OUTCOME));
+                BEGIN
+                    IF TO_NUMBER(:T_REQUEST_TYPE_ID) = 202 THEN
+                        MED.MD_PRES_REQUEST_PKG.PROCESS_TASK_ACTION(
+                            P_ACTION     => l_outcome,
+                            P_REQUEST_ID => TO_NUMBER(:T_REQUEST_ID),
+                            P_ACTOR      => :APP_USER,
+                            P_SEQUENCE   => TO_NUMBER(:T_STEP),
+                            P_TASK_ID    => :APEX$TASK_ID,
+                            P_COMMENT    => NULL
+                        );
+                    ELSIF TO_NUMBER(:T_REQUEST_TYPE_ID) = 106 THEN
+                        MED.MD_REFERAL_WF_PKG.PROCESS_TASK_ACTION(
+                            P_ACTION     => UPPER(TRIM(:APEX$TASK_OUTCOME)),
+                            P_REFERAL_ID => TO_NUMBER(:T_REQUEST_ID),
+                            P_EMP_ID     => :T_EMP_ID,
+                            P_SEQUENCE   => TO_NUMBER(:T_STEP),
+                            P_TASK_ID    => :APEX$TASK_ID,
+                            P_ACTOR      => :APP_USER,
+                            P_COMMENT    => NULL
+                        );
+                        IF l_outcome = 'APPROVED' THEN
+                            MED.MD_REFERAL_EXT_PKG.POST_APPROVAL(
+                                P_REFERAL_ID => TO_NUMBER(:T_REQUEST_ID),
+                                P_ACTOR      => :APP_USER
+                            );
+                        END IF;
+                    ELSE
+                    IF UPPER(TRIM(NVL(:T_REQUEST_SOURCE, '-'))) LIKE 'ITR:%' THEN
+                        NULL;
+                    ELSIF l_outcome = 'APPROVED' THEN
+                
+                        hq_elevated.gen_wf_action_pkg.process_action(
+                            p_request_type_id => TO_NUMBER(:T_REQUEST_TYPE_ID),
+                            p_action          => 'APPROVE',
+                            p_request_id      => TO_NUMBER(:T_REQUEST_ID),
+                            p_emp_id          => TO_NUMBER(:T_EMP_ID),
+                            p_task_id         => :APEX$TASK_ID,
+                            p_app_user        => :APEX$TASK_OWNER,
+                            p_seq_no          => NVL(TO_NUMBER(:T_STEP), 1),
+                            p_task_subject    => :APEX$TASK_SUBJECT,
+                            p_task_initiator  => :APEX$TASK_INITIATOR
+                        );
+                
+                    ELSIF l_outcome = 'REJECTED' THEN
+                
+                        hq_elevated.gen_wf_action_pkg.process_action(
+                            p_request_type_id => TO_NUMBER(:T_REQUEST_TYPE_ID),
+                            p_action          => 'REJECT',
+                            p_request_id      => TO_NUMBER(:T_REQUEST_ID),
+                            p_emp_id          => TO_NUMBER(:T_EMP_ID),
+                            p_task_id         => :APEX$TASK_ID,
+                            p_app_user        => :APEX$TASK_OWNER,
+                            p_seq_no          => NVL(TO_NUMBER(:T_STEP), 1),
+                            p_task_subject    => :APEX$TASK_SUBJECT,
+                            p_task_initiator  => :APEX$TASK_INITIATOR
+                        );
+                
+                    ELSE
+                        RAISE_APPLICATION_ERROR(
+                            -20001,
+                            'Unsupported task outcome: '
+                            || NVL(l_outcome, '<NULL>')
+                        );
+                    END IF;
+                    END IF;
+                
+                    hq_elevated.gen_wf_log_pkg.capture_task_log(
+                        p_task_id => :APEX$TASK_ID
+                    );
+                
+                    IF :APEX$WORKFLOW_ID IS NOT NULL THEN
+                        hq_elevated.gen_wf_log_pkg.capture_workflow_log(
+                            p_workflow_id => :APEX$WORKFLOW_ID
+                        );
+                    END IF;
+                END;
+                
+                
+                
+                -- BEGIN
+                --    GEN_WF_LOG_PKG.CAPTURE_TASK_LOG(P_TASK_ID => :APEX$TASK_ID);
+                
+                --    IF :APEX$WORKFLOW_ID IS NOT NULL THEN
+                --       GEN_WF_LOG_PKG.CAPTURE_WORKFLOW_LOG(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                --    END IF;
+                -- END;
+                ```
+        }
+        execution {
+            onEvent: complete
+            sequence: 20
+        }
+    )
+
+    action on-create (
+        name: on create
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                   GEN_WF_LOG_PKG.CAPTURE_TASK_LOG(P_TASK_ID => :APEX$TASK_ID);
+                
+                   IF :APEX$WORKFLOW_ID IS NOT NULL THEN
+                      GEN_WF_LOG_PKG.CAPTURE_WORKFLOW_LOG(P_WORKFLOW_ID => :APEX$WORKFLOW_ID);
+                   END IF;
+                END;
+                ```
+        }
+        execution {
+            onEvent: create
+            sequence: 10
+        }
+    )
+
+    participant (
+        value {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH owners AS (
+                    SELECT TRIM(p.column_value) AS employee_login
+                      FROM central.APR_APPROVAL_RESULTS_CUST_F l
+                      CROSS JOIN TABLE(apex_string.split(l.approver, ':')) p
+                     WHERE l.emp_number = :T_EMP_ID
+                       AND l.approval_sequence = :T_STEP
+                       AND l.request_type_id = :T_REQUEST_TYPE_ID
+                       AND TRIM(p.column_value) IS NOT NULL
+                )
+                SELECT CASE WHEN TO_NUMBER(:T_REQUEST_TYPE_ID) IN (106, 202)
+                            THEN med.apr_med_approver_task_api.resolve_task_username(employee_login)
+                            ELSE employee_login END AS potential_owner
+                  FROM owners
+                UNION
+                SELECT employee_login
+                  FROM owners
+                 WHERE TO_NUMBER(:T_REQUEST_TYPE_ID) IN (106, 202)
+                   AND med.apr_med_approver_task_api.resolve_actor_emp_number(employee_login) = employee_login
+                ```
+        }
+    )
+
+    participant (
+        type: businessAdministrator
+        value {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT COLUMN_VALUE FROM
+                TABLE(APEX_STRING.SPLIT('1825:1837:3199',':'))
+                ```
+        }
+    )
+
+)

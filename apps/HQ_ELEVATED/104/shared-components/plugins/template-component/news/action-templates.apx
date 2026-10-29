@@ -1,0 +1,18 @@
+actionTemplate actiontem1 (
+    name: ActionTem1
+    type: button
+    template {
+        actionTemplate:
+            ```html
+            <a class="rw-Button{if IS_HOT/} is-hot{endif/} {if ICON_CLASSES/}rw-Button--iconText{else/}rw-Button--text{endif/} #CSS_CLASSES#" href="#LINK_URL#" title="#LABEL!ATTR#" #LINK_ATTR# {if IS_DISABLED/}disabled{endif/}>
+              <span class="rw-Button-label">
+                <span class="rw-Button-icon #ICON_CLASSES#" aria-hidden="true"></span>
+                <span class="rw-Button-text">#LABEL#</span>
+              </span>
+            </a>
+            ```
+    }
+    advanced {
+        staticId: actiontem
+    }
+)

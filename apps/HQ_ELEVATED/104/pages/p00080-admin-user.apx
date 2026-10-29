@@ -1,0 +1,1429 @@
+page 80 (
+    name: User Administration
+    alias: ADMIN-USER
+    title: &APP_TEXT$USER_ADMINISTRATION.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        fileUrls: #APP_FILES#test_s.css
+    }
+    security {
+        authorizationScheme: @admin
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region refresh-single-employee (
+        name: Refresh Single Employee
+        title: &APP_TEXT$REFRESH_SINGLE_EMPLOYEE.
+        type: staticContent
+        layout {
+            sequence: 21
+            slot: body
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--accent5
+                t-Region--scrollBody
+            ]
+            cssClasses: region
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+    )
+
+    region workflow-error-log (
+        name: workflow error log
+        title: &APP_TEXT$WORKFLOW_ERROR_LOG.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: TRV_ALLOWANCE_WF_LOG
+        }
+        layout {
+            sequence: 71
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 351287344165032428
+        }
+
+        column APPROVAL_CAR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_CAR.
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column APPROVAL_HOTEL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_HOTEL.
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column APPROVAL_MANAGER (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_MANAGER.
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column CREATED_AT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CREATED_AT.
+            }
+            layout {
+                sequence: 110
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        column CREATED_BY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CREATED_BY.
+            }
+            layout {
+                sequence: 120
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column LOG_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$LOG_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 10
+                columnAlignment: end
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column MISSING_REASON (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MISSING_REASON.
+            }
+            layout {
+                sequence: 100
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column REQUEST_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$REQUEST_ID.
+                alignment: end
+            }
+            layout {
+                sequence: 20
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$REQUEST_TYPE_ID.
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column WORKFLOW_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$WORKFLOW_ID.
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column WORKFLOW_STATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$WORKFLOW_STATE.
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column WORKFLOW_STATE_CODE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$WORKFLOW_STATE_CODE.
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport 3526081 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn APPROVAL_CAR (
+                sequence: 8
+            )
+
+            displayColumn APPROVAL_HOTEL (
+                sequence: 9
+            )
+
+            displayColumn APPROVAL_MANAGER (
+                sequence: 7
+            )
+
+            displayColumn CREATED_AT (
+                sequence: 11
+            )
+
+            displayColumn CREATED_BY (
+                sequence: 12
+            )
+
+            displayColumn LOG_ID (
+                sequence: 1
+            )
+
+            displayColumn MISSING_REASON (
+                sequence: 10
+            )
+
+            displayColumn REQUEST_ID (
+                sequence: 2
+            )
+
+            displayColumn REQUEST_TYPE_ID (
+                sequence: 4
+            )
+
+            displayColumn WORKFLOW_ID (
+                sequence: 3
+            )
+
+            displayColumn WORKFLOW_STATE (
+                sequence: 5
+            )
+
+            displayColumn WORKFLOW_STATE_CODE (
+                sequence: 6
+            )
+
+        )
+
+    )
+
+    region الموظفين (
+        name: الموظفين
+        title: &APP_TEXT$STAFF.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_ID,
+                       EMP_NAME,
+                       MOBILE_PER_PHONES
+                  from CENTRAL.EMP_CONTACT_MOBILE_HR_V
+                  where EMP_ID <> 224
+                ```
+        }
+        layout {
+            sequence: 51
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 81
+                items: {
+                    P81_EMP_ID: #EMP_NUMBER#
+                }
+            }
+            linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+        }
+        pagination {
+            type: rowRangesXToYOfZ
+            displayPosition: topAndBottomLeft
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 6150213326990435
+        }
+
+        column EMP_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EMP_ID.
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AC
+            }
+        )
+
+        column EMP_NAME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EMP_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column MOBILE_PER_PHONES (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MOBILE_PER_PHONES.
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: AD
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: &APP_TEXT$STAFF.
+        }
+
+        savedReport 76096 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn EMP_ID (
+                sequence: 1
+            )
+
+            displayColumn EMP_NAME (
+                sequence: 2
+            )
+
+            displayColumn MOBILE_PER_PHONES (
+                sequence: 3
+            )
+
+        )
+
+    )
+
+    region الموظفين-2 (
+        name: الموظفين
+        title: &APP_TEXT$STAFF.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: EMP_PHONE_VIEW
+        }
+        layout {
+            sequence: 31
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        pagination {
+            type: rowRangesXToYOfZ
+            displayPosition: topAndBottomLeft
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 101084893013997727
+        }
+
+        column COMP_EMAIL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$COMPEMAIL.
+                alignment: center
+            }
+            layout {
+                sequence: 170
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: L
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column CONTACT_COMPANY_EMAIL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CONTACT_COMPANY_EMAIL.
+                alignment: center
+            }
+            layout {
+                sequence: 180
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: T
+            }
+        )
+
+        column CONTACT_PERSONAL_EMAIL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$CONTACT_PERSONAL_EMAIL.
+                alignment: center
+            }
+            layout {
+                sequence: 200
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: U
+            }
+        )
+
+        column EGPC_EMAIL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EGPCEMAIL.
+                alignment: center
+            }
+            layout {
+                sequence: 160
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: N
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column EMP_ID (
+            type: link
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: otherApp
+                    app: 101
+                    page: 6
+                    items: {
+                        P6_EMPLOYEE_NUMBER: #EMP_NUMBER#
+                    }
+                }
+                linkText: #EMP_ID#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: A
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column EMP_NAME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$THE_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column EMP_NUMBER (
+            type: link
+            heading {
+                heading: &APP_TEXT$REPORT_LABEL.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    page: 81
+                    items: {
+                        P81_EMP_ID: #EMP_NUMBER#
+                    }
+                }
+                linkText: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column EMP_POSITION_NAME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$JOB.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column EMP_ROTATION (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EMP_ROTATION.
+                alignment: center
+            }
+            layout {
+                sequence: 140
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: O
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column FIN_PROJECT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FINANCIAL_LOADING.
+                alignment: center
+            }
+            layout {
+                sequence: 130
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column GRADE_NAME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DEGREE.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column MOBILE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MOBILE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column MOBILE_CONFIRMED (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MOBILE_CONFIRMED.
+                alignment: center
+            }
+            layout {
+                sequence: 150
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: R
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column ORGANIZATION_NAME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$MANAGEMENT.
+                alignment: center
+            }
+            layout {
+                sequence: 120
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: S
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column PAY_EMAIL (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$PAY_EMAIL.
+                alignment: center
+            }
+            layout {
+                sequence: 190
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column PROJECT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$PROJECT.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column SITE_CODE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$THE_SITE.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport 1011243 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn COMP_EMAIL (
+                sequence: 15
+            )
+
+            displayColumn CONTACT_COMPANY_EMAIL (
+                sequence: 16
+            )
+
+            displayColumn CONTACT_PERSONAL_EMAIL (
+                sequence: 17
+            )
+
+            displayColumn EGPC_EMAIL (
+                sequence: 14
+            )
+
+            displayColumn EMP_ID (
+                sequence: 2
+            )
+
+            displayColumn EMP_NAME (
+                sequence: 3
+            )
+
+            displayColumn EMP_NUMBER (
+                sequence: 1
+            )
+
+            displayColumn EMP_POSITION_NAME (
+                sequence: 4
+            )
+
+            displayColumn EMP_ROTATION (
+                sequence: 12
+            )
+
+            displayColumn FIN_PROJECT (
+                sequence: 9
+            )
+
+            displayColumn GRADE_NAME (
+                sequence: 5
+            )
+
+            displayColumn MOBILE (
+                sequence: 10
+            )
+
+            displayColumn MOBILE_CONFIRMED (
+                sequence: 11
+            )
+
+            displayColumn ORGANIZATION_NAME (
+                sequence: 7
+            )
+
+            displayColumn PAY_EMAIL (
+                sequence: 13
+            )
+
+            displayColumn PROJECT (
+                sequence: 8
+            )
+
+            displayColumn SITE_CODE (
+                sequence: 6
+            )
+
+            sort (
+                column: EMP_ID
+                sort {
+                    sequence: 1
+                }
+            )
+
+        )
+
+    )
+
+    pageItem P80_EMP_ID (
+        type: numberField
+        label {
+            label: &APP_TEXT$EMPLOYEE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @refresh-single-employee
+            slot: regionBody
+            alignment: left
+            columnSpan: 3
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            cssClasses: #APP_FILES#test_s.css
+            width: 30
+        }
+    )
+
+    button add-new-number-phones-the-hr-emp-data (
+        buttonName: ADD_New_Number_Phones_the_HR_emp_DATA
+        label: &APP_TEXT$ADD_NEW_NUMBER_PHONES_TO_THE_HREMPDATA.
+        layout {
+            sequence: 41
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--warning
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button approve-the-tasks (
+        buttonName: Approve_the_tasks
+        label: &APP_TEXT$APPROVE_THE_TASKS.
+        layout {
+            sequence: 80
+            region: @refresh-single-employee
+            slot: regionBody
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--warning
+                t-Button--iconLeft
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 115
+                page: 22
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button dngr (
+        buttonName: Dngr
+        label: &APP_TEXT$DANGER.
+        layout {
+            sequence: 50
+            region: @refresh-single-employee
+            slot: regionBody
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--danger
+                t-Button--simple
+                t-Button--gapLeft
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 115
+                page: 77777
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression: :App_user in (3199,1825,1837) OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1
+        }
+    )
+
+    button question (
+        buttonName: question
+        label: &APP_TEXT$QUESTION.
+        layout {
+            sequence: 61
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 501
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button refresh-single-emp-data-emp-number (
+        buttonName: REFRESH_SINGLE_EMP_DATA_EMP_NUMBER
+        label: &APP_TEXT$REFRESH_SINGLE_EMPLOYEE_DATA_EMP_NUMBER.
+        layout {
+            sequence: 20
+            region: @refresh-single-employee
+            slot: regionBody
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--iconLeft
+                t-Button--gapTop
+            ]
+            icon: fa-refresh
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button remove-number-phone (
+        buttonName: remove_number_phone
+        label: &APP_TEXT$REMOVE_NUMBER_PHONE.
+        layout {
+            sequence: 70
+            region: @refresh-single-employee
+            slot: regionBody
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button reset-sms-code (
+        buttonName: reset_sms_code
+        label: &APP_TEXT$RESET_SMS_CODE_COUNT.
+        layout {
+            sequence: 40
+            region: @refresh-single-employee
+            slot: regionBody
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button task-details (
+        buttonName: task_details
+        label: &APP_TEXT$TASK_DETAILS.
+        layout {
+            sequence: 60
+            region: @refresh-single-employee
+            slot: regionBody
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--simple
+                t-Button--gapLeft
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 104
+                page: 90
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression: :App_user in ('3199','1825','1837')
+        }
+    )
+
+    button wf (
+        buttonName: WF
+        label: Wf
+        layout {
+            sequence: 11
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button work-flow-admin (
+        buttonName: work_flow_admin
+        label: &APP_TEXT$WORK_FLOW_ADMIN.
+        layout {
+            sequence: 90
+            region: @refresh-single-employee
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 105
+                page: 92
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process add-new-number-phones-to-the-hr-emp-data (
+        name: ADD New Number Phones to the HR_emp_DATA
+        type: invokeApi
+        invoke {
+            type: plsqlProcedureOrFunction
+            owner: CENTRAL
+            procedureOrFunction: PRC_FILL_EMP_CONTACT_FROM_VIEW
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 129203023741200606
+        }
+        serverSideCondition {
+            whenButtonPressed: @add-new-number-phones-the-hr-emp-data
+        }
+    )
+
+    process clear-items (
+        name: clear items
+        type: clearSessionState
+        execution {
+            sequence: 70
+        }
+        advanced {
+            executionMappingIdentifier: 10260014224296101
+        }
+        serverSideCondition {
+            whenButtonPressed: @refresh-single-emp-data-emp-number
+        }
+    )
+
+    process delete-phone (
+        name: Delete_phone
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                delete from central.emp_contact 
+                where mobile = :P80_EMP_ID;
+                ```
+        }
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 80287264939092506
+        }
+        serverSideCondition {
+            whenButtonPressed: @remove-number-phone
+        }
+    )
+
+    process new (
+        name: New
+        type: workflow
+        workflow {
+            definition: @GENERIC_APPROVAL_WF
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 35231037691651308
+        }
+        serverSideCondition {
+            whenButtonPressed: @wf
+        }
+    )
+
+    process refresh-single-emp (
+        name: Refresh single emp
+        type: invokeApi
+        invoke {
+            type: plsqlProcedureOrFunction
+            owner: CENTRAL
+            procedureOrFunction: REFRESH_SINGLE_EMP_DATA
+        }
+        execution {
+            sequence: 60
+        }
+        successMessage {
+            successMessage: "&{P80EMPID_REFRESHED_SUCCESSFULLY_ P80_EMP_ID=&P80_EMP_ID.}."
+        }
+        advanced {
+            executionMappingIdentifier: 171521317134352602
+        }
+        serverSideCondition {
+            whenButtonPressed: @refresh-single-emp-data-emp-number
+        }
+
+        parameter p_person_id (
+            parameter {
+                hasDefault: true
+            }
+            value {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select PERSON_ID
+                    from central.emps_refreshed
+                    where EMP_NUMBER = :P80_EMP_ID
+                    ```
+            }
+            advanced {
+                displaySequence: 10
+            }
+        )
+
+    )
+
+    process refresh-single-emp-data-emp-number (
+        name: REFRESH_SINGLE_EMP_DATA_EMP_NUMBER
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                  P_EMP_NUMBER VARCHAR2(200);
+                BEGIN
+                
+                  central.REFRESH_SINGLE_EMP_DATA_EMP_NUMBER2(
+                    P_EMP_NUMBER => ':P80_EMP_ID'
+                  );
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 170703982259948944
+        }
+        serverSideCondition {
+            whenButtonPressed: @refresh-single-emp-data-emp-number
+        }
+    )
+
+    process reset-otp-count (
+        name: RESET_OTP_COUNT
+        type: invokeApi
+        invoke {
+            type: plsqlProcedureOrFunction
+            owner: CENTRAL
+            procedureOrFunction: RESET_OTP_COUNT
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 43287812420552329
+        }
+        serverSideCondition {
+            whenButtonPressed: @reset-sms-code
+        }
+
+        parameter p_emp (
+            parameter {
+                dataType: number
+                hasDefault: true
+            }
+            value {
+                type: item
+                item: P80_EMP_ID
+            }
+            advanced {
+                displaySequence: 10
+            }
+        )
+
+    )
+
+)

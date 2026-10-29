@@ -1,0 +1,257 @@
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "EPROMHQ"."PRC_COMMITTEE_PKG" AS
+    FUNCTION USER_HAS_ROLE (
+        P_USER_NAME IN VARCHAR2,
+        P_ROLE_CODE IN VARCHAR2
+    ) RETURN BOOLEAN IS
+        L_COUNT PLS_INTEGER;
+    BEGIN
+        IF P_USER_NAME IS NULL OR P_ROLE_CODE IS NULL THEN
+            RETURN FALSE;
+        END IF;
+
+        SELECT COUNT(*)
+          INTO L_COUNT
+          FROM PRC_APP_USER_ROLES
+         WHERE UPPER(USER_NAME) = UPPER(TRIM(P_USER_NAME))
+           AND ROLE_CODE = UPPER(TRIM(P_ROLE_CODE))
+           AND IS_ACTIVE = 'Y';
+
+        RETURN L_COUNT = 1;
+    END USER_HAS_ROLE;
+
+    FUNCTION IS_COMMITTEE_ADMIN (P_USER_NAME IN VARCHAR2) RETURN BOOLEAN IS
+    BEGIN
+        RETURN USER_HAS_ROLE(P_USER_NAME, 'COMMITTEE_ADMIN');
+    END IS_COMMITTEE_ADMIN;
+
+    FUNCTION IS_WORKFLOW_ADMIN (P_USER_NAME IN VARCHAR2) RETURN BOOLEAN IS
+    BEGIN
+        RETURN USER_HAS_ROLE(P_USER_NAME, 'WORKFLOW_ADMIN');
+    END IS_WORKFLOW_ADMIN;
+
+    FUNCTION CAN_VIEW_CYCLE (P_CYCLE_ID IN NUMBER, P_USER_NAME IN VARCHAR2) RETURN BOOLEAN IS
+        L_COUNT PLS_INTEGER;
+    BEGIN
+        IF P_USER_NAME IS NULL THEN
+            RETURN FALSE;
+        END IF;
+
+        IF IS_COMMITTEE_ADMIN(P_USER_NAME) OR IS_WORKFLOW_ADMIN(P_USER_NAME) THEN
+            RETURN TRUE;
+        END IF;
+
+        SELECT COUNT(*)
+          INTO L_COUNT
+          FROM PRC_APPROVAL_CYCLES C
+         WHERE C.CYCLE_ID = P_CYCLE_ID
+           AND (
+                UPPER(C.REQUESTED_BY) = UPPER(TRIM(P_USER_NAME))
+                OR EXISTS (
+                    SELECT 1
+                      FROM PRC_APPROVAL_VOTERS V
+                     WHERE V.CYCLE_ID = C.CYCLE_ID
+                       AND UPPER(V.APP_USER) = UPPER(TRIM(P_USER_NAME))
+                )
+           );
+
+        RETURN L_COUNT = 1;
+    END CAN_VIEW_CYCLE;
+
+    PROCEDURE ASSERT_COMMITTEE_ADMIN (P_USER_NAME IN VARCHAR2) IS
+    BEGIN
+        IF NOT IS_COMMITTEE_ADMIN(P_USER_NAME) THEN
+            RAISE_APPLICATION_ERROR(-20021, 'Committee administrator privileges are required.');
+        END IF;
+    END ASSERT_COMMITTEE_ADMIN;
+
+    PROCEDURE ACTIVATE_VERSION (
+        P_VERSION_ID IN NUMBER,
+        P_ACTOR      IN VARCHAR2
+    ) IS
+        L_COMMITTEE_ID NUMBER;
+        L_STATUS       PRC_COMMITTEE_VERSIONS.VERSION_STATUS%TYPE;
+        L_RULE         PRC_COMMITTEE_VERSIONS.DECISION_RULE%TYPE;
+        L_THRESHOLD    PRC_COMMITTEE_VERSIONS.REQUIRED_APPROVALS%TYPE;
+        L_VOTER_COUNT  PLS_INTEGER;
+        L_EMP_NUMBER   CENTRAL.XXAPEX_HR_EMP_DATA.EMP_NUMBER%TYPE;
+        L_EMP_NAME     CENTRAL.XXAPEX_HR_EMP_DATA.EMP_NAME%TYPE;
+        L_ROLE_COUNT   PLS_INTEGER;
+        L_CHAIR_COUNT PLS_INTEGER;
+        L_SPEC_COUNT   PLS_INTEGER;
+    BEGIN
+        ASSERT_COMMITTEE_ADMIN(P_ACTOR);
+
+        SELECT COMMITTEE_ID, VERSION_STATUS, DECISION_RULE, REQUIRED_APPROVALS
+          INTO L_COMMITTEE_ID, L_STATUS, L_RULE, L_THRESHOLD
+          FROM PRC_COMMITTEE_VERSIONS
+         WHERE VERSION_ID = P_VERSION_ID
+           FOR UPDATE;
+
+        IF L_STATUS <> 'DRAFT' THEN
+            RAISE_APPLICATION_ERROR(-20022, 'Only a draft version can be activated.');
+        END IF;
+
+        SELECT COUNT(*)
+          INTO L_VOTER_COUNT
+          FROM PRC_COMMITTEE_MEMBERS
+         WHERE VERSION_ID = P_VERSION_ID
+           AND VOTING_ENABLED = 'Y';
+
+        IF L_VOTER_COUNT = 0 THEN
+            RAISE_APPLICATION_ERROR(-20023, 'A committee must contain at least one voting member.');
+        END IF;
+
+        SELECT COUNT(*) INTO L_CHAIR_COUNT
+          FROM PRC_COMMITTEE_MEMBERS M
+          JOIN PRC_COMMITTEE_ROLE_TYPES R ON R.ROLE_TYPE_ID=M.ROLE_TYPE_ID
+         WHERE M.VERSION_ID=P_VERSION_ID AND M.VOTING_ENABLED='Y'
+           AND R.ROLE_CODE='CHAIR' AND R.IS_ACTIVE='Y';
+        IF L_CHAIR_COUNT <> 1 THEN
+            RAISE_APPLICATION_ERROR(-20070, 'يجب تحديد رئيس واحد مصوت للجنة قبل التفعيل.');
+        END IF;
+        IF L_RULE = 'APPROVAL_THRESHOLD'
+           AND (L_THRESHOLD IS NULL OR L_THRESHOLD > L_VOTER_COUNT) THEN
+            RAISE_APPLICATION_ERROR(-20024, 'Required approvals must be between one and the number of voting members.');
+        END IF;
+
+        IF L_RULE = 'ALL_APPROVE_WAIT_ALL' AND L_THRESHOLD IS NOT NULL
+           AND L_THRESHOLD <> L_VOTER_COUNT THEN
+            RAISE_APPLICATION_ERROR(-20025, 'Unanimous approval requires every voting member.');
+        END IF;
+
+        IF L_RULE = 'MAJORITY_WAIT_ALL'
+           AND L_THRESHOLD IS NOT NULL
+           AND L_THRESHOLD <> FLOOR(L_VOTER_COUNT / 2) + 1 THEN
+            RAISE_APPLICATION_ERROR(-20026, 'Majority approval threshold is calculated from the voting membership.');
+        END IF;
+
+        FOR M IN (
+            SELECT MEMBER_ID,
+                   EMPLOYEE_NUMBER,
+                   ROLE_TYPE_ID,
+                   SPECIALTY_ID
+              FROM PRC_COMMITTEE_MEMBERS
+             WHERE VERSION_ID = P_VERSION_ID
+               AND VOTING_ENABLED = 'Y'
+             FOR UPDATE
+        ) LOOP
+            SELECT COUNT(*)
+              INTO L_ROLE_COUNT
+              FROM PRC_COMMITTEE_ROLE_TYPES
+             WHERE ROLE_TYPE_ID = M.ROLE_TYPE_ID
+               AND IS_ACTIVE = 'Y';
+
+            SELECT COUNT(*)
+              INTO L_SPEC_COUNT
+              FROM PRC_COMMITTEE_SPECIALTIES
+             WHERE SPECIALTY_ID = M.SPECIALTY_ID
+               AND IS_ACTIVE = 'Y';
+
+            IF L_ROLE_COUNT <> 1 OR L_SPEC_COUNT <> 1 THEN
+                RAISE_APPLICATION_ERROR(-20027, 'Every voting member needs an active organizational role and specialty.');
+            END IF;
+
+            BEGIN
+                SELECT EMP_NUMBER, EMP_NAME
+                  INTO L_EMP_NUMBER, L_EMP_NAME
+                  FROM CENTRAL.XXAPEX_HR_EMP_DATA
+                 WHERE UPPER(TRIM(EMP_NUMBER)) = UPPER(TRIM(M.EMPLOYEE_NUMBER))
+                   AND ROWNUM = 1;
+            EXCEPTION
+                WHEN NO_DATA_FOUND THEN
+                    RAISE_APPLICATION_ERROR(-20028, 'An employee number is missing from the read-only HR employee source.');
+            END;
+
+            UPDATE PRC_COMMITTEE_MEMBERS
+               SET EMPLOYEE_NUMBER = TRIM(L_EMP_NUMBER),
+                   EMPLOYEE_NAME   = TRIM(L_EMP_NAME),
+                   APP_USER        = TRIM(L_EMP_NUMBER),
+                   UPDATED_BY      = P_ACTOR,
+                   UPDATED_AT      = SYSTIMESTAMP
+             WHERE MEMBER_ID = M.MEMBER_ID;
+        END LOOP;
+
+        UPDATE PRC_COMMITTEE_VERSIONS
+           SET VERSION_STATUS     = 'RETIRED',
+               RETIRED_BY         = P_ACTOR,
+               RETIRED_AT         = SYSTIMESTAMP
+         WHERE COMMITTEE_ID = L_COMMITTEE_ID
+           AND VERSION_STATUS = 'ACTIVE';
+
+        UPDATE PRC_COMMITTEE_VERSIONS
+           SET VERSION_STATUS = 'ACTIVE',
+               REQUIRED_APPROVALS = CASE
+                   WHEN L_RULE IN ('ALL_APPROVE_WAIT_ALL','CHAIR_FINAL_WAIT_ALL') THEN L_VOTER_COUNT
+                   WHEN L_RULE = 'MAJORITY_WAIT_ALL' THEN FLOOR(L_VOTER_COUNT / 2) + 1
+                   ELSE L_THRESHOLD
+               END,
+               EFFECTIVE_FROM = COALESCE(EFFECTIVE_FROM, TRUNC(SYSDATE)),
+               ACTIVATED_BY = P_ACTOR,
+               ACTIVATED_AT = SYSTIMESTAMP
+         WHERE VERSION_ID = P_VERSION_ID;
+    END ACTIVATE_VERSION;
+
+    PROCEDURE RETIRE_VERSION (
+        P_VERSION_ID IN NUMBER,
+        P_ACTOR      IN VARCHAR2
+    ) IS
+    BEGIN
+        ASSERT_COMMITTEE_ADMIN(P_ACTOR);
+
+        UPDATE PRC_COMMITTEE_VERSIONS
+           SET VERSION_STATUS = 'RETIRED',
+               RETIRED_BY = P_ACTOR,
+               RETIRED_AT = SYSTIMESTAMP
+         WHERE VERSION_ID = P_VERSION_ID
+           AND VERSION_STATUS = 'ACTIVE';
+
+        IF SQL%ROWCOUNT = 0 THEN
+            RAISE_APPLICATION_ERROR(-20029, 'The requested active committee version was not found.');
+        END IF;
+    END RETIRE_VERSION;
+
+    PROCEDURE GRANT_ROLE (
+        P_USER_NAME IN VARCHAR2,
+        P_ROLE_CODE IN VARCHAR2,
+        P_ACTOR     IN VARCHAR2
+    ) IS
+    BEGIN
+        ASSERT_COMMITTEE_ADMIN(P_ACTOR);
+
+        IF UPPER(TRIM(P_ROLE_CODE)) NOT IN ('COMMITTEE_ADMIN', 'WORKFLOW_ADMIN') THEN
+            RAISE_APPLICATION_ERROR(-20030, 'Unsupported application role.');
+        END IF;
+
+        MERGE INTO PRC_APP_USER_ROLES D
+        USING (
+            SELECT UPPER(TRIM(P_USER_NAME)) USER_NAME,
+                   UPPER(TRIM(P_ROLE_CODE)) ROLE_CODE
+              FROM DUAL
+        ) S
+           ON (UPPER(D.USER_NAME) = S.USER_NAME AND D.ROLE_CODE = S.ROLE_CODE)
+        WHEN MATCHED THEN
+            UPDATE SET D.IS_ACTIVE = 'Y', D.GRANTED_BY = P_ACTOR, D.GRANTED_AT = SYSTIMESTAMP
+        WHEN NOT MATCHED THEN
+            INSERT (USER_NAME, ROLE_CODE, IS_ACTIVE, GRANTED_BY, GRANTED_AT)
+            VALUES (S.USER_NAME, S.ROLE_CODE, 'Y', P_ACTOR, SYSTIMESTAMP);
+    END GRANT_ROLE;
+
+    PROCEDURE REVOKE_ROLE (
+        P_USER_NAME IN VARCHAR2,
+        P_ROLE_CODE IN VARCHAR2,
+        P_ACTOR     IN VARCHAR2
+    ) IS
+    BEGIN
+        ASSERT_COMMITTEE_ADMIN(P_ACTOR);
+
+        UPDATE PRC_APP_USER_ROLES
+           SET IS_ACTIVE = 'N',
+               GRANTED_BY = P_ACTOR,
+               GRANTED_AT = SYSTIMESTAMP
+         WHERE UPPER(USER_NAME) = UPPER(TRIM(P_USER_NAME))
+           AND ROLE_CODE = UPPER(TRIM(P_ROLE_CODE))
+           AND IS_ACTIVE = 'Y';
+    END REVOKE_ROLE;
+END PRC_COMMITTEE_PKG;
+/

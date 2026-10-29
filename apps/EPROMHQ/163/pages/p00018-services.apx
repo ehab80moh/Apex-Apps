@@ -1,0 +1,900 @@
+page 18 (
+    name: ServicesW
+    alias: SERVICES
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: [
+            #DEFAULT#
+            t-DeferredRendering
+        ]
+    }
+    dialog {
+        height: 750
+        attributes: closeOnEscape:false
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region classicr (
+        name: classicR
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select SERVICE_ID,
+                       SUPPLIER_ID,
+                       CATEGORY,
+                       PRODUCT,
+                       TAX_CARD,
+                       GENERAL_INFO,
+                       CREATIONDATE,
+                       LASTUPDATEDATE,
+                       COMMERCIAL_REGISTER,
+                       '--'Delete_link
+                  from SUP_SERVICES
+                 where supplier_id = :p18_SUPPLIER_ID
+                ```
+            pageItemsToSubmit: P18_SUPPLIER_ID
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        accessibility {
+            landmarkType: region
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column CATEGORY (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Category
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+        )
+
+        column COMMERCIAL_REGISTER (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: Comm. Register
+                alignment: center
+            }
+            lov {
+                type: staticValues
+                staticValues: STATIC:Yes;Y,No;N
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            advanced {
+                cellWidth: 10
+            }
+        )
+
+        column CREATIONDATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column DELETE_LINK (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Delete
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: url
+                    url: #
+                }
+                linkText: <span class="fa fa-trash del-service" data-id="#SERVICE_ID#" title="Delete"></span>
+                linkAttributes: #SERVICE_ID#
+            }
+        )
+
+        column GENERAL_INFO (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: General Information
+                alignment: center
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+        )
+
+        column LASTUPDATEDATE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column PRODUCT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Product
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+        )
+
+        column SERVICE_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column SUPPLIER_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column TAX_CARD (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: Tax Card
+                alignment: center
+            }
+            lov {
+                type: staticValues
+                staticValues: STATIC:Yes;Y,No;N
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            advanced {
+                cellWidth: 20
+            }
+        )
+
+    )
+
+    region services (
+        name: Services List
+        type: form
+        source {
+            location: localDatabase
+            tableName: SUP_SERVICES
+            pageItemsToSubmit: P18_SUPPLIER_ID
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region wizard-progress (
+        name: Services Progress
+        type: list
+        source {
+            list: @suppliers-registration
+        }
+        layout {
+            sequence: 10
+            slot: dialogHeader
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            listTemplate: @/wizard-progress
+            templateOptions: [
+                #DEFAULT#
+                t-WizardSteps--displayLabels
+            ]
+        }
+    )
+
+    pageItem P18_APPLAY_AS (
+        type: hidden
+        layout {
+            sequence: 50
+            slot: contentBody
+        }
+    )
+
+    pageItem P18_CATEGORY (
+        type: selectList
+        label {
+            label: Service Category
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select distinct CATEGORY , CATEGORY Cat
+                from   EPROMHQ.SUP_SERVICE_CATEGORIES 
+                where status like 'EN'
+                
+                
+                -- select distinct category as d, category as r
+                -- from epromhq.sup_service_categories
+                -- union all
+                -- select '- Select Category -' as d, null as r
+                -- from dual
+                -- order by 2 nulls first ;
+                
+                ```
+            displayExtraValues: false
+            nullDisplayValue: - Select Category -
+        }
+        layout {
+            sequence: 30
+            region: @services
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @services
+            column: CATEGORY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P18_COMMERCIAL_REGISTER (
+        type: checkbox
+        label {
+            label: Commercial Register
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 70
+            region: @services
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @services
+            column: COMMERCIAL_REGISTER
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: 'Y'
+        }
+    )
+
+    pageItem P18_CREATIONDATE (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @services
+            slot: regionBody
+        }
+        source {
+            formRegion: @services
+            column: CREATIONDATE
+            dataType: date
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue: select sysdate from dual
+        }
+    )
+
+    pageItem P18_DELETE_ID (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+        source {
+            used: always
+        }
+    )
+
+    pageItem P18_GENERAL_INFO (
+        type: textarea
+        label {
+            label: Details
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @services
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 1
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @services
+            column: GENERAL_INFO
+            dataType: varchar2
+        }
+        help {
+            inlineHelpText: Provide other details about product or service.
+        }
+    )
+
+    pageItem P18_LASTUPDATEDATE (
+        type: hidden
+        layout {
+            sequence: 100
+            region: @services
+            slot: regionBody
+        }
+        source {
+            formRegion: @services
+            column: LASTUPDATEDATE
+            dataType: date
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue: select sysdate from dual
+        }
+    )
+
+    pageItem P18_PRODUCT (
+        type: selectList
+        label {
+            label: Service
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select PRODUCT Prod  , PRODUCT 
+                from   EPROMHQ.SUP_SERVICE_CATEGORIES
+                where EPROMHQ.SUP_SERVICE_CATEGORIES.category = :P18_CATEGORY 
+                and    status like 'EN'
+                
+                
+                ```
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        cascadingLov {
+            parentItems: P18_CATEGORY
+        }
+        layout {
+            sequence: 50
+            region: @services
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @services
+            column: PRODUCT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P18_SERVICE_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @services
+            slot: regionBody
+        }
+        source {
+            formRegion: @services
+            column: SERVICE_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P18_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @services
+            slot: regionBody
+        }
+        source {
+            formRegion: @services
+            column: SUPPLIER_ID
+            dataType: number
+        }
+    )
+
+    pageItem P18_TAX_CARD (
+        type: checkbox
+        label {
+            label: Tax Card
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 60
+            region: @services
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @services
+            column: TAX_CARD
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: 'Y'
+        }
+    )
+
+    button addnewservice (
+        buttonName: AddNewService
+        label: Add Service
+        layout {
+            sequence: 120
+            region: @services
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconRight
+                t-Button--hoverIconPush
+            ]
+            icon: fa-plus
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Cancel
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button next (
+        buttonName: NEXT
+        label: Next To Attachments
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            hot: true
+            templateOptions: t-Button--iconRight
+            icon: fa-chevron-right
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                from epromhq.sup_services
+                where SUPPLIER_ID = :SUP_SUPPLIER_ID
+                ```
+        }
+    )
+
+    button previous (
+        buttonName: PREVIOUS
+        label: Previous
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: previous
+        }
+        appearance {
+            buttonTemplate: @/icon
+            templateOptions: #DEFAULT#
+            icon: fa-chevron-left
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction delete-service (
+        name: delete service
+        execution {
+            sequence: 20
+        }
+        when {
+            selectionType: items
+            items: P18_DELETE_ID
+        }
+
+        action native-confirm (
+            action: confirm
+            settings {
+                message: are you sure to delete ?
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    begin
+                        delete from SUP_SERVICES
+                        where service_id = :P18_DELETE_ID;
+                    end;
+                    ```
+                itemsToSubmit: P18_DELETE_ID
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action submit-page (
+            name: Submit page
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @classicr
+            }
+            execution {
+                sequence: 40
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 30
+        }
+        when {
+            event: ready
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    $(document).ready(function() {
+                      $(document).on("click", ".del-service", function() {
+                        var id = $(this).data('id');
+                        console.log('id is: ' + id);
+                        $s('P18_DELETE_ID', id);
+                      });
+                    });
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    validation null-product (
+        name: null_product
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: functionBodyReturningBoolean
+            plsqlFunctionBody:
+                ```plsql
+                return not (
+                    :p18_product is null 
+                    
+                );
+                ```
+            alwaysExecute: true
+        }
+        error {
+            errorMessage: Product is null, Must fil General Info.
+            associatedItem: @P18_GENERAL_INFO
+        }
+        serverSideCondition {
+            type: requestIsNotContainedInValue
+            value: NEXT,PREVIOUS
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    computation p18-commercial-register (
+        itemName: P18_COMMERCIAL_REGISTER
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        computation {
+            type: expression
+            plsqlExpression: nvl(:P18_COMMERCIAL_REGISTER , 'Y')
+        }
+    )
+
+    computation p18-tax-card (
+        itemName: P18_TAX_CARD
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        computation {
+            type: expression
+            plsqlExpression: " nvl(:P18_TAX_CARD , 'Y')"
+        }
+    )
+
+    process clear-items (
+        name: clear items
+        type: clearSessionState
+        clear {
+            type: items
+            items: [
+                P18_CATEGORY
+                P18_PRODUCT
+            ]
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 140604679599306829
+        }
+    )
+
+    process initialize-form-servicesw (
+        name: Initialize form ServicesW
+        type: formInitialization
+        formRegion: @services
+        navigation {
+            nextPkItems: P18_SUPPLIER_ID
+        }
+        execution {
+            sequence: 40
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 131904706708953711
+        }
+        serverSideCondition {
+            whenButtonPressed: @addnewservice
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                from sup_services
+                where service_id = :SERVICE_ID
+                ```
+        }
+    )
+
+    process new (
+        name: New
+        type: formAutoRowProcessing
+        formRegion: @services
+        target {
+            preventLostUpdates: false
+        }
+        execution {
+            sequence: 10
+        }
+        successMessage {
+            successMessage: Service Added.
+        }
+        advanced {
+            executionMappingIdentifier: 131905601959953720
+        }
+        serverSideCondition {
+            type: requestIsNotContainedInValue
+            value: NEXT,PREVIOUS,HAMADA
+        }
+    )
+
+    process set-supplier (
+        name: Set supplier
+        type: executeCode
+        source {
+            plsqlCode: :P18_SUPPLIER_ID := :SUP_SUPPLIER_ID;
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 135396007055219601
+        }
+    )
+
+    branch (
+        name: Return To Page 17
+        execution {
+            sequence: 10
+            point: validating
+        }
+        behavior {
+            target: {
+                page: 17
+                items: {
+                    P17_SUPPLIER_ID: &P18_SUPPLIER_ID.
+                }
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @previous
+        }
+    )
+
+    branch (
+        name: Go To Page 19
+        execution {
+            sequence: 20
+        }
+        behavior {
+            target: {
+                page: 19
+                items: {
+                    P19_SUPPLIER_ID: &P18_SUPPLIER_ID.
+                    P19_APPLY_AS: &P18_APPLAY_AS.
+                }
+                successMessage: false
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @next
+        }
+    )
+
+)

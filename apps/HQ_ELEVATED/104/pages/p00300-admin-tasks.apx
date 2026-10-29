@@ -1,0 +1,696 @@
+page 300 (
+    name: Admin Tasks
+    alias: ADMIN-TASKS
+    title: &APP_TEXT$ADMIN_TASKS.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region admin-tasks (
+        name: Admin Tasks
+        title: &APP_TEXT$ADMIN_TASKS.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 20
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region admin-tasks-report (
+        name: Admin Tasks - Report
+        title: &APP_TEXT$ADMIN_TASKS_REPORT.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                            
+                
+                            select t1.*
+                ,case 
+                when t1.state='Canceled' then 'u-danger'
+                when t1.state= 'Assigned' then 'u-warning'
+                when t1.state= 'Unassigned' then 'u-warning'
+                when t1.outcome_code='REJECTED' then 'u-danger'
+                when t1.outcome_code= '' then 'u-warning'
+                
+                else
+                'u-success' end badge_class_2
+                ,case 
+                when t1.state='Canceled' then 'CANCELLED'
+                when t1.state= 'Assigned' then 'تحت المراجعة'
+                when t1.state= 'Unassigned' then 'تحت المراجعة'
+                when t1.outcome='APEX.TASK.OUTCOME.' then 'تحت المراجعة'
+                when t1.outcome='Approved' then 'APPROVAL'
+                when t1.outcome='Rejected' then 'تم الرفض'
+                else t1.outcome end  outcome_2
+                
+                from(
+                select *
+                  from table ( apex_approval.get_tasks ( p_context => 'ADMIN_TASKS' ) )
+                )t1
+                
+                order by created_on desc
+                ```
+            optimizerHint: APEX$USE_NO_GROUPING_SETS
+        }
+        orderBy {
+            type: item
+            item: {
+                itemName: P300_SORT_BY
+                orderBys: {
+                    CREATED_ON: created_on desc
+                    DUE_ON: priority asc, due_on asc nulls last
+                }
+            }
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            layout: horizontal
+        }
+        card {
+            primaryKeyColumn1: TASK_ID
+        }
+        title {
+            column: SUBJECT
+        }
+        subtitle {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                
+                <small><strong>&TASK_DEF_NAME!HTML.</strong>
+                {if INITIATOR/}
+                    &middot; Initiated by &INITIATOR_LOWER!HTML. 
+                {endif/}
+                {if ACTUAL_OWNER/}
+                    &middot; Assigned to &ACTUAL_OWNER_LOWER!HTML.
+                {endif/}
+                {if !IS_COMPLETED/}
+                    {case DUE_CODE/}
+                        {when OVERDUE/}
+                            &middot <strong class="u-danger-text">Due &DUE_IN.</strong>
+                        {when NEXT_HOUR/}
+                            &middot <strong class="u-danger-text">Due &DUE_IN.</strong>
+                        {when NEXT_24_HOURS/}
+                            &middot <span class="u-danger-text">Due &DUE_IN.</span>
+                    {endcase/}
+                {endif/} 
+                {if !IS_COMPLETED/}
+                    {case PRIORITY/}
+                        {when 1/}
+                            &middot <strong class="u-danger-text">Urgent</strong>
+                        {when 2/}
+                            &middot <span class="u-danger-text">High priority</span>
+                    {endcase/}
+                {endif/} 
+                </small>
+                ```
+        }
+        iconAndBadge {
+            badgeColumn: OUTCOME_2
+            badgeCssClasses: &BADGE_CLASS_2.
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_TASKS.
+            noDataFoundIcon: fa-clipboard-check-alt fa-lg
+        }
+
+        action action (
+            type: title
+            layout {
+                sequence: 10
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: &DETAILS_LINK_TARGET.
+            }
+        )
+
+    )
+
+    region admin-tasks-smart-filters (
+        name: Admin Tasks - Smart Filters
+        title: &APP_TEXT$ADMIN_TASKS_SMART_FILTERS.
+        type: smartFilters
+        source {
+            filteredRegion: @admin-tasks-report
+        }
+        layout {
+            sequence: 10
+            parentRegion: @admin-tasks
+            slot: regionBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            compactNosThreshold: 10000
+        }
+
+        filter P300_APPLICATION (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$APPLICATION.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 60
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: DETAILS_APP_NAME
+            }
+        )
+
+        filter P300_DUE (
+            type: range
+            label {
+                label: &APP_TEXT$DUE.
+            }
+            settings {
+                selectMultiple: true
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-due
+            }
+            layout {
+                sequence: 20
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: DUE_IN_HOURS
+                dataType: number
+            }
+        )
+
+        filter P300_INITIATED (
+            type: range
+            label {
+                label: &APP_TEXT$INITIATED.
+            }
+            settings {
+                selectMultiple: true
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-initiated
+            }
+            layout {
+                sequence: 80
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: CREATED_AGO_HOURS
+                dataType: number
+            }
+        )
+
+        filter P300_INITIATOR (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$INITIATOR.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 70
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: INITIATOR_LOWER
+            }
+        )
+
+        filter P300_PRIORITY (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$PRIORITY.
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-priority
+            }
+            layout {
+                sequence: 40
+            }
+            listEntries {
+                sortByTopCounts: false
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: PRIORITY
+                dataType: number
+            }
+        )
+
+        filter P300_SEARCH (
+            type: search
+            label {
+                label: &APP_TEXT$SEARCH.
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        filter P300_STATE (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$STATE.
+            }
+            lov {
+                type: sharedComponent
+                lov: @unified-task-list-lov-state
+            }
+            layout {
+                sequence: 50
+            }
+            listEntries {
+                sortByTopCounts: false
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: STATE_CODE
+            }
+        )
+
+        filter P300_TYPE (
+            type: checkboxGroup
+            label {
+                label: &APP_TEXT$TYPE.
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 30
+            }
+            suggestions {
+                type: dynamic
+            }
+            source {
+                databaseColumn: TASK_DEF_NAME
+            }
+        )
+
+    )
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P300_SORT_BY (
+        type: selectList
+        label {
+            label: &APP_TEXT$SORT_BY.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Create Date;CREATED_ON,Due Date;DUE_ON
+            nullDisplayValue: &APP_TEXT$SORT_BY.
+        }
+        layout {
+            sequence: 30
+            region: @admin-tasks-report
+            slot: sortOrder
+            alignment: left
+        }
+        appearance {
+            template: @hidden
+            templateOptions: [
+                #DEFAULT#
+                margin-bottom-sm
+            ]
+            cssClasses: u-pullRight
+            height: 1
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: user
+        }
+    )
+
+    pageItem P300_TASK_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: body
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            encryptSessionState: false
+        }
+    )
+
+    button cancel-old-leaves-btn (
+        buttonName: cancel_old_leaves_btn
+        label: &APP_TEXT$CANCEL_OLD_OVERTIME.
+        layout {
+            sequence: 10
+            region: @new
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button cancel-old-mission (
+        buttonName: Cancel_Old_Mission
+        label: &APP_TEXT$CANCEL_OLD_MISSION.
+        layout {
+            sequence: 20
+            region: @new
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button cancel-old-overtime (
+        buttonName: Cancel_Old_Overtime
+        label: &APP_TEXT$CANCEL_OLD_PERMISSION.
+        layout {
+            sequence: 40
+            region: @new
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button cancel-old-permission (
+        buttonName: Cancel_Old_Permission
+        label: &APP_TEXT$CANCEL_OLD_PERMISSION.
+        layout {
+            sequence: 30
+            region: @new
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction refresh-admin-tasks-report (
+        name: Refresh - Admin Tasks - Report
+        execution {
+            sequence: 20
+        }
+        when {
+            event: apexafterclosecanceldialog
+            selectionType: region
+            region: @admin-tasks-report
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @admin-tasks-smart-filters
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-2 (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @admin-tasks-report
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction show-success-message (
+        name: Show Success Message
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosecanceldialog
+            selectionType: jQuerySelector
+            jquerySelector: body
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    
+                    if ( this.data.successMessage ) {
+                        apex.message.showPageSuccess(this.data.successMessage.text);
+                    }           
+                                
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process cancel-old-leaves (
+        name: cancel_old_leaves
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare 
+                cursor cr is 
+                select aa.task_id from 
+                    apex_tasks aa
+                    join epromhq.hrf_emp_leave_request l on to_char(aa.task_id) = central.get_last_string(l.task_ids,'->')
+                WHERE
+                    aa.state_code IN ( 'ASSIGNED', 'UNASSIGNED', 'APEX.TASK.OUTCOME.' )
+                    and l.approved in(2,4,3)
+                    ;
+                
+                  begin
+                for c in cr loop
+                    apex_approval.cancel_task(
+                        p_task_id => c.task_id
+                    );
+                end loop;
+                
+                  end;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 49505460502414420
+        }
+        serverSideCondition {
+            whenButtonPressed: @cancel-old-leaves-btn
+        }
+    )
+
+    process cancel-old-mission (
+        name: Cancel_Old_Mission
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare 
+                cursor cr is 
+                select aa.task_id from 
+                    apex_tasks aa
+                    join epromhq.hrf_emp_mission_request l on to_char(aa.task_id) = central.get_last_string(l.task_ids,'->')
+                WHERE
+                    aa.state_code IN ( 'ASSIGNED', 'UNASSIGNED', 'APEX.TASK.OUTCOME.' )
+                    and l.approved in(2,4,3)
+                    ;
+                  begin
+                for c in cr loop
+                    apex_approval.cancel_task(
+                        p_task_id => c.task_id
+                    );
+                end loop;
+                
+                  end;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 47560127273699033
+        }
+        serverSideCondition {
+            whenButtonPressed: @cancel-old-mission
+        }
+    )
+
+    process cancel-old-overtime (
+        name: Cancel_Old_Overtime
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare 
+                cursor cr is 
+                select aa.task_id from 
+                    apex_tasks aa
+                    join epromhq.hrf_emp_Overtime_request l on to_char(aa.task_id) = central.get_last_string(l.task_ids,'->')
+                WHERE
+                    aa.state_code IN ( 'ASSIGNED', 'UNASSIGNED', 'APEX.TASK.OUTCOME.' )
+                    and l.approved in(2,4,3)
+                    ;
+                  begin
+                for c in cr loop
+                    apex_approval.cancel_task(
+                        p_task_id => c.task_id
+                    );
+                end loop;
+                
+                  end;
+                
+                ```
+        }
+        execution {
+            sequence: 40
+        }
+        advanced {
+            executionMappingIdentifier: 47560533751699037
+        }
+        serverSideCondition {
+            whenButtonPressed: @cancel-old-overtime
+        }
+    )
+
+    process cancel-old-permission (
+        name: Cancel_Old_Permission
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare 
+                cursor cr is 
+                select aa.task_id from 
+                    apex_tasks aa
+                    join epromhq.hrf_emp_Permission_request l on to_char(aa.task_id) = central.get_last_string(l.task_ids,'->')
+                WHERE
+                    aa.state_code IN ( 'ASSIGNED', 'UNASSIGNED', 'APEX.TASK.OUTCOME.' )
+                    and l.approved in(2,4,3)
+                    ;
+                  begin
+                for c in cr loop
+                    apex_approval.cancel_task(
+                        p_task_id => c.task_id
+                    );
+                end loop;
+                
+                  end;
+                
+                ```
+        }
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 47560380932699035
+        }
+        serverSideCondition {
+            whenButtonPressed: @cancel-old-permission
+        }
+    )
+
+)

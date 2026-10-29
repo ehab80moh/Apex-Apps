@@ -1,0 +1,18 @@
+appItem SUP_COMPANY_NAME (
+    security {
+        sessionStateProtection: unrestricted
+    }
+)
+
+appItem SUP_MOBILE (
+    security {
+        sessionStateProtection: unrestricted
+    }
+)
+
+appItem SUP_SUPPLIER_ID (
+    security {
+        sessionStateProtection: unrestricted
+        escapeSpecialChars: false
+    }
+)

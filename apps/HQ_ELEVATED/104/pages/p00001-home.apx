@@ -1,0 +1,3530 @@
+page 1 (
+    name: Home
+    alias: HOME
+    title: &APP_NAME.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+        warnOnUnsavedChanges: false
+    }
+    javaScript {
+        fileUrls: [
+            https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.2/lottie.min.js
+            --https://lottie.host/2d94cf0b-995c-47bc-8104-15d355b9ea3d/y2GoKxdWcX.json
+        ]
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            /**
+             * Helper: sendPrompt
+             * Purpose: Simulates a user typing a prompt into the APEX AI Assistant chat input
+             *          and pressing Enter to submit it automatically without manual typing.
+             *
+             * @param {string} promptText - The prompt text to be dispatched to the AI assistant.
+             */
+            function sendPrompt(promptText) {
+                // Locate the standard APEX AI Assistant chat input textarea/input element
+                const input = document.querySelector(".a-ChatInput-text");
+                if (input) {
+                    // Set the value directly in the DOM
+                    input.value = promptText;
+            
+                    // Dispatch the 'input' event so APEX reactive state captures the change
+                    input.dispatchEvent(new Event("input", { bubbles: true }));
+            
+                    // Dispatch keyboard 'Enter' event to trigger automatic message submission
+                    input.dispatchEvent(new KeyboardEvent("keydown", {
+                        key: "Enter",
+                        code: "Enter",
+                        keyCode: 13,
+                        which: 13,
+                        bubbles: true
+                    }));
+                }
+                // Dispatch follow-up dynamic quick action chips if applicable
+                handlePromptFollowUp(promptText);
+            }
+            
+            /**
+             * Helper: showQuickActions
+             * Purpose: Dynamically renders interactive quick-action pill buttons in the APEX AI chat UI.
+             *
+             * @param {Array<{label: string, value: string}>} actions - Array of button labels and prompts.
+             */
+            function showQuickActions(actions) {
+                // Remove previous quick action buttons if present
+                $(".dynamic-quick-actions").remove();
+                if (!actions || !actions.length) return;
+            
+                // Build container using APEX Universal Theme Chat quick-picks classes
+                let html = '<div class="a-ChatActions-quickPicks dynamic-quick-actions" style="margin: 8px 12px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 100;">';
+                actions.forEach(function(item) {
+                    html += '<button type="button" class="a-Button a-Button--pill" onclick="sendPrompt(\'' + item.value.replace(/'/g, "\\'") + '\')">' +
+                            '<span class="a-Button-label">' + item.label + '</span></button>';
+                });
+                html += '</div>';
+            
+                // Inject the generated button bar directly above the chat input box
+                const container = document.querySelector(".a-ChatInputContainer");
+                if (container) {
+                    $(container).before(html);
+                }
+            }
+            
+            /**
+             * Helper: handlePromptFollowUp
+             * Purpose: Detects the request category and renders dynamic contextual chips mid-conversation.
+             *
+             * @param {string} promptText - The prompt that was just submitted.
+             */
+            function handlePromptFollowUp(promptText) {
+                $(".dynamic-quick-actions").remove();
+                const text = (promptText || "").toLowerCase();
+            
+                if (text.includes("إجازة") || text.includes("leave")) {
+                    setTimeout(function() {
+                        showQuickActions([
+                            { label: "🌴 إجازة عارضة", value: "إجازة عارضة" },
+                            { label: "🌴 إجازة اعتيادية", value: "إجازة اعتيادية" },
+                            { label: "🌴 بدل راحة", value: "إجازة بدل راحة" }
+                        ]);
+                    }, 500);
+                } else if (text.includes("إذن") || text.includes("permission")) {
+                    setTimeout(function() {
+                        showQuickActions([
+                            { label: "⏱️ صباحاً (08:00 - 10:00)", value: "إذن شخصي من 08:00 إلى 10:00" },
+                            { label: "⏱️ ظهراً (12:00 - 14:00)", value: "إذن شخصي من 12:00 إلى 14:00" },
+                            { label: "🏢 إذن عمل رسمي", value: "إذن عمل رسمي" }
+                        ]);
+                    }, 500);
+                } else if (text.includes("مأمورية") || text.includes("mission")) {
+                    setTimeout(function() {
+                        showQuickActions([
+                            { label: "💼 مأمورية عادية (72)", value: "مأمورية عمل عادية" },
+                            { label: "🎓 دورة تدريبية (121)", value: "دورة تدريبية" }
+                        ]);
+                    }, 500);
+                }
+            }
+            
+            /**
+             * Helper: initAiAssistantQuickActions
+             * Purpose: Monitors the DOM for when the AI Assistant chat opens and injects initial quick actions.
+             *          Also attaches the FAB button directly to body and renders the conversation bubble.
+             */
+            function initAiAssistantQuickActions() {
+                // Ensure FAB button is reparented to <body> for true viewport fixed positioning
+                function ensureFabAttached() {
+                    const fab = $("button.ai-assistant-fab-btn, #AI_ASSISTANT_FAB");
+                    if (fab.length && !fab.parent().is("body")) {
+                        fab.appendTo("body");
+                    }
+                }
+                ensureFabAttached();
+            
+                // Render conversation bubble next to the FAB if not already present
+                if (!document.querySelector(".ai-fab-bubble")) {
+                    const bubbleHtml = `
+                        <div class="ai-fab-bubble" onclick="$('button.ai-assistant-fab-btn, #AI_ASSISTANT_FAB').click();">
+                            <span style="font-size: 14px;">✨</span>
+                            <span>كيف يمكنني مساعدتك؟</span>
+                        </div>
+                    `;
+                    $("body").append(bubbleHtml);
+                }
+            
+                const observer = new MutationObserver(function(mutations) {
+                    ensureFabAttached();
+            
+                    const container = document.querySelector(".a-ChatInputContainer");
+                    if (container) {
+                        // Hide the speech bubble while the chat dialog is open
+                        $(".ai-fab-bubble").fadeOut(200);
+            
+                        if (!document.querySelector(".dynamic-quick-actions")) {
+                            showQuickActions([
+                                { label: "🌴 طلب إجازة", value: "أرغب في تقديم طلب إجازة" },
+                                { label: "⏱️ طلب إذن", value: "أرغب في تقديم طلب إذن" },
+                                { label: "💼 طلب مأمورية عمل", value: "أرغب في تقديم طلب مأمورية عمل" }
+                            ]);
+                        }
+                    } else {
+                        // Restore the speech bubble when the chat is closed
+                        $(".ai-fab-bubble").fadeIn(300);
+                    }
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            }
+            ```
+        executeWhenPageLoads:
+            ```javascript-browser
+            // Initialize AI Assistant Quick Actions observer
+            initAiAssistantQuickActions();
+            
+            //HIDE INSTRUCTION BUTTON
+            $("#instructions_btn").hide();
+            
+            // remove in 5 seconds
+            // const myTimeout = setTimeout(hideRamadan, 8000);
+            //  function hideRamadan() {
+            //    $("#ramadan").hide();
+            //  }
+            
+            // load ramadan
+            //   var ramadan =document.getElementById('ramadan');
+            //   lottie.loadAnimation({
+            //     container: ramadan, // the dom element that will contain the animation
+            //    renderer: 'svg',
+            //    loop: true,
+            //        autoplay: true,
+            //    path: 'https://lottie.host/0ef197cb-cbc9-4d2e-b96e-8be9012b6291/DjgjFNtfT2.json' // the path to the animation json
+            //  });
+            
+            //load birthday
+            var birthday =document.getElementById('emp_birth');
+            if($("#emp_birth"))
+            {
+            lottie.loadAnimation({
+              container: birthday, // the dom element that will contain the animation
+              renderer: 'svg',
+              loop: false,
+              autoplay: true,
+              path: 'https://assets2.lottiefiles.com/packages/lf20_bfwzjr7h.json' // the path to the animation json
+            });
+            }
+            //VOTE
+            var VOTE =document.getElementById('VOTE');
+            if($("#VOTE"))
+            {
+            lottie.loadAnimation({
+              container: VOTE, // the dom element that will contain the animation
+              renderer: 'svg',
+              loop: false,
+              autoplay: true,
+              path: 'https://lottie.host/aa622a7d-a95d-4019-bff2-c14b0571978d/g31UWmfYUS.json' // the path to the animation json
+            });
+            }
+            const myTimeout = setTimeout(hideVote, 3000);
+             function hideVote() {
+               $("#VOTE").hide();
+             }
+            
+            
+            //go to top //https://stackoverflow.com/questions/3664381/force-page-scroll-position-to-top-at-page-refresh-in-html
+            window.onbeforeunload = function () {
+              window.scrollTo(0, 0);
+            }
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            // ----------------------------------------------------------------
+            
+            // لحذف طلب سلفه المدارس
+            
+            $(document)
+                .off("click.schoolLoan", "#btnDeleteSchoolLoan")
+                .on("click.schoolLoan", "#btnDeleteSchoolLoan", function () {
+            
+                    var requestId = $(this).attr("data-request-id");
+            
+                    if (!requestId) {
+                        apex.message.alert("تعذر تحديد رقم الطلب.");
+                        return;
+                    }
+            
+                    apex.message.confirm(
+                        "هل أنت متأكد من حذف طلب سلفة المدارس؟",
+                        function (confirmed) {
+            
+                            if (!confirmed) {
+                                return;
+                            }
+            
+                            apex.server.process(
+                                "DELETE_SCHOOL_LOAN",
+                                {
+                                    x01: requestId
+                                },
+                                {
+                                    dataType: "json",
+            
+                                    success: function (data) {
+            
+                                        if (data.success === true) {
+            
+                                            apex.message.showPageSuccess(
+                                                data.message || "تم حذف الطلب بنجاح."
+                                            );
+            
+                                            setTimeout(function () {
+                                                window.location.reload();
+                                            }, 700);
+            
+                                        } else {
+            
+                                            apex.message.alert(
+                                                data.message ||
+                                                "لم يتم حذف الطلب."
+                                            );
+                                        }
+                                    },
+            
+                                    error: function (
+                                        jqXHR,
+                                        textStatus,
+                                        errorThrown
+                                    ) {
+            
+                                        console.error(
+                                            "Response:",
+                                            jqXHR.responseText
+                                        );
+            
+                                        console.error(
+                                            "Status:",
+                                            textStatus
+                                        );
+            
+                                        console.error(
+                                            "Error:",
+                                            errorThrown
+                                        );
+            
+                                        apex.message.alert(
+                                            "حدث خطأ أثناء حذف الطلب."
+                                        );
+                                    }
+                                }
+                            );
+                        }
+                    );
+                });
+            // $(document)
+            //     .off("click.schoolLoan", "#btnDeleteSchoolLoan")
+            //     .on("click.schoolLoan", "#btnDeleteSchoolLoan", function () {
+            
+            //         var requestId = $(this).attr("data-request-id");
+            
+            //         if (!requestId) {
+            //             apex.message.alert("تعذر تحديد رقم الطلب.");
+            //             return;
+            //         }
+            
+            //         apex.message.confirm(
+            //             "هل أنت متأكد من حذف طلب سلفة المدارس؟",
+            //             function (confirmed) {
+            
+            //                 if (!confirmed) {
+            //                     return;
+            //                 }
+            
+            //                 apex.server.process(
+            //                     "DELETE_SCHOOL_LOAN",
+            //                     {
+            //                         x01: requestId
+            //                     },
+            //                     {
+            //                         dataType: "json",
+            
+            //                         success: function (data) {
+            
+            //                             if (data.success === true) {
+            
+            //                                 apex.message.showPageSuccess(
+            //                                     data.message
+            //                                 );
+            
+            //                                 apex.region("school_loan_region").refresh();
+            //                                 apex.region("school_loan_region2").refresh();
+            //                                 apex.region("public-relation").refresh();
+            
+            //                             } else {
+            
+            //                                 apex.message.alert(
+            //                                     data.message ||
+            //                                     "لم يتم حذف الطلب."
+            //                                 );
+            //                             }
+            //                         },
+            
+            //                         error: function (
+            //                             jqXHR,
+            //                             textStatus,
+            //                             errorThrown
+            //                         ) {
+            
+            //                             console.error(
+            //                                 "Response:",
+            //                                 jqXHR.responseText
+            //                             );
+            
+            //                             console.error(
+            //                                 "Status:",
+            //                                 textStatus
+            //                             );
+            
+            //                             console.error(
+            //                                 "Error:",
+            //                                 errorThrown
+            //                             );
+            
+            //                             apex.message.alert(
+            //                                 "حدث خطأ أثناء حذف الطلب."
+            //                             );
+            //                         }
+            //                     }
+            //                 );
+            //             }
+            //         );
+            //     });
+            ```
+    }
+    css {
+        inline:
+            ```css
+            /* AI Assistant Floating Action Button (FAB) & Speech Bubble */
+            .ai-assistant-fab-btn,
+            button#AI_ASSISTANT_FAB,
+            button.ai-assistant-fab-btn {
+                position: fixed !important;
+                bottom: 24px !important;
+                inset-inline-end: 24px !important;
+                z-index: 99999 !important;
+                width: 60px !important;
+                height: 60px !important;
+                min-width: 60px !important;
+                padding: 0 !important;
+                border-radius: 50% !important;
+                background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%) !important;
+                border: 2px solid rgba(255, 255, 255, 0.5) !important;
+                color: #ffffff !important;
+                box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45), 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                cursor: pointer !important;
+                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+            }
+            
+            .ai-assistant-fab-btn:hover {
+                transform: scale(1.1) translateY(-3px) !important;
+                box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6), 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+            }
+            
+            .ai-assistant-fab-btn:active {
+                transform: scale(0.95) !important;
+            }
+            
+            .ai-assistant-fab-btn .t-Icon {
+                font-size: 26px !important;
+                margin: 0 !important;
+                color: #ffffff !important;
+                animation: fabIconShimmer 3s ease-in-out infinite;
+            }
+            
+            .ai-assistant-fab-btn .t-Button-label {
+                display: none !important;
+            }
+            
+            @keyframes fabIconShimmer {
+                0%, 100% { transform: rotate(0deg) scale(1); }
+                25% { transform: rotate(-8deg) scale(1.1); }
+                75% { transform: rotate(8deg) scale(1.1); }
+            }
+            
+            /* Floating Conversation Bubble */
+            .ai-fab-bubble {
+                position: fixed;
+                bottom: 34px;
+                inset-inline-end: 96px;
+                z-index: 99998;
+                background: #ffffff;
+                color: #1e293b;
+                padding: 9px 16px;
+                border-radius: 20px;
+                font-size: 13px;
+                font-weight: 600;
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0,0,0,0.08);
+                border: 1px solid #e2e8f0;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                white-space: nowrap;
+                animation: fabBubbleFloat 3s ease-in-out infinite;
+                transition: opacity 0.3s, transform 0.3s;
+            }
+            
+            .ai-fab-bubble::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                inset-inline-end: -6px;
+                transform: translateY(-50%) rotate(45deg);
+                width: 12px;
+                height: 12px;
+                background: #ffffff;
+                border-top: 1px solid #e2e8f0;
+                border-right: 1px solid #e2e8f0;
+            }
+            
+            .ai-fab-bubble:hover {
+                transform: translateY(-2px) scale(1.03);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+            }
+            
+            @keyframes fabBubbleFloat {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-4px); }
+            }
+            
+            @media (max-width: 640px) {
+                .ai-assistant-fab-btn {
+                    bottom: 16px !important;
+                    inset-inline-end: 16px !important;
+                    width: 52px !important;
+                    height: 52px !important;
+                    min-width: 52px !important;
+                }
+                .ai-fab-bubble {
+                    bottom: 24px;
+                    inset-inline-end: 76px;
+                    font-size: 11px;
+                    padding: 6px 10px;
+                }
+            }
+            
+            .icon-card-mob{
+                height: 10em;
+                width: auto;
+            }
+            
+            
+            #SURVEYS .a-CardView-header{
+            
+                 background-color: transparent !important;
+              border: none !important;
+              box-shadow: none !important;
+              padding: 0 !important;
+            border-radius: 0 !important;
+              margin: 0 !important;
+              overflow: hidden !important;
+            }
+            #SURVEYS2 .a-CardView-header{
+            
+                 background-color: transparent !important;
+              border: none !important;
+              box-shadow: none !important;
+              padding: 0 !important;
+              border-radius: 0 !important;
+              margin: 0 !important;
+              overflow: hidden !important;
+            }
+            
+            
+            
+            .display_only apex-item-display-only{
+                font-size: larger;
+            }
+            
+            /* ==========================================================================
+               EPROM Portal Page 1 - Modern Executive Theme
+               ========================================================================== */
+            
+            /* Page Background & Atmosphere */
+            body.t-PageBody {
+                background: 
+                    radial-gradient(circle at 10% 0%, rgba(15, 118, 110, 0.07), transparent 32rem),
+                    radial-gradient(circle at 90% 15%, rgba(14, 165, 233, 0.07), transparent 32rem),
+                    #f8fafc !important;
+            }
+            
+            /* Wrapper container for employee card */
+            .eprom-emp-card-wrapper {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                margin-block: 0.5rem 1.5rem !important;
+            }
+            
+            .eprom-emp-card-wrapper .t-Region-body {
+                padding: 0 !important;
+                background: transparent !important;
+            }
+            
+            /* --------------------------------------------------------------------------
+               Employee Profile Card (Desktop & Mobile)
+               -------------------------------------------------------------------------- */
+            .eprom-emp-card-region {
+                max-width: 880px;
+                margin-inline: auto;
+            }
+            
+            .eprom-emp-card-region .a-CardView-items {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .eprom-emp-card-region .a-CardView-item {
+                position: relative;
+                background: #ffffff !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 22px !important;
+                box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+                overflow: hidden !important;
+                transition: transform 0.25s ease, box-shadow 0.25s ease;
+            }
+            
+            .eprom-emp-card-region .a-CardView-item:hover {
+                box-shadow: 0 16px 38px rgba(15, 23, 42, 0.09) !important;
+            }
+            
+            /* Decorative corporate top accent gradient */
+            .eprom-emp-card-region .a-CardView-item::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 6px;
+                background: linear-gradient(90deg, #0f2744 0%, #0f766e 50%, #0284c7 100%);
+                z-index: 2;
+            }
+            
+            /* Layout for Employee Card Content (Flex row, no dead space) */
+            .eprom-emp-card-region .a-CardView {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                padding: 1.15rem 1.6rem !important;
+                gap: 1.5rem !important;
+            }
+            
+            /* Avatar Photo Styling - Tight zero-padding container */
+            .eprom-emp-card-region .a-CardView-media,
+            .eprom-emp-card-region .a-CardView-mediaWrap {
+                flex: 0 0 110px !important;
+                width: 110px !important;
+                height: 110px !important;
+                min-width: 110px !important;
+                min-height: 110px !important;
+                max-width: 110px !important;
+                max-height: 110px !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: 50% !important;
+                background: transparent !important;
+                overflow: hidden !important;
+            }
+            
+            .eprom-emp-card-region .a-CardView-media img {
+                width: 110px !important;
+                height: 110px !important;
+                min-width: 110px !important;
+                min-height: 110px !important;
+                max-width: 110px !important;
+                max-height: 110px !important;
+                border-radius: 50% !important;
+                object-fit: cover !important;
+                border: 3px solid #ffffff !important;
+                box-shadow: 0 0 0 3px #0f766e, 0 4px 14px rgba(15, 23, 42, 0.12) !important;
+                background-color: #f1f5f9;
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                transition: transform 0.25s ease;
+            }
+            
+            .eprom-emp-card-region .a-CardView-item:hover .a-CardView-media img {
+                transform: scale(1.04);
+            }
+            
+            /* Header & Text Content Area */
+            .eprom-emp-card-region .a-CardView-header,
+            .eprom-emp-card-region .a-CardView-mainContent {
+                flex: 1 1 auto !important;
+                display: flex;
+                flex-direction: column;
+                gap: 0.4rem;
+                text-align: right;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            [dir="ltr"] .eprom-emp-card-region .a-CardView-header,
+            [dir="ltr"] .eprom-emp-card-region .a-CardView-mainContent {
+                text-align: left;
+            }
+            
+            /* Employee Name */
+            .eprom-card-name {
+                margin: 0;
+                font-size: 1.45rem;
+                font-weight: 800;
+                color: #0f172a;
+                line-height: 1.3;
+                letter-spacing: -0.01em;
+            }
+            
+            /* Badges / Chips row */
+            .eprom-card-chips {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.5rem;
+                margin-top: 0.25rem;
+            }
+            
+            .eprom-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                padding: 0.25rem 0.75rem;
+                border-radius: 999px;
+                font-size: 0.82rem;
+                font-weight: 700;
+                line-height: 1.2;
+            }
+            
+            .eprom-chip--role {
+                background: #f0fdfa;
+                color: #0f766e;
+                border: 1px solid #99f6e4;
+            }
+            
+            .eprom-chip--id {
+                background: #f8fafc;
+                color: #475569;
+                border: 1px solid #e2e8f0;
+            }
+            
+            /* Metadata items (Dept, Location, Email) */
+            .eprom-card-meta {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.5rem;
+                margin-top: 0.35rem;
+                color: #64748b;
+                font-size: 0.86rem;
+                line-height: 1.5;
+            }
+            
+            .eprom-meta-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+            }
+            
+            .eprom-meta-item .fa {
+                color: #0f766e;
+                font-size: 0.95rem;
+            }
+            
+            .eprom-meta-sep {
+                color: #cbd5e1;
+                font-weight: bold;
+            }
+            
+            /* Action Buttons Container - Side by Side */
+            .eprom-emp-card-region .a-CardView-actions {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                margin-inline-start: auto !important;
+                flex-shrink: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .eprom-emp-card-region .a-CardView-actionsPrimary {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                flex-wrap: nowrap !important;
+                gap: 0.65rem !important;
+                width: auto !important;
+            }
+            
+            .eprom-btn {
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 0.45rem !important;
+                padding: 0.55rem 1.15rem !important;
+                font-size: 0.88rem !important;
+                font-weight: 700 !important;
+                border-radius: 12px !important;
+                transition: all 0.2s ease !important;
+                cursor: pointer !important;
+                text-decoration: none !important;
+                white-space: nowrap !important;
+                width: auto !important;
+            }
+            
+            .eprom-btn--profile {
+                background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
+                border: 1px solid #0f766e !important;
+                color: #ffffff !important;
+                box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25) !important;
+            }
+            
+            .eprom-btn--profile:hover {
+                background: linear-gradient(135deg, #115e59 0%, #134e4a 100%) !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 16px rgba(15, 118, 110, 0.35) !important;
+                color: #ffffff !important;
+            }
+            
+            .eprom-btn--edit {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                color: #334155 !important;
+            }
+            
+            .eprom-btn--edit:hover {
+                background: #f1f5f9 !important;
+                border-color: #94a3b8 !important;
+                color: #0f172a !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+            }
+            
+            /* --------------------------------------------------------------------------
+               Mobile Responsive Adjustments for Employee Card
+               -------------------------------------------------------------------------- */
+            @media (max-width: 768px) {
+                .eprom-emp-card-region .a-CardView {
+                    flex-direction: column !important;
+                    text-align: center !important;
+                    padding: 1.25rem 1rem !important;
+                    gap: 0.75rem !important;
+                }
+            
+                .eprom-emp-card-region .a-CardView-media,
+                .eprom-emp-card-region .a-CardView-mediaWrap,
+                .eprom-emp-card-region .a-CardView-media img {
+                    width: 96px !important;
+                    height: 96px !important;
+                    min-width: 96px !important;
+                    min-height: 96px !important;
+                    max-width: 96px !important;
+                    max-height: 96px !important;
+                }
+            
+                .eprom-emp-card-region .a-CardView-header,
+                .eprom-emp-card-region .a-CardView-mainContent {
+                    align-items: center !important;
+                    text-align: center !important;
+                }
+            
+                .eprom-card-chips,
+                .eprom-card-meta {
+                    justify-content: center !important;
+                }
+            
+                .eprom-emp-card-region .a-CardView-actions,
+                .eprom-emp-card-region .a-CardView-actionsPrimary {
+                    margin-inline-start: 0 !important;
+                    width: 100% !important;
+                    display: flex !important;
+                    flex-direction: row !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                    gap: 0.5rem !important;
+                    margin-top: 0.5rem !important;
+                }
+            
+                .eprom-emp-card-region .a-CardView-actionsPrimary .eprom-btn {
+                    flex: 1 1 0 !important;
+                    width: auto !important;
+                    padding: 0.5rem 0.6rem !important;
+                    font-size: 0.82rem !important;
+                    white-space: nowrap !important;
+                }
+            }
+            
+            /* --------------------------------------------------------------------------
+               Employee Applications Section (تطبيقات الموظف)
+               -------------------------------------------------------------------------- */
+            .eprom-user-apps-region {
+                margin-top: 1rem;
+                margin-bottom: 2.5rem;
+            }
+            
+            .eprom-user-apps-region .t-Region-header {
+                border-bottom: none !important;
+                padding-inline: 0.5rem !important;
+            }
+            
+            .eprom-user-apps-region .t-Region-title {
+                font-size: 1.35rem !important;
+                font-weight: 800 !important;
+                color: #0f2744 !important;
+                letter-spacing: -0.01em;
+            }
+            
+            .eprom-user-apps-region .t-Cards-item .t-Card {
+                background: #ffffff !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 18px !important;
+                box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04) !important;
+                transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                overflow: hidden !important;
+            }
+            
+            .eprom-user-apps-region .t-Cards-item .t-Card:hover {
+                transform: translateY(-5px) !important;
+                border-color: #0f766e !important;
+                box-shadow: 0 14px 30px rgba(15, 118, 110, 0.12), 0 4px 10px rgba(0, 0, 0, 0.04) !important;
+            }
+            
+            .eprom-user-apps-region .t-Card-icon {
+                border-radius: 14px !important;
+                transition: transform 0.28s ease !important;
+            }
+            
+            .eprom-user-apps-region .t-Cards-item .t-Card:hover .t-Card-icon {
+                transform: scale(1.1) !important;
+            }
+            
+            .eprom-user-apps-region .t-Card-title {
+                font-weight: 800 !important;
+                font-size: 1rem !important;
+                color: #1e293b !important;
+            }
+            
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region 2region-to-handel-cards-in-desktop-and-mobile-size (
+        name: 2Region to handel cards in desktop and mobile size
+        title: &APP_TEXT$2REGION_TO_HANDEL_CARDS_IN_DESKTOP_AND_MOBILE_SIZE.
+        type: staticContent
+        layout {
+            sequence: 70
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--removeHeader js-removeLandmark
+                t-Region--textContent
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            htmlDomId: my_region
+            regionDisplaySelector: true
+        }
+        security {
+            authorizationScheme: @super-duper
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    region 2region-to-handel-cards-in-desktop-and-mobile-size-2 (
+        name: 2Region to handel cards in desktop and mobile size0
+        title: &APP_TEXT$TITLE_1.
+        type: staticContent
+        layout {
+            sequence: 80
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--removeHeader js-removeLandmark
+                t-Region--textContent
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            htmlDomId: my_region
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: " :App_user in ('3199','1942','3775','3059','1837','995','1825') OR CENTRAL.IS_DEV_OR_SUPER_N(:APP_USER) = 1"
+        }
+        config {
+            buildOption: @commented-out
+        }
+        comments {
+            comments:
+                ```
+                -- :App_user in ('3199','1942','3775','3059','1837','995','1825')
+                :EMP_SITE <> 'EPROM_MIDOR' or :App_user in ('923','16','1269','1380','560','1586','755','1410','1481','383','1320','1518','3448')
+                ```
+        }
+    )
+
+    region active-surveys-for-desktop (
+        name: active surveys for desktop
+        title: &APP_TEXT$ACTIVE_SURVEYS_FOR_DESKTOP.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select t.*,
+                nvl(a.application_status,'p')  application_status,a.SUMMER_APPLICATION_ID
+                from Epromhq.vac_trips t
+                left join Epromhq.VAC_SUMMER_APPLICATIONS a  on t.trip_id = a.trip_id
+                and a.EMP_ID = :APP_USER
+                where
+                sysdate between t.application_start_date and t.application_end_date
+                ```
+        }
+        layout {
+            sequence: 30
+            parentRegion: @2region-to-handel-cards-in-desktop-and-mobile-size
+            slot: subRegions
+            startNewRow: false
+            column: 6
+            columnSpan: 5
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+                t-Form--stretchInputs
+                t-Form--leftLabels
+            ]
+        }
+        advanced {
+            htmlDomId: SURVEYS
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression: "&{TITLE_HTML_EXPR_3 TRIP_NAME=&TRIP_NAME.}!RAW."
+        }
+        pagination {
+            type: page
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$PLUG_QUERY_NO_DATA_FOUND_1.
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 62
+                }
+            }
+        )
+
+    )
+
+    region active-surveys-for-desktop-2 (
+        name: active surveys for desktop
+        title: &APP_TEXT$ACTIVE_SURVEYS_FOR_DESKTOP.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery: Select 1 from dual
+        }
+        layout {
+            sequence: 20
+            parentRegion: @2region-to-handel-cards-in-desktop-and-mobile-size-2
+            slot: subRegions
+            column: 6
+            columnSpan: 5
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            htmlDomId: SURVEYS
+        }
+        comments {
+            comments:
+                ```
+                -- :App_user in ('3199','1942','3775','3059','1837','995','1825')
+                
+                -- sysdate = to_date(26-05-2025) or
+                :EMP_SITE <> 'EPROM_MIDOR' or :App_user in ('923','16','1269','1380','560','1586','755','1410','1481','383','1320','1518','3448')
+                ```
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression: &APP_TEXT$DIV_CLASSCUSTOMCARD_STRONG_STRONGDIV!RAW.
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 65
+                }
+            }
+        )
+
+    )
+
+    region active-surveys-for-desktop-3 (
+        name: active surveys for desktop
+        title: &APP_TEXT$ACTIVE_SURVEYS_FOR_DESKTOP.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                Select 1 from dual
+                ```
+        }
+        layout {
+            sequence: 30
+            parentRegion: @2region-to-handel-cards-in-desktop-and-mobile-size-2
+            slot: subRegions
+            column: 6
+            columnSpan: 5
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            htmlDomId: SURVEYS2
+        }
+        serverSideCondition {
+            type: never
+        }
+        comments {
+            comments:
+                ```
+                -- :App_user in ('3199','1942','3775','3059','1837','995','1825')
+                
+                -- sysdate = to_date(26-05-2025) or
+                :EMP_SITE <> 'EPROM_MIDOR' or :App_user in ('923','16','1269','1380','560','1586','755','1410','1481','383','1320','1518','3448')
+                ```
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression: &APP_TEXT$TITLE_HTML_EXPR_4!RAW.
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 64
+                }
+            }
+        )
+
+    )
+
+    region active-surveys-for-mobile (
+        name: active surveys for mobile
+        title: &APP_TEXT$ACTIVE_SURVEYS_FOR_MOBILE.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select t.*,
+                nvl(a.application_status,'p')  application_status,a.SUMMER_APPLICATION_ID
+                  from epromhq.vac_trips t
+                 left join epromhq.VAC_SUMMER_APPLICATIONS a  on t.trip_id = a.trip_id
+                 and a.EMP_ID = :APP_USER
+                where
+                 sysdate between t.application_start_date and t.application_end_date
+                
+                ```
+        }
+        layout {
+            sequence: 40
+            parentRegion: @2region-to-handel-cards-in-desktop-and-mobile-size
+            slot: subRegions
+            rowCssClasses: hidden-md-up
+            column: 4
+            columnSpan: 6
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression: "&{TITLE_HTML_EXPR TRIP_NAME=&TRIP_NAME.}!RAW."
+        }
+        pagination {
+            type: page
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$ALL_QUESTIONS_HAVE_BEEN_ANSWERED.
+            noDataFoundIcon: fa-thumbs-up
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 62
+                    action: clearRegions
+                }
+            }
+        )
+
+    )
+
+    region active-surveys-for-mobile-2 (
+        name: active surveys for mobile
+        title: &APP_TEXT$ACTIVE_SURVEYS_FOR_MOBILE.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select SURVEY_ID,
+                       SURVEY_TITILE,
+                       DESCR,
+                       START_DATE,
+                       END_DATE
+                  from EPROMHQ.GEN_SURVEYS
+                 where sysdate between START_DATE and END_DATE
+                
+                ```
+        }
+        layout {
+            sequence: 40
+            parentRegion: @2region-to-handel-cards-in-desktop-and-mobile-size-2
+            slot: subRegions
+            startNewRow: false
+            column: 5
+            columnSpan: 8
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            htmlDomId: SURVEYS2
+        }
+        card {
+            primaryKeyColumn1: SURVEY_ID
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression: "&{TITLE_HTML_EXPR_1 TRIP_NAME=&TRIP_NAME.}!RAW."
+        }
+        body {
+            column: DESCR
+        }
+        iconAndBadge {
+            iconSource: iconClass
+            iconCssClasses: fa-asl-interpreting
+        }
+        pagination {
+            type: page
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$ALL_QUESTIONS_HAVE_BEEN_ANSWERED.
+            noDataFoundIcon: fa-thumbs-up
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 20
+            }
+            behavior {
+                target: {
+                    page: 64
+                    clearCache: 64
+                    action: clearRegions
+                }
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+    )
+
+    region app-name (
+        name: &APP_NAME.
+        title: &APP_NAME.
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--accent5
+                t-Region--stacked
+                js-headingLevel-3
+                t-Region--hiddenOverflow
+                t-Form--labelsAbove
+            ]
+        }
+    )
+
+    region appraisal (
+        name: Appraisal
+        title: &APP_TEXT$APPRAISAL.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery: select 1 from dual
+        }
+        layout {
+            sequence: 60
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: card_104
+        }
+        serverSideCondition {
+            type: never
+        }
+        comments {
+            comments:
+                ```
+                  SELECT 1
+                  FROM apr.apr_emps e
+                  WHERE e.emp_id = :APP_USER
+                    AND EXISTS (
+                      SELECT 1
+                      FROM apr.apr_assignment_evaluators v
+                      WHERE v.evaluator_emp_rec_id = e.emp_rec_id
+                    )
+                ```
+        }
+        componentAppearance {
+            cssClasses: a-CardView
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression: &APP_TEXT$TITLE_HTML_EXPR_2!RAW.
+        }
+        media {
+            source: imageUrl
+            url: /apex/hq_elevated/g/attach/e4da3b7fbbce2345d7772b0674a318d5
+            sizing: cover
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                type: redirectUrl
+                targetUrl: f?p=205:205:&SESSION.
+            }
+        )
+
+    )
+
+    region emp-card-desktop (
+        name: emp card desktop
+        title: &APP_TEXT$EMP_CARD_DESKTOP.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery: select EMP_NUMBER, EMP_NAME, NATIONAL_IDENTIFIER, EMP_DATE_OF_BIRTH, EMP_POSITION_NAME, SITE_CODE, ORGANIZATION_NAME, ASSIGNMENTS_DATE, GRADE_NAME, PERMANENT_DATE, EXCEL_POS, PROJECT, BASIC_SALARY, EXP_DATE, IMAGE, IMAGE_ID, COMP_EMAIL, PAY_EMAIL, EGPC_EMAIL, MAR_STAT, JOB_DATE, PRIM_ADDRESS from (select EMP_NUMBER, EMP_NAME, NATIONAL_IDENTIFIER, EMP_DATE_OF_BIRTH, EMP_POSITION_NAME, SITE_CODE, ORGANIZATION_NAME, ASSIGNMENTS_DATE, GRADE_NAME, PERMANENT_DATE, EXCEL_POS, PROJECT, BASIC_SALARY, EXP_DATE, IMAGE, IMAGE_ID, COMP_EMAIL, PAY_EMAIL, EGPC_EMAIL, MAR_STAT, JOB_DATE, PRIM_ADDRESS from CENTRAL.XXAPEX_HR_EMP_DATA union all select emp_id as emp_number, emp_name, national_identifier, to_char(sysdate, 'DD/MM/YYYY') as emp_date_of_birth, emp_position_name, site_code, project as organization_name, to_char(sysdate, 'DD/MM/YYYY') as assignments_date, 'EPROM.10' as grade_name, to_char(sysdate, 'DD/MM/YYYY') as permanent_date, 'Senior Engineer' as excel_pos, project, 0 as basic_salary, to_char(sysdate, 'DD/MM/YYYY') as exp_date, to_blob(null) as image, image_id, email as comp_email, email as pay_email, email as egpc_email, 'Single' as mar_stat, sysdate as job_date, 'Alexandria' as prim_address from HQ_ELEVATED.DEVELOPERS_EMPS where is_active = 'Y') where EMP_NUMBER = :APP_USER
+        }
+        layout {
+            sequence: 10
+            parentRegion: @region-to-handel-cards-in-desktop-and-mobile-size
+            slot: subRegions
+            column: 1
+            columnSpan: 12
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+                t-Region-orderBy--center
+            ]
+            cssClasses: [
+                hidden-sm-down
+                eprom-emp-card-region
+                eprom-emp-card-region--desktop
+            ]
+        }
+        componentAppearance {
+            layout: horizontal
+        }
+        card {
+            primaryKeyColumn1: EMP_NUMBER
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <div class="eprom-card-title-wrap">
+                    <h2 class="eprom-card-name">&EMP_NAME.</h2>
+                    <div class="eprom-card-chips">
+                        <span class="eprom-chip eprom-chip--role"><span class="fa fa-briefcase" aria-hidden="true"></span> &EXCEL_POS.</span>
+                        <span class="eprom-chip eprom-chip--id"><span class="fa fa-id-card-o" aria-hidden="true"></span> #&EMP_NUMBER.</span>
+                    </div>
+                </div>
+                ```
+        }
+        subtitle {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <div class="eprom-card-meta">
+                    <span class="eprom-meta-item"><span class="fa fa-building-o" aria-hidden="true"></span> &ORGANIZATION_NAME.</span>
+                    <span class="eprom-meta-sep">•</span>
+                    <span class="eprom-meta-item"><span class="fa fa-map-marker" aria-hidden="true"></span> &PROJECT.</span>
+                    <span class="eprom-meta-sep">•</span>
+                    <span class="eprom-meta-item"><span class="fa fa-envelope-o" aria-hidden="true"></span> &COMP_EMAIL.</span>
+                </div>
+                ```
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGE
+            position: first
+            appearance: square
+        }
+        performance {
+            lazyLoading: true
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 20
+            }
+            behavior {
+                target: {
+                    page: 10
+                }
+            }
+        )
+
+    )
+
+    region emp-card-mobile (
+        name: emp card mobile
+        title: &APP_TEXT$EMP_CARD_MOBILE.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery: select EMP_NUMBER, EMP_NAME, NATIONAL_IDENTIFIER, EMP_DATE_OF_BIRTH, EMP_POSITION_NAME, SITE_CODE, ORGANIZATION_NAME, ASSIGNMENTS_DATE, GRADE_NAME, PERMANENT_DATE, EXCEL_POS, PROJECT, BASIC_SALARY, EXP_DATE, IMAGE, IMAGE_ID, COMP_EMAIL, PAY_EMAIL, EGPC_EMAIL, MAR_STAT, JOB_DATE, PRIM_ADDRESS from (select EMP_NUMBER, EMP_NAME, NATIONAL_IDENTIFIER, EMP_DATE_OF_BIRTH, EMP_POSITION_NAME, SITE_CODE, ORGANIZATION_NAME, ASSIGNMENTS_DATE, GRADE_NAME, PERMANENT_DATE, EXCEL_POS, PROJECT, BASIC_SALARY, EXP_DATE, IMAGE, IMAGE_ID, COMP_EMAIL, PAY_EMAIL, EGPC_EMAIL, MAR_STAT, JOB_DATE, PRIM_ADDRESS from CENTRAL.XXAPEX_HR_EMP_DATA union all select emp_id as emp_number, emp_name, national_identifier, to_char(sysdate, 'DD/MM/YYYY') as emp_date_of_birth, emp_position_name, site_code, project as organization_name, to_char(sysdate, 'DD/MM/YYYY') as assignments_date, 'EPROM.10' as grade_name, to_char(sysdate, 'DD/MM/YYYY') as permanent_date, 'Senior Engineer' as excel_pos, project, 0 as basic_salary, to_char(sysdate, 'DD/MM/YYYY') as exp_date, to_blob(null) as image, image_id, email as comp_email, email as pay_email, email as egpc_email, 'Single' as mar_stat, sysdate as job_date, 'Alexandria' as prim_address from HQ_ELEVATED.DEVELOPERS_EMPS where is_active = 'Y') where EMP_NUMBER = :APP_USER
+        }
+        layout {
+            sequence: 20
+            parentRegion: @region-to-handel-cards-in-desktop-and-mobile-size
+            slot: subRegions
+            column: 1
+            columnSpan: 12
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+            ]
+            cssClasses: [
+                hidden-md-up
+                eprom-emp-card-region
+                eprom-emp-card-region--mobile
+            ]
+        }
+        card {
+            primaryKeyColumn1: EMP_NUMBER
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <div class="eprom-card-title-wrap">
+                    <h2 class="eprom-card-name">&EMP_NAME.</h2>
+                    <div class="eprom-card-chips">
+                        <span class="eprom-chip eprom-chip--role"><span class="fa fa-briefcase" aria-hidden="true"></span> &EXCEL_POS.</span>
+                        <span class="eprom-chip eprom-chip--id">#&EMP_NUMBER.</span>
+                    </div>
+                </div>
+                ```
+        }
+        subtitle {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <div class="eprom-card-meta">
+                    <span class="eprom-meta-item"><span class="fa fa-building-o" aria-hidden="true"></span> &ORGANIZATION_NAME.</span>
+                    <span class="eprom-meta-sep">•</span>
+                    <span class="eprom-meta-item"><span class="fa fa-map-marker" aria-hidden="true"></span> &PROJECT.</span>
+                </div>
+                ```
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGE
+            position: first
+            appearance: square
+        }
+        performance {
+            lazyLoading: true
+        }
+
+        action action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 10
+                }
+            }
+        )
+
+    )
+
+    region happy-birthday (
+        name: Happy Birthday
+        title: &APP_TEXT$HAPPY_BIRTHDAY.
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+            column: 5
+            columnSpan: 4
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: emp_birth
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: to_char(to_date(:EMP_BIRTH,'dd/mm/yyyy'),'ddmm') = to_char(trunc(sysdate),'ddmm')
+        }
+    )
+
+    region public-relation (
+        name: PUBLIC RELATION
+        title: &APP_TEXT$PUBLIC_RELATION.
+        type: staticContent
+        layout {
+            sequence: 50
+            slot: body
+            column: 4
+            columnSpan: 6
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: [
+                #DEFAULT#
+                margin-top-lg
+                margin-bottom-lg
+            ]
+        }
+    )
+
+    region ramadan (
+        name: ramadan
+        title: &APP_TEXT$RAMADAN.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+            column: 5
+            columnSpan: 4
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: [
+                #DEFAULT#
+                margin-bottom-lg
+            ]
+        }
+        advanced {
+            htmlDomId: ramadan
+            regionDisplaySelector: true
+        }
+    )
+
+    region region-to-handel-cards-in-desktop-and-mobile-size (
+        name: Region to handel cards in desktop and mobile size
+        title: &APP_TEXT$REGION_TO_HANDEL_CARDS_IN_DESKTOP_AND_MOBILE_SIZE.
+        type: staticContent
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--removeHeader js-removeLandmark
+                t-Region--textContent
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+            cssClasses: eprom-emp-card-wrapper
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+    )
+
+    region school_loan_region (
+        name: تم التقديم علي طلب السلفه
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                DECLARE
+                    L_REQUEST_ID epromhq.PRF_LOANS_REQUEST.REQUEST_ID%TYPE;
+                BEGIN
+                    BEGIN
+                        SELECT REQUEST_ID
+                          INTO L_REQUEST_ID
+                          FROM (
+                                SELECT REQUEST_ID
+                                  FROM epromhq.PRF_LOANS_REQUEST
+                                 WHERE EMP_ID = :APP_USER
+                                   AND Created_at >= DATE '2026-01-01'
+                                   AND Created_at <  DATE '2027-01-01'
+                                 ORDER BY Created_at DESC
+                               )
+                         WHERE ROWNUM = 1;
+                
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            RETURN NULL;
+                    END;
+                
+                    RETURN '
+                        <div class="t-Alert t-Alert--success t-Alert--horizontal">
+                            <div class="t-Alert-wrap">
+                
+                                <div class="t-Alert-icon">
+                                    <span class="t-Icon fa fa-check-circle"
+                                          aria-hidden="true"></span>
+                                </div>
+                
+                                <div class="t-Alert-content">
+                
+                                    <div class="t-Alert-header">
+                                        <h2 class="t-Alert-title">
+                                            تم التقديم بنجاح
+                                        </h2>
+                                    </div>
+                
+                                    <div class="t-Alert-body">
+                                        تم تقديم طلب سلفة المدارس بنجاح،
+                                        وجارٍ العمل عليه.
+                
+                                        <div style="margin-top:15px;">
+                
+                                            <button type="button"
+                                                    id="btnDeleteSchoolLoan"
+                                                    data-request-id="' ||
+                                                    apex_escape.html_attribute(L_REQUEST_ID) ||
+                                                    '"
+                                                    class="t-Button
+                                                           t-Button--danger
+                                                           t-Button--small">
+                
+                                                <span class="t-Icon fa fa-trash"
+                                                      aria-hidden="true"></span>
+                
+                                                <span class="t-Button-label">
+                                                    حذف الطلب
+                                                </span>
+                
+                                            </button>
+                
+                                        </div>
+                                    </div>
+                
+                                </div>
+                            </div>
+                        </div>';
+                
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        RETURN '
+                            <div class="t-Alert t-Alert--danger t-Alert--horizontal">
+                                <div class="t-Alert-wrap">
+                                    <div class="t-Alert-content">
+                                        <div class="t-Alert-body">
+                                            حدث خطأ أثناء التحقق من طلب سلفة المدارس:
+                                            ' || apex_escape.html(SQLERRM) || '
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>';
+                END;
+                ```
+        }
+        layout {
+            sequence: 10
+            parentRegion: @تم-التقديم-علي-طلب-السلفه
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            htmlDomId: school_loan_region
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT *
+                FROM epromhq.PRF_LOANS_REQUEST
+                WHERE Created_at >= DATE '2026-01-01'
+                  AND Created_at <  DATE '2027-01-01'
+                and emp_id = :App_user
+                ```
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    region vote (
+        name: VOTE
+        title: &APP_TEXT$VOTE.
+        type: staticContent
+        layout {
+            sequence: 110
+            slot: body
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: [
+                #DEFAULT#
+                margin-bottom-lg
+            ]
+        }
+        advanced {
+            htmlDomId: VOTE
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    region تطبيقات-الموظف (
+        name: تطبيقات الموظف
+        title: &APP_TEXT$EMPLOYEE_APPLICATIONS.
+        type: list
+        source {
+            list: @user-apps
+        }
+        layout {
+            sequence: 90
+            slot: body
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+            cssClasses: eprom-user-apps-region
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        componentAppearance {
+            listTemplate: @cards
+            templateOptions: [
+                #DEFAULT#
+                t-Cards--featured force-fa-lg
+                t-Cards--displayIcons
+                t-Cards--stacked
+                t-Cards--hideBody
+                t-Cards--animColorFill
+            ]
+        }
+    )
+
+    region تم-الترسيه-المصيف-لسيادتكم-علي-الوحدة-المصيفيه (
+        name: "تم الترسيه المصيف لسيادتكم علي الوحدة المصيفيه "
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT
+                    s."مسلسل_كامل" AS S1,
+                    s.EMP_ID,
+                    s.EMP_NAME,
+                    s.SITE_CODE,
+                    d.CURRENT_GRADE,
+                    s."مسلسل_الوحدة_والفوج" AS S2,
+                    s.BLOCK_ID,
+                        s.BLOCK_ID as bbblok,
+                   central.xxapex_util_vacations.get_bloc_price_per_mon_p_group_id(
+                        s.emp_id,
+                        s.block_id,
+                        TO_DATE(s.group_id, 'YYYY-MM-DD')
+                    ) AS price,
+                    s.GROUP_ID,
+                    s.EMP_MOBILE,
+                    s.ALLOCATION_ID,
+                    NVL(H.HISTORY, 'لا يوجد'),
+                    Nvl(v.STATUS_RESONE,' طلب اعتزار'),
+                    null as instructions,
+                    NULL AS PICS
+                FROM
+                    epromhq.V_VAC_UNIT_EMP_SERIALS s
+                JOIN
+                    epromhq.VAC_UNIT_ALLOCATION v
+                    ON s.ALLOCATION_ID = v.ID
+                   left join
+                    epromhq.VAC_HISTORY H
+                    on s.EMP_ID = H.EMP_ID
+                      left  join central.xxapex_hr_emp_data d on d.EMP_NUMBER =  s.emp_id
+                
+                WHERE
+                    -- v.STATUS_ID = 1
+                    -- and
+                    trip_id = 16
+                    --   sysdate Between :APPLICATION_END_DATE and :APPLICATION_START_DATE
+                 and s.EMP_ID = :app_user
+                
+                ORDER BY
+                    S1, S2, s.BLOCK_ID, s.GROUP_ID;
+                
+                ```
+        }
+        layout {
+            sequence: 210
+            parentRegion: @تم-الترسيه-المصيف-لسيادتكم-علي-الوحدة-المصيفيه_1
+            slot: regionBody
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--noBorders
+                t-Form--stretchInputs
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT 1
+                FROM EPROMHQ.VAC_UNIT_ALLOCATION v
+                WHERE v.TRIP_ID  = 16
+                  AND v.EMP_ID   = :APP_USER
+                  AND v.STATUS_ID = 1
+                  AND TRUNC(SYSDATE) <=
+                      TO_DATE(TRIM(v.GROUP_ID), 'YYYY-MM-DD') + 7
+                  AND ROWNUM = 1
+                ```
+        }
+        searchBar {
+            includeSearchBar: false
+        }
+        advanced {
+            savedReportMappingIdentifier: 27472628907743412
+        }
+
+        column ALLOCATION_ID (
+            type: hidden
+            heading {
+                heading: Allocation Id
+            }
+            layout {
+                sequence: 160
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: U
+            }
+        )
+
+        column BBBLOK (
+            type: hidden
+            heading {
+                heading: Bbblok
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column BLOCK_ID (
+            type: plainTextBasedOnLov
+            heading {
+                heading: الوحدة
+                alignment: center
+            }
+            lov {
+                lov: @vac-unit
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: G
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column CURRENT_GRADE (
+            type: hidden
+            heading {
+                heading: Current Grade
+            }
+            layout {
+                sequence: 130
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: R
+            }
+        )
+
+        column EMP_ID (
+            type: plainText
+            heading {
+                heading: الرقم الوظيفي
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: B
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column EMP_MOBILE (
+            type: plainText
+            heading {
+                heading: رقم الموبايل للتواصل
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column EMP_NAME (
+            type: plainText
+            heading {
+                heading: اسم الموظف
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column GROUP_ID (
+            type: plainText
+            heading {
+                heading: الفوج
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column INSTRUCTIONS (
+            type: link
+            heading {
+                heading: تعليمات الوحدة
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    page: 4
+                    items: {
+                        P4_UNIT_ID: #BBBLOK#
+                    }
+                }
+                linkText: <span>قراءة التعليمات</span>
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: N
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column "NVL(H.HISTORY,'لايوجد')" (
+            type: hidden
+            heading {
+                heading: Nvl(h.history,&#x27;لايوجد&#x27;)
+            }
+            layout {
+                sequence: 170
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: V
+            }
+        )
+
+        column "NVL(V.STATUS_RESONE,'طلباعتزار')" (
+            type: hidden
+            heading {
+                heading: Nvl(v.status Resone,&#x27;طلباعتزار&#x27;)
+            }
+            layout {
+                sequence: 180
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: W
+            }
+        )
+
+        column PICS (
+            type: link
+            heading {
+                heading: الصور
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    page: 41
+                    items: {
+                        P41_UNIT_ID: #BBBLOK#
+                    }
+                }
+                linkText: #PICS# الصور
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: O
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column PRICE (
+            type: plainText
+            heading {
+                heading: قسط الوحده
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: T
+            }
+        )
+
+        column S1 (
+            type: hidden
+            heading {
+                heading: S1
+            }
+            layout {
+                sequence: 110
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: P
+            }
+        )
+
+        column S2 (
+            type: hidden
+            heading {
+                heading: S2
+            }
+            layout {
+                sequence: 140
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: S
+            }
+        )
+
+        column SITE_CODE (
+            type: hidden
+            heading {
+                heading: Site Code
+            }
+            layout {
+                sequence: 120
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Q
+            }
+        )
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn BBBLOK (
+                sequence: 5
+            )
+
+            displayColumn BLOCK_ID (
+                sequence: 4
+            )
+
+            displayColumn EMP_ID (
+                sequence: 1
+            )
+
+            displayColumn EMP_MOBILE (
+                sequence: 6
+            )
+
+            displayColumn EMP_NAME (
+                sequence: 2
+            )
+
+            displayColumn GROUP_ID (
+                sequence: 3
+            )
+
+            displayColumn INSTRUCTIONS (
+                sequence: 7
+            )
+
+            displayColumn PICS (
+                sequence: 8
+            )
+
+        )
+
+    )
+
+    region تم-الترسيه-المصيف-لسيادتكم-علي-الوحدة-المصيفيه_1 (
+        name: "تم الترسيه المصيف لسيادتكم علي الوحدة المصيفيه "
+        type: staticContent
+        layout {
+            sequence: 215
+            parentRegion: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                -- SELECT
+                -- 1
+                -- FROM
+                --     epromhq.V_VAC_UNIT_EMP_SERIALS s
+                -- JOIN
+                --     epromhq.VAC_UNIT_ALLOCATION v
+                --     ON s.ALLOCATION_ID = v.ID
+                --    left join
+                --     epromhq.VAC_HISTORY H
+                --     on s.EMP_ID = H.EMP_ID
+                --       left  join central.xxapex_hr_emp_data d on d.EMP_NUMBER =  s.emp_id
+                
+                -- WHERE
+                --     -- v.STATUS_ID = 1
+                --     -- and
+                --     trip_id = 16
+                --   and s.EMP_ID = :app_user
+                SELECT 1
+                FROM EPROMHQ.VAC_UNIT_ALLOCATION v
+                WHERE v.TRIP_ID  = 16
+                  AND v.EMP_ID   = :APP_USER
+                  AND v.STATUS_ID = 1
+                  AND TRUNC(SYSDATE) <=
+                      TO_DATE(TRIM(v.GROUP_ID), 'YYYY-MM-DD') + 7
+                  AND ROWNUM = 1
+                ```
+        }
+    )
+
+    region تم-التقديم-علي-طلب-السلفه (
+        name: تم التقديم علي طلب السلفه
+        type: staticContent
+        layout {
+            sequence: 225
+            parentRegion: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT *
+                FROM epromhq.PRF_LOANS_REQUEST
+                WHERE Created_at >= DATE '2026-01-01'
+                  AND Created_at <  DATE '2027-01-01'
+                and emp_id = :App_user
+                ```
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    pageItem P1_ID_NKABA (
+        type: hidden
+        layout {
+            sequence: 235
+            region: @public-relation
+            slot: regionBody
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue:
+                ```sql
+                SELECT ID FROM EPROMHQ.ENG_SYNDICATE_LOG
+                WHERE APP_USER_NAME = :APP_USER
+                ```
+        }
+    )
+
+    button afrekano-park (
+        buttonName: Afrekano_Park
+        label: &APP_TEXT$TICKETS_FOR_ENTERTAINMENT_ACTIVITIES.
+        layout {
+            sequence: 185
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 105
+                page: 77
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @super-duper
+        }
+    )
+
+    button appraisal (
+        buttonName: Appraisal
+        label: &APP_TEXT$ANNUAL_EVALUATIONS.
+        layout {
+            sequence: 175
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+            icon: fa-timeline-arrow
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 205
+                page: 1
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+        comments {
+            comments: :app_user in ('705','3199','1825','995','1837','3775')
+        }
+    )
+
+    button btn (
+        buttonName: btn
+        label: &APP_TEXT$BTN.
+        layout {
+            sequence: 100
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--tiny
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 47
+                clearCache: 47
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        advanced {
+            htmlDomId: instructions_btn
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                
+                  SELECT 1
+                  FROM apr.apr_emps e
+                  WHERE e.emp_id = :APP_USER
+                    AND EXISTS (
+                      SELECT 1
+                      FROM apr.apr_assignment_evaluators v
+                      WHERE v.evaluator_emp_rec_id = e.emp_rec_id
+                    )
+                ```
+        }
+    )
+
+    button eid-kahk (
+        buttonName: eid_kahk
+        label: &APP_TEXT$EID_CAKE_PURCHASE_COUPON_2026.
+        layout {
+            sequence: 60
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 510
+                items: {
+                    P510_SURVEY_ID: 41
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    button eprom-innovates (
+        buttonName: EPROM_INNOVATES
+        label: مسابقة إيبروم تبتكر
+        layout {
+            sequence: 155
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+            icon: fa-lightbulb-o
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 87
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    button eprom-innovates_1 (
+        buttonName: EPROM_INNOVATES_1
+        label: view  إيبروم تبتكر
+        layout {
+            sequence: 165
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+            icon: fa-lightbulb-o
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 88
+            }
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER IN ('560','1347','1396','1414','1518','1622','2951','1410', '120103')
+        }
+    )
+
+    button family-park (
+        buttonName: family_park
+        label: &APP_TEXT$ON_PROBATION_FAMILY_PARK_TICKETS.
+        layout {
+            sequence: 90
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 105
+                page: 76
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @super-duper
+        }
+    )
+
+    button new (
+        buttonName: AI_ASSISTANT_FAB
+        label: المساعد الذكي
+        layout {
+            sequence: 10
+            region: @app-name
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            cssClasses: ai-assistant-fab-btn
+            icon: fa-sparkles
+        }
+        behavior {
+            action: triggerAction
+        }
+        security {
+            authorizationScheme: @admin
+        }
+
+        triggerAction native-open-ai-assistant (
+            action: showAiAssistant
+            genAI {
+                agent: @portal-helper
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button one-day-trip-to-cairo-in (
+        buttonName: One-day_trip_to_Cairo_in_2025
+        label: &APP_TEXT$ONE_DAY_TRIP_TO_CAIRO_IN_2025.
+        layout {
+            sequence: 110
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 78
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @super-duper
+        }
+    )
+
+    button requests (
+        buttonName: requests
+        label: &APP_TEXT$TICKET_REQUESTS_SUBMITTED.
+        layout {
+            sequence: 195
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 105
+                page: 79
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+        security {
+            authorizationScheme: @super-duper
+        }
+        comments {
+            comments:
+                ```
+                EXISTS (
+                    SELECT 1
+                    FROM epromhq.prf_loans_request
+                    WHERE request_type_id = 9999
+                      AND emp_id = :App_user
+                )
+                ```
+        }
+    )
+
+    button safey-ramadan (
+        buttonName: safey_ramadan
+        label: &APP_TEXT$SAFETY_INSTRUCTIONS_DURING_THE_HOLY_MONTH_OF_RAMADAN.
+        layout {
+            sequence: 80
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 83
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    button solfa-madares (
+        buttonName: solfa_madares
+        label: &APP_TEXT$APPLYING_FOR_A_SCHOOL_LOAN.
+        layout {
+            sequence: 30
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 105
+                page: 48
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT 1
+                FROM dual
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM epromhq.PRF_LOANS_REQUEST
+                    WHERE EMP_ID = :App_user
+                      AND REQUEST_TYPE_ID = 141
+                      AND NVL(APPROVAL_GM_PR, 0) <> 3
+                      AND CREATED_AT >= TRUNC(SYSDATE, 'YYYY')
+                      AND CREATED_AT < ADD_MONTHS(TRUNC(SYSDATE, 'YYYY'), 12)
+                )
+                ```
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    button sports-day (
+        buttonName: SPORTS_DAY
+        label: اليوم الرياضي 2026
+        layout {
+            sequence: 166
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+            icon: fa-futbol-o
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 115
+                clearCache: 115
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    button summer (
+        buttonName: SUMMER_2026
+        label: &APP_TEXT$SUBMIT_AN_APPLICATION_FOR_SUMMER_VACATION_IN_2026.
+        layout {
+            sequence: 130
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 117
+                page: 1
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    button summer-training (
+        buttonName: SUMMER_TRAINING
+        label: &APP_TEXT$SUMMER_TRAINING.
+        layout {
+            sequence: 150
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 64
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+        comments {
+            comments: :App_user =3199
+        }
+    )
+
+    button training-cv (
+        buttonName: TRAINING_CV
+        label: &APP_TEXT$TRAINING_CV.
+        layout {
+            sequence: 140
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 121
+                page: 1
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+        comments {
+            comments: :App_user =3199
+        }
+    )
+
+    button trip-siwa (
+        buttonName: trip_siwa_2026
+        label: &APP_TEXT$SUBMIT_A_SUBSCRIPTION_TO_THE_SIWA_OASIS_TRIP_FOR_THE_YEAR_2026.
+        layout {
+            sequence: 40
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 117
+                page: 51
+                items: {
+                    P51_TRIP_ID: 1
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+        comments {
+            comments: :App_user =3199
+        }
+    )
+
+    button winter (
+        buttonName: winter_2026
+        label: &APP_TEXT$MAKE_AN_APOLOGY_FOR_MISHTI_IN_2026.
+        layout {
+            sequence: 120
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 117
+                page: 1
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+        comments {
+            comments: :App_user =3199
+        }
+    )
+
+    button word-file (
+        buttonName: Word_File
+        label: &APP_TEXT$DATA_COMPLETION_FORM.
+        layout {
+            sequence: 100
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--large
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 79
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+        comments {
+            comments:
+                ```
+                :EMP_GRADE >= 8
+                or :App_user in (773,3775,3199,1837,1825,995)
+                ```
+        }
+    )
+
+    button zema-2027-video (
+        buttonName: Zema_2027_Video
+        label: &APP_TEXT$ZEMA_2027_VIDEO.
+        layout {
+            sequence: 206
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+            ]
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: /apex/hq_elevated/g/attach/d645920e395fedad7bbbed0eca3fe2e0
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER IN ('37','38','45','46','53','76','81','84','105','106','108','109','110','111','112','113','114','115','117','126','127','128','129','130','144','145','146','147','148','150','151','152','153','154','155','156','157','159','160','164','168','169','173','175','178','200','204','208','218','219','220','221','237','239','241','242','247','248','249','252','258','259','264','272','273','274','278','279','280','281','283','284','287','296','309','310','312','313','328','329','330','332','333','335','350','351','354','355','356','360','361','362','363','364','365','367','368','373','378','380','383','384','385','387','388','389','390','391','392','394','395','396','397','398','400','403','406','407','409','410','412','414','416','417','418','420','421','423','424','425','426','427','429','430','435','438','455','464','470','486','488','503','505','510','518','526','527','529','531','534','537','543','548','551','560','581','583','591','592','593','594','595','598','599','601','602','603','614','620','627','628','629','630','664','676','760','805','927','1157','1158','1163','1164','1165','1167','1169','1170','1171','1172','1173','1185','1187','1188','1219','1283','1286','1287','1288','1296','1298','1303','1308','1311','1315','1339','1348','1380','1381','1382','1383','1384','1388','1395','1396','1397','1444','1445','1446','1447','1451','1638','1838','1841','1842','1843','1844','1845','1850','1851','1857','1858','1859','1860','1867','1868','1874','1879','1893','1894','1924','1934','1942','1944','1945','1958','1980','1995','1999','2096','2106','2107','2118','2119','2120','2121','2122','2127','2129','2130','2133','2140','2141','2142','2143','2144','2146','2147','2148','2149','2150','2152','2153','2155','2162','2164','2171','2173','2176','2515','2534','2535','2536','2537','2538','2539','2540','2541','2542','2543','2545','2546','2547','2548','2549','2550','2554','2555','2556','2557','2558','2559','2560','2561','2562','2563','2564','2566','2567','2568','2579','2580','2595','2609','2619','2746','2766','2904','2927','2949','2950','2951','2952','2953','2954','2958','2959','2962','2966','3002','3056','3060','3070','3088','3200','3203','3205','3207','3216','3217','3220','3221','3222','3223','3234','3247','3248','3249','3251','3252','3332','3333','3334','3336','3199','1837','1950')
+        }
+    )
+
+    button إنتخابات-نقابة-المهندسين (
+        buttonName: إنتخابات_نقابة_المهندسين
+        label: &APP_TEXT$ENGINEERS_SYNDICATE_ELECTIONS.
+        layout {
+            sequence: 20
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @awesome-text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--large
+                t-Button--stretch
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 85
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    button نقابة-المهندسين (
+        buttonName: نقابة_المهندسين
+        label: &APP_TEXT$ENGINEERS_SYNDICATE_MEMBERSHIP_NUMBER.
+        layout {
+            sequence: 70
+            region: @public-relation
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: f?p=&APP_ID.:77:&APP_SESSION.::&DEBUG.::P77_ID:&P1_ID_NKABA.
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                
+                
+                
+                EXISTS (
+                    SELECT 1
+                    FROM central.xxapex_hr_emp_data d
+                    JOIN central.xxapex_hr_emp_gender g
+                      ON g.employee_number = d.emp_number
+                    LEFT JOIN central.xxapex_hr_emp_social_birth s
+                      ON s.emp_number = d.emp_number
+                    LEFT JOIN central.xxapex_hr_qualifications q
+                      ON q.employee_number = d.emp_number
+                     AND q.maon_or_not = 'Yes'
+                    LEFT JOIN central.xxapex_hr_emp_addresses a
+                      ON a.employee_number = d.emp_number
+                     AND a.primary_add = 'Y'
+                    WHERE g.title = 'ENGG'
+                      AND d.emp_number = :APP_USER
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM EPROMHQ.ENG_SYNDICATE_LOG l
+                    WHERE l.APP_USER_NAME = :APP_USER
+                )
+                ```
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 20
+        }
+        when {
+            event: apexafterclosecanceldialog
+            selectionType: items
+            items: P1_ID_NKABA
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: eventSource
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction page-load (
+        name: page_load
+        execution {
+            sequence: 10
+        }
+        when {
+            event: ready
+        }
+
+        action enable-push-notifications (
+            name: enable_push_notifications
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    //put in dynamic action aupage stload
+                    
+                    async function subscribeOnLoad() {
+                    
+                    const hasPushSubscription = await apex.pwa.hasPushSubscription();
+                    console.log(hasPushSubscription);
+                    if(!hasPushSubscription){
+                    if(Notification.permission!='denied'){
+                         apex.pwa.subscribePushNotifications();
+                    }else{
+                        apex.message.showPageSuccess('You have Blocked Notifications, please enable manually.');
+                    }
+                    }
+                    
+                    }
+                    
+                    
+                    subscribeOnLoad();
+                    
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+            security {
+                authorizationScheme: @super-duper
+            }
+        )
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode: $("#instructions_btn").trigger("click");
+            }
+            execution {
+                sequence: 20
+            }
+            serverSideCondition {
+                type: expression
+                plsqlExpression:
+                    ```plsql
+                      'yes' = central.PREF_PKG.GET_PREF(
+                        P_EMP_ID => :APP_USER,
+                        P_PREF_ID => 41
+                      )
+                    ```
+            }
+        )
+
+    )
+
+    process delete-school-loan (
+        name: DELETE_SCHOOL_LOAN
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    L_ROWS_DELETED NUMBER := 0;
+                    L_COUNT_AFTER  NUMBER := 0;
+                BEGIN
+                    DELETE FROM epromhq.PRF_LOANS_REQUEST
+                     WHERE TRIM(UPPER(TO_CHAR(EMP_ID))) = TRIM(UPPER(:APP_USER))
+                       AND Created_at >= DATE '2026-01-01'
+                       AND Created_at <  DATE '2027-01-01';
+                
+                    L_ROWS_DELETED := SQL%ROWCOUNT;
+                
+                    IF L_ROWS_DELETED = 0 THEN
+                        ROLLBACK;
+                
+                        APEX_JSON.OPEN_OBJECT;
+                        APEX_JSON.WRITE('success', FALSE);
+                        APEX_JSON.WRITE('rows_deleted', 0);
+                        APEX_JSON.WRITE(
+                            'message',
+                            'لم يتم العثور على طلب خاص بالمستخدم الحالي لحذفه.'
+                        );
+                        APEX_JSON.CLOSE_OBJECT;
+                
+                        RETURN;
+                    END IF;
+                
+                    COMMIT;
+                
+                    SELECT COUNT(*)
+                      INTO L_COUNT_AFTER
+                      FROM epromhq.PRF_LOANS_REQUEST
+                     WHERE TRIM(UPPER(TO_CHAR(EMP_ID))) = TRIM(UPPER(:APP_USER))
+                       AND Created_at >= DATE '2026-01-01'
+                       AND Created_at <  DATE '2027-01-01';
+                
+                    IF L_COUNT_AFTER = 0 THEN
+                        APEX_JSON.OPEN_OBJECT;
+                        APEX_JSON.WRITE('success', TRUE);
+                        APEX_JSON.WRITE('rows_deleted', L_ROWS_DELETED);
+                        APEX_JSON.WRITE(
+                            'message',
+                            'تم حذف طلب سلفة المدارس بنجاح.'
+                        );
+                        APEX_JSON.CLOSE_OBJECT;
+                    ELSE
+                        APEX_JSON.OPEN_OBJECT;
+                        APEX_JSON.WRITE('success', FALSE);
+                        APEX_JSON.WRITE('rows_deleted', L_ROWS_DELETED);
+                        APEX_JSON.WRITE('remaining_rows', L_COUNT_AFTER);
+                        APEX_JSON.WRITE(
+                            'message',
+                            'تم تنفيذ أمر الحذف، ولكن ما زال يوجد طلب آخر مسجل للمستخدم.'
+                        );
+                        APEX_JSON.CLOSE_OBJECT;
+                    END IF;
+                
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        ROLLBACK;
+                
+                        APEX_JSON.OPEN_OBJECT;
+                        APEX_JSON.WRITE('success', FALSE);
+                        APEX_JSON.WRITE(
+                            'message',
+                            'حدث خطأ أثناء حذف الطلب: ' || SQLERRM
+                        );
+                        APEX_JSON.CLOSE_OBJECT;
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 43227706178928329
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    process log-sigen-in (
+        name: LOG_SIGEN_IN
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    v_ip        VARCHAR2(100);
+                    v_ua        VARCHAR2(4000);
+                    v_os        VARCHAR2(100);
+                    v_browser   VARCHAR2(100);
+                    v_device    VARCHAR2(50);
+                BEGIN
+                    v_ip      := central.emp_log_util.get_client_ip;
+                    v_ua      := owa_util.get_cgi_env('HTTP_USER_AGENT');
+                    v_os      := central.emp_log_util.parse_os(v_ua);
+                    v_browser := central.emp_log_util.parse_browser(v_ua);
+                    v_device  := central.emp_log_util.parse_device_type(v_ua);
+                
+                    INSERT INTO CENTRAL.EMP_APP_LOGS
+                        (EMP_NUMBER, USERNAME, LOGIN_DATE, IP_ADDRESS, APP_ID, PAGE_ID, SESSION_ID,
+                         USER_AGENT, BROWSER, OS_NAME, DEVICE_TYPE, HOST_NAME)
+                    VALUES
+                        (
+                            :APP_USER,
+                            :APP_USER,
+                            SYSDATE,
+                            v_ip,
+                            :APP_ID,
+                            :APP_PAGE_ID,
+                            :APP_SESSION,
+                            v_ua,
+                            v_browser,
+                            v_os,
+                            v_device,
+                            owa_util.get_cgi_env('REMOTE_HOST')
+                        );
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 104955672585377709
+        }
+    )
+
+    branch (
+        name: change password
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        behavior {
+            target: {
+                page: 8888
+            }
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                
+                v_pass_changed varchar(1);
+                
+                begin
+                
+                select PASSWORD_CHANGED into v_pass_changed from central.EMP_AUTH_VIEW
+                where EMP_NUMBER = :APP_USER;
+                
+                if v_pass_changed='Y' then return false;
+                else
+                return true;
+                end if;
+                
+                exception when others then return true;
+                end;
+                ```
+        }
+    )
+
+    branch (
+        name: maintaince mode
+        execution {
+            sequence: 30
+            point: beforeHeader
+        }
+        behavior {
+            target: {
+                page: 3
+            }
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+)

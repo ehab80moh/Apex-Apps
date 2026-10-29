@@ -1,0 +1,410 @@
+page 33 (
+    name: بيانات الاجازات
+    alias: VACATIONS-DATA
+    title: &APP_TEXT$VACATION_DATA.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region chart (
+        name: Chart 1
+        title: &APP_TEXT$CHART_1.
+        type: chart
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: HRF_EMP_LEAVE_REQUEST
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        security {
+            escapeSpecialChars: false
+        }
+        chart {
+            type: area
+        }
+        legend {
+            show: false
+        }
+
+        series series (
+            name: &APP_TEXT$SERIES_1.
+            execution {
+                sequence: 10
+            }
+            source {
+                location: regionSource
+            }
+            columnMapping {
+                seriesName: LEAVE_TYPE
+                label: LEAVE_TYPE
+                value: FROM_DATE
+            }
+            performance {
+                maxRowsToProcess: 20
+            }
+        )
+
+        axis x (
+            name: x
+            majorTicks {
+                show: auto
+            }
+        )
+
+        axis y (
+            name: y
+            majorTicks {
+                show: auto
+            }
+        )
+
+    )
+
+    region chart-2 (
+        name: Chart 2
+        title: &APP_TEXT$CHART_2.
+        type: chart
+        layout {
+            sequence: 20
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        security {
+            escapeSpecialChars: false
+        }
+        chart {
+            type: pie
+        }
+        legend {
+            show: false
+        }
+
+        series series (
+            name: &APP_TEXT$SERIES_1.
+            execution {
+                sequence: 10
+            }
+            source {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select 'Label 1' label, 30 value from sys.dual
+                    union all
+                    select 'Label 2' label, 20 value from sys.dual
+                    union all
+                    select 'Label 3' label, 34 value from sys.dual
+                    union all
+                    select 'Label 4' label, 6  value from sys.dual
+                    union all
+                    select 'Label 5' label, 10 value from sys.dual
+                    ```
+            }
+            columnMapping {
+                label: LABEL
+                value: VALUE
+            }
+            label {
+                show: true
+            }
+            performance {
+                maxRowsToProcess: 20
+            }
+        )
+
+    )
+
+    region chart-3 (
+        name: Chart 3
+        title: &APP_TEXT$CHART_3.
+        type: chart
+        layout {
+            sequence: 30
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        security {
+            escapeSpecialChars: false
+        }
+        legend {
+            show: false
+        }
+
+        series series (
+            name: &APP_TEXT$SERIES_1.
+            execution {
+                sequence: 10
+            }
+            source {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select 'Label 1' label, 30 value from sys.dual
+                    union all
+                    select 'Label 2' label, 20 value from sys.dual
+                    union all
+                    select 'Label 3' label, 34 value from sys.dual
+                    union all
+                    select 'Label 4' label, 6  value from sys.dual
+                    union all
+                    select 'Label 5' label, 10 value from sys.dual
+                    ```
+            }
+            columnMapping {
+                label: LABEL
+                value: VALUE
+            }
+            performance {
+                maxRowsToProcess: 20
+            }
+        )
+
+        axis x (
+            name: x
+            majorTicks {
+                show: auto
+            }
+        )
+
+        axis y (
+            name: y
+            majorTicks {
+                show: auto
+            }
+        )
+
+    )
+
+    region chart-4 (
+        name: Chart 4
+        title: &APP_TEXT$CHART_4.
+        type: chart
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        security {
+            escapeSpecialChars: false
+        }
+        chart {
+            type: line
+        }
+        legend {
+            show: false
+        }
+
+        series series (
+            name: &APP_TEXT$SERIES_1.
+            execution {
+                sequence: 10
+            }
+            source {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select 'Label 1' label, 30 value from sys.dual
+                    union all
+                    select 'Label 2' label, 20 value from sys.dual
+                    union all
+                    select 'Label 3' label, 34 value from sys.dual
+                    union all
+                    select 'Label 4' label, 6  value from sys.dual
+                    union all
+                    select 'Label 5' label, 10 value from sys.dual
+                    ```
+            }
+            columnMapping {
+                label: LABEL
+                value: VALUE
+            }
+            performance {
+                maxRowsToProcess: 20
+            }
+        )
+
+        axis x (
+            name: x
+            majorTicks {
+                show: auto
+            }
+        )
+
+        axis y (
+            name: y
+            majorTicks {
+                show: auto
+            }
+        )
+
+    )
+
+    region chart-5 (
+        name: Chart 5
+        title: &APP_TEXT$CHART_5.
+        type: chart
+        layout {
+            sequence: 50
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        security {
+            escapeSpecialChars: false
+        }
+        chart {
+            type: area
+        }
+        legend {
+            show: false
+        }
+
+        series series (
+            name: &APP_TEXT$SERIES_1.
+            execution {
+                sequence: 10
+            }
+            source {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select 'Label 1' label, 30 value from sys.dual
+                    union all
+                    select 'Label 2' label, 20 value from sys.dual
+                    union all
+                    select 'Label 3' label, 34 value from sys.dual
+                    union all
+                    select 'Label 4' label, 6  value from sys.dual
+                    union all
+                    select 'Label 5' label, 10 value from sys.dual
+                    ```
+            }
+            columnMapping {
+                label: LABEL
+                value: VALUE
+            }
+            performance {
+                maxRowsToProcess: 20
+            }
+        )
+
+        axis x (
+            name: x
+            majorTicks {
+                show: auto
+            }
+        )
+
+        axis y (
+            name: y
+            majorTicks {
+                show: auto
+            }
+        )
+
+    )
+
+    region chart-6 (
+        name: Chart 6
+        title: &APP_TEXT$CHART_6.
+        type: chart
+        layout {
+            sequence: 60
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        security {
+            escapeSpecialChars: false
+        }
+        chart {
+            type: pie
+        }
+        legend {
+            show: false
+        }
+
+        series series (
+            name: &APP_TEXT$SERIES_1.
+            execution {
+                sequence: 10
+            }
+            source {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select 'Label 1' label, 30 value from sys.dual
+                    union all
+                    select 'Label 2' label, 20 value from sys.dual
+                    union all
+                    select 'Label 3' label, 34 value from sys.dual
+                    union all
+                    select 'Label 4' label, 6  value from sys.dual
+                    union all
+                    select 'Label 5' label, 10 value from sys.dual
+                    ```
+            }
+            columnMapping {
+                label: LABEL
+                value: VALUE
+            }
+            label {
+                show: true
+            }
+            performance {
+                maxRowsToProcess: 20
+            }
+        )
+
+    )
+
+)

@@ -1,0 +1,1386 @@
+page 42 (
+    name: تغيير رقم الهاتف
+    alias: CHANGE-MOBILE-NUMBER
+    title: &APP_TEXT$CHANGE_PHONE_NUMBER.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$TO_CHANGE_YOUR_PHONE_NUMBER_PLEASE_FOLLOW_THESE_STEPS.
+        }
+        layout {
+            sequence: 31
+            slot: contentBody
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+    )
+
+    region تغيير-رقم-الهاتف (
+        name: "تغيير رقم الهاتف "
+        title: &APP_TEXT$CHANGE_PHONE_NUMBER.
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select ID,
+                       EMP_ID,
+                       MOBILE,
+                       COMP_EMAIL,
+                       PERSONAL_EMAIL,
+                       MOBILE_CONFIRMED,
+                       COMP_EMAIL_CONFIRMED,
+                       PERSONAL_EMAIL_CONFIRMED
+                  from CENTRAL.EMP_CONTACT
+                  WHERE EMP_ID = :APP_USER;
+                ```
+            pageItemsToSubmit: APP_USER
+        }
+        layout {
+            sequence: 41
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    region تفاصيل-الايميل (
+        name: تفاصيل الايميل
+        title: &APP_TEXT$EMAIL_DETAILS.
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @رقم-الهاتف-القديم
+            slot: subRegions
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--showIcon
+                t-Region--accent14
+                t-Region--scrollBody
+                margin-top-sm
+                margin-right-sm
+            ]
+        }
+        serverSideCondition {
+            type: item=value
+            item: P42_GOOD
+            value: 1
+        }
+    )
+
+    region رقم-الهاتف-الجديد (
+        name: "رقم الهاتف الجديد "
+        title: &APP_TEXT$NEW_PHONE_NUMBER.
+        type: staticContent
+        layout {
+            sequence: 61
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent5
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: item=value
+            item: P42_GOOD
+            value: 2
+        }
+    )
+
+    region رقم-الهاتف-القديم (
+        name: رقم الهاتف القديم
+        title: &APP_TEXT$OLD_PHONE_NUMBER.
+        type: staticContent
+        layout {
+            sequence: 51
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent15
+                t-Region--noBorder
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    pageItem P42_CHECKLIST (
+        type: checkbox
+        label {
+            label: &APP_TEXT$PROMPT.
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 80
+            region: @رقم-الهاتف-القديم
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P42_GOOD
+            value: 1
+        }
+    )
+
+    pageItem P42_CHECK_OTP (
+        type: textField
+        label {
+            label: &APP_TEXT$THE_CODE_SENT_TO_THE_EMAIL.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @تفاصيل-الايميل
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--boldDisplay
+            ]
+            width: 30
+        }
+    )
+
+    pageItem P42_COMP_EMAIL (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @تغيير-رقم-الهاتف
+            slot: regionBody
+        }
+        source {
+            formRegion: @تغيير-رقم-الهاتف
+            column: COMP_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P42_COMP_EMAIL_CONFIRMED (
+        type: hidden
+        layout {
+            sequence: 80
+            region: @تغيير-رقم-الهاتف
+            slot: regionBody
+        }
+        source {
+            formRegion: @تغيير-رقم-الهاتف
+            column: COMP_EMAIL_CONFIRMED
+            dataType: number
+        }
+    )
+
+    pageItem P42_EMP_ID (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 20
+            region: @تغيير-رقم-الهاتف
+            slot: regionBody
+        }
+        source {
+            formRegion: @تغيير-رقم-الهاتف
+            column: EMP_ID
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    pageItem P42_GOOD (
+        type: hidden
+        layout {
+            sequence: 1
+            slot: contentBody
+        }
+        default {
+            type: static
+            staticValue: 0
+        }
+    )
+
+    pageItem P42_GOOD2 (
+        type: hidden
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+        default {
+            type: static
+            staticValue: 0
+        }
+    )
+
+    pageItem P42_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @تغيير-رقم-الهاتف
+            slot: regionBody
+        }
+        source {
+            formRegion: @تغيير-رقم-الهاتف
+            column: ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P42_MOBILE (
+        type: textField
+        label {
+            label: &APP_TEXT$THE_PHONE_NUMBER_YOU_WANT_TO_DELETE.
+            alignment: left
+        }
+        settings {
+            subtype: phone
+        }
+        layout {
+            sequence: 10
+            region: @رقم-الهاتف-القديم
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: [
+                #DEFAULT#
+                margin-top-sm
+            ]
+            icon: fa-phone
+            width: 32
+        }
+        validation {
+            maxLength: 11
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue:
+                ```sql
+                SELECT mobile
+                FROM central.emp_contact
+                WHERE EMP_ID = :P42_EMP_ID;
+                ```
+        }
+    )
+
+    pageItem P42_MOBILE_CONFIRMED (
+        type: hidden
+        layout {
+            sequence: 70
+            region: @تغيير-رقم-الهاتف
+            slot: regionBody
+        }
+        source {
+            formRegion: @تغيير-رقم-الهاتف
+            column: MOBILE_CONFIRMED
+            dataType: number
+        }
+    )
+
+    pageItem P42_MY_EMAIL (
+        type: textField
+        label {
+            label: &APP_TEXT$EMAIL.
+            alignment: left
+        }
+        settings {
+            subtype: email
+        }
+        layout {
+            sequence: 10
+            region: @تفاصيل-الايميل
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--boldDisplay
+            ]
+            width: 30
+        }
+    )
+
+    pageItem P42_MY_EMAIL_SHOW (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$EMAIL.
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 20
+            region: @تفاصيل-الايميل
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                margin-bottom-sm
+                margin-left-sm
+                t-Form-fieldContainer--boldDisplay
+            ]
+        }
+    )
+
+    pageItem P42_NEW_NUMBER (
+        type: textField
+        label {
+            label: &APP_TEXT$NEW_NUMBER.
+            alignment: left
+        }
+        settings {
+            subtype: phone
+            submitWhenEnterPressed: true
+        }
+        layout {
+            sequence: 10
+            region: @رقم-الهاتف-الجديد
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            icon: fa-phone
+            width: 11
+        }
+        validation {
+            maxLength: 20
+        }
+        source {
+            formRegion: @تغيير-رقم-الهاتف
+            column: MOBILE
+            dataType: number
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue:
+                ```sql
+                SELECT MOBILE2
+                FROM central.emp_contact
+                WHERE EMP_ID = :P42_EMP_ID;
+                ```
+        }
+    )
+
+    pageItem P42_OTP (
+        type: numberField
+        label {
+            label: &APP_TEXT$THE_CODE_SENT_TO_THE_OLD_NUMBER.
+            alignment: left
+        }
+        settings {
+            minValue: 0
+            maxValue: 9999
+        }
+        layout {
+            sequence: 40
+            region: @رقم-الهاتف-القديم
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4
+        }
+        serverSideCondition {
+            type: item=value
+            item: P42_GOOD
+            value: 1
+        }
+    )
+
+    pageItem P42_OTP_NEW_NUMBER (
+        type: numberField
+        label {
+            label: &APP_TEXT$THE_CODE_SENT_TO_THE_NEW_NUMBER.
+            alignment: left
+        }
+        settings {
+            minValue: 0
+            maxValue: 9999
+        }
+        layout {
+            sequence: 20
+            region: @رقم-الهاتف-الجديد
+            slot: regionBody
+            alignment: left
+            columnSpan: 6
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 4
+        }
+        serverSideCondition {
+            type: item=value
+            item: P42_GOOD2
+            value: 1
+        }
+    )
+
+    pageItem P42_PERSONAL_EMAIL (
+        type: hidden
+        layout {
+            sequence: 60
+            region: @تغيير-رقم-الهاتف
+            slot: regionBody
+        }
+        source {
+            formRegion: @تغيير-رقم-الهاتف
+            column: PERSONAL_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P42_PERSONAL_EMAIL_CONFIRMED (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @تغيير-رقم-الهاتف
+            slot: regionBody
+        }
+        source {
+            formRegion: @تغيير-رقم-الهاتف
+            column: PERSONAL_EMAIL_CONFIRMED
+            dataType: number
+        }
+    )
+
+    button add-new-number (
+        buttonName: ADD_NEW_NUMBER
+        label: &APP_TEXT$ADD_THE_NEW_NUMBER.
+        layout {
+            sequence: 10
+            region: @رقم-الهاتف-الجديد
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button back (
+        buttonName: BACK
+        label: &APP_TEXT$SETTINGS.
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            cssClasses: t-Button--inlineLink
+            icon: fa-chevron-left
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 20000
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button check-mail-otp (
+        buttonName: CHECK_MAIL_OTP
+        label: &APP_TEXT$TO_VERIFY_THE_CODE_SENT_TO_THE_EMAIL.
+        layout {
+            sequence: 50
+            region: @تفاصيل-الايميل
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--padTop
+                t-Button--padBottom
+            ]
+            icon: fa-mail-forward
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button check-otp (
+        buttonName: check_otp
+        label: &APP_TEXT$VERIFY_THE_CODE_SENT.
+        layout {
+            sequence: 60
+            region: @رقم-الهاتف-القديم
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P42_GOOD
+            value: 1
+        }
+    )
+
+    button check-otp-new-number (
+        buttonName: CHECK_OTP_NEW_NUMBER
+        label: &APP_TEXT$VERIFY_THE_CODE_SENT.
+        layout {
+            sequence: 30
+            region: @رقم-الهاتف-الجديد
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P42_GOOD2
+            value: 1
+        }
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$CREATE.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P42_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$APPLY_CHANGES.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P42_ID
+        }
+    )
+
+    button send-to-mail (
+        buttonName: Send_To_Mail
+        label: &APP_TEXT$TO_SEND_THE_CODE_VIA_EMAIL.
+        layout {
+            sequence: 30
+            region: @تفاصيل-الايميل
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--hoverIconPush
+                t-Button--padBottom
+            ]
+            icon: fa-mail-forward
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button send-to-mobile-code-button (
+        buttonName: SEND_TO_MOBILE_CODE_BUTTON
+        label: &APP_TEXT$TO_SEND_THE_CODE_TO_THE_OLD_PHONE.
+        layout {
+            sequence: 20
+            region: @رقم-الهاتف-القديم
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--padTop
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction disable-phone-number (
+        name: Disable phone number
+        execution {
+            sequence: 40
+        }
+        when {
+            event: ready
+        }
+
+        action native-disable (
+            action: disable
+            affectedElements {
+                selectionType: items
+                items: P42_MOBILE
+            }
+            execution {
+                sequence: 10
+            }
+            clientSideCondition {
+                type: item>=value
+                item: P42_GOOD
+                value: 1
+            }
+        )
+
+        action native-disable-2 (
+            action: disable
+            affectedElements {
+                selectionType: items
+                items: P42_NEW_NUMBER
+            }
+            execution {
+                sequence: 10
+            }
+            clientSideCondition {
+                type: item>=value
+                item: P42_GOOD2
+                value: 1
+            }
+        )
+
+        action native-hide (
+            action: hide
+            affectedElements {
+                selectionType: button
+                button: @send-to-mobile-code-button
+            }
+            execution {
+                sequence: 30
+            }
+            clientSideCondition {
+                type: item>=value
+                item: P42_GOOD
+                value: 1
+            }
+        )
+
+        action native-hide-2 (
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: P42_CHECKLIST
+            }
+            execution {
+                sequence: 40
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        action native-hide-3 (
+            action: hide
+            affectedElements {
+                selectionType: region
+                region: @تفاصيل-الايميل
+            }
+            execution {
+                sequence: 50
+            }
+            clientSideCondition {
+                type: item>=value
+                item: P42_GOOD
+                value: 1
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        action native-hide-4 (
+            action: hide
+            affectedElements {
+                selectionType: button
+                button: @add-new-number
+            }
+            execution {
+                sequence: 80
+            }
+            clientSideCondition {
+                type: item=value
+                item: P42_GOOD2
+                value: 1
+            }
+        )
+
+    )
+
+    dynamicAction toggleitemsbasedonchecklist (
+        name: ToggleItemsBasedOnChecklist
+        execution {
+            sequence: 30
+        }
+        when {
+            selectionType: items
+            items: P42_CHECKLIST
+        }
+        clientSideCondition {
+            type: item=value
+            item: P42_CHECKLIST
+            value: Y
+        }
+
+        action email (
+            name: Email
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                      vc VARCHAR2(99);
+                      personal_email VARCHAR2(99);
+                      comp_email VARCHAR2(99);
+                    BEGIN
+                      SELECT central.conceal_email(PERSONAL_EMAIL), central.conceal_email(COMP_EMAIL)
+                      INTO personal_email, comp_email
+                      FROM central.EMP_CONTACT
+                      WHERE EMP_ID = :P42_EMP_ID;
+                    
+                      IF personal_email IS NOT NULL AND comp_email IS NOT NULL THEN
+                        vc := personal_email || '   _____   ' || comp_email;
+                      ELSIF personal_email IS NOT NULL THEN
+                        vc := personal_email;
+                      ELSIF comp_email IS NOT NULL THEN
+                        vc := comp_email;
+                      ELSE
+                        RAISE NO_DATA_FOUND;
+                      END IF;
+                    
+                      apex_util.set_session_state('P42_MY_EMAIL_SHOW', vc);
+                      apex_util.set_session_state('P42_MY_EMAIL', '');
+                    EXCEPTION
+                      WHEN NO_DATA_FOUND THEN
+                        apex_util.set_session_state('P42_MY_EMAIL', 'No Email Found !!');
+                        apex_util.set_session_state('P42_MY_EMAIL', 0);
+                      WHEN OTHERS THEN
+                        apex_util.set_session_state('P42_MY_EMAIL_SHOW', 'An error occurred while retrieving the email');
+                        apex_util.set_session_state('P42_MY_EMAIL', 0);
+                    END;
+                    ```
+                itemsToSubmit: P42_EMP_ID
+                itemsToReturn: P42_MY_EMAIL_SHOW
+                showProcessing: true
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+        action n (
+            name: N
+            action: hide
+            affectedElements {
+                selectionType: region
+                region: @تفاصيل-الايميل
+            }
+            execution {
+                sequence: 10
+                fireWhenEventResultIs: false
+            }
+        )
+
+        action y (
+            name: Y
+            action: show
+            affectedElements {
+                selectionType: region
+                region: @تفاصيل-الايميل
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    validation new (
+        name: New
+        execution {
+            sequence: 30
+        }
+        validation {
+            language: sql
+            sqlExpression:
+                ```sql
+                exists ( 
+                    select PERSONAL_EMAIL,COMP_EMAIL
+                           from central.EMP_CONTACT
+                          where EMP_ID = :P42_EMP_ID
+                          and (
+                           lower(PERSONAL_EMAIL) = lower(:P42_MY_EMAIL) 
+                           or
+                           lower(COMP_EMAIL) = lower(:P42_MY_EMAIL) 
+                          )
+                             )
+                ```
+        }
+        error {
+            errorMessage: &APP_TEXT$THE_EMAIL_ENTERED_DOES_NOT_MATCH_THE_REGISTERED_EMAIL.
+            associatedItem: @P42_MY_EMAIL
+        }
+        serverSideCondition {
+            whenButtonPressed: @send-to-mail
+        }
+    )
+
+    validation new-2 (
+        name: New_1
+        execution {
+            sequence: 40
+        }
+        validation {
+            language: sql
+            sqlExpression:
+                ```sql
+                exists ( 
+                    select RESET_CODE
+                           from central.EMP_CRIDS
+                          where EMP_ID = :P42_EMP_ID
+                             AND RESET_CODE = :P42_CHECK_OTP
+                )
+                ```
+        }
+        error {
+            errorMessage: &APP_TEXT$THE_CODE_DOES_NOT_MATCH.
+            associatedItem: @P42_CHECK_OTP
+        }
+        serverSideCondition {
+            whenButtonPressed: @check-mail-otp
+        }
+    )
+
+    validation phone-new-number (
+        name: Phone New Number
+        execution {
+            sequence: 20
+        }
+        validation {
+            type: itemMatchesRegexp
+            item: P42_NEW_NUMBER
+            regexp: "^01\\d{9}$"
+        }
+        error {
+            errorMessage: &APP_TEXT$ERROR_MESSAGE.
+            associatedItem: @P42_NEW_NUMBER
+        }
+        serverSideCondition {
+            whenButtonPressed: @add-new-number
+        }
+    )
+
+    validation phone-number (
+        name: Phone Number
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: itemMatchesRegexp
+            item: P42_MOBILE
+            regexp: "^01\\d{9}$"
+        }
+        error {
+            errorMessage: &APP_TEXT$ERROR_MESSAGE.
+            associatedItem: @P42_MOBILE
+        }
+        serverSideCondition {
+            whenButtonPressed: @send-to-mobile-code-button
+        }
+    )
+
+    process add-new-number (
+        name: add new number
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                   v_db_mobile VARCHAR2(20); -- Assuming the data type of v_db_mobile is VARCHAR2, adjust if necessary
+                   v_result NUMBER;
+                BEGIN
+                   v_result := central.sms_pkg.send_and_change_phone(P_USER => :P42_EMP_ID);
+                
+                   IF v_result <> 1 THEN
+                      APEX_ERROR.ADD_ERROR (
+                         P_MESSAGE          => 'خطأ في إرسال رمز الرسالة النصية',
+                         P_DISPLAY_LOCATION => APEX_ERROR.C_INLINE_IN_NOTIFICATION
+                      );
+                      :P42_GOOD2 := 0;
+                   ELSE
+                      :P42_GOOD2 := 1;
+                  
+                   END IF;
+                
+                   SELECT MOBILE INTO v_db_mobile
+                   FROM central.emp_contact
+                   WHERE emp_id = :P42_EMP_ID;
+                
+                   UPDATE central.emp_contact
+                   SET MOBILE2 = :P42_NEW_NUMBER,
+                       MOBILE2_CONFIRMED = 0
+                   WHERE emp_id = :P42_EMP_ID;
+                
+                   IF LENGTH(:P42_NEW_NUMBER) <> 11 OR SUBSTR(:P42_NEW_NUMBER, 1, 2) <> '01' THEN
+                      APEX_ERROR.ADD_ERROR (
+                         P_MESSAGE          => 'صيغة رقم الهاتف غير صحيحة. يجب أن يكون طوله 11 رقمًا ويبدأ بـ "01"',
+                         P_DISPLAY_LOCATION => APEX_ERROR.C_INLINE_IN_NOTIFICATION
+                      );
+                      :P42_GOOD2 := 0;
+                   END IF;
+                
+                   IF :P42_NEW_NUMBER = v_db_mobile THEN
+                      APEX_ERROR.ADD_ERROR (
+                         P_MESSAGE          => 'تطابق بين الهاتف المُدخل والهاتف المسجل بالفعل.',
+                         P_DISPLAY_LOCATION => APEX_ERROR.C_INLINE_IN_NOTIFICATION
+                      );
+                      :P42_GOOD2 := 0;
+                   END IF;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 40
+        }
+        successMessage {
+            successMessage: &APP_TEXT$PLEASE_RECEIVE_THE_CODE_AND_ADD_IT_TO_COMPLETE_THE_PROCESS_SUCCESSFULLY.
+        }
+        error {
+            errorMessage: &APP_TEXT$THE_PHONE_NUMBER_HAS_NOT_BEEN_CHANGED.
+        }
+        advanced {
+            executionMappingIdentifier: 21092535669964907
+        }
+        serverSideCondition {
+            whenButtonPressed: @add-new-number
+        }
+    )
+
+    process check-send-code-to-new-mobile-phone (
+        name: "CHECK & SEND CODE TO NEW MOBILE PHONE "
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                  IF central.sms_pkg.check_otp(:P42_EMP_ID, :P42_OTP_NEW_NUMBER) <> 1 THEN
+                    APEX_ERROR.ADD_ERROR (
+                      P_MESSAGE          => 'الكود خطأ',
+                      P_DISPLAY_LOCATION => APEX_ERROR.C_INLINE_IN_NOTIFICATION
+                    );
+                    :P42_GOOD := 0; -- Indicate that there's an error
+                  ELSE
+                    :P42_GOOD := 3; -- Indicate success
+                    
+                    UPDATE CENTRAL.Emp_contact
+                    SET
+                      MOBILE = MOBILE2,
+                      MOBILE2 = MOBILE,
+                      MOBILE2_CONFIRMED = 1
+                   WHERE emp_id = :P42_EMP_ID;
+                  END IF;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 70
+        }
+        successMessage {
+            successMessage: &APP_TEXT$THE_CODE_IS_CORRECT_THE_PHONE_NUMBER_HAS_BEEN_CHANGED_SUCCESSFULLY.
+        }
+        error {
+            errorMessage: &APP_TEXT$THE_PHONE_NUMBER_HAS_NOT_BEEN_CHANGED.
+        }
+        advanced {
+            executionMappingIdentifier: 21094160038964923
+        }
+        serverSideCondition {
+            whenButtonPressed: @check-otp-new-number
+        }
+    )
+
+    process check-send-code-to-old-mobile-phone (
+        name: "CHECK & SEND CODE TO OLD MOBILE PHONE "
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                if  central.sms_pkg.check_otp(:P42_EMP_ID,:P42_OTP) <>1 then
+                apex_error.add_error (
+                p_message          => 'الكود خطأ',
+                p_display_location =>  apex_error.c_inline_in_notification  
+                  );
+                    :P42_GOOD :=0;
+                  ELSE
+                  :P42_GOOD :=2;
+                end if;
+                
+                ```
+        }
+        execution {
+            sequence: 60
+        }
+        successMessage {
+            successMessage: &APP_TEXT$THE_CODE_IS_CORRECT.
+        }
+        error {
+            errorMessage: &APP_TEXT$THE_CODE_IS_WRONG.
+        }
+        advanced {
+            executionMappingIdentifier: 19341606866608244
+        }
+        serverSideCondition {
+            whenButtonPressed: @check-otp
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 90
+        }
+        advanced {
+            executionMappingIdentifier: 20539993602541297
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process email (
+        name: EMAIL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE 
+                  v_sent NUMBER;
+                
+                BEGIN
+                  v_sent := Central.EMAIL_PKG.send_otp_mail_To_change_number_phone(
+                    P_USER => :P42_EMP_ID
+                  );
+                
+                  IF v_sent = 1 THEN
+                    NULL; -- Success, do nothing
+                  
+                  END IF;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 80
+        }
+        successMessage {
+            successMessage: &APP_TEXT$THE_EMAIL_HAS_BEEN_SENT_TO_YOU_SUCCESSFULLY_PLEASE_RECEIVE_THE_CODE.
+        }
+        error {
+            errorMessage: &APP_TEXT$THE_EMAIL_ENTERED_DOES_NOT_MATCH_THE_REGISTERED_EMAIL.
+        }
+        advanced {
+            executionMappingIdentifier: 21094233156964924
+        }
+        serverSideCondition {
+            whenButtonPressed: @send-to-mail
+        }
+    )
+
+    process initialize-form-تغيير-رقم-الهاتف-المحمول (
+        name: Initialize form تغيير رقم الهاتف المحمول
+        type: formInitialization
+        formRegion: @تغيير-رقم-الهاتف
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 20539142787541296
+        }
+    )
+
+    process new (
+        name: New
+        type: clearSessionState
+        execution {
+            sequence: 50
+            point: afterRegions
+        }
+        advanced {
+            executionMappingIdentifier: 21092095291964902
+        }
+    )
+
+    process send-and-reset-number-phone (
+        name: send and reset number phone
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                   v_result NUMBER;
+                   v_db_mobile VARCHAR2(255); -- Change the datatype based on the actual datatype of the mobile column
+                BEGIN
+                   v_result := central.sms_pkg.send_and_reset_number_phone(P_USER => :P42_EMP_ID);
+                
+                   IF v_result <> 1 THEN
+                      APEX_ERROR.ADD_ERROR (
+                         P_MESSAGE          => 'الكود خطأ',
+                         P_DISPLAY_LOCATION => APEX_ERROR.C_INLINE_IN_NOTIFICATION
+                      );
+                      :P42_GOOD := 0;
+                   ELSE
+                      :P42_GOOD := 1;
+                   END IF;
+                
+                   SELECT Mobile INTO v_db_mobile
+                   FROM central.emp_contact
+                   WHERE emp_id = :P42_EMP_ID;
+                
+                   IF :P42_MOBILE <> v_db_mobile THEN
+                      APEX_ERROR.ADD_ERROR (
+                         P_MESSAGE          => 'عدم تطابق بين الهاتف المُدخل والهاتف المسجل.',
+                         P_DISPLAY_LOCATION => APEX_ERROR.C_INLINE_IN_NOTIFICATION
+                      );
+                      :P42_GOOD := 0;
+                   END IF;
+                
+                   IF LENGTH(:P42_MOBILE) <> 11 OR SUBSTR(:P42_MOBILE, 1, 2) <> '01' THEN
+                      APEX_ERROR.ADD_ERROR (
+                         P_MESSAGE          => 'صيغة رقم الهاتف غير صحيحة. يجب أن يكون طوله 11 رقمًا ويبدأ بـ "01"',
+                         P_DISPLAY_LOCATION => APEX_ERROR.C_INLINE_IN_NOTIFICATION
+                      );
+                      :P42_GOOD := 0;
+                   END IF;
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 30
+        }
+        successMessage {
+            successMessage: &APP_TEXT$THE_CODE_WAS_SENT_TO_THE_OLD_NUMBER.
+        }
+        error {
+            errorMessage: &APP_TEXT$THE_MESSAGE_WAS_NOT_SENT.
+        }
+        advanced {
+            executionMappingIdentifier: 19341899428608246
+        }
+        serverSideCondition {
+            whenButtonPressed: @send-to-mobile-code-button
+            type: expression
+            language: sql
+            sqlExpression: :APP_USER = :P42_EMP_ID ;
+        }
+    )
+
+)

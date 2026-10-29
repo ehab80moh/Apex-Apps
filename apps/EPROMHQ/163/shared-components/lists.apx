@@ -1,0 +1,399 @@
+list add-suppliers (
+    name: Add_Suppliers
+)
+
+list create-supplier (
+    name: Create supplier
+)
+
+list navigation-bar (
+    name: Navigation Bar
+
+    entry app-user (
+        label: &APP_USER.
+        icon {
+            imageIconCssClasses: fa-user
+        }
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                type: url
+                url: #
+            }
+        }
+        userDefinedAttributes {
+            2: has-username
+        }
+    )
+
+    entry list_item (
+        label: ---
+        layout {
+            sequence: 20
+            parentEntry: @app-user
+        }
+        link {
+            target: {
+                type: url
+                url: separator
+            }
+        }
+        serverSideCondition {
+            type: userIsAuthenticated
+        }
+    )
+
+    entry sign-out (
+        label: Sign Out
+        icon {
+            imageIconCssClasses: fa-sign-out
+        }
+        layout {
+            sequence: 30
+            parentEntry: @app-user
+        }
+        link {
+            target: {
+                type: url
+                url: &LOGOUT_URL.
+            }
+        }
+        serverSideCondition {
+            type: userIsAuthenticated
+        }
+    )
+
+    entry العوده-الي-البوابة (
+        label: "&{BACK_TO_PORTAL}."
+        icon {
+            imageIconCssClasses: fa-home
+        }
+        layout {
+            sequence: 15
+        }
+        link {
+            target: {
+                type: url
+                url: /apex/r/epromhq/portal?session=&SESSION.
+            }
+        }
+        security {
+            authorizationScheme: !@is-suppplier
+        }
+    )
+
+)
+
+list navigation-menu (
+    name: Navigation Menu
+
+    entry approval-members (
+        label: Approval Members
+        layout {
+            sequence: 60
+        }
+        link {
+            target: {
+                page: 15
+            }
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                EXISTS (
+                  SELECT 1
+                  FROM SUP_USER_ROLES
+                  WHERE user_id = :APP_USER 
+                and role_id = 81
+                )
+                ```
+        }
+        security {
+            authorizationScheme: @app-authorization
+        }
+    )
+
+    entry approval-workflow (
+        label: Approval Workflow
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 11
+            }
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                  from epromhq.sup_user_roles ur
+                  join epromhq.sup_roles r
+                    on r.role_id = ur.role_id
+                 where upper(ur.user_id) = upper(:APP_USER)
+                   and instr(
+                         ':' || replace(r.role_pages, ' ', '') || ':',
+                         ':' || to_char(11) || ':'
+                       ) > 0
+                ```
+        }
+        security {
+            authorizationScheme: !@is-suppplier
+        }
+    )
+
+    entry approved-suppliers-committee (
+        label: Approved Suppliers Committee
+        icon {
+            imageIconCssClasses: fa-table-pointer
+        }
+        layout {
+            sequence: 70
+        }
+        isCurrent {
+            type: pages
+            pages: 30
+        }
+        link {
+            target: {
+                page: 30
+            }
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                EXISTS (
+                  SELECT 1
+                  FROM SUP_USER_ROLES
+                  WHERE user_id = :APP_USER 
+                and role_id = 81
+                )
+                ```
+        }
+        security {
+            authorizationScheme: @app-authorization
+        }
+    )
+
+    entry dashboard (
+        label: Dashboard
+        icon {
+            imageIconCssClasses: fa-pie-chart
+        }
+        layout {
+            sequence: 1
+        }
+        link {
+            target: {
+                page: 13
+            }
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                  from epromhq.sup_user_roles ur
+                  join epromhq.sup_roles r
+                    on r.role_id = ur.role_id
+                 where upper(ur.user_id) = upper(:APP_USER)
+                   and instr(
+                         ':' || replace(r.role_pages, ' ', '') || ':',
+                         ':' || to_char(13) || ':'
+                       ) > 0
+                ```
+        }
+    )
+
+    entry roles (
+        label: roles
+        icon {
+            imageIconCssClasses: fa-layout-header-sidebar-left
+        }
+        layout {
+            sequence: 20
+        }
+        isCurrent {
+            type: pages
+            pages: 100
+        }
+        link {
+            target: {
+                page: 100
+            }
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                  from epromhq.sup_user_roles ur
+                  join epromhq.sup_roles r
+                    on r.role_id = ur.role_id
+                 where upper(ur.user_id) = upper(:APP_USER)
+                   and instr(
+                         ':' || replace(r.role_pages, ' ', '') || ':',
+                         ':' || to_char(100) || ':'
+                       ) > 0
+                ```
+        }
+    )
+
+    entry search-suppliers (
+        label: Search Suppliers
+        icon {
+            imageIconCssClasses: fa-clipboard-search
+        }
+        layout {
+            sequence: 40
+        }
+        link {
+            target: {
+                page: 5
+            }
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                  from epromhq.sup_user_roles ur
+                  join epromhq.sup_roles r
+                    on r.role_id = ur.role_id
+                 where upper(ur.user_id) = upper(:APP_USER)
+                   and instr(
+                         ':' || replace(r.role_pages, ' ', '') || ':',
+                         ':' || to_char(5) || ':'
+                       ) > 0
+                ```
+        }
+        security {
+            authorizationScheme: @app-authorization
+        }
+    )
+
+    entry suppliers-services-attachments (
+        label: Suppliers/services/Attachments
+        icon {
+            imageIconCssClasses: fa-align-justify
+        }
+        layout {
+            sequence: 30
+        }
+        link {
+            target: {
+                page: 2
+            }
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                  from epromhq.sup_user_roles ur
+                  join epromhq.sup_roles r
+                    on r.role_id = ur.role_id
+                 where upper(ur.user_id) = upper(:APP_USER)
+                   and instr(
+                         ':' || replace(r.role_pages, ' ', '') || ':',
+                         ':' || to_char(2) || ':'
+                       ) > 0
+                ```
+        }
+        security {
+            authorizationScheme: @app-authorization
+        }
+    )
+
+    entry suppliers-status (
+        label: Suppliers Status
+        icon {
+            imageIconCssClasses: fa-table
+        }
+        layout {
+            sequence: 50
+        }
+        isCurrent {
+            type: pages
+            pages: 16
+        }
+        link {
+            target: {
+                page: 16
+            }
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                EXISTS (
+                  SELECT 1
+                  FROM SUP_USER_ROLES
+                  WHERE user_id = :APP_USER 
+                and role_id = 81
+                )
+                ```
+        }
+        security {
+            authorizationScheme: @app-authorization
+        }
+    )
+
+)
+
+list new-supplier (
+    name: New Supplier
+)
+
+list suppliers-registration (
+    name: Suppliers Registration
+
+    entry attachments (
+        label: Attachments
+        layout {
+            sequence: 30
+        }
+        link {
+            target: {
+                page: 19
+            }
+        }
+    )
+
+    entry services (
+        label: Services
+        layout {
+            sequence: 20
+        }
+        link {
+            target: {
+                page: 18
+            }
+        }
+    )
+
+    entry supplier-contractor-info (
+        label: Supplier / Contractor Info.
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 17
+            }
+        }
+    )
+
+)
+
+list suppliers-registration-form (
+    name: Suppliers Registration Form
+)

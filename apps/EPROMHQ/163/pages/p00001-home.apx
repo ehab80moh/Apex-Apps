@@ -1,0 +1,264 @@
+page 1 (
+    name: Home
+    alias: HOME
+    title: Suppliers/Contractors
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region set-supplier (
+        name: set_supplier
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    region suppliers-contractors (
+        name: Suppliers/Contractors
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/hero
+            templateOptions: #DEFAULT#
+        }
+        image {
+            fileUrl: #APP_FILES#icons/app-icon-512.png
+        }
+    )
+
+    pageItem P1_COMPANY_NAME (
+        type: textField
+        label {
+            label: Company Name
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @set-supplier
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P1_CONTACT_NAME (
+        type: textField
+        label {
+            label: Contact Name
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @set-supplier
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P1_EMAIL (
+        type: textField
+        label {
+            label: EMAIL
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @set-supplier
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P1_MOBILE (
+        type: textField
+        label {
+            label: MOBILE
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @set-supplier
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P1_SUP_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @set-supplier
+            slot: regionBody
+        }
+    )
+
+    button submit (
+        buttonName: Submit
+        label: Submit
+        layout {
+            sequence: 60
+            region: @set-supplier
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--primary
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    validation mobile-validation-11-number-start-from (
+        name: mobile validation 11 number start from 01
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: itemMatchesRegexp
+            item: P1_MOBILE
+            regexp: "^01\\d{9}$"
+        }
+        error {
+            errorMessage: Please insert the correct number
+            associatedItem: @P1_MOBILE
+        }
+    )
+
+    process clear (
+        name: Clear
+        type: clearSessionState
+        execution {
+            sequence: 30
+            point: afterSubmit
+        }
+        advanced {
+            executionMappingIdentifier: 164385551828391708
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode: :SUP_SUPPLIER_ID := :P1_SUP_SUPPLIER_ID;
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 135396458117219605
+        }
+    )
+
+    process save-and-otp (
+        name: SAVE_AND_OTP
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                /*
+                declare
+                  l_id number;
+                begin
+                  insert into sup_suppliers(COMPANY_NAME, CONTACT_PERSON, HEADOFF_MOBILE, HEADOFF_EMAIL, status)
+                  values (:p1_company_name, :p1_contact_name, :p1_mobile, :p1_email, 'PENDING')
+                  returning supplier_id into l_id;
+                
+                  sup_otp_pkg.generate_and_send_otp(l_id, :p1_mobile);
+                
+                  :P4_SUPPLIER_ID := l_id; -- store for next page
+                end;
+                */
+                declare
+                  l_id number;
+                begin
+                  insert into sup_suppliers(COMPANY_NAME, CONTACT_PERSON, HEADOFF_MOBILE, HEADOFF_EMAIL, status)
+                  values (:p1_company_name, :p1_contact_name, :p1_mobile, :p1_email, 'PENDING')
+                  returning supplier_id into l_id;
+                
+                  -- Generate and send OTP
+                  sup_otp_pkg.generate_and_send_otp(l_id, :p1_mobile);
+                
+                  -- store Supplier ID for next page
+                  :P4_SUPPLIER_ID := l_id;
+                end;
+                
+                ```
+        }
+        execution {
+            sequence: 20
+            point: afterSubmit
+        }
+        advanced {
+            executionMappingIdentifier: 140606107161306844
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+    branch (
+        name: Redirect
+        execution {
+            sequence: 10
+            point: afterSubmit
+        }
+        behavior {
+            target: {
+                page: 4
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+)

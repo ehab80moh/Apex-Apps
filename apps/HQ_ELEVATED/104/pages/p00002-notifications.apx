@@ -1,0 +1,1328 @@
+page 2 (
+    name: notifications
+    alias: NOTIFICATIONS
+    title: &APP_TEXT$ALERTS.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            function normalizeArabic(text) {
+                if (!text) return '';
+                return text
+                    .toString()
+                    .toLowerCase()
+                    .replace(/[\u064B-\u065F\u0670]/g, '')
+                    .replace(/[أإآءئؤ]/g, 'ا')
+                    .replace(/ة/g, 'ه')
+                    .replace(/ى/g, 'ي')
+                    .replace(/[\s\-_]+/g, ' ')
+                    .trim();
+            }
+            
+            function notificationsCenterApplyFilters() {
+                var toolbar = document.getElementById('NOTIFICATION_CENTER_TOOLBAR');
+                var region = document.getElementById('NOTIFICATIONS');
+                if (!toolbar || !region) {
+                    return;
+                }
+            
+                var searchInput = toolbar.querySelector('#notification-search');
+                var rawQuery = (searchInput || {}).value || '';
+                var normQuery = normalizeArabic(rawQuery);
+                var isActionQuery = normQuery.indexOf('تحتاج') !== -1 ||
+                                    normQuery.indexOf('اجراء') !== -1 ||
+                                    normQuery === 'مراجعه' ||
+                                    normQuery === 'تحت المراجعه';
+            
+                var type = (toolbar.querySelector('#notification-type-filter') || {}).value || 'all';
+                var unreadOnly = toolbar.querySelector('[data-notification-unread-only].is-active') !== null;
+                var activeTab = toolbar.querySelector('[data-notification-filter].is-active');
+                var filter = activeTab ? activeTab.getAttribute('data-notification-filter') : 'all';
+                var rows = Array.prototype.slice.call(region.querySelectorAll('.notification-center__row'));
+            
+                var unreadCount = 0;
+                var readCount = 0;
+                var actionCount = 0;
+                var updatesCount = 0;
+                var totalCount = rows.length;
+                var visibleCount = 0;
+            
+                rows.forEach(function (row) {
+                    var cell = row.querySelector('[data-seen]');
+                    var seen = cell ? cell.getAttribute('data-seen') : '1';
+                    var unread = seen === '0' || seen.toLowerCase() === 'n';
+            
+                    var statusEl = row.querySelector('.notification-center__status');
+                    var rawStatus = (statusEl ? statusEl.textContent : (cell ? cell.getAttribute('data-status') : '')) || '';
+                    var normStatus = normalizeArabic(rawStatus);
+            
+                    var isAction = normStatus.indexOf('مراجعه') !== -1 ||
+                                   normStatus.indexOf('تحت') !== -1 ||
+                                   normStatus === 'open' ||
+                                   normStatus === 'on progress' ||
+                                   normStatus === 'test';
+                    var isUpdate = !isAction;
+            
+                    if (unread) {
+                        unreadCount += 1;
+                    } else {
+                        readCount += 1;
+                    }
+            
+                    if (isAction) {
+                        actionCount += 1;
+                    } else {
+                        updatesCount += 1;
+                    }
+            
+                    var matchesTab = filter === 'all' || (filter === 'action' && isAction) || (filter === 'updates' && isUpdate);
+                    var matchesType = type === 'all' || (type === 'action' && isAction) || (type === 'updates' && isUpdate);
+                    var matchesUnread = !unreadOnly || unread;
+            
+                    var matchesSearch = true;
+                    if (normQuery) {
+                        if (isActionQuery) {
+                            matchesSearch = isAction;
+                        } else {
+                            var normText = normalizeArabic(row.textContent || '');
+                            matchesSearch = normText.indexOf(normQuery) !== -1;
+                        }
+                    }
+            
+                    var visible = matchesTab && matchesType && matchesUnread && matchesSearch;
+                    row.hidden = !visible;
+                    if (visible) {
+                        visibleCount += 1;
+                    }
+                });
+            
+                var unreadEl = document.getElementById('notification-unread-count');
+                var readEl = document.getElementById('notification-read-count');
+                var actionEl = document.getElementById('notification-action-count');
+                var totalEl = document.getElementById('notification-all-count');
+                var updatesEl = document.getElementById('notification-updates-count');
+                var unreadBtnEl = document.getElementById('notification-unread-btn-count');
+            
+                if (unreadEl) unreadEl.textContent = unreadCount;
+                if (readEl) readEl.textContent = readCount;
+                if (actionEl) actionEl.textContent = actionCount;
+                if (totalEl) totalEl.textContent = totalCount;
+                if (updatesEl) updatesEl.textContent = updatesCount;
+                if (unreadBtnEl) unreadBtnEl.textContent = unreadCount;
+            
+                var empty = region.querySelector('.notification-center__filtered-empty');
+                if (!empty) {
+                    empty = document.createElement('p');
+                    empty.className = 'notification-center__filtered-empty';
+                    empty.textContent = 'لا توجد تنبيهات مطابقة للبحث أو التصنيف المحدد.';
+                    region.appendChild(empty);
+                }
+                empty.hidden = visibleCount !== 0;
+            }
+            
+            var _notificationsSeenTriggered = false;
+            
+            function markAllNotificationsSeenOnExit(onComplete) {
+                if (_notificationsSeenTriggered) {
+                    if (typeof onComplete === 'function') {
+                        onComplete();
+                    }
+                    return;
+                }
+                _notificationsSeenTriggered = true;
+            
+                try {
+                    if (window.parent && window.parent !== window) {
+                        var badges = window.parent.document.querySelectorAll('.t-Button--navBar .t-Button-badge, .t-NavBar-item .t-Button-badge');
+                        badges.forEach(function (badge) {
+                            badge.textContent = '0';
+                            badge.style.display = 'none';
+                        });
+                        if (typeof window.parent.portalRefreshNotificationState === 'function') {
+                            window.parent.portalRefreshNotificationState();
+                        }
+                    }
+                } catch (ignore) {}
+            
+                var called = false;
+                function finalize() {
+                    if (!called) {
+                        called = true;
+                        if (typeof onComplete === 'function') {
+                            onComplete();
+                        }
+                    }
+                }
+            
+                var safetyTimer = setTimeout(finalize, 1000);
+            
+                var apexRunner = (window.parent && window.parent !== window && window.parent.apex && window.parent.apex.server)
+                    ? window.parent.apex
+                    : (window.apex || null);
+            
+                if (apexRunner && apexRunner.server && typeof apexRunner.server.process === 'function') {
+                    apexRunner.server.process('MARK_ALL_NOTIFICATION_SEEN', {}, {
+                        dataType: 'json'
+                    }).always(function () {
+                        clearTimeout(safetyTimer);
+                        finalize();
+                    });
+                } else {
+                    clearTimeout(safetyTimer);
+                    finalize();
+                }
+            }
+            
+            function notificationsCenterInit() {
+                var toolbar = document.getElementById('NOTIFICATION_CENTER_TOOLBAR');
+                var region = document.getElementById('NOTIFICATIONS');
+                var footer = document.getElementById('NOTIFICATION_CENTER_FOOTER');
+                if (!toolbar || toolbar.getAttribute('data-bound') === 'Y') {
+                    notificationsCenterApplyFilters();
+                    return;
+                }
+                toolbar.setAttribute('data-bound', 'Y');
+            
+                var searchTimer;
+                toolbar.addEventListener('input', function (event) {
+                    if (event.target.matches('#notification-search')) {
+                        clearTimeout(searchTimer);
+                        searchTimer = setTimeout(notificationsCenterApplyFilters, 80);
+                    }
+                });
+                toolbar.addEventListener('change', function (event) {
+                    if (event.target.matches('#notification-type-filter')) {
+                        notificationsCenterApplyFilters();
+                    }
+                });
+                toolbar.addEventListener('click', function (event) {
+                    var tab = event.target.closest('[data-notification-filter]');
+                    if (tab) {
+                        event.preventDefault();
+                        toolbar.querySelectorAll('[data-notification-filter]').forEach(function (item) {
+                            item.classList.toggle('is-active', item === tab);
+                            item.setAttribute('aria-selected', item === tab ? 'true' : 'false');
+                        });
+                        notificationsCenterApplyFilters();
+                        return;
+                    }
+                    var unread = event.target.closest('[data-notification-unread-only]');
+                    if (unread) {
+                        event.preventDefault();
+                        unread.classList.toggle('is-active');
+                        unread.setAttribute('aria-pressed', unread.classList.contains('is-active') ? 'true' : 'false');
+                        notificationsCenterApplyFilters();
+                        return;
+                    }
+                    if (event.target.closest('[data-notifications-mark-all]')) {
+                        event.preventDefault();
+                        if (window.apex && typeof apex.submit === 'function') {
+                            apex.submit({ request: 'MARK_ALL_READ' });
+                        }
+                    }
+                });
+            
+                if (footer && footer.getAttribute('data-bound') !== 'Y') {
+                    footer.setAttribute('data-bound', 'Y');
+                    footer.addEventListener('click', function (event) {
+                        if (event.target.closest('[data-notifications-close]')) {
+                            event.preventDefault();
+                            var closeBtn = event.target.closest('[data-notifications-close]');
+                            if (closeBtn) closeBtn.disabled = true;
+                            markAllNotificationsSeenOnExit(function () {
+                                if (window.apex && apex.navigation && apex.navigation.dialog) {
+                                    apex.navigation.dialog.close(true);
+                                }
+                            });
+                        }
+                        if (event.target.closest('[data-notifications-mark-all]')) {
+                            event.preventDefault();
+                            if (window.apex && typeof apex.submit === 'function') {
+                                apex.submit({ request: 'MARK_ALL_READ' });
+                            }
+                        }
+                    });
+                }
+            
+                var approveBtn = document.getElementById('Approve_All');
+                if (approveBtn && approveBtn.getAttribute('data-bound') !== 'Y') {
+                    approveBtn.setAttribute('data-bound', 'Y');
+                    approveBtn.addEventListener('click', function () {
+                        markAllNotificationsSeenOnExit();
+                    });
+                }
+            
+                try {
+                    if (window.parent && window.parent !== window) {
+                        if (window.frameElement && window.parent.$) {
+                            var $dialog = window.parent.$(window.frameElement).closest('.ui-dialog');
+                            if ($dialog && $dialog.length) {
+                                $dialog.off('dialogbeforeclose.notifCenter').on('dialogbeforeclose.notifCenter', function () {
+                                    markAllNotificationsSeenOnExit();
+                                });
+                            }
+                        }
+                        if (window.parent.$) {
+                            window.parent.$(window.parent.document).off('apexafterclosedialog.notifCenter').one('apexafterclosedialog.notifCenter', function () {
+                                markAllNotificationsSeenOnExit();
+                            });
+                        }
+                    }
+                } catch (ignore) {}
+            
+                window.addEventListener('pagehide', function () {
+                    markAllNotificationsSeenOnExit();
+                });
+            
+                notificationsCenterApplyFilters();
+            
+                try {
+                    if (window.parent !== window && typeof window.parent.portalRefreshNotificationState === 'function') {
+                        window.parent.portalRefreshNotificationState();
+                    }
+                } catch (ignore) { /* Parent may have a different origin. */ }
+            }
+            ```
+        executeWhenPageLoads: notificationsCenterInit();
+    }
+    css {
+        fileUrls: #APP_FILES#css/tailwind1#MIN#.css
+        inline:
+            ```css
+            #NOTIFICATION_CENTER_TOOLBAR,
+            #NOTIFICATIONS,
+            #NOTIFICATION_CENTER_FOOTER {
+                direction: rtl;
+                font-family: inherit;
+            }
+            
+            #NOTIFICATION_CENTER_TOOLBAR {
+                padding: 1.25rem 1.25rem 0.5rem;
+                color: #15263d;
+            }
+            
+            #NOTIFICATION_CENTER_TOOLBAR .t-Region-body,
+            #NOTIFICATION_CENTER_FOOTER .t-Region-body {
+                padding: 0;
+            }
+            
+            .notification-center__header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 1rem;
+                margin-bottom: 1.25rem;
+            }
+            
+            .notification-center__heading {
+                display: flex;
+                align-items: center;
+                gap: 0.85rem;
+            }
+            
+            .notification-center__heading-icon {
+                display: grid;
+                place-items: center;
+                width: 3rem;
+                height: 3rem;
+                border-radius: 50%;
+                color: #124b74;
+                background: #e8f3fb;
+                font-size: 1.4rem;
+            }
+            
+            .notification-center__heading h2 {
+                margin: 0;
+                color: #14263b;
+                font-size: 1.55rem;
+                font-weight: 800;
+                line-height: 1.2;
+            }
+            
+            .notification-center__heading p {
+                margin: 0.3rem 0 0;
+                color: #66778b;
+                font-size: 0.82rem;
+            }
+            
+            .notification-center__header-end {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 0.35rem;
+            }
+            
+            .notification-center__unread-summary {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                color: #0284c7;
+                font-size: 0.88rem;
+                font-weight: 700;
+            }
+            
+            .notification-center__read-summary {
+                color: #64748b;
+                font-size: 0.82rem;
+                font-weight: 600;
+            }
+            
+            .notification-center__read-divider {
+                color: #cbd5e1;
+                margin: 0 0.15rem;
+            }
+            
+            .notification-center__mark-all-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                padding: 0.2rem 0.55rem;
+                border: 0;
+                border-radius: 0.45rem;
+                color: #0284c7;
+                background: #e0f2fe;
+                font: inherit;
+                font-size: 0.76rem;
+                font-weight: 700;
+                cursor: pointer;
+                transition: background 150ms ease, color 150ms ease;
+            }
+            
+            .notification-center__mark-all-link:hover {
+                background: #bae6fd;
+                color: #0369a1;
+            }
+            
+            .notification-center__tabs {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.25rem;
+                padding: 0.25rem;
+                margin-bottom: 0.85rem;
+                border: 1px solid #d8e1eb;
+                border-radius: 0.85rem;
+                background: #f5f8fb;
+            }
+            
+            .notification-center__tab {
+                display: inline-flex;
+                justify-content: center;
+                align-items: center;
+                gap: 0.45rem;
+                min-height: 2.55rem;
+                padding: 0.45rem 0.7rem;
+                border: 0;
+                border-radius: 0.65rem;
+                color: #617185;
+                background: transparent;
+                font: inherit;
+                font-size: 0.88rem;
+                font-weight: 700;
+                cursor: pointer;
+                transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+            }
+            
+            .notification-center__tab.is-active {
+                color: #fff;
+                background: #204b6e;
+                box-shadow: 0 4px 12px rgb(23 64 96 / 18%);
+            }
+            
+            .notification-center__tab-count {
+                display: inline-grid;
+                place-items: center;
+                min-width: 1.4rem;
+                height: 1.4rem;
+                padding: 0 0.3rem;
+                border-radius: 999px;
+                color: #167db4;
+                background: #d9efff;
+                font-size: 0.75rem;
+            }
+            
+            .notification-center__filters {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(11rem, 0.7fr) auto;
+                gap: 0.65rem;
+                align-items: center;
+            }
+            
+            .notification-center__search,
+            .notification-center__select {
+                min-height: 2.55rem;
+                width: 100%;
+                padding: 0 0.85rem;
+                border: 1px solid #d6e0ea;
+                border-radius: 0.65rem;
+                color: #2e4054;
+                background: #fff;
+                font: inherit;
+                font-size: 0.86rem;
+            }
+            
+            .notification-center__search:focus,
+            .notification-center__select:focus {
+                border-color: #1898d0;
+                outline: 3px solid rgb(24 152 208 / 15%);
+            }
+            
+            .notification-center__unread-filter {
+                min-height: 2.55rem;
+                padding: 0 0.9rem;
+                border: 1px solid #d6e7f2;
+                border-radius: 0.65rem;
+                color: #2878a6;
+                background: #edf7fd;
+                font: inherit;
+                font-size: 0.82rem;
+                font-weight: 700;
+                cursor: pointer;
+            }
+            
+            .notification-center__unread-filter.is-active {
+                color: #fff;
+                border-color: #2387ba;
+                background: #2387ba;
+            }
+            
+            #NOTIFICATIONS {
+                padding: 0 1.25rem 0.5rem;
+            }
+            
+            #NOTIFICATIONS .t-Region-header {
+                display: none;
+            }
+            
+            #NOTIFICATIONS .t-Region-body {
+                padding: 0;
+            }
+            
+            .notification-center__list {
+                width: 100%;
+            }
+            
+            .notification-center__table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0 0.7rem;
+                color: #26394f;
+                font-size: 0.87rem;
+            }
+            
+            .notification-center__row > td {
+                border-top: 1px solid #dbe4ed;
+                border-bottom: 1px solid #dbe4ed;
+                background: #fff;
+                vertical-align: middle;
+            }
+            
+            .notification-center__row[hidden] {
+                display: none !important;
+            }
+            
+            .notification-center__row > td:first-child {
+                position: relative;
+                border-right: 1px solid #dbe4ed;
+                border-radius: 0 0.8rem 0.8rem 0;
+            }
+            
+            .notification-center__row > td:last-child {
+                width: 7.2rem;
+                border-left: 1px solid #dbe4ed;
+                border-radius: 0.8rem 0 0 0.8rem;
+                color: #687b90;
+                text-align: center;
+                /* white-space: nowrap; */
+            }
+            
+            .notification-center__row:hover > td {
+                border-color: #afd5ea;
+                box-shadow: 0 6px 16px rgb(22 77 112 / 8%);
+            }
+            
+            .notification-center__content {
+                padding: 0.9rem 1rem;
+            }
+            
+            .notification-center__link {
+                display: flex;
+                align-items: stretch;
+                gap: 0.8rem;
+                color: inherit;
+                text-decoration: none;
+            }
+            
+            .notification-center__avatar-wrap {
+                --notification-avatar-slot-size: 5rem;
+                position: relative;
+                display: grid;
+                flex: 0 0 var(--notification-avatar-slot-size);
+                place-items: center;
+                width: var(--notification-avatar-slot-size);
+                height: var(--notification-avatar-slot-size);
+            }
+            
+            .notification-center__avatar {
+                display: block;
+                width: 80%;
+                height: 80%;
+                border: 2px solid #fff;
+                border-radius: 50%;
+                background: #e7f2f9;
+                box-shadow: 0 0 0 2px #9ed3ee, 0 5px 12px rgb(23 75 108 / 16%);
+                object-fit: cover;
+                object-position: center;
+            }
+            
+            .notification-center__avatar[hidden] {
+                display: none !important;
+            }
+            
+            .notification-center__avatar--fallback {
+                display: grid;
+                place-items: center;
+                color: #57758d;
+                background: linear-gradient(145deg, #eff6fa, #d7e7f1);
+                font-size: 1.15rem;
+            }
+            
+            .notification-center__avatar--fallback[hidden] {
+                display: none;
+            }
+            
+            .notification-center__copy {
+                display: flex;
+                min-width: 0;
+                flex: 1;
+                flex-direction: column;
+                gap: 0.2rem;
+            }
+            
+            .notification-center__title {
+                overflow: hidden;
+                color: #1a2c40;
+                font-size: 0.98rem;
+                font-weight: 800;
+                text-overflow: ellipsis;
+                /* white-space: nowrap; */
+            }
+            
+            .notification-center__body {
+                overflow: hidden;
+                color: #687b90;
+                font-size: 0.82rem;
+                text-overflow: ellipsis;
+                /* white-space: nowrap; */
+            }
+            
+            .notification-center__meta {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-top: 0.15rem;
+            }
+            
+            .notification-center__status {
+                display: inline-flex;
+                align-items: center;
+                min-height: 1.55rem;
+                padding: 0 0.6rem;
+                border-radius: 999px;
+                color: #176d43;
+                background: #d9f6e7;
+                font-size: 0.72rem;
+                font-weight: 700;
+            }
+            
+            .notification-center__initiator {
+                color: #8a99a8;
+                font-size: 0.72rem;
+            }
+            
+            .notification-center__date {
+                padding: 0.9rem;
+                font-size: 0.76rem;
+            }
+            
+            .notification-center__unread-dot {
+                position: absolute;
+                top: 0.15rem;
+                right: 0.15rem;
+                width: 0.7rem;
+                height: 0.7rem;
+                border: 2px solid #fff;
+                border-radius: 50%;
+                background: #0284c7;
+                box-shadow: 0 0 0 2px #bae6fd;
+                z-index: 2;
+            }
+            
+            [data-seen="1"] .notification-center__unread-dot,
+            [data-seen="Y"] .notification-center__unread-dot,
+            [data-seen="y"] .notification-center__unread-dot {
+                display: none !important;
+            }
+            
+            [data-seen="0"] .notification-center__unread-dot,
+            [data-seen="N"] .notification-center__unread-dot,
+            [data-seen="n"] .notification-center__unread-dot {
+                display: block !important;
+            }
+            
+            .notification-center__row:has([data-seen="0"]) > td,
+            .notification-center__row:has([data-seen="N"]) > td,
+            .notification-center__row:has([data-seen="n"]) > td {
+                background: #f8fafc;
+            }
+            
+            .notification-center__row:has([data-seen="0"]) > td:first-child,
+            .notification-center__row:has([data-seen="N"]) > td:first-child,
+            .notification-center__row:has([data-seen="n"]) > td:first-child {
+                border-right: 3.5px solid #0284c7;
+            }
+            
+            .notification-center__filtered-empty {
+                margin: 1.5rem 0;
+                padding: 1.5rem;
+                border: 1px dashed #cbd9e5;
+                border-radius: 0.8rem;
+                color: #718298;
+                background: #f8fafc;
+                text-align: center;
+            }
+            
+            .notification-center__visually-hidden {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                /* white-space: nowrap; */
+                border: 0;
+            }
+            
+            #NOTIFICATION_CENTER_FOOTER {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.75rem;
+                padding: 0.5rem 1.25rem 1.1rem;
+                border-top: 1px solid #e2e8ef;
+            }
+            
+            .notification-center__footer-actions {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                width: 100%;
+                gap: 0.75rem;
+            }
+            
+            .notification-center__footer-button {
+                min-height: 2.35rem;
+                padding: 0 1rem;
+                border: 0;
+                border-radius: 0.6rem;
+                color: #486177;
+                background: #edf1f5;
+                font: inherit;
+                font-size: 0.8rem;
+                cursor: pointer;
+            }
+            
+            .notification-center__footer-button--primary {
+                color: #1583b8;
+                background: transparent;
+                font-weight: 700;
+            }
+            
+            @media (max-width: 640px) {
+                #NOTIFICATION_CENTER_TOOLBAR,
+                #NOTIFICATIONS,
+                #NOTIFICATION_CENTER_FOOTER {
+                    padding-right: 0.75rem;
+                    padding-left: 0.75rem;
+                }
+            
+                .notification-center__header {
+                    flex-direction: column;
+                }
+            
+                .notification-center__filters {
+                    grid-template-columns: 1fr;
+                }
+            
+                .notification-center__search,
+                .notification-center__select,
+                .notification-center__unread-filter {
+                    min-height: 2.75rem;
+                }
+            
+                .notification-center__tabs {
+                    gap: 0.2rem;
+                    padding: 0.25rem;
+                }
+            
+                .notification-center__tab {
+                    min-height: 2.75rem;
+                    padding: 0.45rem 0.25rem;
+                    font-size: 0.76rem;
+                }
+            
+                .notification-center__table {
+                    display: block;
+                    border-spacing: 0;
+                }
+            
+                .notification-center__table tbody {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr);
+                    gap: 0.75rem;
+                }
+            
+                .notification-center__row {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr);
+                    overflow: hidden;
+                    border: 1px solid #dbe4ed;
+                    border-radius: 0.9rem;
+                    background: #fff;
+                    box-shadow: 0 4px 14px rgb(22 77 112 / 7%);
+                }
+            
+                .notification-center__row > td,
+                .notification-center__row > td:first-child {
+                    display: block;
+                    width: 100%;
+                    border: 0;
+                    border-radius: 0;
+                    background: transparent;
+                }
+            
+                .notification-center__row > td:last-child {
+                    width: 100%;
+                    padding: 0.65rem 0.85rem;
+                    border: 0;
+                    border-top: 1px solid #e6edf3;
+                    border-radius: 0;
+                    text-align: start;
+                    white-space: normal;
+                }
+            
+                .notification-center__row:hover {
+                    border-color: #afd5ea;
+                    box-shadow: 0 6px 16px rgb(22 77 112 / 10%);
+                }
+            
+                .notification-center__row:hover > td {
+                    border-color: transparent;
+                    box-shadow: none;
+                }
+            
+                .notification-center__content {
+                    padding: 0.65rem;
+                }
+            
+                .notification-center__link {
+                    gap: 0.65rem;
+                }
+            
+                .notification-center__avatar-wrap {
+                    --notification-avatar-slot-size: 4.5rem;
+                }
+            
+                .notification-center__copy {
+                    justify-content: center;
+                }
+            
+                .notification-center__title,
+                .notification-center__body {
+                    overflow: visible;
+                    overflow-wrap: anywhere;
+                    text-overflow: clip;
+                    white-space: normal;
+                }
+            
+                .notification-center__title {
+                    font-size: 0.92rem;
+                    line-height: 1.5;
+                }
+            
+                .notification-center__body {
+                    font-size: 0.78rem;
+                    line-height: 1.6;
+                }
+            
+                .notification-center__meta {
+                    flex-wrap: wrap;
+                }
+            
+                .notification-center__footer-actions {
+                    align-items: stretch;
+                    flex-direction: column-reverse;
+                }
+            
+                .notification-center__footer-button {
+                    width: 100%;
+                    min-height: 2.75rem;
+                }
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region notification-center-footer (
+        name: notification center footer
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="notification-center__footer-actions">
+                    <button type="button" class="notification-center__footer-button notification-center__footer-button--primary" data-notifications-mark-all>
+                        <span class="fa fa-check-square-o" aria-hidden="true"></span> تحديد الكل كمقروء
+                    </button>
+                    <button type="button" class="notification-center__footer-button" data-notifications-close>إغلاق</button>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 60
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: NOTIFICATION_CENTER_FOOTER
+        }
+    )
+
+    region notification-center-toolbar (
+        name: notification center toolbar
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="notification-center__header">
+                    <div class="notification-center__heading">
+                        <span class="notification-center__heading-icon" aria-hidden="true"><span class="fa fa-bell"></span></span>
+                        <div>
+                            <h2>مركز التنبيهات</h2>
+                            <p>تابع طلباتك والإجراءات المطلوبة منك</p>
+                        </div>
+                    </div>
+                    <div class="notification-center__header-end">
+                        <div class="notification-center__unread-summary">
+                            <span class="notification-center__unread-badge"><span id="notification-unread-count">0</span> غير مقروءة</span>
+                            <span class="notification-center__read-divider">·</span>
+                            <span class="notification-center__read-summary"><span id="notification-read-count">0</span> مقروءة</span>
+                        </div>
+                        <button type="button" class="notification-center__mark-all-link" data-notifications-mark-all title="تحديد كل التنبيهات كمقروءة">
+                            <span class="fa fa-check-square-o" aria-hidden="true"></span> تحديد الكل كمقروء
+                        </button>
+                    </div>
+                </div>
+                <div class="notification-center__tabs" role="tablist" aria-label="تصنيف التنبيهات">
+                    <button type="button" class="notification-center__tab is-active" data-notification-filter="all" role="tab" aria-selected="true">الكل <span id="notification-all-count" class="notification-center__tab-count">0</span></button>
+                    <button type="button" class="notification-center__tab" data-notification-filter="action" role="tab" aria-selected="false">تحتاج إجراء <span id="notification-action-count" class="notification-center__tab-count">0</span></button>
+                    <button type="button" class="notification-center__tab" data-notification-filter="updates" role="tab" aria-selected="false">تحديثات طلباتي <span id="notification-updates-count" class="notification-center__tab-count">0</span></button>
+                </div>
+                <div class="notification-center__filters">
+                    <input id="notification-search" class="notification-center__search" type="search" placeholder="إبحث في التنبيهات (مثل: تحتاج إجراء، إجازة...)" aria-label="إبحث في التنبيهات">
+                    <select id="notification-type-filter" class="notification-center__select" aria-label="نوع التنبيه">
+                        <option value="all">كل أنواع الطلبات</option>
+                        <option value="action">طلبات تحتاج إجراء</option>
+                        <option value="updates">تحديثات الطلبات</option>
+                    </select>
+                    <button type="button" class="notification-center__unread-filter" data-notification-unread-only aria-pressed="false">غير المقروءة (<span id="notification-unread-btn-count">0</span>)</button>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: NOTIFICATION_CENTER_TOOLBAR
+        }
+    )
+
+    region notifications (
+        name: notifications
+        title: &APP_TEXT$NOTIFICATIONS.
+        type: appTemplateComponent/notificationList
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                
+                select n.*, k.image_hash
+                from central.v_emp_notifications n
+                left join central.emp_image_keys k on k.emp_id = n.initiator
+                where n.emp_id = :APP_USER
+                
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+        accessibility {
+            landmarkType: region
+        }
+        advanced {
+            htmlDomId: NOTIFICATIONS
+        }
+        componentAppearance {
+            display: report
+        }
+        settings {
+            date: DATE_ON
+            status: STATUS_TEXT
+            initiator: INITIATOR
+            line1: TITLE
+            line2: BODY
+            statusClass: STATUS_CLASS
+            pageUrl: PAGE_URL
+            seen: SEEN
+            imageHash: IMAGE_HASH
+        }
+        pagination {
+            entitiesPerPage: 50
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_ALERTS.
+        }
+
+        column BODY (
+            layout {
+                sequence: 40
+            }
+            source {
+                databaseColumn: BODY
+                dataType: varchar2
+            }
+        )
+
+        column DATE_ON (
+            layout {
+                sequence: 50
+            }
+            source {
+                databaseColumn: DATE_ON
+                dataType: date
+            }
+        )
+
+        column EMP_ID (
+            layout {
+                sequence: 20
+            }
+            source {
+                databaseColumn: EMP_ID
+                dataType: varchar2
+            }
+        )
+
+        column IMAGE_HASH (
+            layout {
+                sequence: 140
+            }
+            source {
+                databaseColumn: IMAGE_HASH
+                dataType: varchar2
+            }
+        )
+
+        column INITIATOR (
+            layout {
+                sequence: 110
+            }
+            source {
+                databaseColumn: INITIATOR
+                dataType: varchar2
+            }
+        )
+
+        column NAV_APP_ID (
+            layout {
+                sequence: 80
+            }
+            source {
+                databaseColumn: NAV_APP_ID
+                dataType: number
+            }
+        )
+
+        column NAV_PAGE_ID (
+            layout {
+                sequence: 90
+            }
+            source {
+                databaseColumn: NAV_PAGE_ID
+                dataType: number
+            }
+        )
+
+        column NOTIFICATION_ID (
+            layout {
+                sequence: 10
+            }
+            source {
+                databaseColumn: NOTIFICATION_ID
+                dataType: number
+            }
+        )
+
+        column PAGE_URL (
+            layout {
+                sequence: 130
+            }
+            source {
+                databaseColumn: PAGE_URL
+                dataType: varchar2
+            }
+        )
+
+        column SEEN (
+            layout {
+                sequence: 70
+            }
+            source {
+                databaseColumn: SEEN
+                dataType: number
+            }
+        )
+
+        column STATUS_CLASS (
+            layout {
+                sequence: 120
+            }
+            source {
+                databaseColumn: STATUS_CLASS
+                dataType: varchar2
+            }
+        )
+
+        column STATUS_TEXT (
+            layout {
+                sequence: 140
+            }
+            source {
+                databaseColumn: STATUS_TEXT
+                dataType: varchar2
+            }
+        )
+
+        column TASK_ID (
+            layout {
+                sequence: 60
+            }
+            source {
+                databaseColumn: TASK_ID
+                dataType: varchar2
+            }
+        )
+
+        column TITLE (
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: TITLE
+                dataType: varchar2
+            }
+        )
+
+    )
+
+    region التنبيهات (
+        name: التنبيهات
+        title: &APP_TEXT$ALERTS.
+        type: listView
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select NOTIFICATION_ID,
+                       EMP_ID,
+                       TITLE,
+                       BODY,
+                       DATE_ON,
+                       TASK_ID,
+                       decode(SEEN,0,'جديد','تمت قراءته') seen,
+                       
+                        NAV_APP_ID,
+                       case when status in(1,2,3) and NAV_PAGE_ID =200 then
+                       null 
+                       else NAV_PAGE_ID
+                       end
+                       NAV_PAGE_ID
+                ,decode(status,0,'تحت المراجعة',1,'APPROVAL',2,'تم الرفض', '3','تم الإلغاء','??') status
+                
+                  from CENTRAL.EMP_NOTIFICATIONS
+                 where EMP_ID = :APP_USER
+                 order by seen desc, date_on desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        accessibility {
+            useLandmark: false
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: never
+        }
+        settings {
+            features: [
+                advancedFormatting
+                showListDivider
+            ]
+            textFormatting: &TITLE.
+            supplementalInfoFormatting: &BODY. بتاريخ &DATE_ON.
+            counterColumn: STATUS
+            listDividerColumn: SEEN
+            listDividerFormatting: &SEEN.
+            linkTarget: {
+                page: &NAV_PAGE_ID.
+            }
+        }
+        reportLayout {
+            numberOfRows: 10
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_ALERTS.
+        }
+    )
+
+    button approve-all (
+        buttonName: Approve_All
+        label: &APP_TEXT$APPROVAL_OF_ALL_REQUESTS.
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--small
+                t-Button--success
+                t-Button--stretch
+                t-Button--padBottom
+            ]
+        }
+        behavior {
+            action: redirectOtherApp
+            target: {
+                app: 115
+                page: 24
+                clearCache: 24
+                action: clearRegions
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                
+                            select * from table ( apex_approval.get_tasks ( p_context => 'MY_TASKS', p_show_expired_tasks => 'Y') )
+                ```
+        }
+    )
+
+    process mark-all-notification-as-seen (
+        name: mark all notification as seen
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                central.xxapex_emp_notifications.mark_all_notification_seen(:APP_USER);
+                :NOT_COUNT := 0;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: afterSubmit
+        }
+        advanced {
+            executionMappingIdentifier: 23316372611878039
+        }
+        serverSideCondition {
+            type: request=Value
+            value: MARK_ALL_READ
+        }
+    )
+
+    process mark-all-notification-as-seen-ajax (
+        name: MARK_ALL_NOTIFICATION_SEEN
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    central.xxapex_emp_notifications.mark_all_notification_seen(:APP_USER);
+                    :NOT_COUNT := 0;
+                    apex_json.open_object;
+                    apex_json.write('success', true);
+                    apex_json.close_object;
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        apex_json.open_object;
+                        apex_json.write('success', false);
+                        apex_json.write('message', SQLERRM);
+                        apex_json.close_object;
+                END;
+                ```
+        }
+        execution {
+            sequence: 20
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 79110837324011335
+        }
+    )
+
+)

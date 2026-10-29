@@ -1,0 +1,1920 @@
+page 11 (
+    name: New Suppliers Approval Process
+    alias: SUPPLIERS-APPROVAL-PROCESS
+    title: Suppliers Approval Process
+    appearance {
+        pageTemplate: @/left-side-column
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+        warnOnUnsavedChanges: false
+    }
+    css {
+        inline:
+            ```css
+            /* Scroll Results Only in Side Column */
+            .t-Body-side {
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .search-results {
+                flex: 1;
+                overflow: auto;
+            }
+            /* Format Search Region */
+            .search-region {
+                border-bottom: 1px solid rgba(0,0,0,.1);
+                flex-shrink: 0;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+    }
+    advanced {
+        enableDuplicatePageSubmissions: false
+        reloadOnSubmit: always
+    }
+
+    region approval-history (
+        name: Approval History
+        title: Approval / Reject Comments
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                -- SELECT
+                --     procurement_by        AS approved_by,
+                --     procurement_date     AS action_date,
+                --     procurement_comment   AS comment_text,
+                --     'PROCUREMENT'         AS role
+                -- FROM sup_supplier_approvals
+                -- WHERE supplier_id = :P11_SUPPLIER_ID
+                
+                -- UNION ALL
+                
+                -- SELECT
+                --     technical_by,
+                --     technical_date ,
+                --     technical_comment,
+                --     'TECHNICAL'
+                -- FROM sup_supplier_approvals
+                -- WHERE supplier_id = :P11_SUPPLIER_ID
+                --   AND technical_comment IS NOT NULL
+                
+                -- UNION ALL
+                
+                -- SELECT
+                --     financial_by,
+                --     financial_date ,
+                --     financial_comment,
+                --     'FINANCE'
+                -- FROM sup_supplier_approvals
+                -- WHERE supplier_id = :P11_SUPPLIER_ID
+                --   AND financial_comment IS NOT NULL
+                
+                -- UNION ALL
+                
+                -- SELECT
+                --     legal_by,
+                --     legal_date ,
+                --     legal_comment,
+                --     'LEGAL'
+                -- FROM sup_supplier_approvals
+                -- WHERE supplier_id = :P11_SUPPLIER_ID
+                --   AND legal_comment IS NOT NULL
+                
+                SELECT
+                    m.employee_name                    AS employee_name,
+                    a.procurement_date                 AS action_date,
+                    a.procurement_comment              AS comment_text,
+                    'PROCUREMENT'                      AS role,
+                    CASE
+                        WHEN a.procurement_decision = 'REJECT' THEN 'REJECTED'
+                        ELSE 'APPROVED'
+                    END                                AS record_status
+                FROM sup_supplier_approvals a
+                JOIN sup_approval_members m
+                  ON m.employee_num = a.procurement_by
+                 AND m.approval_role = 'PROC'
+                WHERE a.supplier_id = :P11_SUPPLIER_ID
+                  --AND a.procurement_comment IS NOT NULL
+                
+                UNION ALL
+                
+                SELECT
+                    m.employee_name,
+                    a.technical_date,
+                    a.technical_comment,
+                    'TECHNICAL',
+                    CASE
+                        WHEN a.technical_decision = 'REJECT' THEN 'REJECTED'
+                        ELSE 'APPROVED'
+                    END
+                FROM sup_supplier_approvals a
+                JOIN sup_approval_members m
+                  ON m.employee_num = a.technical_by
+                 AND m.approval_role = 'TECH'
+                WHERE a.supplier_id = :P11_SUPPLIER_ID
+                  --AND a.technical_comment IS NOT NULL
+                
+                UNION ALL
+                
+                SELECT
+                    m.employee_name,
+                    a.financial_date,
+                    a.financial_comment,
+                    'FINANCE',
+                    CASE
+                        WHEN a.financial_decision = 'REJECT' THEN 'REJECTED'
+                        ELSE 'APPROVED'
+                    END
+                FROM sup_supplier_approvals a
+                JOIN sup_approval_members m
+                  ON m.employee_num = a.financial_by
+                 AND m.approval_role = 'FIN'
+                WHERE a.supplier_id = :P11_SUPPLIER_ID
+                 -- AND a.financial_comment IS NOT NULL
+                
+                UNION ALL
+                
+                SELECT
+                    m.employee_name,
+                    a.legal_date,
+                    a.legal_comment,
+                    'LEGAL',
+                    CASE
+                        WHEN a.legal_decision = 'REJECT' THEN 'REJECTED'
+                        ELSE 'APPROVED'
+                    END
+                FROM sup_supplier_approvals a
+                JOIN sup_approval_members m
+                  ON m.employee_num = a.legal_by
+                 AND m.approval_role = 'LEGAL'
+                WHERE a.supplier_id = :P11_SUPPLIER_ID
+                 -- AND a.legal_comment IS NOT NULL
+                
+                --ORDER BY 2 DESC;
+                
+                ```
+        }
+        layout {
+            sequence: 70
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+            icon: fa-history
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                EXISTS (
+                    SELECT 1
+                    FROM sup_approval_members
+                    WHERE employee_num = :APP_USER
+                      --AND approval_role = 'PROC'
+                      AND status = 'ACTIVE'
+                )
+                ```
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column ACTION_DATE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Action Date
+            }
+            layout {
+                sequence: 50
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH24:MI
+            }
+        )
+
+        column COMMENT_TEXT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Comment Text
+            }
+            layout {
+                sequence: 40
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EMPLOYEE_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Employee Name
+            }
+            layout {
+                sequence: 20
+            }
+            sorting {
+                defaultSequence: 3
+            }
+        )
+
+        column RECORD_STATUS (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Record Status
+            }
+            layout {
+                sequence: 30
+            }
+            sorting {
+                defaultSequence: 3
+            }
+        )
+
+        column ROLE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 10
+            }
+            sorting {
+                defaultSequence: 3
+            }
+        )
+
+    )
+
+    region attachments (
+        name: Attachments
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 
+                       ATTACH_ID,
+                       SUPPLIER_ID,
+                       STATIC_NAME,
+                       FILE_NAME,
+                       MIME_TYPE,
+                       ORIGINAL_NAME,
+                       UPLOAD_DATE,
+                       apex_util.prepare_url(
+                            'f?p=' || :APP_ID || ':12:' || :APP_SESSION ||
+                            '::::P12_ATTACH_ID:' || ATTACH_ID
+                       ) as DOWNLOAD_LINK
+                from SUP_SUPPLIERS_ATTACHES
+                where SUPPLIER_ID = :P11_SUPPLIER_ID
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column ATTACH_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column DOWNLOAD_LINK (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Download
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            link {
+                target: {
+                    type: url
+                    url: #DOWNLOAD_LINK#
+                }
+                linkText: <i class="fa fa-download"></i>
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FILE_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 40
+            }
+        )
+
+        column MIME_TYPE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: File Type
+            }
+            layout {
+                sequence: 50
+            }
+        )
+
+        column ORIGINAL_NAME (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column STATIC_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: File Name
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column SUPPLIER_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column UPLOAD_DATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+    )
+
+    region botton-container (
+        name: Botton Container
+        type: staticContent
+        layout {
+            sequence: 60
+            slot: body
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+    )
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region master-records (
+        name: Master Records
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH my_role AS (
+                    SELECT approval_role
+                    FROM sup_approval_members
+                    WHERE employee_num = :APP_USER
+                      AND status = 'ACTIVE'
+                )
+                SELECT 
+                
+                    x.supplier_id,
+                    null AS link_class,
+                    apex_page.get_url(
+                        p_items  => 'P11_SUPPLIER_ID',
+                        p_values => x.supplier_id
+                    ) AS link,
+                x.status AS icon_class,
+                
+                    case
+                  when x.status like '%REJECT%' then 'aria-disabled="true"'
+                end as link_attr,
+                    null AS icon_color_class,
+                
+                    CASE 
+                        WHEN COALESCE(:P11_SUPPLIER_ID,'0') = x.supplier_id THEN 'is-active'
+                        ELSE ' '
+                    END AS list_class,
+                
+                    SUBSTR(x.company_name, 1, 50) ||
+                       CASE WHEN LENGTH(x.company_name) > 50 THEN '...' END AS list_title,
+                
+                case
+                  when x.status like '%REJECT%' then
+                       '<span style="color:#d63031;font-weight:bold">'||x.status||'</span>'
+                  when x.status = 'COMPLETE' then
+                       '<span style="color:#2ecc71;font-weight:bold">'||x.status||'</span>'
+                  else
+                       x.status
+                end as list_text,
+                
+                
+                case
+                  when x.status like '%REJECT%' then 'u-text-danger'
+                  when x.status = 'COMPLETE'   then 'u-text-success'
+                  else 'u-text-muted'
+                end as list_text_css,
+                
+                x.status as list_badge
+                FROM sup_suppliers x
+                JOIN my_role r ON 1 = 1
+                WHERE 
+                    -- SEARCH FILTER
+                    (
+                        :P11_SEARCH IS NULL
+                        OR UPPER(x.company_name) LIKE '%'||UPPER(:P11_SEARCH)||'%'
+                        OR UPPER(x.applay_as) LIKE '%'||UPPER(:P11_SEARCH)||'%'
+                    )
+                    AND
+                    (
+                        (r.approval_role = 'PROC'  AND x.status IN ('COMPLETE','PROCUREMENT_REJECTED','TECHNICAL_REJECTED','FINANCE_REJECTED','LEGAL_REJECTED'))
+                        OR
+                               ( r.approval_role = 'TECH'
+                          and x.status in ('PROCUREMENT_APPROVED')
+                          and exists (
+                              select 1
+                              from SUP_SUPPLIER_APPROVALS m
+                              where m.supplier_id     = x.supplier_id
+                                and m.technical_empno = :app_user        )        )
+                        OR
+                        (r.approval_role = 'FIN'   AND x.status IN ('TECHNICAL_APPROVED'/*,'FIN_REVIEW','FIN_REJECT'*/))
+                        OR
+                        (r.approval_role = 'LEGAL' AND x.status IN ('FINANCE_APPROVED'/*,'LEGAL_REVIEW','LEGAL_REJECT'*/))
+                    )
+                order by
+                  case
+                    when x.status = 'COMPLETE' then 1
+                    when x.status like '%REJECT%' then 2
+                    else 3
+                  end,
+                  x.company_name
+                
+                ```
+            pageItemsToSubmit: [
+                P11_SEARCH
+                P11_APPLAY_AS
+                P11_SUPPLIER_ID
+            ]
+        }
+        layout {
+            sequence: 20
+            slot: leftColumn
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+            cssClasses: search-results
+        }
+        security {
+            authorizationScheme: mustNotBePublicUser
+        }
+        reportLayout {
+            numberOfRows: 1000
+        }
+        componentAppearance {
+            template: @/media-list
+            templateOptions: [
+                #DEFAULT#
+                t-MediaList--stack
+            ]
+        }
+        performance {
+            maxRowsToProcess: 500
+        }
+        messages {
+            whenNoDataFound: <div class="u-tC">No data found.</div>
+        }
+
+        column ICON_CLASS (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: ICON_CLASS
+                alignment: center
+            }
+            layout {
+                sequence: 4
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column ICON_COLOR_CLASS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: ICON_COLOR_CLASS
+                alignment: center
+            }
+            layout {
+                sequence: 6
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LINK (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: LINK
+                alignment: center
+            }
+            layout {
+                sequence: 3
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LINK_ATTR (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: LINK_ATTR
+                alignment: center
+            }
+            layout {
+                sequence: 5
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LINK_CLASS (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: LINK_CLASS
+                alignment: center
+            }
+            layout {
+                sequence: 2
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LIST_BADGE (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: List Badge
+            }
+            layout {
+                sequence: 19
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LIST_CLASS (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: LIST_CLASS
+                alignment: center
+            }
+            layout {
+                sequence: 7
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LIST_TEXT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: LIST_TEXT
+                alignment: center
+            }
+            layout {
+                sequence: 9
+            }
+            sorting {
+                sortable: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column LIST_TEXT_CSS (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: List Text Css
+            }
+            layout {
+                sequence: 29
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LIST_TITLE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: LIST_TITLE
+                alignment: center
+            }
+            layout {
+                sequence: 8
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column SUPPLIER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: SUPPLIER_ID
+                alignment: center
+            }
+            layout {
+                sequence: 1
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region no-record-selected (
+        name: No Record Selected
+        type: staticContent
+        source {
+            htmlCode: No Record Selected
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P11_SUPPLIER_ID
+        }
+    )
+
+    region region-display-selector (
+        name: Region Display Selector
+        type: regionDisplaySelector
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: [
+                #DEFAULT#
+                margin-bottom-md
+            ]
+            cssClasses: js-detail-rds
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P11_SUPPLIER_ID
+        }
+        settings {
+            rememberSelection: false
+        }
+    )
+
+    region search (
+        name: Search
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: leftColumn
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+            cssClasses: [
+                search-region
+                padding-md
+            ]
+        }
+    )
+
+    region services (
+        name: Services
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: SUP_SERVICES
+            whereClause: "SUPPLIER_ID" = :P11_SUPPLIER_ID
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+            cssClasses: js-detail-region
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P11_SUPPLIER_ID
+        }
+        reportLayout {
+            numberOfRows: 100
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+                t-Report--inline
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        performance {
+            maxRowsToProcess: 5000
+        }
+        messages {
+            whenNoDataFound: No data found.
+        }
+        componentAdvanced {
+            stripHtml: true
+        }
+
+        column CATEGORY (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Category
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column COMMERCIAL_REGISTER (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Commercial Register
+                alignment: center
+            }
+            layout {
+                sequence: 28
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column CREATIONDATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 7
+            }
+        )
+
+        column GENERAL_INFO (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: General Info
+            }
+            layout {
+                sequence: 6
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LASTUPDATEDATE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 8
+            }
+        )
+
+        column PRODUCT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Service
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column SERVICE_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: link
+            heading {
+                heading: <span class="u-VisuallyHidden">Edit</span>
+            }
+            layout {
+                sequence: 1
+            }
+            link {
+                target: {
+                    page: 10
+                    items: {
+                        P10_SERVICE_ID: #SERVICE_ID#
+                    }
+                    action: resetPagination
+                }
+                linkText: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+        column SUPPLIER_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TAX_CARD (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Tax Card
+                alignment: center
+            }
+            layout {
+                sequence: 18
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region suppliers (
+        name: Suppliers
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                /*select SUPPLIER_ID,
+                       COMPANY_NAME,
+                       APPLAY_AS,
+                       COMPANY_CAPITAL,
+                       HEADOFF_ADDRESS,
+                       HEADOFF_PHONE,
+                       HEADOFF_MOBILE,
+                       HEADOFF_FAX,
+                       HEADOFF_EMAIL,
+                       WEBSITE,
+                       EXPERIENCE_EGY,
+                       EXPERIENCE_OUT_EGY,
+                       BRANCHES_EGY,
+                       BRANCHES_OUT_EGY,
+                       SECONDARY_BRANCH_INFO,
+                       CONTACT_PERSON,
+                       CONTACT_POSITION,
+                       CONTACT_MAIN_MOBILE,
+                       CONTACT_SEC_MOBILE,
+                       CONTACT_EMAIL,
+                       CREATIONDATE,
+                       LASTUPDATEDATE,
+                       SUPPLIER_REGISTERED_NO,
+                       STATUS,
+                       CREATED_ON,
+                       ACTIVATED_ON,
+                       LAST_LOGIN_ON,
+                       PASSWORD_HASH,
+                       LOCATION_LINE,
+                       IS_NEW
+                  from SUP_SUPPLIERS
+                 where "SUPPLIER_ID" = :P11_SUPPLIER_ID*/
+                 WITH my_role AS (
+                    SELECT approval_role
+                    FROM sup_approval_members
+                    WHERE employee_num = :APP_USER
+                      AND status = 'ACTIVE'
+                )
+                SELECT 
+                    ss.supplier_id,
+                    ss.company_name,
+                    APPLAY_AS,
+                       COMPANY_CAPITAL,
+                       HEADOFF_ADDRESS "HEAD OFFICE ADDRESS",
+                       HEADOFF_PHONE "HEAD OFFICE PHONE",
+                       HEADOFF_MOBILE "HEAD OFFICE MOBILE",
+                   -- ss.supplier_registered_no,
+                    ss.status,
+                   -- ser.categories_products,
+                    ss.creationdate,
+                    ss.lastupdatedate
+                FROM sup_suppliers ss
+                JOIN my_role r ON 1 = 1
+                   where ss.SUPPLIER_ID= :P11_SUPPLIER_ID
+                
+                -- LEFT JOIN (
+                --     SELECT supplier_id,
+                --            LISTAGG(category || ' - ' || product || ' - ' || COALESCE(general_info,''), ' | ')
+                --                WITHIN GROUP (ORDER BY category, product) AS categories_products
+                --     FROM sup_services
+                --    where ss.SUPPLIER_ID= :P11_SUPPLIER_ID
+                --     GROUP BY supplier_id
+                -- ) ser ON ser.supplier_id = ss.supplier_id
+                and (
+                        (r.approval_role = 'PROC'  AND ss.status IN ('COMPLETE','PROCUREMENT_REJECTED','TECHNICAL_REJECTED','FINANCE_REJECTED','LEGAL_REJECTED')) OR
+                        (r.approval_role = 'TECH'  AND ss.status IN ('PROCUREMENT_APPROVED'/*,'TECH_REVIEW','TECH_REJECT'*/)) OR
+                        (r.approval_role = 'FIN'   AND ss.status IN ('TECHNICAL_APPROVED'/*,'FIN_REVIEW','FIN_REJECT'*/)) OR
+                        (r.approval_role = 'LEGAL' AND ss.status IN ('FINANCE_APPROVED'/*,'LEGAL_REVIEW','LEGAL_REJECT'*/))
+                      )
+                ORDER BY ss.creationdate DESC;
+                
+                ```
+            pageItemsToSubmit: P11_SUPPLIER_ID
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+            cssClasses: js-master-region
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P11_SUPPLIER_ID
+        }
+        componentAppearance {
+            template: @/value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+        performance {
+            maxRowsToProcess: 500
+        }
+        messages {
+            whenNoDataFound: No Record Selected
+        }
+        componentAdvanced {
+            stripHtml: true
+        }
+
+        column APPLAY_AS (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Apply As
+            }
+            layout {
+                sequence: 52
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COMPANY_CAPITAL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Company Capital
+            }
+            layout {
+                sequence: 62
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column COMPANY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Company Name
+            }
+            layout {
+                sequence: 2
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "COMPANY_NAME" is not null
+                    and "SUPPLIER_ID" = :P11_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column CREATIONDATE (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Creationdate
+            }
+            layout {
+                sequence: 21
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "CREATIONDATE" is not null
+                    and "SUPPLIER_ID" = :P11_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column "HEAD OFFICE ADDRESS" (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Head Office Address
+            }
+            layout {
+                sequence: 112
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column "HEAD OFFICE MOBILE" (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Head Office Mobile
+            }
+            layout {
+                sequence: 132
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column "HEAD OFFICE PHONE" (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Head Office Phone
+            }
+            layout {
+                sequence: 122
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column LASTUPDATEDATE (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: Lastupdatedate
+            }
+            layout {
+                sequence: 22
+            }
+            sorting {
+                sortable: false
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "LASTUPDATEDATE" is not null
+                    and "SUPPLIER_ID" = :P11_SUPPLIER_ID
+                    ```
+            }
+        )
+
+        column STATUS (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 142
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column SUPPLIER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1 from "SUP_SUPPLIERS"
+                    where "SUPPLIER_ID" is not null
+                    and "SUPPLIER_ID" = :P11_SUPPLIER_ID
+                    ```
+            }
+        )
+
+    )
+
+    pageItem P11_APPLAY_AS (
+        type: selectList
+        label {
+            label: Applay As
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Supplier;Supplier,Contractor;Contractor,Both;Both
+        }
+        layout {
+            sequence: 9
+            slot: body
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    pageItem P11_SEARCH (
+        type: textField
+        label {
+            label: Search
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @search
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/hidden
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--large
+                t-Form-fieldContainer--postTextBlock
+            ]
+            icon: fa-search
+            width: 30
+            valuePlaceholder: Search...
+        }
+    )
+
+    pageItem P11_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @suppliers
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button approve-reject (
+        buttonName: Approve-Reject
+        label: Approve / Reject
+        layout {
+            sequence: 10
+            region: @botton-container
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+                t-Button--iconLeft
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 14
+                items: {
+                    P14_SUPPLIER_ID: &P11_SUPPLIER_ID.
+                }
+                action: resetPagination
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :app_user not in ( '1921')
+        }
+    )
+
+    button create (
+        buttonName: CREATE
+        label: Create
+        layout {
+            sequence: 20
+            region: @breadcrumb
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-plus
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 9
+                clearCache: 9
+                action: resetPagination
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button edit (
+        buttonName: EDIT
+        label: Edit
+        layout {
+            sequence: 20
+            region: @suppliers
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--noUI
+                t-Button--iconLeft
+            ]
+            icon: fa-pencil-square-o
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 9
+                items: {
+                    P9_SUPPLIER_ID: &P11_SUPPLIER_ID.
+                }
+                clearCache: 9
+                action: resetPagination
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        advanced {
+            htmlDomId: edit_master_btn
+        }
+    )
+
+    button pop-sup-services (
+        buttonName: POP_SUP_SERVICES
+        label: Add Services
+        layout {
+            sequence: 10
+            region: @services
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--noUI
+            ]
+            icon: fa-plus
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 10
+                items: {
+                    P10_SUPPLIER_ID: &P11_SUPPLIER_ID.
+                }
+                clearCache: 10
+                action: resetPagination
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button reset (
+        buttonName: RESET
+        label: Reset
+        layout {
+            sequence: 10
+            region: @breadcrumb
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--noUI
+                t-Button--iconLeft
+                t-Button--gapRight
+            ]
+            icon: fa-undo-alt
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 11
+                clearCache: 5
+                action: resetPagination
+                request: RESET
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction dialog-closed (
+        name: Dialog Closed
+        execution {
+            sequence: 40
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @services
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode: apex.message.showPageSuccess('Services row(s) updated.');
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @services
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction dialog-closed-2 (
+        name: Dialog Closed
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @suppliers
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode: apex.message.showPageSuccess('Suppliers row(s) updated.');
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @suppliers
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction new (
+        name: New
+        execution {
+            sequence: 210
+        }
+        when {
+            event: ready
+        }
+        clientSideCondition {
+            type: itemIsNull
+            item: P11_SUPPLIER_ID
+        }
+
+        action native-disable (
+            action: disable
+            affectedElements {
+                selectionType: button
+                button: @approve-reject
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+        action native-enable (
+            action: enable
+            affectedElements {
+                selectionType: button
+                button: @approve-reject
+            }
+            execution {
+                sequence: 10
+                fireWhenEventResultIs: false
+            }
+        )
+
+    )
+
+    dynamicAction perform-search (
+        name: Perform Search
+        execution {
+            sequence: 150
+        }
+        when {
+            event: keypress
+            selectionType: items
+            items: P11_SEARCH
+        }
+        clientSideCondition {
+            type: jsExpression
+            javaScriptExpression: this.browserEvent.which === apex.jQuery.ui.keyCode.ENTER
+        }
+
+        action native-cancel-event (
+            action: cancelEvent
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @master-records
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh (
+        name: refresh
+        execution {
+            sequence: 160
+        }
+        when {
+            selectionType: items
+            items: P11_APPLAY_AS
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @master-records
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-2 (
+        name: Refresh
+        execution {
+            sequence: 200
+        }
+        when {
+            event: apexafterrefresh
+            selectionType: region
+            region: @approval-history
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @approval-history
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-att (
+        name: Refresh_att
+        execution {
+            sequence: 190
+        }
+        when {
+            event: apexafterrefresh
+            selectionType: region
+            region: @attachments
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @attachments
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-ser (
+        name: Refresh_Ser
+        execution {
+            sequence: 180
+        }
+        when {
+            event: apexafterrefresh
+            selectionType: region
+            region: @services
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @services
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-sup (
+        name: Refresh_sup
+        execution {
+            sequence: 170
+        }
+        when {
+            event: region/interactiveGrid/interactivegridreportchange
+            selectionType: region
+            region: @suppliers
+        }
+
+        action refresh (
+            name: refresh
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @suppliers
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process page-default-supplier (
+        name: Page Default Supplier
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    v_supplier_id sup_suppliers.supplier_id%type;
+                begin
+                    select supplier_id
+                    into v_supplier_id
+                    from (
+                        with my_role as (
+                            select approval_role
+                            from sup_approval_members
+                            where employee_num = :APP_USER
+                              and status = 'ACTIVE'
+                        )
+                        select x.supplier_id
+                        from sup_suppliers x
+                        join my_role r on 1 = 1
+                        where
+                            (
+                                :P11_SEARCH is null
+                                or upper(x.company_name) like '%' || upper(:P11_SEARCH) || '%'
+                                or upper(x.applay_as) like '%' || upper(:P11_SEARCH) || '%'
+                            )
+                        and (
+                                (r.approval_role = 'PROC'  and x.status in ('COMPLETE'))
+                             or (r.approval_role = 'TECH'  and x.status in ('PROCUREMENT_APPROVED'))
+                             or (r.approval_role = 'FIN'   and x.status in ('TECHNICAL_APPROVED'))
+                             or (r.approval_role = 'LEGAL' and x.status in ('FINANCE_APPROVED'))
+                        )
+                        order by x.company_name
+                    )
+                    where rownum = 1;
+                
+                    :P11_SUPPLIER_ID := v_supplier_id;
+                
+                exception
+                    when no_data_found then
+                        :P11_SUPPLIER_ID := null;
+                end;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 194455300136640134
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P11_SUPPLIER_ID
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    process set-default-supplier (
+        name: Set Default Supplier
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    v_supplier_id sup_suppliers.supplier_id%type;
+                begin
+                    select supplier_id
+                    into v_supplier_id
+                    from (
+                        with my_role as (
+                            select approval_role
+                            from sup_approval_members
+                            where employee_num = :APP_USER
+                              and status = 'ACTIVE'
+                        )
+                        select x.supplier_id
+                        from sup_suppliers x
+                        join my_role r on 1 = 1
+                        where
+                            (
+                                :P11_SEARCH is null
+                                or upper(x.company_name) like '%' || upper(:P11_SEARCH) || '%'
+                                or upper(x.applay_as) like '%' || upper(:P11_SEARCH) || '%'
+                            )
+                        and (
+                                (r.approval_role = 'PROC'  and x.status in ('COMPLETE'))
+                             or (r.approval_role = 'TECH'  and x.status in ('PROCUREMENT_APPROVED'))
+                             or (r.approval_role = 'FIN'   and x.status in ('TECHNICAL_APPROVED'))
+                             or (r.approval_role = 'LEGAL' and x.status in ('FINANCE_APPROVED'))
+                        )
+                        order by x.company_name
+                    )
+                    where rownum = 1;
+                
+                    :P11_SUPPLIER_ID := v_supplier_id;
+                
+                exception
+                    when no_data_found then
+                        :P11_SUPPLIER_ID := null;
+                end;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 194455248902640133
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P11_SUPPLIER_ID
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    branch (
+        name: Go To Page 14
+        execution {
+            sequence: 10
+            point: processing
+        }
+        behavior {
+            target: {
+                page: 14
+                items: {
+                    P14_SUPPLIER_ID: &P11_SUPPLIER_ID.
+                }
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @approve-reject
+        }
+    )
+
+)

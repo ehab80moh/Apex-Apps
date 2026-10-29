@@ -1,0 +1,29 @@
+authentication oracle-apex-accounts (
+    name: Oracle APEX Accounts
+    type: oracleApexAccounts
+)
+
+authentication supplier-authentication (
+    name: Supplier Authentication
+    type: custom
+    settings {
+        authFunctionName: SUP_AUTH_PKG.AUTHENTICATE_SUPPLIER
+    }
+    source {
+        plsqlCode:
+            ```plsql
+            --return sup_auth_pkg.authenticate_supplier(:P9999_USERNAME, :P9999_PASSWORD);
+            BEGIN 
+            NULL;
+            END;
+            ```
+    }
+    postLogout {
+        redirectTo: url
+        url: f?p=&APP_ID.:9999:&APP_SESSION.::NO:::
+    }
+    sessionSharing {
+        type: custom
+        cookieName: EPROM_HQ
+    }
+)

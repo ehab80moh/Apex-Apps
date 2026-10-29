@@ -1,0 +1,4793 @@
+page 52 (
+    name: Task Details
+    title: &APP_TEXT$ITR_PAGE52_TITLE.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @drawer
+        templateOptions: [
+            #DEFAULT#
+            js-dialog-class-t-Drawer--pullOutEnd
+        ]
+        cssClasses: p52-it-approval
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            apex.jQuery(() => {
+                document.addEventListener("click", function(event) {
+                    const link = event.target.closest("a.js-prescription-review-handoff");
+                    if (!link) { return; }
+                    if (link.dataset.handoffReady === "Y") {
+                        delete link.dataset.handoffReady;
+                        return;
+                    }
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    if (link.dataset.handoffBusy === "Y") { return; }
+                    link.dataset.handoffBusy = "Y";
+                    apex.server.process("PREPARE_PRESCRIPTION_REVIEW", {x01: apex.item("P52_TASK_ID").getValue()}, {
+                        dataType: "json",
+                        success: function(data) {
+                            delete link.dataset.handoffBusy;
+                            if (data.ready === true) { link.dataset.handoffReady = "Y"; link.click(); }
+                        },
+                        error: function(xhr, status, error) {
+                            delete link.dataset.handoffBusy;
+                            apex.message.showErrors([{type: "error", location: "page", message: "تعذر فتح المراجعة. أعد تحميل المهمة وحاول مرة أخرى.", unsafe: false}]);
+                        }
+                    });
+                }, true);
+                apex.jQuery("a.taskActionMenu").each((index, item) => {
+                    const element = apex.jQuery(item);
+                    const actionName = decodeURI(element.attr("href")).match(/\$([^?]+)/)[1];
+                    const actionLabel = element.text();
+                    apex.actions.add({
+                        name: actionName,
+                        label: actionLabel,
+                        action: (event, element, args) => {
+                            if (args.do === "submit") {
+                                apex.page.submit(actionName.toUpperCase());
+                            }
+                            else if (args.do === "openRegion") {
+                                apex.theme.openRegion(actionName.toUpperCase());
+                            }
+                        }
+                    });
+                });
+            });
+            ```
+    }
+    css {
+        inline:
+            ```css
+            .p52-it-approval .t-Dialog-body {
+                background: #f4f7fb;
+            }
+            .p52-summary-card,
+            .p52-request-card {
+                border: 1px solid #dbe5ef;
+                border-radius: 16px;
+                background: #fff;
+                box-shadow: 0 10px 28px rgba(15, 23, 42, .07);
+                overflow: hidden;
+            }
+            .p52-summary-card .t-Region-body,
+            .p52-request-card .t-Region-body {
+                padding: 1rem;
+            }
+            .p52-summary-card .a-ContentRow-title,
+            .p52-request-card .a-ContentRow-title {
+                color: #0f172a;
+                font-weight: 800;
+                line-height: 1.45;
+            }
+            .p52-summary-card .a-ContentRow-badge {
+                border-radius: 999px;
+                font-weight: 800;
+            }
+            .p52-meta-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: .7rem;
+                margin-top: .8rem;
+            }
+            .p52-meta-tile,
+            .p52-detail-block {
+                padding: .7rem .8rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                background: #f8fafc;
+            }
+            .p52-meta-label {
+                display: block;
+                margin-bottom: .2rem;
+                color: #64748b;
+                font-size: .78rem;
+                font-weight: 700;
+            }
+            .p52-meta-value {
+                color: #0f172a;
+                font-size: .98rem;
+                font-weight: 800;
+                overflow-wrap: anywhere;
+            }
+            .p52-section-title {
+                margin: 1rem 0 .55rem;
+                color: #0f766e;
+                font-size: .9rem;
+                font-weight: 800;
+            }
+            .p52-detail-block {
+                margin-top: .75rem;
+                background: #fff;
+                line-height: 1.65;
+                white-space: pre-wrap;
+            }
+            .p52-action-bar {
+                border-top: 1px solid #dbe5ef;
+                background: rgba(255, 255, 255, .96);
+                backdrop-filter: blur(8px);
+            }
+            .p52-action-bar .t-Button {
+                border-radius: 999px;
+                font-weight: 800;
+            }
+            .p52-it-approval :focus-visible {
+                outline: 3px solid rgba(14, 165, 233, .35);
+                outline-offset: 2px;
+            }
+            [dir="rtl"] .p52-it-approval .a-ContentRow,
+            [dir="rtl"] .p52-it-approval .p52-meta-grid {
+                text-align: right;
+            }
+            @media (max-width: 640px) {
+                .p52-meta-grid {
+                    grid-template-columns: 1fr;
+                }
+                .p52-action-bar .t-Button {
+                    flex: 1 1 auto;
+                }
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    advanced {
+        enableDuplicatePageSubmissions: false
+    }
+
+    region add-comment (
+        name: Add Comment
+        type: staticContent
+        layout {
+            sequence: 110
+            parentRegion: @comments
+            slot: subRegions
+        }
+        appearance {
+            template: @inline-popup
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-nosize
+            ]
+        }
+        accessibility {
+            landmarkType: form
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_add_comment )
+                ```
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 80
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-ButtonRegion--stickToBottom
+                t-ButtonRegion--slimPadding
+                margin-bottom-none
+            ]
+            cssClasses: p52-action-bar
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+    )
+
+    region cancel-task (
+        name: Cancel Task
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <p>Do you really want to cancel this task?</p>
+                <p>This will mark the task as no longer needed.</p>
+                ```
+        }
+        layout {
+            sequence: 80
+            parentRegion: @subject
+            slot: subRegions
+        }
+        appearance {
+            template: @inline-popup
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-nosize
+            ]
+        }
+        accessibility {
+            landmarkType: form
+        }
+        advanced {
+            htmlDomId: CANCEL
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_cancel )
+                ```
+        }
+    )
+
+    region comments (
+        name: &APP_TEXT$ITR_PAGE52_COMMENTS.
+        type: themeTemplateComponent/comments
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select apex_string.get_initials(created_by) as user_initials,
+                       'u-color-'||ora_hash(created_by,45)  as user_css_class,
+                       created_by                           as user_name,
+                       text                                 as comment_text,
+                       created_on                           as comment_date
+                  from apex_task_comments
+                 where nvl(:P52_ALL_COMMENTS, 'N') = 'N'
+                       and task_id = :P52_TASK_ID
+                    or nvl(:P52_ALL_COMMENTS, 'N') = 'Y'
+                       and task_id in ( 
+                                select task_id
+                                  from apex_tasks
+                               connect by prior previous_task_id = task_id
+                                 start with task_id = :P52_TASK_ID )
+                 order by created_on desc
+                ```
+            pageItemsToSubmit: [
+                P52_TASK_ID
+                P52_ALL_COMMENTS
+            ]
+        }
+        layout {
+            sequence: 60
+            slot: contentBody
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                js-useLocalStorage
+                t-Region--scrollBody
+            ]
+            renderComponents: belowContent
+        }
+        accessibility {
+            landmarkType: region
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                  from table(apex_human_task.get_tasks(
+                           p_context => 'SINGLE_TASK',
+                           p_task_id => :P52_TASK_ID))
+                ```
+        }
+        componentAppearance {
+            display: report
+        }
+        settings {
+            commentText: COMMENT_TEXT
+            userName: USER_NAME
+            date: COMMENT_DATE
+            style: chatSpeechBubbles
+            applyThemeColors: false
+        }
+        plugin-avatar {
+            type: initials
+            initials: USER_INITIALS
+            description: &USER_NAME.
+            shape: circular
+        }
+        messages {
+            whenNoDataFound: No Comments
+            noDataFoundIcon: fa-comments-o fa-lg
+        }
+
+        column COMMENT_DATE (
+            layout {
+                sequence: 50
+            }
+            source {
+                databaseColumn: COMMENT_DATE
+                dataType: date
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            appearance {
+                formatMask: SINCE
+            }
+        )
+
+        column COMMENT_TEXT (
+            layout {
+                sequence: 40
+            }
+            source {
+                databaseColumn: COMMENT_TEXT
+                dataType: varchar2
+            }
+        )
+
+        column USER_CSS_CLASS (
+            layout {
+                sequence: 20
+            }
+            source {
+                databaseColumn: USER_CSS_CLASS
+                dataType: varchar2
+            }
+        )
+
+        column USER_INITIALS (
+            layout {
+                sequence: 10
+            }
+            source {
+                databaseColumn: USER_INITIALS
+                dataType: varchar2
+            }
+        )
+
+        column USER_NAME (
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: USER_NAME
+                dataType: varchar2
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+        )
+
+    )
+
+    region delegate (
+        name: Delegate
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @subject
+            slot: subRegions
+        }
+        appearance {
+            template: @inline-popup
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-nosize
+            ]
+        }
+        accessibility {
+            landmarkType: form
+        }
+        advanced {
+            htmlDomId: DELEGATE
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_delegate )
+                ```
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region details (
+        name: &APP_TEXT$ITR_PAGE52_REQUEST_DETAILS.
+        type: themeTemplateComponent/contentRow
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                with visible_task as (
+                    select task_id
+                      from table(apex_human_task.get_tasks(
+                                   p_context => 'SINGLE_TASK',
+                                   p_task_id => :P52_TASK_ID))
+                ),
+                request_parameter as (
+                    select p.task_id,
+                           max(case when p.param_static_id = 'T_REQUEST_ID'
+                                    then to_number(p.param_value) end) as request_id,
+                           max(case when p.param_static_id = 'T_REQUEST_TYPE_ID'
+                                    then to_number(p.param_value) end) as request_type_id
+                      from apex_task_parameters p
+                      join visible_task t on t.task_id = p.task_id
+                     group by p.task_id
+                )
+                select p.request_id,
+                       coalesce(to_char(r.request_no), pr.request_no, to_char(p.request_id)) as request_no,
+                       case when p.request_type_id = 202
+                            then to_char(pr.submitted_at, 'YYYY-MM-DD')
+                            else to_char(r.request_date, 'YYYY-MM-DD')
+                       end as submitted_on,
+                       case when p.request_type_id = 202
+                            then coalesce(trim(pr.employee_name_snapshot), pr.employee_number)
+                            else coalesce(trim(central.get_emp_name(r.emp_id)), r.emp_id)
+                       end as employee_name,
+                       case when p.request_type_id = 202 then pr.employee_number else r.emp_id end as employee_id,
+                       r.emp_building as building,
+                       r.emp_room as room_no,
+                       case when p.request_type_id = 202 then null
+                            else case lower(trim(r.criticality))
+                                   when 'normal' then apex_lang.message('ITR_PAGE705_PRIORITY_NORMAL')
+                                   when 'urgent' then apex_lang.message('ITR_PAGE705_PRIORITY_URGENT')
+                                   else coalesce(r.criticality, apex_lang.message('ITR_PAGE52_UNAVAILABLE'))
+                                 end
+                       end as criticality_label,
+                       case when p.request_type_id = 202
+                            then apex_lang.message('MEDICAL_PRESCRIPTION_REQUEST_FORM')
+                            else case d.id
+                                   when 1 then apex_lang.message('ITR_SERVICE_RELOCATE')
+                                   when 2 then apex_lang.message('ITR_SERVICE_UPGRADE')
+                                   when 3 then apex_lang.message('ITR_SERVICE_NEW_EQUIPMENT')
+                                   when 4 then apex_lang.message('ITR_SERVICE_CONSUMABLES')
+                                   when 5 then apex_lang.message('ITR_SERVICE_EMAIL_ACCOUNT')
+                                   when 6 then apex_lang.message('ITR_SERVICE_SOFTWARE_INSTALL')
+                                   when 7 then apex_lang.message('ITR_SERVICE_SOFTWARE_DEVELOPMENT')
+                                   when 8 then apex_lang.message('ITR_SERVICE_NEW_USER_ACCOUNT')
+                                   when 9 then apex_lang.message('ITR_SERVICE_HARDWARE_SUPPORT')
+                                   when 10 then apex_lang.message('ITR_SERVICE_SOFTWARE_SUPPORT')
+                                   when 11 then apex_lang.message('ITR_SERVICE_BACKUP')
+                                   when 12 then apex_lang.message('ITR_SERVICE_EDMS')
+                                   when 13 then apex_lang.message('ITR_SERVICE_JOIN_DOMAIN')
+                                   when 14 then apex_lang.message('ITR_SERVICE_NETWORK_ACCESS')
+                                   when 15 then apex_lang.message('ITR_SERVICE_INTERNET_ACCESS')
+                                   when 16 then apex_lang.message('ITR_SERVICE_FILE_SERVER_ACCESS')
+                                   when 17 then apex_lang.message('ITR_SERVICE_EBS_NEW_USER')
+                                   when 18 then apex_lang.message('ITR_SERVICE_EBS_RESPONSIBILITY')
+                                   when 19 then apex_lang.message('ITR_SERVICE_EBS_PASSWORD_RESET')
+                                   when 20 then apex_lang.message('ITR_SERVICE_EBS_BUG_REPORT')
+                                   when 21 then apex_lang.message('ITR_SERVICE_EBS_CUSTOM_REPORT')
+                                   when 22 then apex_lang.message('ITR_SERVICE_APEX_NEW_APPLICATION')
+                                   when 23 then apex_lang.message('ITR_SERVICE_APEX_PAGE_MODIFICATION')
+                                   when 24 then apex_lang.message('ITR_SERVICE_APEX_BUG_REPORT')
+                                   when 25 then apex_lang.message('ITR_SERVICE_APEX_ACCESS_PERMISSION')
+                                   else d.title
+                                 end
+                       end as service_title,
+                       r.description,
+                       case when p.request_type_id = 202 then pr.employee_note else r.user_comment end as user_comment
+                  from request_parameter p
+                  left join hq_elevated.itr_requests r
+                    on r.request_id = p.request_id
+                   and nvl(p.request_type_id, -1) not in (106, 202)
+                  left join hq_elevated.itr_request_type_details d
+                    on d.id = r.request_type_detail_id
+                  left join med.md_pres_request pr
+                    on pr.request_id = p.request_id
+                   and p.request_type_id = 202
+                 where (p.request_type_id = 202 and pr.request_id is not null)
+                    or (nvl(p.request_type_id, -1) not in (106, 202) and r.request_id is not null)
+                ```
+            pageItemsToSubmit: P52_TASK_ID
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--hideHeader
+                t-Region--noUI
+            ]
+            cssClasses: p52-request-card
+        }
+        accessibility {
+            landmarkType: region
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                  from dual
+                 where ( :P52_REQUEST_TYPE_ID = '202'
+                         and exists (
+                             select 1
+                               from med.md_pres_request pr
+                              where pr.request_id = to_number(:P52_REQUEST_ID) ) )
+                    or ( nvl(:P52_REQUEST_TYPE_ID, '-') not in ('106', '202')
+                         and exists (
+                             select 1
+                               from hq_elevated.itr_requests r
+                              where r.request_id = to_number(:P52_REQUEST_ID) ) )
+                ```
+        }
+        componentAppearance {
+            display: partial
+        }
+        settings {
+            overline: &APP_TEXT$ITR_PAGE52_REQUEST_DETAILS.
+            title: &SERVICE_TITLE.
+            description:
+                ```html
+                <div class="p52-section-title">&APP_TEXT$ITR_PAGE52_REQUESTER.</div>
+                <div class="p52-meta-grid">
+                    <div class="p52-meta-tile"><span class="p52-meta-label">&APP_TEXT$ITR_PAGE52_EMPLOYEE_NAME.</span><span class="p52-meta-value">&EMPLOYEE_NAME!HTML.</span></div>
+                    <div class="p52-meta-tile"><span class="p52-meta-label">&APP_TEXT$ITR_PAGE52_EMPLOYEE_ID.</span><span class="p52-meta-value">&EMPLOYEE_ID!HTML.</span></div>
+                    {if BUILDING/}<div class="p52-meta-tile"><span class="p52-meta-label">&APP_TEXT$ITR_PAGE52_BUILDING.</span><span class="p52-meta-value">&BUILDING!HTML.</span></div>{endif/}
+                    {if ROOM_NO/}<div class="p52-meta-tile"><span class="p52-meta-label">&APP_TEXT$ITR_PAGE52_ROOM.</span><span class="p52-meta-value">&ROOM_NO!HTML.</span></div>{endif/}
+                </div>
+                <div class="p52-section-title">&APP_TEXT$ITR_PAGE52_REQUEST_DETAILS.</div>
+                <div class="p52-meta-grid">
+                    <div class="p52-meta-tile"><span class="p52-meta-label">&APP_TEXT$ITR_PAGE52_REQUEST_NO.</span><span class="p52-meta-value">&REQUEST_NO!HTML.</span></div>
+                    <div class="p52-meta-tile"><span class="p52-meta-label">&APP_TEXT$ITR_PAGE52_SUBMITTED_ON.</span><span class="p52-meta-value">&SUBMITTED_ON!HTML.</span></div>
+                    {if CRITICALITY_LABEL/}<div class="p52-meta-tile"><span class="p52-meta-label">&APP_TEXT$ITR_PAGE52_PRIORITY.</span><span class="p52-meta-value">&CRITICALITY_LABEL!HTML.</span></div>{endif/}
+                </div>
+                {if DESCRIPTION/}<div class="p52-detail-block"><span class="p52-meta-label">&APP_TEXT$ITR_PAGE52_DESCRIPTION.</span><span class="p52-meta-value">&DESCRIPTION!HTML.</span></div>{endif/}
+                {if USER_COMMENT/}<div class="p52-detail-block"><span class="p52-meta-label">&APP_TEXT$ITR_PAGE52_REQUESTER_NOTE.</span><span class="p52-meta-value">&USER_COMMENT!HTML.</span></div>{endif/}
+                ```
+        }
+
+        column BUILDING (
+            layout {
+                sequence: 60
+            }
+            source {
+                databaseColumn: BUILDING
+                dataType: varchar2
+            }
+        )
+
+        column CRITICALITY_LABEL (
+            layout {
+                sequence: 80
+            }
+            source {
+                databaseColumn: CRITICALITY_LABEL
+                dataType: varchar2
+            }
+        )
+
+        column DESCRIPTION (
+            layout {
+                sequence: 100
+            }
+            source {
+                databaseColumn: DESCRIPTION
+                dataType: varchar2
+            }
+        )
+
+        column EMPLOYEE_ID (
+            layout {
+                sequence: 50
+            }
+            source {
+                databaseColumn: EMPLOYEE_ID
+                dataType: varchar2
+            }
+        )
+
+        column EMPLOYEE_NAME (
+            layout {
+                sequence: 40
+            }
+            source {
+                databaseColumn: EMPLOYEE_NAME
+                dataType: varchar2
+            }
+        )
+
+        column REQUEST_ID (
+            layout {
+                sequence: 10
+            }
+            source {
+                databaseColumn: REQUEST_ID
+                dataType: number
+                primaryKey: true
+            }
+        )
+
+        column REQUEST_NO (
+            layout {
+                sequence: 20
+            }
+            source {
+                databaseColumn: REQUEST_NO
+                dataType: varchar2
+            }
+        )
+
+        column ROOM_NO (
+            layout {
+                sequence: 70
+            }
+            source {
+                databaseColumn: ROOM_NO
+                dataType: varchar2
+            }
+        )
+
+        column SERVICE_TITLE (
+            layout {
+                sequence: 90
+            }
+            source {
+                databaseColumn: SERVICE_TITLE
+                dataType: varchar2
+            }
+        )
+
+        column SUBMITTED_ON (
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: SUBMITTED_ON
+                dataType: varchar2
+            }
+        )
+
+        column USER_COMMENT (
+            layout {
+                sequence: 110
+            }
+            source {
+                databaseColumn: USER_COMMENT
+                dataType: varchar2
+            }
+        )
+
+    )
+
+    region due (
+        name: Due
+        type: staticContent
+        layout {
+            sequence: 30
+            parentRegion: @subject
+            slot: subRegions
+        }
+        appearance {
+            template: @inline-popup
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-nosize
+            ]
+        }
+        accessibility {
+            landmarkType: form
+        }
+        advanced {
+            htmlDomId: SET_DUE_DATE
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_set_due_date )
+                ```
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region edit-parameter (
+        name: Edit Parameter
+        type: staticContent
+        layout {
+            sequence: 90
+            parentRegion: @details
+            slot: subRegions
+        }
+        appearance {
+            template: @inline-popup
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-nosize
+            ]
+        }
+        accessibility {
+            landmarkType: form
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P52_CAN_UPDATE_PARAMS = 'Y'
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region exclude-participant (
+        name: Exclude Participant
+        type: staticContent
+        layout {
+            sequence: 100
+            parentRegion: @subject
+            slot: subRegions
+        }
+        appearance {
+            template: @inline-popup
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-nosize
+            ]
+        }
+        accessibility {
+            landmarkType: form
+        }
+        advanced {
+            htmlDomId: EXCLUDE_OWNER
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_exclude_owner )
+                ```
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region history (
+        name: &APP_TEXT$ITR_PAGE52_HISTORY.
+        type: themeTemplateComponent/comments
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_msg,
+                       event_creator,
+                       event_timestamp
+                  from table ( apex_human_task.get_task_history (
+                                   p_task_id     => :P52_TASK_ID,
+                                   p_include_all => :P52_ALL_HISTORY ) )
+                 order by event_timestamp desc
+                ```
+            pageItemsToSubmit: [
+                P52_TASK_ID
+                P52_ALL_HISTORY
+            ]
+        }
+        layout {
+            sequence: 70
+            slot: contentBody
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                js-useLocalStorage
+                is-collapsed
+                t-Region--scrollBody
+            ]
+            renderComponents: belowContent
+        }
+        accessibility {
+            landmarkType: region
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                  from table(apex_human_task.get_tasks(
+                           p_context => 'SINGLE_TASK',
+                           p_task_id => :P52_TASK_ID))
+                ```
+        }
+        componentAppearance {
+            display: report
+        }
+        settings {
+            commentText: DISPLAY_MSG
+            userName: EVENT_CREATOR
+            date: EVENT_TIMESTAMP
+            displayAvatar: false
+            applyThemeColors: false
+        }
+
+        column DISPLAY_MSG (
+            layout {
+                sequence: 10
+            }
+            source {
+                databaseColumn: DISPLAY_MSG
+                dataType: varchar2
+            }
+        )
+
+        column EVENT_CREATOR (
+            layout {
+                sequence: 20
+            }
+            source {
+                databaseColumn: EVENT_CREATOR
+                dataType: varchar2
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+        )
+
+        column EVENT_TIMESTAMP (
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: EVENT_TIMESTAMP
+                dataType: date
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            appearance {
+                formatMask: SINCE
+            }
+        )
+
+    )
+
+    region invite-participant (
+        name: Invite Participant
+        type: staticContent
+        layout {
+            sequence: 60
+            parentRegion: @subject
+            slot: subRegions
+        }
+        appearance {
+            template: @inline-popup
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-nosize
+            ]
+        }
+        accessibility {
+            landmarkType: form
+        }
+        advanced {
+            htmlDomId: ADD_OWNER
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_add_owner )
+                ```
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region medical-referral-details (
+        name: Medical referral details
+        type: themeTemplateComponent/contentRow
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                with visible_task as (
+                    select task_id
+                      from table(apex_human_task.get_tasks(
+                               p_context => 'SINGLE_TASK',
+                               p_task_id => :P52_TASK_ID))
+                ),
+                task_parameters as (
+                    select p.task_id,
+                           max(case when p.param_static_id = 'T_REQUEST_ID'
+                                   then to_number(p.param_value) end) as request_id,
+                           max(case when p.param_static_id = 'T_REQUEST_TYPE_ID'
+                                   then to_number(p.param_value) end) as request_type_id
+                      from apex_task_parameters p
+                      join visible_task t on t.task_id = p.task_id
+                     group by p.task_id
+                )
+                select flow.referal_id,
+                       flow.emp_name_snapshot,
+                       flow.emp_id_snapshot,
+                       flow.beneficiary_name_snapshot,
+                       flow.project_snapshot,
+                       flow.provider_name_snapshot,
+                       CASE
+                           WHEN flow.speciality_id IN ('0', '6', '26', '27', '28', '29', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '89', '90', '109', '490', '491', '492', '493', '494', '510', '511', '100731', '100732', '100733', '100734', '100735', '100736', '100737', '100738', '100739', '100740', '100741', '100742', '100743', '100744', '100745', '100746', '100751', '100752', '100771', '100772', '100773', '100774')
+                           THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_SPECIALITY_' || flow.speciality_id)
+                           ELSE flow.speciality_name_snapshot
+                       END AS speciality_name_snapshot,
+                       CASE
+                           WHEN flow.requirement_id = MED.MD_REFERAL_RULES_PKG.DEFAULT_REQUIREMENT_ID()
+                           THEN APEX_LANG.MESSAGE('MEDICAL_REFERRAL_REQUIREMENT_VALUE')
+                           ELSE flow.requirement_snapshot
+                       END AS requirement_snapshot,
+                       flow.letter_date,
+                       flow.available_from,
+                       flow.valid_to,
+                       flow.current_approval_sequence,
+                       apex_util.prepare_url(
+                           apex_page.get_url(
+                               p_page   => 109,
+                               p_items  => 'P109_REFERAL_ID,P109_TASK_ID',
+                               p_values => flow.referal_id || ',' || params.task_id
+                           ),
+                           p_checksum_type => 'SESSION'
+                       ) as medical_details_url
+                  from task_parameters params
+                 join med.md_referal_flow flow
+                    on flow.referal_id = params.request_id
+                 where params.request_type_id = 106
+                   and flow.status <> 'CANCELLED'
+                ```
+            pageItemsToSubmit: P52_TASK_ID
+        }
+        layout {
+            sequence: 41
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--hideHeader
+                t-Region--noUI
+            ]
+            cssClasses: p52-request-card
+        }
+        accessibility {
+            landmarkType: region
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P52_REQUEST_TYPE_ID = '106'
+        }
+        componentAppearance {
+            display: partial
+        }
+        settings {
+            overline: Medical referral
+            title: &EMP_NAME_SNAPSHOT!HTML. (&EMP_ID_SNAPSHOT!HTML.)
+            description:
+                ```html
+                <div class="p52-section-title">Referral summary</div>
+                <div class="p52-meta-grid">
+                    <div class="p52-meta-tile"><span class="p52-meta-label">Beneficiary</span><span class="p52-meta-value">&BENEFICIARY_NAME_SNAPSHOT!HTML.</span></div>
+                    <div class="p52-meta-tile"><span class="p52-meta-label">Project</span><span class="p52-meta-value">&PROJECT_SNAPSHOT!HTML.</span></div>
+                    <div class="p52-meta-tile"><span class="p52-meta-label">Provider</span><span class="p52-meta-value">&PROVIDER_NAME_SNAPSHOT!HTML.</span></div>
+                    <div class="p52-meta-tile"><span class="p52-meta-label">Specialty</span><span class="p52-meta-value">&SPECIALITY_NAME_SNAPSHOT!HTML.</span></div>
+                    <div class="p52-meta-tile"><span class="p52-meta-label">Requirement</span><span class="p52-meta-value">&REQUIREMENT_SNAPSHOT!HTML.</span></div>
+                    <div class="p52-meta-tile"><span class="p52-meta-label">Letter date</span><span class="p52-meta-value">&LETTER_DATE.</span></div>
+                    <div class="p52-meta-tile"><span class="p52-meta-label">Validity</span><span class="p52-meta-value">&AVAILABLE_FROM. – &VALID_TO.</span></div>
+                    <div class="p52-meta-tile"><span class="p52-meta-label">Current sequence</span><span class="p52-meta-value">&CURRENT_APPROVAL_SEQUENCE.</span></div>
+                </div>
+                <div class="p52-detail-block"><a href="&MEDICAL_DETAILS_URL!ATTR.">Open full medical referral details</a></div>
+                ```
+        }
+
+        column AVAILABLE_FROM (
+            layout {
+                sequence: 100
+            }
+            source {
+                databaseColumn: AVAILABLE_FROM
+                dataType: date
+            }
+        )
+
+        column BENEFICIARY_NAME_SNAPSHOT (
+            layout {
+                sequence: 40
+            }
+            source {
+                databaseColumn: BENEFICIARY_NAME_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column CURRENT_APPROVAL_SEQUENCE (
+            layout {
+                sequence: 120
+            }
+            source {
+                databaseColumn: CURRENT_APPROVAL_SEQUENCE
+                dataType: number
+            }
+        )
+
+        column EMP_ID_SNAPSHOT (
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: EMP_ID_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column EMP_NAME_SNAPSHOT (
+            layout {
+                sequence: 20
+            }
+            source {
+                databaseColumn: EMP_NAME_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column LETTER_DATE (
+            layout {
+                sequence: 90
+            }
+            source {
+                databaseColumn: LETTER_DATE
+                dataType: date
+            }
+        )
+
+        column MEDICAL_DETAILS_URL (
+            layout {
+                sequence: 130
+            }
+            source {
+                databaseColumn: MEDICAL_DETAILS_URL
+                dataType: varchar2
+            }
+        )
+
+        column PROJECT_SNAPSHOT (
+            layout {
+                sequence: 50
+            }
+            source {
+                databaseColumn: PROJECT_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column PROVIDER_NAME_SNAPSHOT (
+            layout {
+                sequence: 60
+            }
+            source {
+                databaseColumn: PROVIDER_NAME_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column REFERAL_ID (
+            layout {
+                sequence: 10
+            }
+            source {
+                databaseColumn: REFERAL_ID
+                dataType: number
+            }
+        )
+
+        column REQUIREMENT_SNAPSHOT (
+            layout {
+                sequence: 80
+            }
+            source {
+                databaseColumn: REQUIREMENT_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column SPECIALITY_NAME_SNAPSHOT (
+            layout {
+                sequence: 70
+            }
+            source {
+                databaseColumn: SPECIALITY_NAME_SNAPSHOT
+                dataType: varchar2
+            }
+        )
+
+        column VALID_TO (
+            layout {
+                sequence: 110
+            }
+            source {
+                databaseColumn: VALID_TO
+                dataType: date
+            }
+        )
+
+    )
+
+    region medical-rejection-dialog (
+        name: Medical Rejection Reason
+        title: Rejection reason
+        type: staticContent
+        layout {
+            sequence: 45
+            slot: contentBody
+        }
+        appearance {
+            template: @inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-size600x400
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            htmlDomId: medical_rejection_dialog
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P52_REQUEST_TYPE_ID = '106'
+        }
+    )
+
+    region medical-rejection-dialog-buttons (
+        name: Medical Rejection Dialog Buttons
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @medical-rejection-dialog
+            slot: regionBody
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region prescription-review-link (
+        name: Prescription review handoff
+        title: مراجعة طلب الروشتة
+        type: themeTemplateComponent/contentRow
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select apex_util.prepare_url(
+                           apex_page.get_url(
+                               p_application => 200,
+                               p_page => 175,
+                               p_items => 'P175_REQUEST_ID',
+                               p_values => :P52_REQUEST_ID
+                           ),
+                           p_checksum_type => 'SESSION'
+                       ) as review_url
+                  from dual
+                ```
+            pageItemsToSubmit: P52_REQUEST_ID
+        }
+        layout {
+            sequence: 42
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--noUI
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                  from med.md_pres_request pr
+                 where :P52_REQUEST_TYPE_ID = '202'
+                   and pr.request_id = to_number(:P52_REQUEST_ID)
+                ```
+        }
+        componentAppearance {
+            display: partial
+        }
+        settings {
+            overline: Prescription request
+            title: فتح شاشة مراجعة الطبيب
+            description:
+                ```html
+                <p>هذا طلب روشتة طبية. تُجرى موافقة كل دواء وتحديد طريقة الصرف من شاشة الطبيب في تطبيق الطبية 200.</p>
+                <p><a class="t-Button t-Button--hot js-prescription-review-handoff" href="&REVIEW_URL!ATTR.">فتح شاشة المراجعة</a></p>
+                ```
+        }
+
+        column REVIEW_URL (
+            layout {
+                sequence: 10
+            }
+            source {
+                databaseColumn: REVIEW_URL
+                dataType: varchar2
+            }
+        )
+
+    )
+
+    region priority (
+        name: Priority
+        type: staticContent
+        layout {
+            sequence: 20
+            parentRegion: @subject
+            slot: subRegions
+        }
+        appearance {
+            template: @inline-popup
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-nosize
+            ]
+        }
+        accessibility {
+            landmarkType: form
+        }
+        advanced {
+            htmlDomId: SET_PRIORITY
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_set_priority )
+                ```
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region remove-participant (
+        name: Remove Participant
+        type: staticContent
+        layout {
+            sequence: 70
+            parentRegion: @subject
+            slot: subRegions
+        }
+        appearance {
+            template: @inline-popup
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-nosize
+            ]
+        }
+        accessibility {
+            landmarkType: form
+        }
+        advanced {
+            htmlDomId: REMOVE_OWNER
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_remove_owner )
+                ```
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region request-information (
+        name: Request Information
+        type: staticContent
+        layout {
+            sequence: 40
+            parentRegion: @subject
+            slot: subRegions
+        }
+        appearance {
+            template: @inline-popup
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-nosize
+            ]
+        }
+        accessibility {
+            landmarkType: form
+        }
+        advanced {
+            htmlDomId: REQUEST_INFO
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_request_info )
+                ```
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region subject (
+        name: &APP_TEXT$ITR_PAGE52_SUMMARY.
+        type: themeTemplateComponent/contentRow
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select task_id,
+                       task_type,
+                       task_def_name,
+                       details_app_name,
+                       details_link_target,
+                        regexp_replace(subject, '^تم تقديم طلب طلب ', 'تم تقديم طلب ') as subject,
+                       initiator,
+                       actual_owner,
+                       priority,
+                       due_on,
+                       due_in,
+                       due_in_hours,
+                       due_code,
+                       state_code,
+                       is_completed,
+                       outcome,
+                       created_on,
+                       created_ago,
+                       created_ago_hours,
+                       last_updated_on,
+                       badge_text,
+                       badge_state
+                  from table ( apex_human_task.get_tasks (
+                                   p_context => 'SINGLE_TASK',
+                                   p_task_id => :P52_TASK_ID ) );
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--hideHeader
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+            cssClasses: p52-summary-card
+        }
+        accessibility {
+            landmarkType: region
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P52_REQUEST_TYPE_ID = '106'
+        }
+        componentAppearance {
+            display: partial
+        }
+        settings {
+            overline: &APP_TEXT$ITR_PAGE52_SUMMARY.
+            title: &SUBJECT.
+            description:
+                ```html
+                {if INITIATOR/}
+                    &{APEX.TASK.INITIATED_BY_USER_SINCE 0=&INITIATOR!HTML. 1=&CREATED_AGO.}.
+                {endif/}
+                {if ACTUAL_OWNER/}
+                    <span role="separator" aria-label="&middot;"> &middot; </span>
+                    &{APEX.TASK.ASSIGNED_TO_USER 0=&ACTUAL_OWNER!HTML.}.
+                {endif/}
+                {if !IS_COMPLETED/}
+                    {case DUE_CODE/}
+                        {when OVERDUE/}
+                            <span role="separator" aria-label="&middot;"> &middot; </span>
+                            <strong class="u-danger-text">&{APEX.TASK.DUE_SINCE 0=&DUE_IN.}.</strong>
+                        {when NEXT_HOUR/}
+                            <span role="separator" aria-label="&middot;"> &middot; </span>
+                            <strong class="u-danger-text">&{APEX.TASK.DUE_SINCE 0=&DUE_IN.}.</strong>
+                        {when NEXT_24_HOURS/}
+                            <span role="separator" aria-label="&middot;"> &middot; </span>
+                            <span class="u-danger-text">&{APEX.TASK.DUE_SINCE 0=&DUE_IN.}.</span>
+                        {otherwise/}
+                            {if DUE_IN/}
+                                <span role="separator" aria-label="&middot;"> &middot; </span>
+                                &{APEX.TASK.DUE_SINCE 0=&DUE_IN.}.
+                            {endif/}
+                    {endcase/}
+                {endif/}
+                {if !IS_COMPLETED/}
+                    <span role="separator" aria-label="&middot;"> &middot; </span>
+                    {case PRIORITY/}
+                        {when 1/}
+                            <strong class="u-danger-text">&{APEX.TASK.PRIORITY.1.DESCRIPTION}.</strong>
+                        {when 2/}
+                            <span class="u-danger-text">&{APEX.TASK.PRIORITY.2.DESCRIPTION}.</span>
+                        {when 3/}
+                            &{APEX.TASK.PRIORITY.3.DESCRIPTION}.
+                        {when 4/}
+                            &{APEX.TASK.PRIORITY.4.DESCRIPTION}.
+                        {when 5/}
+                            &{APEX.TASK.PRIORITY.5.DESCRIPTION}.
+                    {endcase/}
+                {endif/}
+                {if OUTCOME/}
+                    <span role="separator" aria-label="&middot;"> &middot; </span>
+                    &OUTCOME.
+                {endif/}
+                ```
+            displayBadge: true
+        }
+        plugin-badge {
+            label: State
+            value: BADGE_TEXT
+            state: BADGE_STATE
+            size2: medium
+            columnWidth: auto
+        }
+
+        column ACTUAL_OWNER (
+            layout {
+                sequence: 80
+            }
+            source {
+                databaseColumn: ACTUAL_OWNER
+                dataType: varchar2
+            }
+        )
+
+        column BADGE_STATE (
+            layout {
+                sequence: 220
+            }
+            source {
+                databaseColumn: BADGE_STATE
+                dataType: varchar2
+            }
+        )
+
+        column BADGE_TEXT (
+            layout {
+                sequence: 210
+            }
+            source {
+                databaseColumn: BADGE_TEXT
+                dataType: varchar2
+            }
+        )
+
+        column CREATED_AGO (
+            layout {
+                sequence: 180
+            }
+            source {
+                databaseColumn: CREATED_AGO
+                dataType: varchar2
+            }
+        )
+
+        column CREATED_AGO_HOURS (
+            layout {
+                sequence: 190
+            }
+            source {
+                databaseColumn: CREATED_AGO_HOURS
+                dataType: number
+            }
+        )
+
+        column CREATED_ON (
+            layout {
+                sequence: 170
+            }
+            source {
+                databaseColumn: CREATED_ON
+                dataType: timestampWithTimeZone
+            }
+            appearance {
+                formatMask: SINCE
+            }
+        )
+
+        column DETAILS_APP_NAME (
+            layout {
+                sequence: 40
+            }
+            source {
+                databaseColumn: DETAILS_APP_NAME
+                dataType: varchar2
+            }
+        )
+
+        column DETAILS_LINK_TARGET (
+            layout {
+                sequence: 50
+            }
+            source {
+                databaseColumn: DETAILS_LINK_TARGET
+                dataType: varchar2
+            }
+        )
+
+        column DUE_CODE (
+            layout {
+                sequence: 130
+            }
+            source {
+                databaseColumn: DUE_CODE
+                dataType: varchar2
+            }
+        )
+
+        column DUE_IN (
+            layout {
+                sequence: 110
+            }
+            source {
+                databaseColumn: DUE_IN
+                dataType: varchar2
+            }
+        )
+
+        column DUE_IN_HOURS (
+            layout {
+                sequence: 120
+            }
+            source {
+                databaseColumn: DUE_IN_HOURS
+                dataType: varchar2
+            }
+        )
+
+        column DUE_ON (
+            layout {
+                sequence: 100
+            }
+            source {
+                databaseColumn: DUE_ON
+                dataType: timestampWithTimeZone
+            }
+            appearance {
+                formatMask: SINCE
+            }
+        )
+
+        column INITIATOR (
+            layout {
+                sequence: 70
+            }
+            source {
+                databaseColumn: INITIATOR
+                dataType: varchar2
+            }
+        )
+
+        column IS_COMPLETED (
+            layout {
+                sequence: 150
+            }
+            source {
+                databaseColumn: IS_COMPLETED
+                dataType: varchar2
+            }
+        )
+
+        column LAST_UPDATED_ON (
+            layout {
+                sequence: 200
+            }
+            source {
+                databaseColumn: LAST_UPDATED_ON
+                dataType: timestampWithTimeZone
+            }
+            appearance {
+                formatMask: SINCE
+            }
+        )
+
+        column OUTCOME (
+            layout {
+                sequence: 160
+            }
+            source {
+                databaseColumn: OUTCOME
+                dataType: varchar2
+            }
+        )
+
+        column PRIORITY (
+            layout {
+                sequence: 90
+            }
+            source {
+                databaseColumn: PRIORITY
+                dataType: number
+            }
+        )
+
+        column STATE_CODE (
+            layout {
+                sequence: 140
+            }
+            source {
+                databaseColumn: STATE_CODE
+                dataType: varchar2
+            }
+        )
+
+        column SUBJECT (
+            layout {
+                sequence: 60
+            }
+            source {
+                databaseColumn: SUBJECT
+                dataType: varchar2
+            }
+        )
+
+        column TASK_DEF_NAME (
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: TASK_DEF_NAME
+                dataType: varchar2
+            }
+        )
+
+        column TASK_ID (
+            layout {
+                sequence: 10
+            }
+            source {
+                databaseColumn: TASK_ID
+                dataType: number
+                primaryKey: true
+            }
+        )
+
+        column TASK_TYPE (
+            layout {
+                sequence: 20
+            }
+            source {
+                databaseColumn: TASK_TYPE
+                dataType: varchar2
+            }
+        )
+
+        action actions (
+            position: primaryActions
+            template: menu
+            label: Actions
+            layout {
+                sequence: 20
+            }
+            appearance {
+                displayType: icon
+                icon: fa-ellipsis-v
+            }
+            serverSideCondition {
+                type: never
+            }
+
+            menu cancel-task (
+                label: Cancel Task
+                layout {
+                    sequence: 90
+                }
+                behavior {
+                    type: redirectUrl
+                    targetUrl: #action$cancel?do=openRegion
+                    linkAttributes: class="taskActionMenu"
+                }
+                serverSideCondition {
+                    type: expression
+                    plsqlExpression:
+                        ```plsql
+                        apex_human_task.is_allowed (
+                            p_task_id   => :P52_TASK_ID,
+                            p_operation => apex_human_task.c_task_op_cancel )
+                        ```
+                }
+            )
+
+            menu change-due-date (
+                label: Change Due Date
+                layout {
+                    sequence: 50
+                }
+                behavior {
+                    type: redirectUrl
+                    targetUrl: #action$set_due_date?do=openRegion
+                    linkAttributes: class="taskActionMenu"
+                }
+                serverSideCondition {
+                    type: expression
+                    plsqlExpression:
+                        ```plsql
+                        apex_human_task.is_allowed (
+                            p_task_id   => :P52_TASK_ID,
+                            p_operation => apex_human_task.c_task_op_set_due_date )
+                        ```
+                }
+            )
+
+            menu change-priority (
+                label: Change Priority
+                layout {
+                    sequence: 40
+                }
+                behavior {
+                    type: redirectUrl
+                    targetUrl: #action$set_priority?do=openRegion
+                    linkAttributes: class="taskActionMenu"
+                }
+                serverSideCondition {
+                    type: expression
+                    plsqlExpression:
+                        ```plsql
+                        apex_human_task.is_allowed (
+                            p_task_id   => :P52_TASK_ID,
+                            p_operation => apex_human_task.c_task_op_set_priority )
+                        ```
+                }
+            )
+
+            menu delegate (
+                label: Delegate
+                layout {
+                    sequence: 30
+                }
+                behavior {
+                    type: redirectUrl
+                    targetUrl: #action$delegate?do=openRegion
+                    linkAttributes: class="taskActionMenu"
+                }
+                serverSideCondition {
+                    type: expression
+                    plsqlExpression:
+                        ```plsql
+                        apex_human_task.is_allowed (
+                            p_task_id   => :P52_TASK_ID,
+                            p_operation => apex_human_task.c_task_op_delegate )
+                        ```
+                }
+            )
+
+            menu exclude-participant (
+                label: Exclude Participant
+                layout {
+                    sequence: 100
+                }
+                behavior {
+                    type: redirectUrl
+                    targetUrl: #action$exclude_owner?do=openRegion
+                    linkAttributes: class="taskActionMenu"
+                }
+                serverSideCondition {
+                    type: expression
+                    plsqlExpression:
+                        ```plsql
+                        apex_human_task.is_allowed (
+                            p_task_id   => :P52_TASK_ID,
+                            p_operation => apex_human_task.c_task_op_exclude_owner )
+                        ```
+                }
+            )
+
+            menu invite-participant (
+                label: Invite Participant
+                layout {
+                    sequence: 70
+                }
+                behavior {
+                    type: redirectUrl
+                    targetUrl: #action$add_owner?do=openRegion
+                    linkAttributes: class="taskActionMenu"
+                }
+                serverSideCondition {
+                    type: expression
+                    plsqlExpression:
+                        ```plsql
+                        apex_human_task.is_allowed (
+                            p_task_id   => :P52_TASK_ID,
+                            p_operation => apex_human_task.c_task_op_add_owner )
+                        ```
+                }
+            )
+
+            menu release (
+                label: Release
+                layout {
+                    sequence: 20
+                }
+                behavior {
+                    type: redirectUrl
+                    targetUrl: #action$release?do=submit
+                    linkAttributes: class="taskActionMenu"
+                }
+                serverSideCondition {
+                    type: expression
+                    plsqlExpression:
+                        ```plsql
+                        apex_human_task.is_allowed (
+                            p_task_id   => :P52_TASK_ID,
+                            p_operation => apex_human_task.c_task_op_release )
+                        ```
+                }
+            )
+
+            menu remove-participant (
+                label: Remove Participant
+                layout {
+                    sequence: 80
+                }
+                behavior {
+                    type: redirectUrl
+                    targetUrl: #action$remove_owner?do=openRegion
+                    linkAttributes: class="taskActionMenu"
+                }
+                serverSideCondition {
+                    type: expression
+                    plsqlExpression:
+                        ```plsql
+                        apex_human_task.is_allowed (
+                            p_task_id   => :P52_TASK_ID,
+                            p_operation => apex_human_task.c_task_op_remove_owner )
+                        ```
+                }
+            )
+
+            menu renew-task (
+                label: Renew Task
+                layout {
+                    sequence: 10
+                }
+                behavior {
+                    type: redirectUrl
+                    targetUrl: #action$renew?do=submit
+                    linkAttributes: class="taskActionMenu"
+                }
+                serverSideCondition {
+                    type: expression
+                    plsqlExpression:
+                        ```plsql
+                        apex_human_task.is_allowed (
+                            p_task_id   => :P52_TASK_ID,
+                            p_operation => apex_human_task.c_task_op_renew )
+                        ```
+                }
+            )
+
+            menu request-information (
+                label: Request Information
+                layout {
+                    sequence: 60
+                }
+                behavior {
+                    type: redirectUrl
+                    targetUrl: #action$request_info?do=openRegion
+                    linkAttributes: class="taskActionMenu"
+                }
+                serverSideCondition {
+                    type: expression
+                    plsqlExpression:
+                        ```plsql
+                        apex_human_task.is_allowed (
+                            p_task_id   => :P52_TASK_ID,
+                            p_operation => apex_human_task.c_task_op_request_info )
+                        ```
+                }
+            )
+
+        )
+
+    )
+
+    region submit-information (
+        name: Submit Information
+        type: staticContent
+        layout {
+            sequence: 50
+            parentRegion: @subject
+            slot: subRegions
+        }
+        appearance {
+            template: @inline-popup
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-nosize
+            ]
+        }
+        accessibility {
+            landmarkType: form
+        }
+        advanced {
+            htmlDomId: SUBMIT_INFO
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_submit_info )
+                ```
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region unavailable-task (
+        name: &APP_TEXT$ITR_PAGE52_UNAVAILABLE.
+        title: &APP_TEXT$ITR_PAGE52_UNAVAILABLE_TITLE.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$ITR_PAGE52_UNAVAILABLE.
+        }
+        layout {
+            sequence: 45
+            slot: contentBody
+        }
+        appearance {
+            template: @alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--warning
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--removeHeading js-removeLandmark
+            ]
+        }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_count number;
+                begin
+                    select count(*)
+                      into l_count
+                      from table(apex_human_task.get_tasks(
+                                   p_context => 'SINGLE_TASK',
+                                   p_task_id => :P52_TASK_ID)) t
+                      join apex_task_parameters p
+                        on p.task_id = t.task_id
+                       and p.param_static_id = 'T_REQUEST_TYPE_ID'
+                     where to_number(p.param_value) = 106;
+                
+                    if l_count > 0 then
+                        return false;
+                    end if;
+                
+                    if :P52_REQUEST_TYPE_ID = '202' then
+                        select count(*)
+                          into l_count
+                          from med.md_pres_request r
+                         where r.request_id = to_number(:P52_REQUEST_ID);
+                
+                        return l_count = 0;
+                    end if;
+                
+                    select count(*)
+                      into l_count
+                      from table(apex_human_task.get_tasks(
+                                   p_context => 'SINGLE_TASK',
+                                   p_task_id => :P52_TASK_ID)) t
+                      join apex_task_parameters p
+                        on p.task_id = t.task_id
+                       and p.param_static_id = 'T_REQUEST_ID'
+                      join hq_elevated.itr_requests r
+                        on r.request_id = to_number(p.param_value);
+                
+                    return l_count = 0;
+                exception
+                    when others then
+                        return true;
+                end;
+                ```
+        }
+    )
+
+    pageItem P52_ALL_COMMENTS (
+        type: checkbox
+        label {
+            label: Include comments from expired tasks
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 20
+            region: @comments
+            slot: regionBody
+            alignment: left
+            labelColumnSpan: 0
+        }
+        appearance {
+            template: @optional
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        source {
+            type: staticValue
+            staticValue: N
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select task_id 
+                  from apex_tasks
+                 where task_id = :P52_TASK_ID
+                   and previous_task_id is not null
+                ```
+        }
+    )
+
+    pageItem P52_ALL_HISTORY (
+        type: checkbox
+        label {
+            label: Include history from expired tasks
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 10
+            region: @history
+            slot: regionBody
+            alignment: left
+            labelColumnSpan: 0
+        }
+        appearance {
+            template: @optional
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        source {
+            type: staticValue
+            staticValue: N
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select task_id 
+                  from apex_tasks
+                 where task_id = :P52_TASK_ID
+                   and previous_task_id is not null
+                ```
+        }
+    )
+
+    pageItem P52_CAN_UPDATE_PARAMS (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+            encryptSessionState: false
+        }
+    )
+
+    pageItem P52_COMMENT_TEXT (
+        type: textarea
+        label {
+            label: Comment
+            alignment: left
+        }
+        settings {
+            autoHeight: true
+        }
+        layout {
+            sequence: 10
+            region: @add-comment
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+            width: 30
+            height: 7
+        }
+        validation {
+            maxLength: 2000
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P52_EXCLUDE_OWNER (
+        type: textField
+        label {
+            label: Potential Owner
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @exclude-participant
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 100
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P52_IS_REQUIRED (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 50
+            region: @edit-parameter
+            slot: regionBody
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            encryptSessionState: false
+        }
+    )
+
+    pageItem P52_NEW_DUE_DATE (
+        type: datePicker
+        label {
+            label: New Due Date
+            alignment: left
+        }
+        settings {
+            showTime: true
+            displayAs: inline
+        }
+        layout {
+            sequence: 10
+            region: @due
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            formatMask: YYYY-MM-DD HH24:MI
+            width: 30
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        source {
+            type: sqlQuerySingleValue
+            sqlQuery:
+                ```sql
+                select to_char(due_on, 'YYYY-MM-DD HH24:MI')
+                  from apex_tasks
+                 where task_id = :P52_TASK_ID
+                ```
+            used: always
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P52_NEW_OWNER (
+        type: selectList
+        label {
+            label: New Owner
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select disp,
+                       val
+                  from table ( 
+                           apex_human_task.get_task_delegates ( 
+                               p_task_id => :P52_TASK_ID ) )
+                ```
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @delegate
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P52_NEW_POTENTIAL_OWNER (
+        type: textField
+        label {
+            label: New Potential Owner
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @invite-participant
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 100
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P52_NEW_PRIORITY (
+        type: radioGroup
+        label {
+            label: New Priority
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @unified-task-list-lov-priority
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @priority
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        source {
+            type: sqlQuerySingleValue
+            sqlQuery:
+                ```sql
+                select priority
+                  from apex_tasks
+                 where task_id = :P52_TASK_ID
+                ```
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P52_NEW_VALUE (
+        type: textarea
+        label {
+            label: New Value
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @edit-parameter
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 3
+        }
+        validation {
+            maxLength: 4000
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P52_PARAM_LABEL (
+        type: displayOnly
+        label {
+            label: Parameter
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 20
+            region: @edit-parameter
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            encryptSessionState: false
+        }
+    )
+
+    pageItem P52_PARAM_STATIC_ID (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 10
+            region: @edit-parameter
+            slot: regionBody
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            encryptSessionState: false
+        }
+    )
+
+    pageItem P52_PARAM_VALUE (
+        type: displayOnly
+        label {
+            label: Current Value
+            alignment: left
+        }
+        settings {
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 30
+            region: @edit-parameter
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            encryptSessionState: false
+        }
+    )
+
+    pageItem P52_POTENTIAL_OWNER (
+        type: selectList
+        label {
+            label: Potential Owner
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select disp,
+                       val
+                  from table ( 
+                           apex_human_task.get_task_delegates ( 
+                               p_task_id => :P52_TASK_ID ) )
+                ```
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @remove-participant
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P52_REJECT_REASON (
+        type: textarea
+        label {
+            label: Rejection reason
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @medical-rejection-dialog
+            slot: regionBody
+            alignment: left
+            columnSpan: 12
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 3
+        }
+        validation {
+            maxLength: 4000
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P52_REQUEST_TYPE_ID = 106
+        }
+    )
+
+    pageItem P52_REQUEST_ID (
+        type: hidden
+        layout {
+            sequence: 35
+            slot: contentBody
+        }
+        source {
+            type: sqlQuerySingleValue
+            sqlQuery:
+                ```sql
+                select p.param_value
+                  from table(apex_human_task.get_tasks(
+                           p_context => 'SINGLE_TASK',
+                           p_task_id => :P52_TASK_ID)) t
+                  join apex_task_parameters p
+                    on p.task_id = t.task_id
+                   and p.param_static_id = 'T_REQUEST_ID'
+                ```
+            used: always
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+            encryptSessionState: false
+        }
+    )
+
+    pageItem P52_REQUEST_INFO_TEXT (
+        type: textarea
+        label {
+            label: Message
+            alignment: left
+        }
+        settings {
+            autoHeight: true
+        }
+        layout {
+            sequence: 10
+            region: @request-information
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 7
+        }
+        validation {
+            maxLength: 4000
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P52_REQUEST_TYPE_ID (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        source {
+            type: sqlQuerySingleValue
+            sqlQuery:
+                ```sql
+                select p.param_value
+                  from table(apex_human_task.get_tasks(
+                           p_context => 'SINGLE_TASK',
+                           p_task_id => :P52_TASK_ID)) t
+                  join apex_task_parameters p
+                    on p.task_id = t.task_id
+                   and p.param_static_id = 'T_REQUEST_TYPE_ID'
+                ```
+            used: always
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+            encryptSessionState: false
+        }
+    )
+
+    pageItem P52_SUBMIT_INFO_TEXT (
+        type: textarea
+        label {
+            label: Message
+            alignment: left
+        }
+        settings {
+            autoHeight: true
+        }
+        layout {
+            sequence: 10
+            region: @submit-information
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 7
+        }
+        validation {
+            maxLength: 4000
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P52_TASK_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        sessionState {
+            storage: request
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+            encryptSessionState: false
+        }
+    )
+
+    button add-comment (
+        buttonName: ADD_COMMENT
+        label: &APP_TEXT$ITR_PAGE52_ADD_COMMENT.
+        layout {
+            sequence: 20
+            region: @add-comment
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button approve (
+        buttonName: APPROVE
+        label: &APP_TEXT$ITR_PAGE52_APPROVE.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--success
+                t-Button--iconLeft
+            ]
+            icon: fa-check
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_approve )
+                AND NVL(:P52_REQUEST_TYPE_ID, '-') NOT IN ('106','202')
+                ```
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$ITR_PAGE52_CLOSE.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button cancel-task (
+        buttonName: CANCEL_TASK
+        label: Cancel Task
+        layout {
+            sequence: 20
+            region: @cancel-task
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+            cssClasses: u-danger
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button claim (
+        buttonName: CLAIM
+        label: &APP_TEXT$ITR_PAGE52_CLAIM.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_claim )
+                ```
+        }
+    )
+
+    button close-add-comment (
+        buttonName: CLOSE_ADD_COMMENT
+        label: Close
+        layout {
+            sequence: 10
+            region: @add-comment
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button close-cancel-task (
+        buttonName: CLOSE_CANCEL_TASK
+        label: Close
+        layout {
+            sequence: 10
+            region: @cancel-task
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button close-delegate (
+        buttonName: CLOSE_DELEGATE
+        label: Close
+        layout {
+            sequence: 10
+            region: @delegate
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button close-exclude-owner (
+        buttonName: CLOSE_EXCLUDE_OWNER
+        label: Close
+        layout {
+            sequence: 10
+            region: @exclude-participant
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button close-invite-participant (
+        buttonName: CLOSE_INVITE_PARTICIPANT
+        label: Close
+        layout {
+            sequence: 10
+            region: @invite-participant
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button close-medical-reject (
+        buttonName: CLOSE_MEDICAL_REJECT
+        label: Close
+        layout {
+            sequence: 10
+            region: @medical-rejection-dialog-buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button close-remove-participant (
+        buttonName: CLOSE_REMOVE_PARTICIPANT
+        label: Close
+        layout {
+            sequence: 10
+            region: @remove-participant
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button close-request-information (
+        buttonName: CLOSE_REQUEST_INFORMATION
+        label: Close
+        layout {
+            sequence: 10
+            region: @request-information
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button close-set-due (
+        buttonName: CLOSE_SET_DUE
+        label: Close
+        layout {
+            sequence: 10
+            region: @due
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button close-set-priority (
+        buttonName: CLOSE_SET_PRIORITY
+        label: Close
+        layout {
+            sequence: 10
+            region: @priority
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button close-submit-information (
+        buttonName: CLOSE_SUBMIT_INFORMATION
+        label: Close
+        layout {
+            sequence: 10
+            region: @submit-information
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button close-update-parameter (
+        buttonName: CLOSE_UPDATE_PARAMETER
+        label: Close
+        layout {
+            sequence: 10
+            region: @edit-parameter
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    button delegate (
+        buttonName: DELEGATE
+        label: Delegate
+        layout {
+            sequence: 20
+            region: @delegate
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button exclude-owner (
+        buttonName: EXCLUDE_OWNER
+        label: Exclude Participant
+        layout {
+            sequence: 20
+            region: @exclude-participant
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button invite-participant (
+        buttonName: INVITE_PARTICIPANT
+        label: Invite Participant
+        layout {
+            sequence: 20
+            region: @invite-participant
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button medical-reject (
+        buttonName: MEDICAL_REJECT
+        label: &APP_TEXT$ITR_PAGE52_REJECT.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--link
+                t-Button--iconLeft
+            ]
+            icon: fa-times-circle-o
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_reject )
+                and :P52_REQUEST_TYPE_ID = '106'
+                ```
+        }
+    )
+
+    button medical-reject-confirm (
+        buttonName: MEDICAL_REJECT_CONFIRM
+        label: Reject
+        layout {
+            sequence: 20
+            region: @medical-rejection-dialog-buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--iconLeft
+            ]
+            icon: fa-times-circle-o
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_reject )
+                and :P52_REQUEST_TYPE_ID = '106'
+                ```
+        }
+    )
+
+    button open-dialog-add-comment (
+        buttonName: OPEN_DIALOG_ADD_COMMENT
+        label: &APP_TEXT$ITR_PAGE52_ADD_COMMENT.
+        layout {
+            sequence: 10
+            region: @comments
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: OPEN_DIALOG_ADD_COMMENT
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                not apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_submit_info )
+                and apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_add_comment )
+                ```
+        }
+    )
+
+    button open-dialog-submit-information (
+        buttonName: OPEN_DIALOG_SUBMIT_INFORMATION
+        label: Submit Information
+        layout {
+            sequence: 20
+            region: @comments
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: OPEN_DIALOG_SUBMIT_INFORMATION
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_submit_info )
+                ```
+        }
+    )
+
+    button open-medical-referral-details (
+        buttonName: OPEN_MEDICAL_REFERRAL_DETAILS
+        label: &APP_TEXT$MEDICAL_REFERRAL_REQUEST_DETAILS.
+        layout {
+            sequence: 35
+            region: @buttons
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: #DEFAULT#
+            icon: fa-stethoscope
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 109
+                items: {
+                    P109_REFERAL_ID: &P52_REQUEST_ID.
+                    P109_TASK_ID: &P52_TASK_ID.
+                }
+                clearCache: 109
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P52_REQUEST_TYPE_ID = '106'
+        }
+    )
+
+    button reject (
+        buttonName: REJECT
+        label: &APP_TEXT$ITR_PAGE52_REJECT.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--link
+                t-Button--iconLeft
+            ]
+            icon: fa-times-circle-o
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                apex_human_task.is_allowed (
+                    p_task_id   => :P52_TASK_ID,
+                    p_operation => apex_human_task.c_task_op_reject )
+                and nvl(:P52_REQUEST_TYPE_ID, '-') NOT IN ('106','202')
+                ```
+        }
+    )
+
+    button remove-participant (
+        buttonName: REMOVE_PARTICIPANT
+        label: Remove Participant
+        layout {
+            sequence: 20
+            region: @remove-participant
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button request-information (
+        buttonName: REQUEST_INFORMATION
+        label: Request Information
+        layout {
+            sequence: 20
+            region: @request-information
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button set-due (
+        buttonName: SET_DUE
+        label: Change Due Date
+        layout {
+            sequence: 20
+            region: @due
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button set-priority (
+        buttonName: SET_PRIORITY
+        label: Change Priority
+        layout {
+            sequence: 20
+            region: @priority
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button submit-information (
+        buttonName: SUBMIT_INFORMATION
+        label: Submit Information
+        layout {
+            sequence: 20
+            region: @submit-information
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button update-parameter (
+        buttonName: UPDATE_PARAMETER
+        label: Apply Changes
+        layout {
+            sequence: 20
+            region: @edit-parameter
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction add-comment (
+        name: Add Comment
+        execution {
+            sequence: 20
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @open-dialog-add-comment
+        }
+
+        action native-open-region (
+            action: openRegion
+            affectedElements {
+                selectionType: region
+                region: @add-comment
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction cancel (
+        name: Cancel
+        execution {
+            sequence: 40
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancel
+        }
+
+        action native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-add-comment-dialog (
+        name: Close Add Comment Dialog
+        execution {
+            sequence: 190
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-add-comment
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @add-comment
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-cancel-task-dialog (
+        name: Close Cancel Task Dialog
+        execution {
+            sequence: 170
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-cancel-task
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @cancel-task
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-change-due-date-dialog (
+        name: Close Change Due Date Dialog
+        execution {
+            sequence: 120
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-set-due
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @due
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-change-priority-dialog (
+        name: Close Change Priority Dialog
+        execution {
+            sequence: 110
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-set-priority
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @priority
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-delegate-dialog (
+        name: Close Delegate Dialog
+        execution {
+            sequence: 100
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-delegate
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @delegate
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-edit-parameter-dialog (
+        name: Close Edit Parameter Dialog
+        execution {
+            sequence: 180
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-update-parameter
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @edit-parameter
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-exclude-owner-dialog (
+        name: Close Exclude Owner Dialog
+        execution {
+            sequence: 200
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-exclude-owner
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @exclude-participant
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-invite-participant-dialog (
+        name: Close Invite Participant Dialog
+        execution {
+            sequence: 150
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-invite-participant
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @invite-participant
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-medical-reject-dialog (
+        name: Close Medical Rejection Dialog
+        execution {
+            sequence: 35
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-medical-reject
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @medical-rejection-dialog
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-remove-participant-dialog (
+        name: Close Remove Participant Dialog
+        execution {
+            sequence: 160
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-remove-participant
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @remove-participant
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-request-information-dialog (
+        name: Close Request Information Dialog
+        execution {
+            sequence: 130
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-request-information
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @request-information
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction close-submit-information-dialog (
+        name: Close Submit Information Dialog
+        execution {
+            sequence: 140
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @close-submit-information
+        }
+
+        action native-close-region (
+            action: closeRegion
+            affectedElements {
+                selectionType: region
+                region: @submit-information
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction disable-enable-update-button (
+        name: Disable/Enable Update Button
+        execution {
+            sequence: 10
+        }
+        when {
+            event: keyup
+            selectionType: items
+            items: P52_NEW_VALUE
+        }
+
+        action native-disable (
+            action: disable
+            affectedElements {
+                selectionType: button
+                button: @update-parameter
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-disable-2 (
+            action: disable
+            affectedElements {
+                selectionType: button
+                button: @update-parameter
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction edit-parameter (
+        name: Edit Parameter
+        execution {
+            sequence: 10
+            eventScope: dynamic
+            staticContainer: body
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: a.parameter
+        }
+
+        action native-disable (
+            action: disable
+            affectedElements {
+                selectionType: button
+                button: @update-parameter
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-open-region (
+            action: openRegion
+            affectedElements {
+                selectionType: region
+                region: @edit-parameter
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-set-focus (
+            action: setFocus
+            affectedElements {
+                selectionType: items
+                items: P52_NEW_VALUE
+            }
+            execution {
+                sequence: 70
+                fireOnInit: false
+            }
+        )
+
+        action native-set-value (
+            action: setValue
+            settings {
+                type: jsExpression
+                jsExpression: apex.jQuery(this.triggeringElement).attr("data-id")
+                suppressChangeEvent: true
+            }
+            affectedElements {
+                selectionType: items
+                items: P52_PARAM_STATIC_ID
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-set-value-2 (
+            action: setValue
+            settings {
+                type: jsExpression
+                jsExpression: apex.jQuery(this.triggeringElement).attr("data-label")
+                suppressChangeEvent: true
+            }
+            affectedElements {
+                selectionType: items
+                items: P52_PARAM_LABEL
+            }
+            execution {
+                sequence: 40
+                fireOnInit: false
+            }
+        )
+
+        action native-set-value-3 (
+            action: setValue
+            settings {
+                type: jsExpression
+                jsExpression: apex.jQuery(this.triggeringElement).attr("data-value")
+                suppressChangeEvent: true
+            }
+            affectedElements {
+                selectionType: items
+                items: [
+                    P52_PARAM_VALUE
+                    P52_NEW_VALUE
+                ]
+            }
+            execution {
+                sequence: 50
+                fireOnInit: false
+            }
+        )
+
+        action native-set-value-4 (
+            action: setValue
+            settings {
+                type: jsExpression
+                jsExpression: apex.jQuery(this.triggeringElement).attr("data-required")
+                suppressChangeEvent: true
+            }
+            affectedElements {
+                selectionType: items
+                items: P52_IS_REQUIRED
+            }
+            execution {
+                sequence: 60
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction open-medical-reject-dialog (
+        name: Open Medical Rejection Dialog
+        execution {
+            sequence: 25
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @medical-reject
+        }
+
+        action native-open-region (
+            action: openRegion
+            affectedElements {
+                selectionType: region
+                region: @medical-rejection-dialog
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-comments (
+        name: Refresh - Comments
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: P52_ALL_COMMENTS
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @comments
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-history (
+        name: Refresh - History
+        execution {
+            sequence: 20
+        }
+        when {
+            selectionType: items
+            items: P52_ALL_HISTORY
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @history
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction submit-information (
+        name: Submit Information
+        execution {
+            sequence: 30
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @open-dialog-submit-information
+        }
+
+        action native-open-region (
+            action: openRegion
+            affectedElements {
+                selectionType: region
+                region: @submit-information
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    validation add-comment (
+        name: Add Comment
+        execution {
+            sequence: 70
+        }
+        validation {
+            type: itemIsNotNull
+            item: P52_COMMENT_TEXT
+        }
+        error {
+            errorMessage: Please provide a comment
+            displayLocation: inlineWithField
+            associatedItem: @P52_COMMENT_TEXT
+        }
+        serverSideCondition {
+            whenButtonPressed: @add-comment
+        }
+    )
+
+    validation delegate (
+        name: Delegate
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: itemIsNotNull
+            item: P52_NEW_OWNER
+        }
+        error {
+            errorMessage: Please provide a potential owner
+            displayLocation: inlineWithField
+            associatedItem: @P52_NEW_OWNER
+        }
+        serverSideCondition {
+            whenButtonPressed: @delegate
+        }
+    )
+
+    validation exclude-participant (
+        name: Exclude Participant
+        execution {
+            sequence: 80
+        }
+        validation {
+            type: itemIsNotNull
+            item: P52_EXCLUDE_OWNER
+        }
+        error {
+            errorMessage: Please provide a potential owner
+            displayLocation: inlineWithField
+            associatedItem: @P52_EXCLUDE_OWNER
+        }
+        serverSideCondition {
+            whenButtonPressed: @exclude-owner
+        }
+    )
+
+    validation invite-participant (
+        name: Invite Participant
+        execution {
+            sequence: 40
+        }
+        validation {
+            type: itemIsNotNull
+            item: P52_NEW_POTENTIAL_OWNER
+        }
+        error {
+            errorMessage: Please provide a potential owner
+            displayLocation: inlineWithField
+            associatedItem: @P52_NEW_POTENTIAL_OWNER
+        }
+        serverSideCondition {
+            whenButtonPressed: @invite-participant
+        }
+    )
+
+    validation medical-approval-must-use-details (
+        name: Medical approval must use referral details
+        execution {
+            sequence: 44
+        }
+        validation {
+            plsqlExpression: :P52_REQUEST_TYPE_ID <> '106'
+        }
+        error {
+            errorMessage: Open the medical referral details page to review examinations and attachments before approval.
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :REQUEST = 'APPROVE'
+        }
+    )
+
+    validation medical-reject-reason-required (
+        name: Medical rejection reason required
+        execution {
+            sequence: 45
+        }
+        validation {
+            type: itemIsNotNull
+            item: P52_REJECT_REASON
+        }
+        error {
+            errorMessage: Please provide a rejection reason.
+            displayLocation: inlineWithField
+            associatedItem: @P52_REJECT_REASON
+        }
+        serverSideCondition {
+            whenButtonPressed: @medical-reject-confirm
+        }
+    )
+
+    validation remove-participant (
+        name: Remove Participant
+        execution {
+            sequence: 50
+        }
+        validation {
+            type: itemIsNotNull
+            item: P52_POTENTIAL_OWNER
+        }
+        error {
+            errorMessage: Please provide a potential owner
+            displayLocation: inlineWithField
+            associatedItem: @P52_EXCLUDE_OWNER
+        }
+        serverSideCondition {
+            whenButtonPressed: @remove-participant
+        }
+    )
+
+    validation request-information (
+        name: Request Information
+        execution {
+            sequence: 20
+        }
+        validation {
+            type: itemIsNotNull
+            item: P52_REQUEST_INFO_TEXT
+        }
+        error {
+            errorMessage: Please provide a message
+            displayLocation: inlineWithField
+            associatedItem: @P52_REQUEST_INFO_TEXT
+        }
+        serverSideCondition {
+            whenButtonPressed: @request-information
+        }
+    )
+
+    validation submit-information (
+        name: Submit Information
+        execution {
+            sequence: 30
+        }
+        validation {
+            type: itemIsNotNull
+            item: P52_SUBMIT_INFO_TEXT
+        }
+        error {
+            errorMessage: Please provide a message
+            displayLocation: inlineWithField
+            associatedItem: @P52_SUBMIT_INFO_TEXT
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit-information
+        }
+    )
+
+    validation update-parameter (
+        name: Update Parameter
+        execution {
+            sequence: 60
+        }
+        validation {
+            type: itemIsNotNull
+            item: P52_NEW_VALUE
+        }
+        error {
+            errorMessage: Please provide a new parameter value
+            displayLocation: inlineWithField
+            associatedItem: @P52_NEW_VALUE
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :REQUEST = 'UPDATE_PARAMETER' and :P52_IS_REQUIRED = 'Y'
+        }
+    )
+
+    computation p52-can-update-params (
+        itemName: P52_CAN_UPDATE_PARAMS
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        computation {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                case 
+                    when apex_human_task.is_allowed (
+                            p_task_id   => :P52_TASK_ID,
+                            p_operation => apex_human_task.c_task_op_set_params )
+                    then 'Y'
+                    else 'N'
+                end
+                ```
+        }
+    )
+
+    process add-comment (
+        name: Add Comment
+        type: humanTaskManage
+        action {
+            type: comment
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+            commentText: &P52_COMMENT_TEXT.
+        }
+        execution {
+            sequence: 150
+        }
+        successMessage {
+            successMessage: Comment added
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34592616883546323
+        }
+        serverSideCondition {
+            whenButtonPressed: @add-comment
+        }
+    )
+
+    process approve (
+        name: Approve
+        type: humanTaskManage
+        humanTask {
+            taskIdItem: P52_TASK_ID
+        }
+        execution {
+            sequence: 30
+        }
+        successMessage {
+            successMessage: Task approved
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34587843672546306
+        }
+        serverSideCondition {
+            whenButtonPressed: @approve
+        }
+    )
+
+    process cancel-task (
+        name: Cancel Task
+        type: humanTaskManage
+        action {
+            type: cancel
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+        }
+        execution {
+            sequence: 130
+        }
+        successMessage {
+            successMessage: Task canceled
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34591828046546320
+        }
+        serverSideCondition {
+            whenButtonPressed: @cancel-task
+        }
+    )
+
+    process change-due-date (
+        name: Change Due Date
+        type: humanTaskManage
+        action {
+            type: setDueDate
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+            dueDateItem: P52_NEW_DUE_DATE
+        }
+        execution {
+            sequence: 80
+        }
+        successMessage {
+            successMessage: Task due date updated
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34589881018546313
+        }
+        serverSideCondition {
+            whenButtonPressed: @set-due
+        }
+    )
+
+    process change-priority (
+        name: Change Priority
+        type: humanTaskManage
+        action {
+            type: setPriority
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+            priorityItem: P52_NEW_PRIORITY
+        }
+        execution {
+            sequence: 70
+        }
+        successMessage {
+            successMessage: Task priority changed
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34589482827546311
+        }
+        serverSideCondition {
+            whenButtonPressed: @set-priority
+        }
+    )
+
+    process claim (
+        name: Claim
+        type: humanTaskManage
+        action {
+            type: claim
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+        }
+        execution {
+            sequence: 20
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34587465788546304
+        }
+        serverSideCondition {
+            whenButtonPressed: @claim
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 160
+        }
+        advanced {
+            executionMappingIdentifier: 34593448505546326
+        }
+        serverSideCondition {
+            type: requestIsNotContainedInValue
+            value: CLAIM,SET_PRIORITY,SET_DUE,INVITE_PARTICIPANT,REMOVE_PARTICIPANT,RENEW,UPDATE_PARAMETER,SAVE,ADD_COMMENT,EXCLUDE_OWNER
+        }
+    )
+
+    process delegate (
+        name: Delegate
+        type: humanTaskManage
+        action {
+            type: delegate
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+            toUserItem: P52_NEW_OWNER
+        }
+        execution {
+            sequence: 60
+        }
+        successMessage {
+            successMessage: Task delegated to &P52_NEW_OWNER!HTML.
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34589011392546310
+        }
+        serverSideCondition {
+            whenButtonPressed: @delegate
+        }
+    )
+
+    process exclude-participant (
+        name: Exclude Participant
+        type: humanTaskManage
+        action {
+            type: excludeParticipant
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+            toUserItem: P52_EXCLUDE_OWNER
+        }
+        execution {
+            sequence: 160
+        }
+        successMessage {
+            successMessage: Participant &P52_EXCLUDE_OWNER!HTML. excluded from the task.
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34593040633546324
+        }
+        serverSideCondition {
+            whenButtonPressed: @exclude-owner
+        }
+    )
+
+    process invite-participant (
+        name: Invite Participant
+        type: humanTaskManage
+        action {
+            type: inviteParticipant
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+            toUserItem: P52_NEW_POTENTIAL_OWNER
+        }
+        execution {
+            sequence: 110
+        }
+        successMessage {
+            successMessage: Participant &P52_NEW_POTENTIAL_OWNER!HTML. added to task as potential owner
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34591066427546317
+        }
+        serverSideCondition {
+            whenButtonPressed: @invite-participant
+        }
+    )
+
+    process medical-reject (
+        name: Reject Medical Referral
+        type: humanTaskManage
+        action {
+            type: reject
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+        }
+        execution {
+            sequence: 40
+        }
+        successMessage {
+            successMessage: Task rejected
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 58827216333709705
+        }
+        serverSideCondition {
+            whenButtonPressed: @medical-reject-confirm
+        }
+    )
+
+    process medical-rejection-comment (
+        name: Persist medical rejection reason
+        type: humanTaskManage
+        action {
+            type: comment
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+            commentText: &P52_REJECT_REASON.
+        }
+        execution {
+            sequence: 39
+        }
+        advanced {
+            executionMappingIdentifier: 52387543762261202
+        }
+        serverSideCondition {
+            whenButtonPressed: @medical-reject-confirm
+        }
+    )
+
+    process prepare-prescription-review (
+        name: PREPARE_PRESCRIPTION_REVIEW
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                 l_task number := to_number(apex_application.g_x01 default null on conversion error);
+                 l_request number; l_type varchar2(30); l_source varchar2(128);
+                 l_owner varchar2(255); l_state varchar2(30); l_actor varchar2(255) := v('APP_USER');
+                 l_emp varchar2(30); l_target varchar2(255); l_count number;
+                begin
+                 if v('APP_ID')<>'104' or v('APP_PAGE_ID')<>'52' or l_task is null or trim(l_actor) is null
+                    or med.apr_med_approver_task_api.has_medical_task_access(l_actor,52,l_task)<>'Y' then
+                  raise_application_error(-20421,'Prescription review must use an assigned App104 medical task');
+                 end if;
+                 select actual_owner,state_code into l_owner,l_state from apex_tasks
+                  where task_id=l_task and application_id=104 and lower(task_def_static_id)='approval-task';
+                 select max(case when param_static_id='T_REQUEST_ID' then to_number(param_value default null on conversion error) end),
+                        max(case when param_static_id='T_REQUEST_TYPE_ID' then trim(param_value) end),
+                        max(case when param_static_id='T_REQUEST_SOURCE' then trim(param_value) end)
+                   into l_request,l_type,l_source from apex_task_parameters where task_id=l_task;
+                 if l_request is null or l_type is null or l_type<>'202'
+                    or l_source is null or l_source<>'MED.MD_PRES_REQUEST'
+                    or l_state is null or l_state not in('UNASSIGNED','ASSIGNED') then
+                  raise_application_error(-20422,'Only a live prescription approval task can open this review');
+                 end if;
+                 l_emp:=med.apr_med_approver_task_api.resolve_actor_emp_number(l_actor);
+                 l_target:=med.apr_med_approver_task_api.resolve_task_username(l_emp);
+                 if l_emp is null or l_target is null
+                    or nvl(med.apr_med_approver_task_api.resolve_actor_emp_number(l_target),'!')<>l_emp then
+                  raise_application_error(-20423,'The reviewer must have one active medical account');
+                 end if;
+                 select count(*) into l_count from apex_task_participants
+                  where task_id=l_task and upper(participant_type)='POTENTIAL_OWNER'
+                    and upper(participant)=upper(l_target);
+                 if l_count<>1 then raise_application_error(-20424,'The medical account is not a potential owner of this task');end if;
+                 if l_owner is not null then
+                  if upper(trim(l_owner))<>upper(trim(l_actor)) then
+                   raise_application_error(-20425,'Another user owns this prescription task');
+                  end if;
+                  -- The shared EPROM_HQ session keeps APP_USER unchanged across104 and200.
+                  -- Preserve its literal actual owner so native task completion remains valid.
+                 end if;
+                 apex_json.open_object;
+                 apex_json.write('ready',true);
+                 apex_json.close_object;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 900017852010
+        }
+    )
+
+    process reject (
+        name: Reject
+        type: humanTaskManage
+        action {
+            type: reject
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+        }
+        execution {
+            sequence: 40
+        }
+        successMessage {
+            successMessage: Task rejected
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34588266735546307
+        }
+        serverSideCondition {
+            whenButtonPressed: @reject
+        }
+    )
+
+    process release (
+        name: Release
+        type: humanTaskManage
+        action {
+            type: release
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+        }
+        execution {
+            sequence: 50
+        }
+        successMessage {
+            successMessage: Task released - can now be claimed by others
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34588618042546309
+        }
+        serverSideCondition {
+            type: request=Value
+            value: RELEASE
+        }
+    )
+
+    process remove-participant (
+        name: Remove Participant
+        type: humanTaskManage
+        action {
+            type: removeParticipant
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+            toUserItem: P52_POTENTIAL_OWNER
+        }
+        execution {
+            sequence: 120
+        }
+        successMessage {
+            successMessage: Participant &P52_POTENTIAL_OWNER!HTML. removed from task.
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34591438852546319
+        }
+        serverSideCondition {
+            whenButtonPressed: @remove-participant
+        }
+    )
+
+    process renew-task (
+        name: Renew Task
+        type: humanTaskManage
+        action {
+            type: renew
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+        }
+        renew {
+            renewedTaskIdItem: P52_TASK_ID
+        }
+        execution {
+            sequence: 10
+        }
+        successMessage {
+            successMessage: Task renewed
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34587008153546302
+        }
+        serverSideCondition {
+            type: request=Value
+            value: RENEW
+        }
+    )
+
+    process request-information (
+        name: Request Information
+        type: humanTaskManage
+        action {
+            type: requestInfo
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+            commentText: &P52_REQUEST_INFO_TEXT.
+        }
+        execution {
+            sequence: 90
+        }
+        successMessage {
+            successMessage: Information requested
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34590234823546314
+        }
+        serverSideCondition {
+            whenButtonPressed: @request-information
+        }
+    )
+
+    process submit-information (
+        name: Submit Information
+        type: humanTaskManage
+        action {
+            type: submitInfo
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+            commentText: &P52_SUBMIT_INFO_TEXT.
+        }
+        execution {
+            sequence: 100
+        }
+        successMessage {
+            successMessage: Information submitted
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34590689688546316
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit-information
+        }
+    )
+
+    process update-parameter (
+        name: Update Parameter
+        type: humanTaskManage
+        action {
+            type: updateParam
+        }
+        humanTask {
+            taskIdItem: P52_TASK_ID
+            paramItem: P52_PARAM_STATIC_ID
+            newValueItem: P52_NEW_VALUE
+        }
+        execution {
+            sequence: 140
+        }
+        successMessage {
+            successMessage: Parameter updated
+        }
+        error {
+            errorMessage: #SQLERRM_TEXT#
+        }
+        advanced {
+            executionMappingIdentifier: 34592258606546321
+        }
+        serverSideCondition {
+            whenButtonPressed: @update-parameter
+        }
+    )
+
+    branch (
+        name: Reload Dialog
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: &APP_PAGE_ID.
+                items: {
+                    P52_TASK_ID: &P52_TASK_ID.
+                }
+            }
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CLAIM,SET_PRIORITY,SET_DUE,INVITE_PARTICIPANT,REMOVE_PARTICIPANT,RENEW,UPDATE_PARAMETER,SAVE,ADD_COMMENT,EXCLUDE_OWNER
+        }
+    )
+
+)

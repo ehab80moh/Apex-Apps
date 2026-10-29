@@ -1,0 +1,557 @@
+page 12 (
+    name: الرؤساء و المرؤوسين
+    alias: MANAGERS-SUBORDINATES
+    title: &APP_TEXT$SUPERIORS_AND_SUBORDINATES.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .imgs {
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+              width: 50%;
+            }
+            
+            .nums {
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+              width: 50%;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region requester-data (
+        name: Requester Data
+        title: &APP_TEXT$REQUESTER_DATA.
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_NUMBER,
+                       EMP_NAME,
+                       SITE_CODE
+                       ,
+                nvl(to_number(replace(REPLACE(grade_name,'EPROM.',''),'ERC.','')),0) GRADE
+                  from CENTRAL.XXAPEX_HR_EMP_DATA
+                where emp_number = :P12_APP_USER
+                ```
+            pageItemsToSubmit: P12_APP_USER
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: 1=2
+        }
+    )
+
+    region رؤسائك (
+        name: رؤسائك
+        title: &APP_TEXT$YOUR_BOSSES.
+        type: cards
+        source {
+            location: localDatabase
+            tableOwner: CENTRAL
+            tableName: XXAPEX_HR_EMP_DATA
+            whereClause:
+                ```sql
+                1=1 AND(
+                    EMP_NUMBER IN (
+                
+                SELECT
+                
+                DISTINCT
+                central.xxapex_ss_approvals.get_delegate(
+                 trim(regexp_substr(str, '[^:]+', 1, LEVEL))) str
+                 
+                   FROM (
+                       
+                       ( SELECT
+                    level,
+                    rtrim(ltrim(s.c_pos_holders
+                                || ':'
+                                || sdd.delegates, ':'), ':') str
+                FROM
+                    central.xxapex_hr_positon_hierarchy s,
+                    (
+                        SELECT
+                            to_number(sd.approver_result) ap_res,
+                            sd.delegates
+                        FROM
+                            central.apr_delegation sd
+                        WHERE
+                                1 = 1
+                            AND sd.approver_type = 'P'
+                    )                                   sdd
+                WHERE
+                        1 = 1
+                    AND s.child_id = sdd.ap_res (+)
+                AND s.child_id <>central.xxapex_ss_approvals.get_emp_main_pos(:P12_APP_USER)                  
+                start with child_id in(
+                SELECT
+                                            s.child_id
+                                        FROM
+                                            central.xxapex_hr_positon_hierarchy s,
+                                            (
+                                                SELECT
+                                                    to_number(sd.approver_result) ap_res,
+                                                    sd.delegates
+                                                FROM
+                                                    central.apr_delegation sd
+                                                WHERE
+                                                        1 = 1
+                                                    AND sd.approver_type = 'P'
+                                            )                           sdd
+                                        WHERE
+                                                1 = 1
+                                            AND s.child_id = sdd.ap_res (+)
+                                           and s.child_id =central.xxapex_ss_approvals.get_emp_main_pos(:P12_APP_USER)                  
+                ) 
+                CONNECT BY PRIOR s.p_position = s.c_position  
+                ) parent
+                )
+                   CONNECT BY regexp_substr(    str,
+                    '[^:]+',
+                    1,
+                    level
+                ) IS NOT NULL
+                
+                
+                )
+                )
+                and emp_number<>:P12_APP_USER
+                
+                ```
+            pageItemsToSubmit: [
+                P12_GRADE
+                P12_APP_USER
+            ]
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        card {
+            primaryKeyColumn1: EMP_NUMBER
+        }
+        title {
+            column: EMP_NAME
+        }
+        subtitle {
+            column: EXCEL_POS
+        }
+        iconAndBadge {
+            badgeColumn: EMP_NUMBER
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGE
+            position: first
+            appearance: widescreen
+            cssClasses: imgs
+        }
+        performance {
+            lazyLoading: true
+        }
+        pagination {
+            type: page
+            showTotalCount: true
+        }
+    )
+
+    region موظفين-تابعينك (
+        name: موظفين تابعينك
+        title: &APP_TEXT$YOUR_EMPLOYEES.
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMP_NUMBER,
+                       EMP_NAME,
+                       NATIONAL_IDENTIFIER,
+                       EMP_DATE_OF_BIRTH,
+                       EMP_POSITION_NAME,
+                       SITE_CODE,
+                       ORGANIZATION_NAME,
+                       ASSIGNMENTS_DATE,
+                       Grade_NAME,
+                       PERMANENT_DATE,
+                       EXCEL_POS,
+                       PROJECT,
+                       BASIC_SALARY,
+                       EXP_DATE,
+                       IMAGE,
+                       IMAGE_ID,
+                       COMP_EMAIL,
+                       PAY_EMAIL,
+                       EGPC_EMAIL,
+                       MAR_STAT,
+                       JOB_DATE,
+                       PRIM_ADDRESS,
+                       PERSON_ID
+                  from CENTRAL.XXAPEX_HR_EMP_DATA
+                 where 1=1 AND
+                    
+                    EMP_NUMBER IN (
+                SELECT trim(regexp_substr(str, '[^:]+', 1, LEVEL)) str
+                    FROM (
+                            SELECT
+                            DISTINCT  positions.c_pos_holders str
+                        FROM
+                            CENTRAL.XXAPEX_HR_POSITON_HIERARCHY
+                             positions
+                             where 1=1
+                        START WITH
+                            positions.parent_id||'' IN ( 
+                                SELECT DISTINCT
+                                    s.parent_id||''
+                                FROM
+                                    CENTRAL.xxapex_hr_positon_hierarchy s
+                                WHERE
+                
+                                    s.parent_id =central.xxapex_ss_approvals.get_emp_main_pos(:P12_APP_USER)                  
+                union all
+                
+                                select distinct approver_result str from central.apr_delegation aa where                    
+                                                    ':'
+                                    || aa.DELEGATES
+                                    || ':' LIKE '%:'
+                                                || :P12_APP_USER
+                                                || ':%'
+                                                and approver_type='P'
+                            )
+                        CONNECT BY
+                            PRIOR positions.child_id = positions.parent_id
+                    )
+                CONNECT BY regexp_substr(str , '[^:]+', 1, LEVEL) IS NOT NULL
+                
+                )
+                and emp_number<>:P12_APP_USER
+                ```
+        }
+        orderBy {
+            type: item
+            item: {
+                itemName: P12_ORDER_BY
+                orderBys: {
+                    ORGANIZATION_NAME: grade_name desc
+                }
+            }
+        }
+        layout {
+            sequence: 60
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :EMP_GRADE >=8
+        }
+        card {
+            primaryKeyColumn1: EMP_NUMBER
+        }
+        title {
+            column: EMP_NAME
+        }
+        subtitle {
+            column: EXCEL_POS
+        }
+        iconAndBadge {
+            badgeColumn: EMP_NUMBER
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGE
+            position: first
+            appearance: widescreen
+            cssClasses: imgs
+        }
+        performance {
+            lazyLoading: true
+        }
+        pagination {
+            type: page
+            showTotalCount: true
+            cardsPerPage: 18
+        }
+
+        action action (
+            label: &APP_TEXT$ADMINISTRATIVE_DETAILS.
+            layout {
+                sequence: 20
+            }
+            behavior {
+                target: {
+                    page: 27
+                    items: {
+                        P27_SELECTED_EM_NUM: &EMP_NUMBER.
+                    }
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-clipboard-check
+                hot: true
+            }
+            serverSideCondition {
+                type: expression
+                plsqlExpression: :APP_user in ('995' , '3775')
+            }
+        )
+
+        action action-2 (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 13
+                    items: {
+                        P13_APP_USER: &EMP_NUMBER.
+                    }
+                }
+            }
+            serverSideCondition {
+                type: never
+            }
+        )
+
+    )
+
+    region موقعك-بالهيكل (
+        name: موقعك بالهيكل
+        title: &APP_TEXT$YOUR_LOCATION_IN_THE_STRUCTURE.
+        type: regionDisplaySelector
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @tabs-container
+            templateOptions: [
+                #DEFAULT#
+                t-TabsRegion-mod--simple
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        settings {
+            includeShowAll: false
+            rememberSelection: bySession
+        }
+    )
+
+    pageItem P12_APP_USER (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+    )
+
+    pageItem P12_EMP_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$EMP_NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @requester-data
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @requester-data
+            column: EMP_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P12_EMP_NUMBER (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$EMP_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @requester-data
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @requester-data
+            column: EMP_NUMBER
+            dataType: varchar2
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P12_GRADE (
+        type: textarea
+        label {
+            label: &APP_TEXT$GRADE.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @requester-data
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            maxLength: 720
+        }
+        source {
+            formRegion: @requester-data
+            column: GRADE
+            dataType: number
+        }
+    )
+
+    pageItem P12_ORDER_BY (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @موظفين-تابعينك
+            slot: sortOrder
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        default {
+            type: static
+            staticValue: ORGANIZATION_NAME
+        }
+    )
+
+    pageItem P12_SITE_CODE (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$SITE_CODE.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @requester-data
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @requester-data
+            column: SITE_CODE
+            dataType: varchar2
+        }
+    )
+
+    process enter-emp-id (
+        name: Enter_emp_id
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                :P12_APP_USER:=NVL(:P12_APP_USER,:APP_USER);
+                :p12_EMP_NUMBER:=:P12_APP_USER;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 32122373280093377
+        }
+    )
+
+    process new (
+        name: New
+        type: formInitialization
+        formRegion: @requester-data
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 32090044077979420
+        }
+    )
+
+)

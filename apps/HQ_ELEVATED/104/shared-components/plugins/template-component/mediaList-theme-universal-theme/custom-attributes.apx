@@ -1,0 +1,600 @@
+customAttribute APPLY_THEME_COLORS (
+    apexlangName: applyThemeColors
+    attribute: 20
+    name: Apply Theme Colors
+    scope: report
+    type: yesNo
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 200
+    }
+    default {
+        value: true
+    }
+    help {
+        helpText: Specify whether to use the Universal Theme colors for avatar and badge row items. When set to Yes, the u-colors class will be applied to each row. When set to No, a default color will be used instead.
+    }
+)
+
+customAttribute AVATAR_DESCRIPTION (
+    apexlangName: description2
+    attribute: 7
+    name: Description
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 95
+    }
+    builder {
+        translatable: true
+    }
+    help {
+        helpText: Enter a short description of the image/icon or select a source column from the quick pick options. This will be used as title & alt text for the avatar image/icon.
+    }
+)
+
+customAttribute AVATAR_ICON (
+    apexlangName: icon
+    attribute: 9
+    name: Icon
+    type: icon
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 90
+    }
+    default {
+        value: fa-user
+    }
+    dependingOn {
+        attribute: @AVATAR_TYPE/component
+        conditionType: =
+        value: icon
+    }
+    help {
+        helpText: Enter an icon class or use the Pick Icon dialog to select the icon you want to add to display in the avatar.
+    }
+)
+
+customAttribute AVATAR_IMAGE (
+    apexlangName: image
+    attribute: 6
+    name: Image
+    type: media
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 60
+    }
+    dependingOn {
+        attribute: @AVATAR_TYPE/component
+        conditionType: =
+        value: image
+    }
+    help {
+        helpText:
+            ```
+            <p>Use the Media popup dialog to select a source for the avatar image.</p>
+            
+            <p>Available options include:
+            <ul>
+            <li>URL</li>
+            <li>BLOB Column</li>
+            <li>URL Column</li>
+            </ul>
+            </p>
+            ```
+    }
+)
+
+customAttribute AVATAR_INITIALS (
+    apexlangName: initials
+    attribute: 8
+    name: Initials
+    type: sessionStateValue
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: stripHtml
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 80
+    }
+    dependingOn {
+        attribute: @AVATAR_TYPE/component
+        conditionType: =
+        value: initials
+    }
+    help {
+        helpText: Select the source column to be displayed within each avatar. Only varchar2 data types are supported.
+    }
+)
+
+customAttribute AVATAR_SHAPE (
+    apexlangName: shape
+    attribute: 10
+    name: Shape
+    type: selectList
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 100
+    }
+    default {
+        value: t-Avatar--rounded
+    }
+    dependingOn {
+        attribute: @DISPLAY_AVATAR/component
+        conditionType: =
+        value: Y
+    }
+    help {
+        helpText: Select the shape of the avatar. Default inherits the shape set by the containing template.
+    }
+
+    entry circular (
+        sequence: 20
+        display: Circular
+        return: t-Avatar--circle
+        help {
+            helpText: Displayed within a circular shape.
+        }
+    )
+
+    entry noShape (
+        sequence: 40
+        display: No Shape
+        return: t-Avatar--noShape
+        help {
+            helpText: Displayed inline without a containing shape.
+        }
+    )
+
+    entry rounded (
+        sequence: 10
+        display: Rounded
+        return: t-Avatar--rounded
+        help {
+            helpText: Displayed within a square with rounded corners.
+        }
+    )
+
+    entry square (
+        sequence: 30
+        display: Square
+        return: t-Avatar--square
+        help {
+            helpText: Displayed within a square shape.
+        }
+    )
+
+)
+
+customAttribute AVATAR_TYPE (
+    apexlangName: type
+    attribute: 5
+    name: Type
+    type: selectList
+    validation {
+        required: true
+    }
+    appearance {
+        attributeGroup: @avatar
+        sequence: 50
+    }
+    default {
+        value: icon
+        sampleDataValue: icon
+    }
+    dependingOn {
+        attribute: @DISPLAY_AVATAR/component
+        conditionType: =
+        value: Y
+    }
+    help {
+        helpText: Select the type of content that will be displayed in the avatar.
+    }
+
+    entry icon (
+        sequence: 30
+        display: Icon
+        return: icon
+    )
+
+    entry image (
+        sequence: 10
+        display: Image
+        return: image
+    )
+
+    entry initials (
+        sequence: 20
+        display: Initials
+        return: initials
+    )
+
+)
+
+customAttribute BADGE_ICON (
+    apexlangName: icon2
+    attribute: 14
+    name: Icon
+    type: icon
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @badge
+        sequence: 140
+    }
+    dependingOn {
+        attribute: @DISPLAY_BADGE/component
+        conditionType: =
+        value: Y
+    }
+    help {
+        helpText: Enter an icon class or use the Pick Icon dialog to select the icon you want to add to display in the badge.
+    }
+)
+
+customAttribute BADGE_LABEL (
+    apexlangName: label
+    attribute: 11
+    name: Label
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: raw
+    }
+    appearance {
+        attributeGroup: @badge
+        sequence: 110
+    }
+    builder {
+        translatable: true
+    }
+    dependingOn {
+        attribute: @DISPLAY_BADGE/component
+        conditionType: =
+        value: Y
+    }
+    help {
+        helpText: Enter a value for the badge label or select a source column from the quick pick options.
+    }
+)
+
+customAttribute BADGE_LABEL_DISPLAY (
+    apexlangName: displayLabel
+    attribute: 15
+    name: Display Label
+    type: yesNo
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @badge
+        sequence: 150
+    }
+    dependingOn {
+        attribute: @DISPLAY_BADGE/component
+        conditionType: =
+        value: Y
+    }
+    help {
+        helpText: Specify whether to display or hide the badge label. When set to Yes, the badge label will be displayed in addition to the badge value. When set to No, only the badge value will be displayed.
+    }
+)
+
+customAttribute BADGE_SHAPE (
+    apexlangName: shape2
+    attribute: 17
+    name: Shape
+    type: selectList
+    componentLov {
+        nullText: Default
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @badge
+        sequence: 170
+    }
+    dependingOn {
+        attribute: @DISPLAY_BADGE/component
+        conditionType: =
+        value: Y
+    }
+    help {
+        helpText: Select the shape of the badge. Default inherits the shape set by the containing template.
+    }
+
+    entry circular (
+        sequence: 20
+        display: Circular
+        return: t-Badge--circle
+        help {
+            helpText: Displayed with circular edges.
+        }
+    )
+
+    entry rounded (
+        sequence: 10
+        display: Rounded
+        return: t-Badge--rounded
+        help {
+            helpText: Displayed with rounded corners.
+        }
+    )
+
+    entry square (
+        sequence: 30
+        display: Square
+        return: t-Badge--square
+        help {
+            helpText: Displayed with squared edges.
+        }
+    )
+
+)
+
+customAttribute BADGE_STATE (
+    apexlangName: state
+    attribute: 13
+    name: State
+    type: sessionStateValue
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @badge
+        sequence: 130
+    }
+    dependingOn {
+        attribute: @DISPLAY_BADGE/component
+        conditionType: =
+        value: Y
+    }
+    help {
+        helpText: Select the source column for the state of the badge. Substitute column value with "danger", "warning", "success" or "info" for default styling.
+    }
+)
+
+customAttribute BADGE_STYLE (
+    apexlangName: style
+    attribute: 16
+    name: Style
+    type: selectList
+    componentLov {
+        nullText: Default
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        attributeGroup: @badge
+        sequence: 160
+    }
+    dependingOn {
+        attribute: @DISPLAY_BADGE/component
+        conditionType: =
+        value: Y
+    }
+    help {
+        helpText: Select the badge style. Default inherits the style set by the containing template.
+    }
+
+    entry outline (
+        sequence: 20
+        display: Outline
+        return: t-Badge--outline
+    )
+
+    entry subtle (
+        sequence: 10
+        display: Subtle
+        return: t-Badge--subtle
+    )
+
+)
+
+customAttribute BADGE_VALUE (
+    apexlangName: value
+    attribute: 12
+    name: Value
+    type: sessionStateValue
+    validation {
+        required: true
+    }
+    security {
+        escapeMode: stripHtml
+    }
+    appearance {
+        attributeGroup: @badge
+        sequence: 120
+    }
+    supports {
+        dataTypes: [
+            varchar2
+            number
+            date
+            intervalYearToMonth
+            intervalDayToSecond
+        ]
+    }
+    dependingOn {
+        attribute: @DISPLAY_BADGE/component
+        conditionType: =
+        value: Y
+    }
+    help {
+        helpText: Select a source column for the badge value.
+    }
+)
+
+customAttribute DESCRIPTION (
+    apexlangName: description
+    attribute: 2
+    name: Description
+    type: sessionStateValue
+    appearance {
+        sequence: 20
+    }
+    default {
+        sampleDataValue: Nunc sit amet nunc quis magna ornare suscipit. Etiam aliquet maximus sapien, at sagittis sem gravida nec.
+    }
+    help {
+        helpText: Select a source column to be used for the row description.
+    }
+)
+
+customAttribute DISPLAY_AVATAR (
+    apexlangName: displayAvatar
+    attribute: 3
+    name: Display Avatar
+    type: yesNo
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 30
+    }
+    help {
+        helpText: Specify whether to display or hide the avatar for each row. When set to Yes, an avatar will be displayed with the assigned image, icon, or initials. When set to No, no avatar will be displayed.
+    }
+)
+
+customAttribute DISPLAY_BADGE (
+    apexlangName: displayBadge
+    attribute: 4
+    name: Display Badge
+    type: yesNo
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 40
+    }
+    help {
+        helpText: Specify whether to display or hide the badge for each row. When set to Yes, a badge will be displayed in each row. When set to No, no badge will be displayed.
+    }
+)
+
+customAttribute LAYOUT (
+    apexlangName: layout
+    attribute: 18
+    name: Layout
+    scope: report
+    type: selectList
+    componentLov {
+        nullText: Default
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 180
+    }
+    help {
+        helpText: Select the number of grid columns the media list content will display in. Horizontal Span will display all columns in a single horizontal row.
+    }
+
+    entry 2ColumnGrid (
+        sequence: 10
+        display: 2 Column Grid
+        return: t-MediaList--cols t-MediaList--2cols
+    )
+
+    entry 3ColumnGrid (
+        sequence: 20
+        display: 3 Column Grid
+        return: t-MediaList--cols t-MediaList--3cols
+    )
+
+    entry 4ColumnGrid (
+        sequence: 30
+        display: 4 Column Grid
+        return: t-MediaList--cols t-MediaList--4cols
+    )
+
+    entry 5ColumnGrid (
+        sequence: 40
+        display: 5 Column Grid
+        return: t-MediaList--cols t-MediaList--5cols
+    )
+
+    entry horizontalSpan (
+        sequence: 50
+        display: Horizontal Span
+        return: t-MediaList--horizontal
+    )
+
+)
+
+customAttribute SIZE (
+    apexlangName: size
+    attribute: 19
+    name: Size
+    scope: report
+    type: selectList
+    componentLov {
+        nullText: Default
+    }
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 190
+    }
+    help {
+        helpText: Set the size of media list items.
+    }
+
+    entry large (
+        sequence: 10
+        display: Large
+        return: t-MediaList--large force-fa-lg
+    )
+
+)
+
+customAttribute TITLE (
+    apexlangName: title
+    attribute: 1
+    name: Title
+    type: sessionStateValue
+    validation {
+        required: true
+    }
+    appearance {
+        sequence: 10
+    }
+    default {
+        sampleDataValue: Lorem ipsum dolor sit amet
+    }
+    help {
+        helpText: Select a source column to be used as the title.
+    }
+)

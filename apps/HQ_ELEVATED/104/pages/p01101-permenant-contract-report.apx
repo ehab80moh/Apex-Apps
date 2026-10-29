@@ -1,0 +1,528 @@
+page 1101 (
+    name: Permenant Contract Report
+    alias: PERMENANT-CONTRACT-REPORT
+    title: عقود العمل غير محددة المدة
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @admin
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region employees-list (
+        name: Employees List
+        title: الموظفون المستوفون لشروط العقد
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT q.emp_num AS employee_number, q.full_name, q.job AS pos, q.project, q.emp_num AS emp_no
+                FROM (
+                /*CONTRACT_DATA_BEGIN*/
+                SELECT
+                    TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') AS effdate,
+                    pap.employee_number AS emp_num,
+                    pap.full_name,
+                    pap.start_date,
+                    pap.national_identifier,
+                    n.meaning AS nationality,
+                    apps.xxeprom_person.get_insurance_number@prod(pap.person_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')) AS insu_no,
+                    LTRIM(RTRIM(apps.remove_hamza_trim@prod(pas.ass_attribute13))) AS project,
+                    TO_CHAR(pap.date_of_birth, 'dd/mm/yyyy') || 'م  - ' || pap.region_of_birth || ' / ' || pap.town_of_birth AS birthda,
+                    pql.comments AS qual,
+                    CASE TO_CHAR(apps.xxeprom_person.get_emp_contract_start_date@prod(pap.person_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')), 'MM')
+                        WHEN '01' THEN 'الأول من يناير' WHEN '02' THEN 'الأول من فبراير' WHEN '03' THEN 'الأول من مارس'
+                        WHEN '04' THEN 'الأول من أبريل' WHEN '05' THEN 'الأول من مايو' WHEN '06' THEN 'الأول من يونيو'
+                        WHEN '07' THEN 'الأول من يوليو' WHEN '08' THEN 'الأول من أغسطس' WHEN '09' THEN 'الأول من سبتمبر'
+                        WHEN '10' THEN 'الأول من أكتوبر' WHEN '11' THEN 'الأول من نوفمبر' WHEN '12' THEN 'الأول من ديسمبر'
+                    END || ' عام ' || TO_CHAR(apps.xxeprom_person.get_emp_contract_start_date@prod(pap.person_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')), 'YYYY') || 'م' AS con_date,
+                    SUBSTR(grd.name, INSTR(grd.name, '.') + 1) AS grade,
+                    apps.xxeprom_assignment.get_step_num@prod(pas.assignment_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')) AS step,
+                    apps.xxeprom_payroll2.xxhr_get_eprom_basic_new_perme@prod(
+                        SUBSTR(grd.name, INSTR(grd.name, '.') + 1),
+                        apps.xxeprom_assignment.get_step_num@prod(pas.assignment_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')),
+                        TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')
+                    ) AS basic_sal,
+                    apps.xxeprom_hr_general.number_to_arabic@prod(
+                        apps.xxeprom_payroll2.xxhr_get_eprom_basic_new_perme@prod(
+                            SUBSTR(grd.name, INSTR(grd.name, '.') + 1),
+                            apps.xxeprom_assignment.get_step_num@prod(pas.assignment_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')),
+                            TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')
+                        )
+                    ) AS basic_salary,
+                    pas.ass_attribute8 AS job,
+                    pas.ass_attribute12 AS gdept,
+                    apps.xxeprom_person.get_primary_address@prod(pap.person_id, SYSDATE) AS address,
+                    -- Additional projection for the template; original eligibility is unchanged.
+                    apps.xxeprom_person.get_emp_contract_start_date@prod(pap.person_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')) AS contract_start_date
+                FROM
+                    apps.per_all_people_f@prod pap,
+                    apps.per_all_assignments_f@prod pas,
+                    apps.per_contracts_f@prod con,
+                    apps.per_grades@prod grd,
+                    apps.hr_locations_all@prod loc,
+                    apps.fnd_lookup_values@prod n,
+                    apps.per_qualifications_v@prod pql,
+                    apps.per_qualification_types_v@prod pqt
+                WHERE
+                    pap.person_id = pas.person_id(+)
+                    AND pas.grade_id = grd.grade_id(+)
+                    AND pas.location_id = loc.location_id(+)
+                    AND pap.person_id = con.person_id(+)
+                    AND pap.person_id = pql.person_id(+)
+                    AND pql.qualification_type_id = pqt.qualification_type_id(+)
+                    AND (pap.nationality = n.lookup_code AND n.lookup_type LIKE 'NATION%' AND n.source_lang LIKE 'AR')
+                    AND pql.attribute1(+) LIKE 'Yes'
+                    AND pap.current_employee_flag LIKE 'Y'
+                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') BETWEEN pap.effective_start_date AND pap.effective_end_date
+                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') BETWEEN pas.effective_start_date AND pas.effective_end_date
+                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') BETWEEN con.effective_start_date AND con.effective_end_date
+                    AND con.status LIKE 'A-ACTIVE'
+                    AND apps.xxeprom_person.get_emp_contract_type_us@prod(pap.person_id, SYSDATE) LIKE 'Permanent'
+                    AND apps.xxeprom_person.get_emp_contract_type@prod(pap.person_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')) IS NOT NULL
+                    AND apps.xxeprom_person.get_emp_contract_start_date@prod(pap.person_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')) >= SYSDATE - 90
+                    AND grd.name NOT LIKE '%ERC%'
+                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') - 1 >= ADD_MONTHS(pap.start_date, 12)
+                    AND (
+                        (:P1101_EMPLOYEE_SET IS NULL AND :P1101_EMPLOYEE_SET_1 IS NULL AND :P1101_EMPLOYEE_SET_2 IS NULL AND :P1101_EMPLOYEE_SET_3 IS NULL)
+                        OR (:P1101_EMPLOYEE_SET IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET || ',' LIKE '%,' || pap.employee_number || ',%')
+                        OR (:P1101_EMPLOYEE_SET_1 IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET_1 || ',' LIKE '%,' || pap.employee_number || ',%')
+                        OR (:P1101_EMPLOYEE_SET_2 IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET_2 || ',' LIKE '%,' || pap.employee_number || ',%')
+                        OR (:P1101_EMPLOYEE_SET_3 IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET_3 || ',' LIKE '%,' || pap.employee_number || ',%')
+                    )
+                /*CONTRACT_DATA_END*/
+                ) q
+                ORDER BY q.emp_num
+                
+                ```
+        }
+        layout {
+            sequence: 51
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EMP_NO (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$EMP_NO.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression: <button type='button' class='t-Button t-Button--small sh-rp' data-id='#EMPLOYEE_NUMBER#'>Word</button>
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FULL_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column POS (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$POS.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column PROJECT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$PROJECT.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    pageItem P1101_EFFECTIVE_DATE (
+        type: textField
+        label {
+            label: تاريخ السريان (dd-mm-yyyy)
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 50
+        }
+        validation {
+            valueRequired: true
+            maxLength: 10
+        }
+        default {
+            type: expression
+            plsqlExpression: TO_CHAR(TRUNC(SYSDATE), 'DD-MM-YYYY')
+        }
+    )
+
+    pageItem P1101_EMPLOYEE_SET (
+        type: textField
+        label {
+            label: مجموعة الموظفين 1 (فاصلة إنجليزية دون مسافات)
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 50
+        }
+    )
+
+    pageItem P1101_EMPLOYEE_SET_1 (
+        type: textField
+        label {
+            label: مجموعة الموظفين 2
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 50
+        }
+    )
+
+    pageItem P1101_EMPLOYEE_SET_2 (
+        type: textField
+        label {
+            label: مجموعة الموظفين 3
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 50
+        }
+    )
+
+    pageItem P1101_EMPLOYEE_SET_3 (
+        type: textField
+        label {
+            label: مجموعة الموظفين 4
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 50
+        }
+    )
+
+    pageItem P1101_EMP_NUMBER (
+        type: textField
+        label {
+            label: رقم الموظف المراد طباعة عقده
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            slot: body
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 50
+        }
+    )
+
+    button apply-filters (
+        buttonName: APPLY_FILTERS
+        label: عرض الموظفين
+        layout {
+            sequence: 70
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button show-report (
+        buttonName: show_report
+        label: تحميل عقد Word
+        layout {
+            sequence: 80
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+        advanced {
+            htmlDomId: sh-rp-btn
+        }
+
+        triggerAction print-contract (
+            action: plugin/ucApexOfficePrintAopDa
+            settings {
+                templateType: staticApplicationFiles
+                templateSource3: permanent_contract.docx
+                dataType: plSqlFunctionReturningSql
+                dataSource2:
+                    ```plsql
+                    DECLARE
+                     l_source CLOB;
+                     l_first PLS_INTEGER;
+                     l_last PLS_INTEGER;
+                    BEGIN
+                     SELECT region_source INTO l_source FROM apex_application_page_regions
+                     WHERE application_id = TO_NUMBER(V('APP_ID')) AND page_id = 1101
+                       AND region_static_id = 'employees-list';
+                     l_first := DBMS_LOB.INSTR(l_source, '/*CONTRACT_DATA_BEGIN*/');
+                     l_last := DBMS_LOB.INSTR(l_source, '/*CONTRACT_DATA_END*/');
+                     IF l_first = 0 OR l_last <= l_first THEN
+                       RAISE_APPLICATION_ERROR(-20006, 'Contract report SQL markers are missing.');
+                     END IF;
+                     l_first := l_first + LENGTH('/*CONTRACT_DATA_BEGIN*/');
+                     RETURN 'WITH eligible AS (' || DBMS_LOB.SUBSTR(l_source, l_last-l_first, l_first)
+                            || ')' || CHR(10) || q'~SELECT 'permanent_contract_' || q.emp_num || '_' || TO_CHAR(q.effdate, 'YYYYMMDD') AS "filename",
+                    CURSOR(
+                    SELECT q.emp_num AS "emp_num", q.full_name AS "full_name",
+                    q.national_identifier AS "national_identifier", q.nationality AS "nationality",
+                    q.insu_no AS "insu_no", q.project AS "project", q.birthda AS "birthda",
+                    q.qual AS "qual", q.job AS "job", q.gdept AS "gdept", q.address AS "address",
+                    TO_CHAR(q.basic_sal, 'FM999G999G999G990D00', 'NLS_NUMERIC_CHARACTERS=''.,''') AS "basic_sal",
+                    q.basic_salary AS "basic_salary",
+                    CASE q.grade
+                    WHEN '01' THEN 'الأول' WHEN '02' THEN 'الثاني' WHEN '03' THEN 'الثالث'
+                    WHEN '04' THEN 'الرابع' WHEN '05' THEN 'الخامس' WHEN '06' THEN 'السادس'
+                    WHEN '07' THEN 'السابع' WHEN '08' THEN 'الثامن' WHEN '09' THEN 'التاسع'
+                    WHEN '10' THEN 'العاشر' ELSE q.grade END AS "grade_text",
+                    CASE TO_CHAR(q.step)
+                    WHEN '1' THEN 'الأولى' WHEN '2' THEN 'الثانية' WHEN '3' THEN 'الثالثة'
+                    WHEN '4' THEN 'الرابعة' WHEN '5' THEN 'الخامسة' WHEN '6' THEN 'السادسة'
+                    WHEN '7' THEN 'السابعة' WHEN '8' THEN 'الثامنة' WHEN '9' THEN 'التاسعة'
+                    WHEN '10' THEN 'العاشرة' ELSE TO_CHAR(q.step) END AS "step_text",
+                    TO_CHAR(q.contract_start_date, 'fmDAY', 'NLS_DATE_LANGUAGE=ARABIC') AS "contract_day",
+                    CASE TO_CHAR(q.contract_start_date, 'DD') WHEN '01' THEN 'الأول'
+                    ELSE TO_CHAR(q.contract_start_date, 'FMDD') END || ' من ' ||
+                    TO_CHAR(q.contract_start_date, 'fmMONTH', 'NLS_DATE_LANGUAGE=ARABIC') ||
+                    ' عام ' || TO_CHAR(q.contract_start_date, 'YYYY') || 'م' AS "contract_date"
+                    FROM dual
+                    ) AS "data"
+                    FROM eligible q
+                    WHERE q.emp_num = TRIM(:P1101_EMP_NUMBER)~';
+                    END;
+                    ```
+                initPlSqlCode: aop_api_pkg.g_output_filename := 'permanent_contract_' || V('P1101_EMP_NUMBER');
+                outputType: wordDocx
+            }
+            execution {
+                sequence: 20
+            }
+        )
+
+        triggerAction validate-selection (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    DECLARE
+                    l_date DATE;
+                    l_count PLS_INTEGER;
+                    BEGIN
+                    BEGIN
+                    l_date := TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY');
+                    IF l_date IS NULL THEN
+                    RAISE VALUE_ERROR;
+                    END IF;
+                    EXCEPTION WHEN OTHERS THEN
+                    RAISE_APPLICATION_ERROR(-20001, 'أدخل تاريخ السريان بالصيغة dd-mm-yyyy.');
+                    END;
+                    IF TRIM(:P1101_EMP_NUMBER) IS NULL OR NOT REGEXP_LIKE(TRIM(:P1101_EMP_NUMBER), '^[0-9]+$') THEN
+                    RAISE_APPLICATION_ERROR(-20002, 'اختر رقم الموظف المراد طباعة عقده.');
+                    END IF;
+                    SELECT COUNT(*) INTO l_count
+                    FROM (
+                    SELECT pap.employee_number AS emp_num
+                    FROM
+                    apps.per_all_people_f@prod pap,
+                    apps.per_all_assignments_f@prod pas,
+                    apps.per_contracts_f@prod con,
+                    apps.per_grades@prod grd,
+                    apps.hr_locations_all@prod loc,
+                    apps.fnd_lookup_values@prod n,
+                    apps.per_qualifications_v@prod pql,
+                    apps.per_qualification_types_v@prod pqt
+                    WHERE
+                    pap.person_id = pas.person_id(+)
+                    AND pas.grade_id = grd.grade_id(+)
+                    AND pas.location_id = loc.location_id(+)
+                    AND pap.person_id = con.person_id(+)
+                    AND pap.person_id = pql.person_id(+)
+                    AND pql.qualification_type_id = pqt.qualification_type_id(+)
+                    AND (pap.nationality = n.lookup_code AND n.lookup_type LIKE 'NATION%' AND n.source_lang LIKE 'AR')
+                    AND pql.attribute1(+) LIKE 'Yes'
+                    AND pap.current_employee_flag LIKE 'Y'
+                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') BETWEEN pap.effective_start_date AND pap.effective_end_date
+                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') BETWEEN pas.effective_start_date AND pas.effective_end_date
+                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') BETWEEN con.effective_start_date AND con.effective_end_date
+                    AND con.status LIKE 'A-ACTIVE'
+                    AND apps.xxeprom_person.get_emp_contract_type_us@prod(pap.person_id, SYSDATE) LIKE 'Permanent'
+                    AND apps.xxeprom_person.get_emp_contract_type@prod(pap.person_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')) IS NOT NULL
+                    AND apps.xxeprom_person.get_emp_contract_start_date@prod(pap.person_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')) >= SYSDATE - 90
+                    AND grd.name NOT LIKE '%ERC%'
+                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') - 1 >= ADD_MONTHS(pap.start_date, 12)
+                    AND (
+                    (:P1101_EMPLOYEE_SET IS NULL AND :P1101_EMPLOYEE_SET_1 IS NULL AND :P1101_EMPLOYEE_SET_2 IS NULL AND :P1101_EMPLOYEE_SET_3 IS NULL)
+                    OR (:P1101_EMPLOYEE_SET IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET || ',' LIKE '%,' || pap.employee_number || ',%')
+                    OR (:P1101_EMPLOYEE_SET_1 IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET_1 || ',' LIKE '%,' || pap.employee_number || ',%')
+                    OR (:P1101_EMPLOYEE_SET_2 IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET_2 || ',' LIKE '%,' || pap.employee_number || ',%')
+                    OR (:P1101_EMPLOYEE_SET_3 IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET_3 || ',' LIKE '%,' || pap.employee_number || ',%')
+                    )
+                    ) q
+                    WHERE q.emp_num = TRIM(:P1101_EMP_NUMBER);
+                    IF l_count = 0 THEN
+                    RAISE_APPLICATION_ERROR(-20003, 'الموظف لا يستوفي شروط الاستعلام في تاريخ السريان ومجموعات الاختيار المحددة.');
+                    ELSIF l_count > 1 THEN
+                    RAISE_APPLICATION_ERROR(-20004, 'الاستعلام أعاد أكثر من سجل للموظف؛ راجع بيانات العقود والمؤهلات قبل الطباعة.');
+                    END IF;
+                    END;
+                    ```
+                itemsToSubmit: [
+                    P1101_EFFECTIVE_DATE
+                    P1101_EMPLOYEE_SET
+                    P1101_EMPLOYEE_SET_1
+                    P1101_EMPLOYEE_SET_2
+                    P1101_EMPLOYEE_SET_3
+                    P1101_EMP_NUMBER
+                ]
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    dynamicAction print-row (
+        name: Print row contract
+        execution {
+            sequence: 30
+        }
+        when {
+            event: ready
+        }
+
+        action bind-print-button (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    $(document).on('click.contract1101', '.sh-rp', function () {
+                        $s('P1101_EMP_NUMBER', String($(this).attr('data-id')));
+                        $('#sh-rp-btn').trigger('click');
+                    });
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+)

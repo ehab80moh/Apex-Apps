@@ -1,0 +1,5 @@
+shortcut NEWS (
+    source {
+        htmlCode: "&{H3_IDHAMADATITLEDEFAULT_TITLEH3}!RAW."
+    }
+)

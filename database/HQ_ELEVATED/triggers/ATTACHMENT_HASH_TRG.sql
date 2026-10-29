@@ -1,0 +1,16 @@
+
+  CREATE OR REPLACE EDITIONABLE TRIGGER "HQ_ELEVATED"."ATTACHMENT_HASH_TRG"
+BEFORE INSERT ON HQ_ELEVATED.attachment
+FOR EACH ROW
+BEGIN
+    IF :new.attach_id IS NULL THEN
+        :new.attach_id := HQ_ELEVATED.attachment_seq.NEXTVAL;
+    END IF;
+    -- Generate MD5 of the attach_id using SQL STANDARD_HASH function
+    SELECT LOWER(RAWTOHEX(STANDARD_HASH(TO_CHAR(:new.attach_id), 'MD5')))
+    INTO :new.hash
+    FROM DUAL;
+END;
+
+/
+ALTER TRIGGER "HQ_ELEVATED"."ATTACHMENT_HASH_TRG" ENABLE;

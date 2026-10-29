@@ -1,0 +1,759 @@
+page 8 (
+    name: تعديل المواقع الطبية
+    alias: EDIT-MEDICAL-LOCATIONS
+    title: &APP_TEXT$EDITING_MEDICAL_WEBSITES.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        title: &APP_TEXT$BREADCRUMB.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region تعديل-المواقع-الطبية (
+        name: تعديل المواقع الطبية
+        title: &APP_TEXT$EDITING_MEDICAL_WEBSITES.
+        type: form
+        source {
+            location: localDatabase
+            tableName: XXAPEX_MED_MEDICAL_GUIDE
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    region تعديل-المواقع-الطبية-2 (
+        name: تعديل المواقع الطبية
+        title: &APP_TEXT$EDITING_MEDICAL_WEBSITES.
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            tableName: XXAPEX_MED_MEDICAL_GUIDE
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+        toolbar {
+            controls: [
+                searchCol
+                searchField
+                actionsMenu
+                resetButton
+                saveButton
+            ]
+        }
+        download {
+            formats: [
+                csv
+                html
+                excel
+                pdf
+            ]
+        }
+        advanced {
+            savedReportMappingIdentifier: 70090851958604409
+        }
+
+        savedReport 707872 (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @CON_TYPE
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @EST_NAME
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @ADDRESS_DESCRITION
+                layout {
+                    sequence: 4
+                }
+            )
+
+            displayColumn (
+                column: @LATITUDE_COLUMN
+                layout {
+                    sequence: 5
+                }
+            )
+
+            displayColumn (
+                column: @LONGITUDE_COLUMN
+                layout {
+                    sequence: 6
+                }
+            )
+
+            displayColumn (
+                column: @LINK
+                layout {
+                    sequence: 7
+                }
+            )
+
+            displayColumn (
+                column: @GOVERNORATE
+                layout {
+                    sequence: 8
+                }
+            )
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+        )
+
+        column ADDRESS_DESCRITION (
+            type: textField
+            heading {
+                heading: &APP_TEXT$ADDRESS.
+            }
+            layout {
+                sequence: 60
+            }
+            validation {
+                valueRequired: true
+                maxLength: 240
+            }
+            source {
+                databaseColumn: ADDRESS_DESCRITION
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column APEX$ROW_SELECTOR (
+            type: rowSelector
+            layout {
+                sequence: 10
+            }
+        )
+
+        column CON_TYPE (
+            type: textField
+            heading {
+                heading: &APP_TEXT$CONTRACT_TYPE.
+            }
+            layout {
+                sequence: 40
+            }
+            validation {
+                valueRequired: true
+                maxLength: 100
+            }
+            source {
+                databaseColumn: CON_TYPE
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column EST_NAME (
+            type: textField
+            heading {
+                heading: &APP_TEXT$NAME_OF_THE_CONTRACTING_PARTY.
+            }
+            layout {
+                sequence: 50
+            }
+            validation {
+                valueRequired: true
+                maxLength: 240
+            }
+            source {
+                databaseColumn: EST_NAME
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column GOVERNORATE (
+            type: textField
+            heading {
+                heading: &APP_TEXT$GOVERNORATE.
+            }
+            layout {
+                sequence: 100
+            }
+            validation {
+                maxLength: 240
+            }
+            source {
+                databaseColumn: GOVERNORATE
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column ID (
+            type: hidden
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: ID
+                dataType: number
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column LATITUDE_COLUMN (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$LATITUDE_MAPS.
+                alignment: end
+            }
+            layout {
+                sequence: 70
+                columnAlignment: end
+            }
+            source {
+                databaseColumn: LATITUDE_COLUMN
+                dataType: number
+            }
+            columnFilter {
+                lovType: none
+            }
+        )
+
+        column LINK (
+            type: textField
+            heading {
+                heading: &APP_TEXT$LINK_ON_GOOGLE_MAPS.
+            }
+            layout {
+                sequence: 90
+            }
+            validation {
+                maxLength: 240
+            }
+            source {
+                databaseColumn: LINK
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column LONGITUDE_COLUMN (
+            type: numberField
+            heading {
+                heading: &APP_TEXT$LONGITUDE_MAPS.
+                alignment: end
+            }
+            layout {
+                sequence: 80
+                columnAlignment: end
+            }
+            source {
+                databaseColumn: LONGITUDE_COLUMN
+                dataType: number
+            }
+            columnFilter {
+                lovType: none
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+    )
+
+    pageItem P8_ADDRESS_DESCRITION (
+        type: textField
+        label {
+            label: &APP_TEXT$ADDRESS.
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @تعديل-المواقع-الطبية
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 60
+        }
+        validation {
+            valueRequired: true
+            maxLength: 240
+        }
+        source {
+            formRegion: @تعديل-المواقع-الطبية
+            column: ADDRESS_DESCRITION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P8_CON_TYPE (
+        type: popupLov
+        label {
+            label: &APP_TEXT$CONTRACT_TYPE.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:صيدلية;صيدلية,مستشفي;مستشفي,مركز أشعة;مركز أشعة,مركز عيون;مركز عيون,مركز طبى;مركز طبى,جمعية;جمعية,عيادة;عيادة,مركز قلب;مركز قلب,معمل تحاليل;معمل تحاليل,عيادة أسنان;عيادة أسنان,مركز أسنان;مركز أسنان,عيادة طبية;عيادة طبية,مركز علاج طبيعى;مركز علاج طبيعى,مركز أشعة و تحاليل;مركز أشعة و تحاليل
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 20
+            region: @تعديل-المواقع-الطبية
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @تعديل-المواقع-الطبية
+            column: CON_TYPE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P8_EST_NAME (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME_OF_THE_CONTRACTING_PARTY.
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @تعديل-المواقع-الطبية
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 60
+        }
+        validation {
+            valueRequired: true
+            maxLength: 240
+        }
+        source {
+            formRegion: @تعديل-المواقع-الطبية
+            column: EST_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P8_GOVERNORATE (
+        type: popupLov
+        label {
+            label: &APP_TEXT$GOVERNORATE.
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:الاسكندرية;الاسكندرية,القاهرة;القاهرة,بورسعيد;بورسعيد,السويس;السويس,البحيرة;البحيرة,الجيزة;الجيزة,الدقهلية;الدقهلية,القليوبية;القليوبية,اسيوط;اسيوط,الشرقية;الشرقية,الغربية;الغربية,اسوان;اسوان,كفر الشيخ;كفر الشيخ,مطروح;مطروح
+        }
+        layout {
+            sequence: 80
+            region: @تعديل-المواقع-الطبية
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+        }
+        validation {
+            maxLength: 240
+        }
+        source {
+            formRegion: @تعديل-المواقع-الطبية
+            column: GOVERNORATE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P8_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @تعديل-المواقع-الطبية
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-المواقع-الطبية
+            column: ID
+            dataType: number
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P8_LATITUDE_MAPS (
+        type: numberField
+        label {
+            label: &APP_TEXT$LATITUDE_MAPS.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @تعديل-المواقع-الطبية
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @تعديل-المواقع-الطبية
+            column: LATITUDE_COLUMN
+            dataType: number
+        }
+    )
+
+    pageItem P8_LINK_ON_GOOGLE_MAPS (
+        type: textField
+        label {
+            label: &APP_TEXT$LINK_ON_GOOGLE_MAPS.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @تعديل-المواقع-الطبية
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+        }
+        validation {
+            maxLength: 240
+        }
+        source {
+            formRegion: @تعديل-المواقع-الطبية
+            column: LINK
+            dataType: varchar2
+        }
+    )
+
+    pageItem P8_LONGITUDE_MAPS (
+        type: numberField
+        label {
+            label: &APP_TEXT$LONGITUDE_MAPS.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @تعديل-المواقع-الطبية
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @تعديل-المواقع-الطبية
+            column: LONGITUDE_COLUMN
+            dataType: number
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @تعديل-المواقع-الطبية
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 7
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$SAVE.
+        layout {
+            sequence: 40
+            region: @تعديل-المواقع-الطبية
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P8_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 20
+            region: @تعديل-المواقع-الطبية
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P8_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$APPLY_CHANGES.
+        layout {
+            sequence: 30
+            region: @تعديل-المواقع-الطبية
+            slot: change
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P8_ID
+        }
+    )
+
+    process initialize-form-edit-medical-locations (
+        name: Initialize form Edit Medical Locations
+        type: formInitialization
+        formRegion: @تعديل-المواقع-الطبية
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 10620685936126496
+        }
+    )
+
+    process new-save-interactive-grid-data (
+        name: New - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @تعديل-المواقع-الطبية-2
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 70091940468604420
+        }
+    )
+
+    process process-form-edit-medical-locations (
+        name: Process form Edit Medical Locations
+        type: formAutoRowProcessing
+        formRegion: @تعديل-المواقع-الطبية
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 10621099291126496
+        }
+    )
+
+    branch (
+        execution {
+            sequence: 1
+        }
+        behavior {
+            target: {
+                page: 7
+            }
+        }
+    )
+
+)

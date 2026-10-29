@@ -1,0 +1,464 @@
+page 65 (
+    name: الاعلان
+    alias: ANNOUNCEMENT-2
+    title: &APP_TEXT$ADVERTISEMENT.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            
+            .a-CardView-title {
+                color: #ffffff !important;
+            }
+            
+            
+            .t-Card:hover {
+                background-color: transparent !important;
+                box-shadow: none !important;
+            }
+            
+            
+            .t-Cards-item {
+                display: grid;
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+                gap: 1.5rem; 
+            }
+            
+            @media (min-width: 768px) {
+                .t-Cards-item {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+            @media (min-width: 1024px) {
+                .t-Cards-item {
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                }
+            }
+            
+            
+            .t-Card {
+                border: 1px solid #d1d5db; 
+                border-radius: 0.5rem;
+                overflow: hidden;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+            
+            
+            .t-Card-title {
+                font-size: 1.125rem; 
+                font-weight: bold;
+                color: #000000 !important; 
+            }
+            
+            
+            .t-Card-subtitle {
+                font-size: 0.875rem; 
+                color: #4b5563; 
+            }
+            
+            
+            @media (min-width: 768px) {
+                .md\:max-w-xl {
+                    max-width: 136rem;
+                }
+            }
+            
+            
+            .object-cover,
+            .w-full,
+            .rounded-t-lg,
+            .h-96,
+            .md\:h-auto,
+            .md\:w-48,
+            .md\:rounded-none,
+            .md\:rounded-s-lg,
+            img.object-cover {
+                display: none !important;
+            }
+            
+            
+            lightbox.option({
+                'resizeDuration': 200,
+                'wrapAround': true,
+                'maxWidth': 1600,
+                'maxHeight': 900
+            });
+            
+            
+            .lto37788311112273447_0 .js-apex-region {
+              text-align: left;
+              font-size: 2rem;
+              font-weight: bold;
+              margin-bottom: 0.5rem;
+            color: #880d21 !important;
+            }
+            
+            
+            
+            .news-img{
+            
+            max-width: 20%;
+            
+            
+            }
+            ```
+    }
+    htmlHeader {
+        htmlHeader:
+            ```html
+            <script src="https://cdn.tailwindcss.com"></script>
+            
+            <!-- <img class="object-cover w-full rounded-t-lg h-96 md:h-auto md:w-48 md:rounded-none md:rounded-s-lg"
+                 src="fallback-image.jpg"
+                 alt="المنتدى الدولي للتدريب والتطوير المؤسسي (Training and Organizational Development Forum TOD'24)"
+                 onerror="this.src='fallback-image.jpg';"
+                 style="min-width:21rem; display: none;"> -->
+            
+            
+            
+            ```
+    }
+    security {
+        formAutoComplete: false
+    }
+
+    region load-more (
+        name: Load More...
+        title: &APP_TEXT$NEWS_1.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$DIV_IDACTIONPOS1DEFAULT_CONTENTDIV!RAW.
+        }
+        layout {
+            sequence: 41
+            slot: body
+        }
+        appearance {
+            template: @inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-size600x400
+            ]
+        }
+        advanced {
+            htmlDomId: hamada
+        }
+    )
+
+    region الإعلانات (
+        name: الإعلانات
+        title: &APP_TEXT$ADVERTISEMENTS.
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 11
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region الإعلانات-2 (
+        name: الإعلانات
+        title: &APP_TEXT$ADVERTISEMENTS.
+        type: appTemplateComponent/news
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                
+                
+                
+                
+                
+                SELECT
+                  (
+                    SELECT 
+                      'f?p=' || :APP_ID || ':65:' || :APP_SESSION || ':APPLICATION_PROCESS=GET_NEWS_IMAGE:::IMAGE_ID:' || ni.image_id
+                    FROM (
+                      SELECT image_id
+                      FROM epromhq.news_images
+                      WHERE news_id = p.id
+                      ORDER BY image_id
+                      FETCH FIRST 1 ROWS ONLY
+                    ) ni
+                  ) AS news_image,
+                
+                  p.titel_announcement                      AS news_title,
+                  '...' || SUBSTR(p.body, 1, 300)           AS news_text,
+                  '...' || SUBSTR(p.body, 1, 300)           AS news_direction,
+                  NULL                                      AS news_datetime,
+                  TO_CHAR(p.created_at, 'DD-MON-YYYY')      AS news_text_small,
+                  p.id                                      AS news_id
+                
+                FROM epromhq.portal_announcement_v p
+                WHERE p.expire_date IS NULL OR p.expire_date > SYSDATE;
+                
+                ```
+        }
+        layout {
+            sequence: 31
+            slot: body
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: news_region
+        }
+        componentAppearance {
+            display: report
+        }
+        settings {
+            newsImages: NEWS_IMAGE
+            newsText: NEWS_TEXT
+            newsTitle: NEWS_TITLE
+            newsImage: NEWS_IMAGE
+        }
+
+        column NEWS_DATETIME (
+            layout {
+                sequence: 140
+            }
+            source {
+                databaseColumn: NEWS_DATETIME
+                dataType: varchar2
+            }
+        )
+
+        column NEWS_DIRECTION (
+            layout {
+                sequence: 120
+            }
+            source {
+                databaseColumn: NEWS_DIRECTION
+                dataType: varchar2
+            }
+        )
+
+        column NEWS_ID (
+            layout {
+                sequence: 100
+            }
+            source {
+                databaseColumn: NEWS_ID
+                dataType: number
+            }
+        )
+
+        column NEWS_IMAGE (
+            layout {
+                sequence: 150
+            }
+            source {
+                databaseColumn: NEWS_IMAGE
+                dataType: varchar2
+            }
+        )
+
+        column NEWS_TEXT (
+            layout {
+                sequence: 80
+            }
+            source {
+                databaseColumn: NEWS_TEXT
+                dataType: varchar2
+            }
+        )
+
+        column NEWS_TEXT_SMALL (
+            layout {
+                sequence: 90
+            }
+            source {
+                databaseColumn: NEWS_TEXT_SMALL
+                dataType: varchar2
+            }
+        )
+
+        column NEWS_TITLE (
+            layout {
+                sequence: 130
+            }
+            source {
+                databaseColumn: NEWS_TITLE
+                dataType: varchar2
+            }
+        )
+
+        action read-more (
+            position: actionpos
+            label: &APP_TEXT$_READ_MORE.
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 70
+                    items: {
+                        P70_ID: &NEWS_ID.
+                    }
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-braille
+                cssClasses: [
+                    text-blue-500
+                    hover:underline
+                    font-bold
+                ]
+            }
+        )
+
+    )
+
+    button add (
+        buttonName: Add
+        label: &APP_TEXT$ADD.
+        layout {
+            sequence: 51
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 67
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :app_user in ('995','1837','1825','3199')
+        }
+        security {
+            authorizationScheme: @super-duper
+        }
+    )
+
+    dynamicAction new (
+        name: New_1
+        execution {
+            sequence: 20
+        }
+        when {
+            event: ready
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    // $(document).on("click", ".open-dialog", function () {
+                        
+                    //     apex.theme.openRegion('hamada');
+                    // });
+                    
+                    
+                    
+                    $(document).on("click", ".open-dialog", function () {
+                        // Step 1: Get the data attributes from the clicked button
+                        var dialogTitle = $(this).attr("data-title");
+                        var dialogContent = $(this).attr("data-content");
+                    
+                        // Step 2: Populate the dialog region dynamically
+                        $(".ui-dialog-title").text(dialogTitle); // Set the dialog's title
+                        $("#hamada-content").html(dialogContent); // Set the dialog's content
+                    
+                        // Step 3: Open the dialog region
+                        apex.theme.openRegion('hamada');
+                    });
+                    
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    process fetch-news (
+        name: Fetch news
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                DECLARE
+                    l_cursor SYS_REFCURSOR;
+                    l_html CLOB;
+                    l_id NUMBER;
+                    l_image VARCHAR2(4000);
+                    l_title VARCHAR2(4000);
+                    l_article VARCHAR2(4000);
+                    l_datetime VARCHAR2(100);
+                BEGIN
+                    l_html := '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">';
+                
+                    OPEN l_cursor FOR
+                        SELECT ID, IMAGE, TITLE, ARTICLE, 
+                               TO_CHAR(DATETIME, 'DD-MON-YYYY HH24:MI') AS DATETIME
+                        FROM TMS_WEBSITENEWS
+                        ORDER BY DATETIME DESC;
+                
+                    LOOP
+                        FETCH l_cursor INTO l_id, l_image, l_title, l_article, l_datetime;
+                        EXIT WHEN l_cursor%NOTFOUND;
+                
+                        l_html := l_html || '
+                            <div class="border border-gray-300 rounded-lg overflow-hidden shadow-md">
+                                <img src="' || l_image || '" alt="' || l_title || '" class="w-full h-48 object-cover">
+                                <div class="p-4">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-2">' || l_title || '</h3>
+                                    <p class="text-sm text-gray-500">' || l_datetime || '</p>
+                                    <p class="text-gray-700 mt-4">' || DBMS_LOB.SUBSTR(l_article, 200) || '...</p>
+                                    <a href="news_details_page?id=' || l_id || '" 
+                                       class="text-blue-600 hover:underline mt-4 block">Read more</a>
+                                </div>
+                            </div>';
+                    END LOOP;
+                
+                    l_html := l_html || '</div>';
+                    CLOSE l_cursor;
+                
+                    HTP.P(l_html);
+                END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 39501479443757834
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+)

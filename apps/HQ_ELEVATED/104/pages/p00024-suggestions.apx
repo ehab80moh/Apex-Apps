@@ -1,0 +1,472 @@
+page 24 (
+    name: مقترحات للبوابة الرقمية
+    alias: SUGGESTIONS
+    title: &APP_TEXT$PROPOSALS_FOR_THE_DIGITAL_PORTAL.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @eprom-hq-auth
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region متابعه-المقترحات (
+        name: متابعه المقترحات
+        title: &APP_TEXT$FOLLOW_UP_ON_PROPOSALS.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            tableName: SUG_FEEDBACK
+            whereClause: created_by =:APP_USER
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--noBorders
+                margin-top-md
+            ]
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$THERE_ARE_NO_SUGGESTIONS_FROM_YOU.
+            whenMoreDataFound: "&{MAX_ROW_COUNT_MESSAGE MAX_ROW_COUNT=#MAX_ROW_COUNT#}."
+        }
+        searchBar {
+            includeSearchBar: false
+        }
+        advanced {
+            savedReportMappingIdentifier: 8399037399064156
+        }
+
+        column CREATED (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 5
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: E
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column CREATED_BY (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$CREATED_BY.
+            }
+            layout {
+                sequence: 6
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column FEEDBACK (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$PROPOSALS.
+                alignment: center
+            }
+            layout {
+                sequence: 3
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column FEEDBACK_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$FEEDBACK_ID.
+            }
+            layout {
+                sequence: 0
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column RATING (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$EVALUATION.
+                alignment: center
+            }
+            lov {
+                lov: @feedback-rating
+            }
+            layout {
+                sequence: 4
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: D
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column RESPONSE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$RESPONSE_OR_RESPONSE.
+                alignment: center
+            }
+            layout {
+                sequence: 8
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column ROWID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$ROWID.
+            }
+            layout {
+                sequence: 0
+            }
+            source {
+                dataType: OTHER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column STATUS (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                lov: @feedback-status
+            }
+            layout {
+                sequence: 7
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: G
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column UPDATED (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$REPLY_DATED.
+                alignment: center
+            }
+            layout {
+                sequence: 9
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: I
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column UPDATED_BY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ANSWERED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        savedReport 84075 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn CREATED (
+                sequence: 5
+            )
+
+            displayColumn CREATED_BY (
+                sequence: 6
+            )
+
+            displayColumn FEEDBACK (
+                sequence: 3
+            )
+
+            displayColumn FEEDBACK_ID (
+                sequence: 2
+            )
+
+            displayColumn RATING (
+                sequence: 4
+            )
+
+            displayColumn RESPONSE (
+                sequence: 8
+            )
+
+            displayColumn ROWID (
+                sequence: 1
+            )
+
+            displayColumn STATUS (
+                sequence: 7
+            )
+
+            displayColumn UPDATED (
+                sequence: 9
+            )
+
+            displayColumn UPDATED_BY (
+                sequence: 10
+            )
+
+        )
+
+    )
+
+    pageItem P24_NEW (
+        type: displayOnly
+        label {
+            alignment: left
+        }
+        settings {
+            format: htmlUnsafe
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 10
+            slot: body
+            alignment: left
+            column: 4
+            columnSpan: 6
+        }
+        advanced {
+            preText: "&{PRE_ELEMENT_TEXT APP_FILES=#APP_FILES#}!RAW."
+        }
+    )
+
+    button admin-suggestions (
+        buttonName: admin_suggestions
+        label: &APP_TEXT$VIEW_ALL_SUGGESTIONS.
+        layout {
+            sequence: 10
+            slot: body
+            column: 5
+            columnSpan: 4
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+                t-Button--stretch
+                t-Button--gapBottom
+            ]
+            icon: fa-reply
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: /apex/r/epromhq/suggestions1?session=&SESSION.
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :APP_USER ='1825' or :APP_USER='1837'  or :APP_USER='3199'
+        }
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$ADD_A_NEW_PROPOSAL.
+        layout {
+            sequence: 20
+            slot: body
+            column: 5
+            columnSpan: 4
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 25
+                clearCache: 25
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction edit-report-dialog-closed (
+        name: Edit Report - Dialog Closed
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @متابعه-المقترحات
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @متابعه-المقترحات
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

@@ -1,0 +1,819 @@
+page 88 (
+    name: إدارة مسابقة إيبروم تبتكر
+    alias: EPROM-INNOVATES-ADMIN
+    title: &APP_TEXT$PORTAL_PAGE_88_TITLE.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        executeWhenPageLoads:
+            ```javascript-browser
+            $(document).on("click mousedown", "#select_all_rows", function(e) {
+                e.stopPropagation();
+            });
+            
+            $(document).on("change", "#select_all_rows", function() {
+            
+                $("input[name='f01']").prop(
+                    "checked",
+                    this.checked
+                );
+            
+            });
+            
+            $(document).on("change", "input[name='f01']", function() {
+            
+                var total = $("input[name='f01']").length;
+                var checked = $("input[name='f01']:checked").length;
+            
+                $("#select_all_rows").prop(
+                    "checked",
+                    total === checked
+                );
+            
+            });
+            ```
+    }
+    security {
+        authorizationScheme: @eprom-innovates
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region submissions (
+        name: submissions
+        title: طلبات مسابقة إيبروم تبتكر
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select apex_item.checkbox2(
+                        p_idx        => 1,
+                        p_value      => submission_id
+                    ) as select_row,
+                    SUBMISSION_ID,
+                       EMP_NUMBER,
+                       EMP_NAME,
+                       JOB_TITLE,
+                       PROJECT_NAME,
+                       DEPARTMENT_NAME,
+                       MOBILE_NUMBER,
+                       EMAIL_ADDRESS,
+                       decode(PARTICIPATION_TYPE, 'INDIVIDUAL', 'فردي', 'GROUP', 'جماعي', PARTICIPATION_TYPE) as PARTICIPATION_TYPE_DISPLAY,
+                       TEAM_MEMBERS,
+                       IDEA_TITLE,
+                       APPLICATION_DOMAIN,
+                       APPLICATION_DOMAIN_OTHER,
+                       IDEA_DESCRIPTION,
+                       PROBLEM_STATEMENT,
+                       EXPECTED_RETURN,
+                       ADDED_VALUE,
+                       HAS_RISKS,
+                       RISK_DETAILS,
+                       START_REQUIREMENTS,
+                       STRATEGY_ALIGNMENT,
+                       STATUS,
+                       CREATED_BY,
+                       CREATED_AT
+                  from hq_elevated.sug_idea_submissions
+                 order by CREATED_AT desc
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 89
+                items: {
+                    P89_SUBMISSION_ID: \#SUBMISSION_ID#\
+                }
+                action: resetPagination
+            }
+            linkIcon: <span role="img" aria-label="View Details" class="fa fa-search" title="View Details"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: لا توجد طلبات مقدمة حالياً.
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 36314213938026925
+        }
+
+        column ADDED_VALUE (
+            type: plainText
+            heading {
+                heading: Added Value
+            }
+            layout {
+                sequence: 201
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: T
+            }
+        )
+
+        column APPLICATION_DOMAIN (
+            type: plainText
+            heading {
+                heading: Application Domain
+            }
+            layout {
+                sequence: 151
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: O
+            }
+        )
+
+        column APPLICATION_DOMAIN_OTHER (
+            type: plainText
+            heading {
+                heading: Application Domain Other
+            }
+            layout {
+                sequence: 161
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: P
+            }
+        )
+
+        column CREATED_AT (
+            type: plainText
+            heading {
+                heading: تاريخ التقديم
+                alignment: center
+            }
+            layout {
+                sequence: 91
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column CREATED_BY (
+            type: plainText
+            heading {
+                heading: Created By
+            }
+            layout {
+                sequence: 251
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Y
+            }
+        )
+
+        column DEPARTMENT_NAME (
+            type: plainText
+            heading {
+                heading: الإدارة
+                alignment: center
+            }
+            layout {
+                sequence: 41
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column EMAIL_ADDRESS (
+            type: plainText
+            heading {
+                heading: Email Address
+            }
+            layout {
+                sequence: 131
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        column EMP_NAME (
+            type: plainText
+            heading {
+                heading: الاسم
+                alignment: center
+            }
+            layout {
+                sequence: 31
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column EMP_NUMBER (
+            type: plainText
+            heading {
+                heading: الرقم الوظيفي
+                alignment: center
+            }
+            layout {
+                sequence: 21
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column EXPECTED_RETURN (
+            type: plainText
+            heading {
+                heading: Expected Return
+            }
+            layout {
+                sequence: 191
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: S
+            }
+        )
+
+        column HAS_RISKS (
+            type: plainText
+            heading {
+                heading: Has Risks
+            }
+            layout {
+                sequence: 211
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: U
+            }
+        )
+
+        column IDEA_DESCRIPTION (
+            type: plainText
+            heading {
+                heading: Idea Description
+            }
+            layout {
+                sequence: 171
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Q
+            }
+        )
+
+        column IDEA_TITLE (
+            type: plainText
+            heading {
+                heading: عنوان الفكرة
+                alignment: center
+            }
+            layout {
+                sequence: 61
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column JOB_TITLE (
+            type: plainText
+            heading {
+                heading: الوظيفة
+                alignment: center
+            }
+            layout {
+                sequence: 51
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column MOBILE_NUMBER (
+            type: plainText
+            heading {
+                heading: Mobile Number
+            }
+            layout {
+                sequence: 121
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column PARTICIPATION_TYPE_DISPLAY (
+            type: plainText
+            heading {
+                heading: نوع المشاركة
+                alignment: center
+            }
+            layout {
+                sequence: 71
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column PROBLEM_STATEMENT (
+            type: plainText
+            heading {
+                heading: Problem Statement
+            }
+            layout {
+                sequence: 181
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: R
+            }
+        )
+
+        column PROJECT_NAME (
+            type: plainText
+            heading {
+                heading: Project Name
+            }
+            layout {
+                sequence: 111
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        column RISK_DETAILS (
+            type: plainText
+            heading {
+                heading: Risk Details
+            }
+            layout {
+                sequence: 221
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: V
+            }
+        )
+
+        column SELECT_ROW (
+            type: plainText
+            heading {
+                heading: <input type="checkbox" id="select_all_rows">
+                alignment: center
+            }
+            layout {
+                sequence: 11
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            columnFilter {
+                type: none
+            }
+            advanced {
+                endUserAlias: J
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column START_REQUIREMENTS (
+            type: plainText
+            heading {
+                heading: Start Requirements
+            }
+            layout {
+                sequence: 231
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: W
+            }
+        )
+
+        column STATUS (
+            type: plainText
+            heading {
+                heading: الحالة
+                alignment: center
+            }
+            layout {
+                sequence: 81
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column STRATEGY_ALIGNMENT (
+            type: plainText
+            heading {
+                heading: Strategy Alignment
+            }
+            layout {
+                sequence: 241
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: X
+            }
+        )
+
+        column SUBMISSION_ID (
+            type: hidden
+            heading {
+                heading: Submission ID
+            }
+            layout {
+                sequence: 1
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column TEAM_MEMBERS (
+            type: plainText
+            heading {
+                heading: Team Members
+            }
+            layout {
+                sequence: 141
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: N
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn CREATED_AT (
+                sequence: 9
+            )
+
+            displayColumn DEPARTMENT_NAME (
+                sequence: 4
+            )
+
+            displayColumn EMP_NAME (
+                sequence: 3
+            )
+
+            displayColumn EMP_NUMBER (
+                sequence: 2
+            )
+
+            displayColumn IDEA_TITLE (
+                sequence: 6
+            )
+
+            displayColumn JOB_TITLE (
+                sequence: 5
+            )
+
+            displayColumn PARTICIPATION_TYPE_DISPLAY (
+                sequence: 7
+            )
+
+            displayColumn SELECT_ROW (
+                sequence: 1
+            )
+
+            displayColumn STATUS (
+                sequence: 8
+            )
+
+        )
+
+    )
+
+    pageItem P88_SELECTED_IDS (
+        type: hidden
+        layout {
+            sequence: 40
+            slot: body
+        }
+    )
+
+    button print (
+        buttonName: PRINT
+        label: Print
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    button print-report (
+        buttonName: print_report
+        label: Print Report
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    dynamicAction downlaod (
+        name: downlaod
+        execution {
+            sequence: 20
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @print
+        }
+        config {
+            buildOption: @commented-out
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    // var ids = [];
+                    
+                    // $("input[name='f01']:checked").each(function () {
+                    //     ids.push($(this).val());
+                    // });
+                    
+                    // ids.forEach(function(id) {
+                    
+                    //     var url =
+                    //         "f?p=" +
+                    //         $v("pFlowId") +
+                    //         ":94:" +
+                    //         $v("pInstance") +
+                    //         "::NO::P94_SUBMISSION_ID:" +
+                    //         id;
+                    
+                    //     window.open(url, "_blank");
+                    
+                    // });
+                    
+                    
+                    var ids = [];
+                    
+                    $("input[name='f01']:checked").each(function () {
+                        ids.push($(this).val());
+                    });
+                    
+                    ids.forEach(function(id, index) {
+                        console.log("Opening PDF for ID:", id);
+                    
+                    //     setTimeout(function () {
+                    
+                    //         var url =
+                    //             "f?p=" +
+                    //             $v("pFlowId") +
+                    //             ":94:" +
+                    //             $v("pInstance") +
+                    //             "::NO::P94_SUBMISSION_ID:" +
+                    //             id;
+                    
+                    //         window.open(url, "_blank");
+                    
+                    //     }, index * 1500);   // 1.5 seconds between requests
+                    
+                    }
+                    );
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction set-selected-ids (
+        name: set_selected_ids
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @print-report
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    var ids = [];
+                    
+                    $("input[name='f01']:checked").each(function () {
+                        ids.push($(this).val());
+                    });
+                    
+                    $s("P88_SELECTED_IDS", ids.join(":"));
+                    ```
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-submit-page (
+            action: executeServerSideCode
+            settings {
+                plsqlCode: null;
+                itemsToSubmit: P88_SELECTED_IDS
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action plugin-be-apexrnd-aop-da (
+            action: plugin/ucApexOfficePrintAopDa
+            settings {
+                templateType: filenameWithPathRelativeToAopServer
+                templateSource3: C:\aop_24_2\reports\eprom_innovates_submissions.docx
+                dataType: plSqlFunctionReturningJson
+                dataSource2: RETURN EPROM_INNOVATES_SUBMISSIONS_AOP.GET_IDEA_SUBMISSIONS_JSON(:P88_SELECTED_IDS);
+                initPlSqlCode:
+                    ```plsql
+                    aop_api_pkg.g_output_batch_selector := 'submissions';
+                    aop_api_pkg.g_output_batch_condition := ':P88_SELECTED_IDS';
+                    ```
+                outputType: pdfPdf
+            }
+            execution {
+                sequence: 40
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

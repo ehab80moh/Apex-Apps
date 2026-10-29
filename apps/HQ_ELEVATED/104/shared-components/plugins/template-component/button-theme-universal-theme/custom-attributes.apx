@@ -1,0 +1,94 @@
+customAttribute CSS_CLASSES (
+    apexlangName: cssClasses
+    attribute: 5
+    name: CSS Classes
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 50
+    }
+)
+
+customAttribute ICON_CLASSES (
+    apexlangName: iconClasses
+    attribute: 4
+    name: Icon Classes
+    type: icon
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 40
+    }
+)
+
+customAttribute IS_DISABLED (
+    apexlangName: isDisabled
+    attribute: 6
+    name: Is Disabled
+    type: yesNo
+    appearance {
+        sequence: 60
+    }
+)
+
+customAttribute IS_HOT (
+    apexlangName: isHot
+    attribute: 7
+    name: Is Hot
+    type: yesNo
+    appearance {
+        sequence: 70
+    }
+)
+
+customAttribute IS_ICON_ONLY (
+    apexlangName: isIconOnly
+    attribute: 8
+    name: Is Icon Only
+    type: yesNo
+    appearance {
+        sequence: 80
+    }
+)
+
+customAttribute LABEL (
+    apexlangName: label
+    attribute: 1
+    name: Label
+    security {
+        escapeMode: raw
+    }
+    appearance {
+        sequence: 10
+    }
+    builder {
+        translatable: true
+    }
+)
+
+customAttribute LINK_ATTR (
+    apexlangName: linkAttribute
+    attribute: 3
+    name: Link Attribute
+    security {
+        escapeMode: raw
+    }
+    appearance {
+        sequence: 30
+    }
+)
+
+customAttribute LINK_URL (
+    apexlangName: linkUrl
+    attribute: 2
+    name: Link URL
+    type: linkToTargetPageUrl
+    security {
+        escapeMode: htmlAttribute
+    }
+    appearance {
+        sequence: 20
+    }
+)

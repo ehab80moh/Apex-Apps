@@ -1,0 +1,26 @@
+automation sms-q (
+    name: SMS_Q
+    execution {
+        scheduleExpression: FREQ=MINUTELY;INTERVAL=5
+        actionsInitiatedOn: always
+    }
+
+    action do-unsent-sms (
+        name: DO_UNSENT_SMS
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                
+                
+                  CENTRAL.SMS_PKG.RUN_SMS_Q;
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+    )
+
+)

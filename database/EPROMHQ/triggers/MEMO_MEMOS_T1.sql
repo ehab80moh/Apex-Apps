@@ -1,0 +1,14 @@
+
+  CREATE OR REPLACE EDITIONABLE TRIGGER "EPROMHQ"."MEMO_MEMOS_T1"
+BEFORE
+insert on "MEMO_MEMOS"
+for each row
+begin
+  if :NEW."PREFRENCE_NUMBER" is null then
+    select "MEMO_PREFERENCE_NUMBER".nextval into :NEW."PREFRENCE_NUMBER" from sys.dual;
+  end if;
+end;
+
+
+/
+ALTER TRIGGER "EPROMHQ"."MEMO_MEMOS_T1" ENABLE;

@@ -1,0 +1,11 @@
+
+  CREATE OR REPLACE EDITIONABLE TRIGGER "HQ_ELEVATED"."BI_XXAPEX_MED_MEDICAL_GUIDE"
+  before insert on "XXAPEX_MED_MEDICAL_GUIDE"
+  for each row
+begin
+  if :NEW."ID" is null then
+    select "XXAPEX_MED_MEDICAL_GUIDE_SEQ".nextval into :NEW."ID" from sys.dual;
+  end if;
+end;
+/
+ALTER TRIGGER "HQ_ELEVATED"."BI_XXAPEX_MED_MEDICAL_GUIDE" ENABLE;

@@ -1,0 +1,59 @@
+customAttribute NEWS_DATETIME (
+    apexlangName: newsDatetime
+    attribute: 2
+    name: News Datetime
+    type: sessionStateValue
+    appearance {
+        sequence: 20
+    }
+)
+
+customAttribute NEWS_IMAGE (
+    apexlangName: newsImage
+    attribute: 3
+    name: News Image
+    type: sessionStateValue
+    appearance {
+        sequence: 80
+    }
+)
+
+customAttribute NEWS_IMAGES (
+    apexlangName: newsImages
+    attribute: 4
+    name: News Images
+    type: sessionStateValue
+    appearance {
+        sequence: 40
+    }
+)
+
+customAttribute NEWS_TEXT (
+    apexlangName: newsText
+    attribute: 5
+    name: News Text
+    type: sessionStateValue
+    appearance {
+        sequence: 50
+    }
+)
+
+customAttribute NEWS_TEXT_SMALL (
+    apexlangName: newsTextSmall
+    attribute: 7
+    name: News Text Small
+    type: sessionStateValue
+    appearance {
+        sequence: 70
+    }
+)
+
+customAttribute NEWS_TITLE (
+    apexlangName: newsTitle
+    attribute: 6
+    name: News Title
+    type: sessionStateValue
+    appearance {
+        sequence: 60
+    }
+)

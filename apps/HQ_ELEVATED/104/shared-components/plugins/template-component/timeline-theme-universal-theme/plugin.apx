@@ -1,0 +1,74 @@
+plugin timeline (
+    name: Timeline
+    staticId: THEME_42$TIMELINE
+    theme: @universal-theme
+    templateComponent {
+        availableAs: [
+            partial
+            report
+        ]
+        partial:
+            ```html
+            <div{if ?CSS_CLASSES/} class="#CSS_CLASSES#"{endif/}>
+              <div class="t-Timeline-wrap">
+                {if ?APEX$SELECTOR%assigned/}<div class="t-Timeline-selection">#APEX$SELECTOR#</div>{endif/}
+                <div class="t-Timeline-user">
+                  {if DISPLAY_AVATAR/}
+                    {with/}
+                      TYPE:=#AVATAR_TYPE#
+                      IMAGE:=#AVATAR_IMAGE#
+                      DESCRIPTION:=#AVATAR_DESCRIPTION#
+                      INITIALS:=#AVATAR_INITIALS#
+                      ICON:=#AVATAR_ICON#
+                      SHAPE:=#AVATAR_SHAPE#
+                      SIZE:=
+                      LINK:=#AVATAR_LINK#
+                      LINK_ATTR:=#AVATAR_LINK_ATTR#
+                    {apply THEME$AVATAR/}
+                  {endif/}
+                  <div class="t-Timeline-userinfo">
+                    <span class="t-Timeline-username">{if ?USER_NAME_LINK/}<a href="#USER_NAME_LINK#" #USER_NAME_LINK_ATTR#>{endif/}#USER_NAME#{if ?USER_NAME_LINK/}</a>{endif/}</span>
+                    <span class="t-Timeline-date">#DATE#</span>
+                  </div>
+                </div>
+                <div class="t-Timeline-content">
+                  {if DISPLAY_BADGE/}
+                    <div class="t-Timeline-typeWrap">
+                      {with/}
+                        LABEL_DISPLAY:=#BADGE_LABEL_DISPLAY#
+                        LABEL:=#BADGE_LABEL#
+                        VALUE:=#BADGE_VALUE#
+                        ICON:=#BADGE_ICON#
+                        STATE:=#BADGE_STATE#
+                      {apply THEME$BADGE/}
+                    </div>
+                  {endif/}
+                  <div class="t-Timeline-body">
+                    <h3 class="t-Timeline-title">{if ?TITLE_LINK/}<a href="#TITLE_LINK#" #TITLE_LINK_ATTR#>{endif/}#TITLE#{if ?TITLE_LINK/}</a>{endif/}</h3>
+                    {if ?DESCRIPTION/}<p class="t-Timeline-desc">#DESCRIPTION#</p>{endif/}
+                  </div>
+                </div>
+              </div>
+            </div>
+            ```
+        reportBody:
+            ```html
+            <ul class="t-Timeline{if ?STYLE/} #STYLE#{endif/}{if APPLY_THEME_COLORS/} u-colors{endif/} #APEX$COMPONENT_CSS_CLASSES#">#APEX$ROWS#</ul>
+            
+            ```
+        reportRow: <li class="t-Timeline-item" #APEX$ROW_IDENTIFICATION#>#APEX$PARTIAL#</li>
+        numberOfLazyLoadingSkeletons: 3
+    }
+    component {
+        standardAttributes: [
+            rowSelection
+            regionTemplateAttr
+        ]
+    }
+    advanced {
+        quickPick: true
+    }
+    information {
+        helpText: Display a series of events. Supports avatars and badges. Available for a single row or as a report with multiple rows.
+    }
+)

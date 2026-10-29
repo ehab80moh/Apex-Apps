@@ -1,0 +1,381 @@
+page 15 (
+    name: APPROVAL MEMBERS
+    alias: APPROVAL-MEMBERS
+    title: APPROVAL MEMBERS
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region approval-members (
+        name: APPROVAL MEMBERS
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            tableName: SUP_APPROVAL_MEMBERS
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+        toolbar {
+            controls: [
+                searchCol
+                searchField
+                actionsMenu
+                resetButton
+                saveButton
+            ]
+        }
+        download {
+            formats: [
+                csv
+                html
+                pdf
+                excel
+            ]
+        }
+        advanced {
+            savedReportMappingIdentifier: 211989810915829211
+        }
+
+        savedReport 2119903 (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+            displayColumn (
+                column: @ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @EMPLOYEE_NUM
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @EMPLOYEE_NAME
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @DEPARTMENT
+                layout {
+                    sequence: 4
+                }
+            )
+
+            displayColumn (
+                column: @APPROVAL_ROLE
+                layout {
+                    sequence: 5
+                }
+            )
+
+            displayColumn (
+                column: @LOCATION
+                layout {
+                    sequence: 6
+                }
+            )
+
+            displayColumn (
+                column: @STATUS
+                layout {
+                    sequence: 7
+                }
+            )
+
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column APEX$ROW_SELECTOR (
+            type: rowSelector
+            layout {
+                sequence: 10
+            }
+        )
+
+        column APPROVAL_ROLE (
+            type: textField
+            heading {
+                heading: Approval Role
+                alignment: center
+            }
+            layout {
+                sequence: 70
+            }
+            validation {
+                maxLength: 20
+            }
+            source {
+                databaseColumn: APPROVAL_ROLE
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column DEPARTMENT (
+            type: textField
+            heading {
+                heading: Department
+                alignment: center
+            }
+            layout {
+                sequence: 60
+            }
+            validation {
+                maxLength: 50
+            }
+            source {
+                databaseColumn: DEPARTMENT
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column EMPLOYEE_NAME (
+            type: textField
+            heading {
+                heading: Employee Name
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                stretch: never
+            }
+            validation {
+                maxLength: 200
+            }
+            source {
+                databaseColumn: EMPLOYEE_NAME
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column EMPLOYEE_NUM (
+            type: textField
+            heading {
+                heading: Employee Num
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                stretch: never
+            }
+            validation {
+                maxLength: 50
+            }
+            source {
+                databaseColumn: EMPLOYEE_NUM
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column ID (
+            type: hidden
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: ID
+                dataType: number
+                queryOnly: true
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column LOCATION (
+            type: textField
+            heading {
+                heading: Location
+                alignment: center
+            }
+            layout {
+                sequence: 80
+            }
+            validation {
+                maxLength: 50
+            }
+            source {
+                databaseColumn: LOCATION
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column STATUS (
+            type: textField
+            heading {
+                heading: Status
+                alignment: center
+            }
+            layout {
+                sequence: 90
+            }
+            validation {
+                maxLength: 10
+            }
+            source {
+                databaseColumn: STATUS
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: APPROVAL MEMBERS
+        }
+    )
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    process approval-members-save-interactive-grid-data (
+        name: APPROVAL MEMBERS - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @approval-members
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 211999182053829231
+        }
+    )
+
+)

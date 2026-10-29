@@ -1,0 +1,453 @@
+page 19 (
+    name: بيانات الاجازات المعتمدة ماليا
+    alias: FINANCIALLY-APPROVED-VACATIONS
+    title: &APP_TEXT$FINANCIALLY_APPROVED_LEAVE_DATA.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region بيانات-الاجازات (
+        name: بيانات الاجازات
+        title: &APP_TEXT$VACATION_DATA.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select  EMPLOYEE_NUMBER,
+                        FULL_NAME,
+                        PROJ,
+                        CASE 
+                        WHEN NAME = 'Sick Leave' THEN 'اجازة عارضة'
+                        WHEN NAME = 'Rest Hours' THEN 'ساعات راحة'
+                        WHEN NAME = 'Casual Leave' THEN 'اجازة عارضة'
+                        WHEN NAME = 'Mission Leave Days' THEN 'مهمة عمل'
+                        WHEN NAME = 'Annual Leave' THEN 'اجازة اعتيادي'
+                        WHEN NAME = 'Local Training' THEN 'تدريب داخلي'
+                        WHEN NAME = 'Unauthorized Absence' THEN 'غياب'
+                        WHEN NAME = 'Long Unpaid Absence' THEN 'اجازة خاصة بدون مرتب'
+                        WHEN NAME = 'Labor Leave Paid' THEN 'اجازة وضع بأجر'
+                        WHEN NAME = 'Maternity Leave Unpaid' THEN 'اجازة رعاية طفل'
+                        WHEN NAME = 'Pilgrim Leave' THEN 'اجازة حج'
+                        WHEN NAME = 'Unpaid Leave' THEN 'اجازة بدون مرتب'
+                        WHEN NAME = 'Suspenssion' THEN 'ايقاف عن العمل'
+                        ELSE NAME 
+                    END AS LEAVE_TYPE,
+                       DATE_START,
+                       DATE_END,
+                       DATE_END - DATE_START +1 NUM_DAYS 
+                  from CENTRAL.XXAPEX_OTL_LEAVES
+                 where  employee_number= :APP_USER
+                and name not in (
+                'Mission Leave Days',
+                'International Training',
+                'Mission Leave Hours','Local Training')
+                and to_char(DATE_START,'yyyy') = to_char(sysdate,'yyyy')
+                order by date_start desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        headerAndFooter {
+            headerText: &APP_TEXT$FINANCIALLY_APPROVED_VACATIONS!RAW.
+        }
+        serverSideCondition {
+            type: never
+        }
+        componentAppearance {
+            showNullValuesAs: -
+        }
+        pagination {
+            type: rowRangesXToYOfZ
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            finderDropDown: false
+            reportsSelectList: false
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            selectColumns: false
+            rowsPerPage: false
+            controlBreak: false
+            highlight: false
+            compute: false
+            aggregate: false
+            chart: false
+            flashback: false
+            saveReport: false
+            reset: false
+            help: false
+            download: false
+        }
+        heading {
+            fixedTo: region
+            maxReportHeight: 500
+        }
+        componentAdvanced {
+            maxRowsPerPageInSelector: 15
+        }
+        advanced {
+            savedReportMappingIdentifier: 24914597712192158
+        }
+
+        column DATE_END (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TO_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: fmDay, fmDD fmMonth, YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: C
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+            }
+        )
+
+        column DATE_START (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FROM_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            appearance {
+                formatMask: fmDay, fmDD fmMonth, YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: B
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NUMBER.
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column FULL_NAME (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_NAME.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+            }
+        )
+
+        column LEAVE_TYPE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TYPE_OF_VACATION.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+            }
+        )
+
+        column NUM_DAYS (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$NUMBER_OF_DAYS.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: G
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+            }
+        )
+
+        column PROJ (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$PROJ.
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        savedReport 54757 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 5
+            }
+
+            displayColumn DATE_END (
+                sequence: 5
+            )
+
+            displayColumn DATE_START (
+                sequence: 4
+            )
+
+            displayColumn FULL_NAME (
+                sequence: 1
+            )
+
+            displayColumn LEAVE_TYPE (
+                sequence: 2
+            )
+
+            displayColumn NUM_DAYS (
+                sequence: 3
+            )
+
+        )
+
+    )
+
+    region رصيد-الأجازات (
+        name: رصيد الأجازات
+        title: &APP_TEXT$VACATION_BALANCE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select EMPLOYEE_NUMBER,
+                       FULL_NAME,
+                       ANNUAL_net_CREDIT,
+                       
+                       CASUAL_net_CREDIT,
+                       HOURS_CREDIT,
+                       EFF_DATE,
+                    case when central.xxapex_general.get_last_oracle_upload_leaves() < TRUNC(sysdate, 'YEAR') 
+                    then 
+                    TRUNC(sysdate, 'YEAR')
+                    else
+                  central.xxapex_general.get_last_oracle_upload_leaves()
+                  end 
+                    Leave_credit,
+                       annual_accrual
+                  from CENTRAL.XXAPEX_OTL_LEAVE_CREDIT
+                 where employee_number=:APP_USER
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        security {
+            authorizationScheme: @super-duper
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$PLEASE_VISIT_THE_ENTITLEMENTS_DEPARTMENT_TO_VIEW_BALANCES.
+        }
+
+        column ANNUAL_ACCRUAL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column ANNUAL_NET_CREDIT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$ANNUAL_BALANCE.
+                alignment: center
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column CASUAL_NET_CREDIT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$MODEL_BALANCE.
+                alignment: center
+            }
+            layout {
+                sequence: 30
+            }
+        )
+
+        column EFF_DATE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 50
+            }
+        )
+
+        column FULL_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column HOURS_CREDIT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$HOURS_BALANCE.
+                alignment: center
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column LEAVE_CREDIT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$VACATION_BALANCE_DATED.
+                alignment: center
+            }
+            layout {
+                sequence: 80
+            }
+        )
+
+    )
+
+)

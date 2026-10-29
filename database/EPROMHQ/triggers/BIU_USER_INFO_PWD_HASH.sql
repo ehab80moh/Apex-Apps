@@ -1,0 +1,20 @@
+
+  CREATE OR REPLACE EDITIONABLE TRIGGER "EPROMHQ"."BIU_USER_INFO_PWD_HASH"
+BEFORE INSERT OR UPDATE OF PWD_HASH ON EPROMHQ.USER_INFO
+FOR EACH ROW
+DECLARE
+    l_hash NUMBER;
+BEGIN
+    IF :NEW.PWD_HASH IS NOT NULL THEN
+        l_hash := DBMS_UTILITY.GET_HASH_VALUE(
+                     name      => :NEW.PWD_HASH || :NEW.USER_ID,
+                     base      => 1,
+                     hash_size => 999999999
+                  );
+
+        :NEW.PWD_HASH := TO_CHAR(l_hash);
+    END IF;
+END;
+
+/
+ALTER TRIGGER "EPROMHQ"."BIU_USER_INFO_PWD_HASH" ENABLE;

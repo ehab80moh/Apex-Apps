@@ -1,0 +1,148 @@
+page 39 (
+    name: عرض المجلات
+    alias: MAGAZINE-VIEWER
+    title: &APP_TEXT$VIEW_MAGAZINES.
+    appearance {
+        pageTemplate: @minimal-no-navigation
+        templateOptions: [
+            #DEFAULT#
+            js-pageStickyMobileHeader
+            t-PageBody--noContentPadding
+        ]
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        fileUrls: https://apex.eprom.com.eg/attach/lib/webviewer.min.js
+        executeWhenPageLoads:
+            ```javascript-browser
+             WebViewer(
+                        {
+                            path: '/attach/lib/',
+                            licenseKey: 'S3UEJ9MZvAfHZfZSMI1L',
+                            initialDoc: 'https://apex.eprom.com.eg/attach/mag&P39_MAG_ID..pdf',
+                        },
+                        document.getElementById('viewer')
+                    ).then(instance => {
+                        instance.UI.disableElements(['ribbons','leftPanel', 'leftPanelButton',
+                        'toggleNotesButton','languageButton','printButton','selectToolButton','panToolButton',
+                        'viewControlsButton']);
+                        instance.UI.loadDocument('https://apex.eprom.com.eg/attach/mag&P39_MAG_ID..pdf');
+            
+              
+            
+            
+                    });
+            
+                    //toolsHeader
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region p39-mag-title (
+        name: &P39_MAG_TITLE.
+        title: &P39_MAG_TITLE.
+        type: staticContent
+        source {
+            htmlCode: "&{PLUG_SOURCE_2 P39_MAG_ID=&P39_MAG_ID.}!RAW."
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    region p39-mag-title-2 (
+        name: &P39_MAG_TITLE.
+        title: &P39_MAG_TITLE.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$DIV_IDVIEWER_STYLEHEIGHT_60EMDIV!RAW.
+        }
+        layout {
+            sequence: 70
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--accent15
+                js-headingLevel-5
+                t-Region--scrollBody
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+    )
+
+    pageItem P39_MAG_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: body
+        }
+    )
+
+    pageItem P39_MAG_TITLE (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: body
+        }
+    )
+
+    button new (
+        buttonName: New
+        label: &APP_TEXT$VIEW_ALL_MAGAZINES.
+        layout {
+            sequence: 10
+            region: @p39-mag-title-2
+            slot: regionBody
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 37
+            }
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DO_YOU_WANT_TO_QUIT.
+            style: information
+        }
+    )
+
+)

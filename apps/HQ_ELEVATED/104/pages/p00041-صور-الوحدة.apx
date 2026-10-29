@@ -1,0 +1,233 @@
+page 41 (
+    name: صور الوحدة
+    alias: صور-الوحدة
+    title: &APP_TEXT$PORTAL_PAGE_41_TITLE.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        fileUrls: https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.2/lottie.min.js
+        executeWhenPageLoads:
+            ```javascript-browser
+              lightbox.option({
+                //   'resizeDuration': 200,
+                  'wrapAround': true,
+                  'alwaysShowNavOnTouchDevices':true,
+                });
+            
+                //point light box to the images not thumbs
+            
+                $(".light-anchor").each(function(){
+                    // console.log($( this ).attr("href"));
+                    var hrf = $( this ).attr("href");//get anchor
+                    hrf = hrf.replace('/thumbs','');//remove thumbs dir
+                     $( this ).attr("href",hrf);//replace anchor
+                });
+            
+            ```
+    }
+    css {
+        inline:
+            ```css
+            div.thumbs-gal > a {
+              display: none;
+            }
+            div.thumbs-gal > a:nth-child(-n+3) {
+              display: inline;
+            }
+            .a-CardView-actionsPrimary{
+                width: 100%;
+            }
+            
+            .btn-orange {
+              background-color: #e7ab3c; /* برتقالي جذاب */
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              font-size: 16px;
+              font-weight: bold;
+              border-radius: 8px;
+              cursor: pointer;
+              width: 100%; /* دي اللي بتخليه يتمدد */
+              display: block; /* عشان ياخد سطر لوحده */
+              transition: background-color 0.3s ease, transform 0.3s ease;
+            }
+            
+            /* Animation عند المرور بالماوس */
+            .btn-orange:hover {
+              background-color: #8f6f15; /* برتقالي أغمق */
+              transform: scale(1.05); /* تكبير بسيط */
+            }
+            
+            
+            
+            .btn-navy {
+              background-color: #2c3e50; /* كحلي أنيق */
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              font-size: 16px;
+              font-weight: bold;
+              border-radius: 8px;
+              cursor: pointer;
+              transition: background-color 0.3s ease, transform 0.3s ease;
+            }
+            
+            /* Animation عند المرور بالماوس */
+            .btn-navy:hover {
+              background-color: #1a252f; /* كحلي أغمق */
+              transform: scale(1.05);
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region button-bar (
+        name: Button Bar
+        type: staticContent
+        source {
+            htmlCode: <div id="active_facets"></div>
+        }
+        layout {
+            sequence: 41
+            slot: contentBody
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region search-results (
+        name: Search Results
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT
+                    location_id,
+                    location_name,
+                    city_name,
+                    unit_id,
+                    unit_name,
+                     unit_desc,
+                    trip_id,
+                    trip_name,
+                    trip_year,
+                    trip_type,
+                    application_start_date,
+                    application_end_date,
+                    images,
+                    thumbs
+                    ,length(unit_instructions)  unit_instructions
+                    ,UNIT_YOUTUBE
+                ,UNIT_LOCATION
+                FROM
+                    EPROMHQ.vac_trip_units_v
+                
+                
+                
+                where trip_id = 16
+                and unit_id = :P41_UNIT_ID  
+                --1=1
+                --TODO limit by trip apply date
+                --and sysdate between APPLICATION_START_DATE and APPLICATION_END_DATE
+                --and 
+                
+                ```
+            pageItemsToSubmit: P41_UNIT_ID
+        }
+        layout {
+            sequence: 51
+            slot: contentBody
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: #DEFAULT#
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression: <b>&UNIT_NAME. &LOCATION_NAME. </b>
+        }
+        subtitle {
+            column: LOCATION_NAME
+        }
+        secondaryBody {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <!-- https://www.w3schools.com/css/css_image_gallery.asp -->
+                <hr/>
+                <div class="thumbs-gal">
+                    {loop "," THUMBS/} 
+                    <a  data-lightbox="&UNIT_ID." class="light-anchor"  href="&APEX$ITEM."    >
+                      <img src="&APEX$ITEM." alt="img" style="width:8em;" />
+                    </a>
+                {endloop/}
+                </div>
+                ```
+        }
+        messages {
+            whenNoDataFound: No Available Trips 🙅‍♂️
+        }
+    )
+
+    pageItem P41_EMP_ID (
+        type: hidden
+        layout {
+            sequence: 31
+            slot: contentBody
+        }
+    )
+
+    pageItem P41_EMP_NUMBER (
+        type: hidden
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+    )
+
+    pageItem P41_UNIT_ID (
+        type: hidden
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+    )
+
+    process load-emp-id (
+        name: LOAD_EMP_ID
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                :P41_EMP_ID:=NVL(:P41_EMP_ID,:APP_USER);
+                :p41_EMP_NUMBER:=:P41_EMP_ID;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 27476062794743446
+        }
+    )
+
+)

@@ -1,0 +1,1740 @@
+lov add-job (
+    name: ADD_JOB
+    source {
+        location: staticValues
+    }
+
+    entry بالخدمة-العسكرية (
+        sequence: 50
+        display: &APP_TEXT$WITH_MILITARY_SERVICE.
+        return: "بالخدمة العسكرية "
+    )
+
+    entry طالب (
+        sequence: 10
+        display: &APP_TEXT$STUDENT.
+        return: "طالب "
+    )
+
+    entry ليس-طالب-و-لايعمل (
+        sequence: 40
+        display: &APP_TEXT$HE_IS_NOT_A_STUDENT_AND_DOES_NOT_WORK.
+        return: "ليس طالب و لايعمل "
+    )
+
+    entry محاسب (
+        sequence: 30
+        display: &APP_TEXT$ACCOUNTANT.
+        return: "محاسب "
+    )
+
+    entry مهندس (
+        sequence: 20
+        display: &APP_TEXT$ENGINEER.
+        return: "مهندس "
+    )
+
+)
+
+lov add-job-2 (
+    name: ADD_JOB_2
+    source {
+        location: staticValues
+    }
+
+    entry حاصل-على-الشهادة-الإبتدائية (
+        sequence: 10
+        display: &APP_TEXT$HE_HOLDS_AN_ELEMENTARY_SCHOOL_CERTIFICATE.
+        return: "حاصل على الشهادة الإبتدائية "
+    )
+
+    entry حاصل-على-الشهادة-الإعدادية (
+        sequence: 20
+        display: &APP_TEXT$HE_HOLDS_A_PREPARATORY_CERTIFICATE.
+        return: "حاصل على الشهادة الإعدادية "
+    )
+
+    entry حاصل-على-بكالوريوس-ليسانس (
+        sequence: 40
+        display: &APP_TEXT$HOLDS_A_BA_LL.
+        return: حاصل على بكالوريوس/ ليسانس
+    )
+
+    entry حاصل-على-شهادة-الثانوية-العامة (
+        sequence: 30
+        display: &APP_TEXT$HE_HOLDS_A_HIGH_SCHOOL_DIPLOMA.
+        return: "حاصل على شهادة الثانوية العامة "
+    )
+
+)
+
+lov approvals (
+    name: APPROVALS
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            SELECT DISTINCT d.emp_name,d.emp_number
+            FROM central.xxapex_hr_emp_data d
+            JOIN central.APR_APPROVAL_RESULTS_CUST_F c
+            ON d.emp_number = c.emp_number
+            WHERE d.emp_number IN (
+                SELECT DISTINCT emp_number 
+                FROM central.APR_APPROVAL_RESULTS_CUST_F
+                WHERE approver = :app_user or emp_number = :App_user
+            ) and REQUEST_TYPE_ID in (59, 61);
+            ```
+    }
+    columnMapping {
+        return: EMP_NUMBER
+        display: EMP_NAME
+    }
+)
+
+lov approve-type (
+    name: APPROVE_TYPE
+    source {
+        location: staticValues
+    }
+
+    entry fya (
+        sequence: 2
+        display: &APP_TEXT$FOR_APPROVAL.
+        return: FYA
+    )
+
+    entry fyi (
+        sequence: 1
+        display: &APP_TEXT$TO_VIEW.
+        return: FYI
+    )
+
+)
+
+lov approved-requests (
+    name: APPROVED_REQUESTS
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 1
+        display: &APP_TEXT$PENDING.
+        return: 0
+    )
+
+    entry lov_data-2 (
+        sequence: 2
+        display: &APP_TEXT$APPROVED.
+        return: 1
+    )
+
+    entry lov_data-3 (
+        sequence: 3
+        display: &APP_TEXT$REJECTED.
+        return: 2
+    )
+
+    entry lov_data-4 (
+        sequence: 4
+        display: &APP_TEXT$CANCELLED.
+        return: 3
+    )
+
+)
+
+lov cmpl-categories-name-ar-en (
+    name: CMPL_CATEGORIES.NAME_AR_EN
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            with lng as(
+            select 
+            case when 
+            lower(APEX_UTIL.GET_SESSION_LANG) like '%en%' then 
+            'en' else 'ar' end as ln
+            from dual)
+            select 
+            cc.CATEGORY_ID,
+            decode (l.ln,'en',cc.NAME_EN,cc.NAME_AR) cat_name,
+            cc.ACTIVE_FLAG,
+            cc.ORd
+            ,L.LN
+            from CMPL_CATEGORIES cc
+            join lng l on 1=1
+            WHERE cc.ACTIVE_FLAG=1
+            ORDER BY cc.ORD,cc.CATEGORY_ID
+            ```
+    }
+    columnMapping {
+        return: CATEGORY_ID
+        display: CAT_NAME
+    }
+)
+
+lov cmpl-status-lov-name-ar (
+    name: CMPL_STATUS_LOV.NAME_AR
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            SELECT
+                STATUS_CODE,
+                CASE
+                    WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%'
+                    THEN NAME_EN
+                    ELSE NAME_AR
+                END AS STATUS_NAME
+            FROM CMPL_STATUS_LOV
+            
+            ```
+    }
+    columnMapping {
+        return: STATUS_CODE
+        display: STATUS_NAME
+    }
+)
+
+lov cmpl-subcategories-name-ar-en (
+    name: CMPL_SUBCATEGORIES.NAME_AR_EN_401
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            WITH lng AS (
+                SELECT CASE 
+                         WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%' 
+                         THEN 'en' 
+                         ELSE 'ar' 
+                       END AS ln
+                FROM dual
+            )
+            SELECT
+                sc.SUBCATEGORY_ID,
+                sc.CATEGORY_ID,
+                CASE l.ln
+                    WHEN 'en' THEN sc.NAME_EN
+                    ELSE sc.NAME_AR
+                END AS subcategory_name,
+                sc.ACTIVE_FLAG,
+                l.ln
+            FROM CMPL_SUBCATEGORIES
+             sc
+            CROSS JOIN lng l
+            WHERE sc.ACTIVE_FLAG = 1
+            
+            AND :P401_CATEGORY_ID = CATEGORY_ID
+            ```
+    }
+    columnMapping {
+        return: SUBCATEGORY_ID
+        display: SUBCATEGORY_NAME
+    }
+)
+
+lov cmpl-subcategories-name-ar-en-full (
+    name: CMPL_SUBCATEGORIES.NAME_AR_EN_FULL
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            WITH lng AS (
+                SELECT CASE 
+                         WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%' 
+                         THEN 'en' 
+                         ELSE 'ar' 
+                       END AS ln
+                FROM dual
+            )
+            SELECT
+                sc.SUBCATEGORY_ID,
+                sc.CATEGORY_ID,
+                CASE l.ln
+                    WHEN 'en' THEN sc.NAME_EN
+                    ELSE sc.NAME_AR
+                END AS subcategory_name,
+                sc.ACTIVE_FLAG,
+                l.ln
+            FROM CMPL_SUBCATEGORIES
+             sc
+            CROSS JOIN lng l
+            WHERE sc.ACTIVE_FLAG = 1
+            
+            ```
+    }
+    columnMapping {
+        return: SUBCATEGORY_ID
+        display: SUBCATEGORY_NAME
+    }
+)
+
+lov copy-of-leave-types (
+    name: COPY OF LEAVE_TYPES
+    source {
+        location: staticValues
+    }
+
+    entry c (
+        sequence: 2
+        display: &APP_TEXT$CASUAL.
+        return: C
+    )
+
+    entry h (
+        sequence: 1
+        display: &APP_TEXT$ANNUAL.
+        return: H
+    )
+
+    entry rh (
+        sequence: 3
+        display: &APP_TEXT$REST_HOURS.
+        return: RH
+    )
+
+)
+
+lov desktop-theme-styles (
+    name: DESKTOP THEME STYLES
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select s.name d,
+                   s.theme_style_id r
+              from apex_application_theme_styles s,
+                   apex_application_themes t
+             where s.application_id = :app_id
+               and t.application_id = s.application_id
+               and t.theme_number   = s.theme_number
+               and t.ui_type_name   = 'DESKTOP'
+               and t.is_current     = 'Yes'
+             order by 1
+            ```
+    }
+    columnMapping {
+        return: R
+        display: D
+    }
+)
+
+lov edu-level-code (
+    name: EDU_LEVEL_CODE
+    source {
+        type: sqlQuery
+        sqlQuery: select NAME_AR || ' - ' || NAME_EN , EDU_CODE from epromhq.HR_LK_EDU_LEVEL
+    }
+    columnMapping {
+        return: EDU_CODE
+        display: NAME_AR||'-'||NAME_EN
+    }
+)
+
+lov emp-id (
+    name: EMP_ID
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select emp_name || ' -- '||emp_number DESCRIPTION,emp_number from xxapex_hr_emp_data
+            where Site_Code = 'EPROM_HQ_SUEZ'
+            ```
+    }
+    columnMapping {
+        return: EMP_NUMBER
+        display: DESCRIPTION
+    }
+)
+
+lov employee-numbers (
+    name: EMPLOYEE NUMBERS
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select emp_name || ' -- '||emp_number DESCRIPTION,emp_number from xxapex_hr_emp_data
+            union all select null DESCRIPTION, null emp_number from dual
+            ```
+    }
+    columnMapping {
+        return: EMP_NUMBER
+        display: DESCRIPTION
+        defaultSort: EMP_NUMBER
+    }
+)
+
+lov employee-numbers-2 (
+    name: EMPLOYEE NUMBERS1
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            SELECT 
+                emp_name || ' -- ' || emp_number AS DESCRIPTION,
+                emp_number 
+            FROM 
+                central.xxapex_hr_emp_data 
+            WHERE 
+                (
+                    (SELECT SITE_CODE 
+                     FROM central.xxapex_hr_emp_data 
+                     WHERE emp_number = :APP_USER) != 'EPROM_ERC'
+                    OR
+                    SITE_CODE = 'EPROM_ERC'
+                )
+            ORDER BY 
+                emp_name;
+            
+            ```
+    }
+    columnMapping {
+        return: EMP_NUMBER
+        display: DESCRIPTION
+    }
+)
+
+lov employee-numbers-just-for-page (
+    name: EMPLOYEE NUMBERS JUST FOR PAGE40
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select emp_name || ' -- '||emp_number DESCRIPTION,emp_number from xxapex_hr_emp_data
+            union all select null DESCRIPTION, null emp_number from dual
+            union all select 'لايوجد' DESCRIPTION, '-1' emp_number from dual
+            ```
+    }
+    columnMapping {
+        return: EMP_NUMBER
+        display: DESCRIPTION
+        defaultSort: EMP_NUMBER
+    }
+)
+
+lov feedback-rating (
+    name: FEEDBACK_RATING
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 1
+        display: &APP_TEXT$POSITIVE.
+        return: 3
+        globalization {
+            template: <span title="#DISPLAY_VALUE#" aria-label="#DISPLAY_VALUE#"><span class="fa fa-smile-o fa-2x feedback-positive" aria-hidden="true" ></span></span>
+        }
+    )
+
+    entry lov_data-2 (
+        sequence: 2
+        display: &APP_TEXT$NEUTRAL.
+        return: 2
+        globalization {
+            template: <span title="#DISPLAY_VALUE#" aria-label="#DISPLAY_VALUE#"><span class="fa fa-emoji-neutral fa-2x feedback-neutral" aria-hidden="true" ></span></span>
+        }
+    )
+
+    entry lov_data-3 (
+        sequence: 3
+        display: &APP_TEXT$NEGATIVE.
+        return: 1
+        globalization {
+            template: <span title="#DISPLAY_VALUE#" aria-label="#DISPLAY_VALUE#"><span class="fa fa-frown-o fa-2x feedback-negative" aria-hidden="true" ></span></span>
+        }
+    )
+
+)
+
+lov feedback-status (
+    name: FEEDBACK_STATUS
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 1
+        display: &APP_TEXT$NO_ACTION.
+        return: 0
+    )
+
+    entry lov_data-2 (
+        sequence: 2
+        display: &APP_TEXT$ACKNOWLEDGED.
+        return: 1
+    )
+
+    entry lov_data-3 (
+        sequence: 3
+        display: &APP_TEXT$OPEN.
+        return: 3
+    )
+
+    entry lov_data-4 (
+        sequence: 4
+        display: &APP_TEXT$CLOSED.
+        return: 4
+    )
+
+)
+
+lov gender-code (
+    name: GENDER_CODE
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            SELECT NAME_AR || ' - ' || NAME_EN , GENDER_CODE
+              FROM  epromhq.HR_LK_GENDER
+            
+            ```
+    }
+    columnMapping {
+        return: GENDER_CODE
+        display: NAME_AR||'-'||NAME_EN
+    }
+)
+
+lov hotels (
+    name: HOTELS
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 5
+        display: &APP_TEXT$NO_HOTEL.
+        return: 4
+    )
+
+    entry lov_data-2 (
+        sequence: 10
+        display: &APP_TEXT$SELF_ACCOMMODATION.
+        return: 3
+    )
+
+    entry lov_data-3 (
+        sequence: 20
+        display: &APP_TEXT$FULL_BOARD.
+        return: 2
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    entry lov_data-4 (
+        sequence: 30
+        display: &APP_TEXT$HALF_BOARD.
+        return: 1
+    )
+
+    entry lov_data-5 (
+        sequence: 40
+        display: &APP_TEXT$BED_BREAKFAST.
+        return: 0
+    )
+
+)
+
+lov insured-y-n (
+    name: INSURED_Y_N
+    source {
+        location: staticValues
+    }
+
+    entry لا (
+        sequence: 20
+        display: &APP_TEXT$NO.
+        return: لا
+    )
+
+    entry نعم (
+        sequence: 10
+        display: &APP_TEXT$YES.
+        return: نعم
+    )
+
+)
+
+lov is-beneficiary (
+    name: IS_BENEFICIARY
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 10
+        display: &APP_TEXT$NO.
+        return: 0
+    )
+
+    entry lov_data-2 (
+        sequence: 20
+        display: &APP_TEXT$YES.
+        return: 1
+    )
+
+)
+
+lov mar-status (
+    name: MAR_STATUS
+    source {
+        location: staticValues
+    }
+
+    entry divorced (
+        sequence: 1
+        display: &APP_TEXT$DIVORCED.
+        return: Divorced
+    )
+
+    entry divorced-with-children (
+        sequence: 2
+        display: &APP_TEXT$DIVORCED_WITH_CHILDREN.
+        return: Divorced with Children
+    )
+
+    entry married (
+        sequence: 3
+        display: &APP_TEXT$MARRIED.
+        return: Married
+    )
+
+    entry married-with-children (
+        sequence: 4
+        display: &APP_TEXT$MARRIED_WITH_CHILDREN.
+        return: Married with Children
+    )
+
+    entry single (
+        sequence: 5
+        display: &APP_TEXT$SINGLE.
+        return: Single
+    )
+
+    entry widowed (
+        sequence: 6
+        display: &APP_TEXT$WIDOWED.
+        return: Widowed
+    )
+
+)
+
+lov med-ins-status (
+    name: MED_INS_STATUS
+    source {
+        type: sqlQuery
+        sqlQuery: select NAME_AR || ' - ' || NAME_EN, STATUS_CODE from epromhq.HR_LK_MED_INS_STATUS
+    }
+    columnMapping {
+        return: STATUS_CODE
+        display: NAME_AR||'-'||NAME_EN
+    }
+)
+
+lov mission-types (
+    name: MISSION_TYPES
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 10
+        display: &APP_TEXT$WORK_ASSIGNMENT.
+        return: 72
+    )
+
+    entry lov_data-2 (
+        sequence: 20
+        display: &APP_TEXT$TRAINING_COURSE.
+        return: 121
+    )
+
+)
+
+lov one-day-trip-meal (
+    name: ONE_DAY_TRIP_MEAL
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 10
+        display: &APP_TEXT$LARGE_FETEER_MESHALTET_MEAL.
+        return: 1
+    )
+
+    entry lov_data-2 (
+        sequence: 20
+        display: &APP_TEXT$ORIENTAL_MEAL_FOR_ADULTS.
+        return: 2
+    )
+
+    entry lov_data-3 (
+        sequence: 30
+        display: &APP_TEXT$FETEER_MESHALTET_KIDS_MEAL.
+        return: 3
+    )
+
+    entry lov_data-4 (
+        sequence: 40
+        display: &APP_TEXT$ORIENTAL_MEAL_FOR_CHILDREN.
+        return: 4
+    )
+
+)
+
+lov p401-cmpl-evidence-check (
+    name: P401_CMPL_EVIDENCE_CHECK
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            SELECT
+                CASE WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%'
+                     THEN 'Images'
+                     ELSE 'صور'
+                END AS display_value,
+                'صور' AS return_value
+            FROM dual
+            
+            UNION ALL
+            
+            SELECT
+                CASE WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%'
+                     THEN 'Witnesses'
+                     ELSE 'شهود'
+                END,
+                'شهود'
+            FROM dual
+            
+            UNION ALL
+            
+            SELECT
+                CASE WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%'
+                     THEN 'Documents'
+                     ELSE 'مستندات'
+                END,
+                'مستندات'
+            FROM dual
+            
+            UNION ALL
+            
+            SELECT
+                CASE WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%'
+                     THEN 'Email'
+                     ELSE 'بريد إلكتروني'
+                END,
+                'بريد إلكتروني'
+            FROM dual
+            
+            UNION ALL
+            
+            SELECT
+                CASE WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%'
+                     THEN 'Other'
+                     ELSE 'أخرى'
+                END,
+                'أخرى'
+            FROM dual;
+            
+            ```
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+    }
+)
+
+lov permission-types (
+    name: PERMISSION_TYPES
+    source {
+        location: staticValues
+    }
+
+    entry cp (
+        sequence: 20
+        display: &APP_TEXT$WORK_PERMIT.
+        return: CP
+    )
+
+    entry pp (
+        sequence: 10
+        display: &APP_TEXT$PERSONAL_PERMISSION.
+        return: PP
+    )
+
+)
+
+lov relation (
+    name: RELATION
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 70
+        display: &APP_TEXT$SON.
+        return: 1
+    )
+
+    entry lov_data-2 (
+        sequence: 80
+        display: &APP_TEXT$DAUGHTER.
+        return: 2
+    )
+
+    entry اب (
+        sequence: 10
+        display: &APP_TEXT$DAD.
+        return: اب
+    )
+
+    entry اخ (
+        sequence: 30
+        display: &APP_TEXT$BROTHER.
+        return: اخ
+    )
+
+    entry اخت (
+        sequence: 40
+        display: &APP_TEXT$SISTER.
+        return: اخت
+    )
+
+    entry اخري (
+        sequence: 90
+        display: &APP_TEXT$OTHER_OUT_OF_SUPPORT.
+        return: اخري
+    )
+
+    entry ام (
+        sequence: 20
+        display: &APP_TEXT$OR.
+        return: ام
+    )
+
+    entry زوج (
+        sequence: 60
+        display: &APP_TEXT$HUSBAND.
+        return: زوج
+    )
+
+    entry زوجة (
+        sequence: 50
+        display: &APP_TEXT$WIFE.
+        return: زوجة
+    )
+
+)
+
+lov relation-code (
+    name: RELATION_CODE
+    source {
+        type: sqlQuery
+        sqlQuery: select  RELATION_NAME_AR || ' - ' || RELATION_NAME_EN as desplay,RELATION_CODE  from epromhq.HR_LK_RELATION
+    }
+    columnMapping {
+        return: RELATION_CODE
+        display: DESPLAY
+    }
+)
+
+lov request-status (
+    name: REQUEST_STATUS
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 1
+        display: "&{LOV_DISP_VALUE}!RAW."
+        return: 0
+    )
+
+    entry lov_data-2 (
+        sequence: 2
+        display: "&{LOV_DISP_VALUE_1}!RAW."
+        return: 1
+    )
+
+    entry lov_data-3 (
+        sequence: 12
+        display: "&{LOV_DISP_VALUE_2}!RAW."
+        return: 2
+    )
+
+    entry lov_data-4 (
+        sequence: 22
+        display: "&{HAS_BEEN_CANCELLED}!RAW."
+        return: 3
+    )
+
+    entry lov_data-5 (
+        sequence: 23
+        display: "&{LOV_DISP_VALUE_3}!RAW."
+        return: 4
+    )
+
+)
+
+lov request-status-2 (
+    name: REQUEST_STATUS1
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 1
+        display: "&{LOV_DISP_VALUE}!RAW."
+        return: 0
+    )
+
+    entry lov_data-2 (
+        sequence: 2
+        display: "&{LOV_DISP_VALUE_1}!RAW."
+        return: 1
+    )
+
+    entry lov_data-3 (
+        sequence: 12
+        display: "&{LOV_DISP_VALUE_2}!RAW."
+        return: 2
+    )
+
+    entry lov_data-4 (
+        sequence: 22
+        display: "&{HAS_BEEN_CANCELLED}!RAW."
+        return: 3
+    )
+
+    entry lov_data-5 (
+        sequence: 23
+        display: "&{LOV_DISP_VALUE_3}!RAW."
+        return: 4
+    )
+
+)
+
+lov request-status-3 (
+    name: REQUEST_STATUS2
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 1
+        display: "&{LOV_DISP_VALUE}!RAW."
+        return: 0
+    )
+
+    entry lov_data-2 (
+        sequence: 2
+        display: "&{LOV_DISP_VALUE_1}!RAW."
+        return: 1
+    )
+
+    entry lov_data-3 (
+        sequence: 12
+        display: "&{LOV_DISP_VALUE_2}!RAW."
+        return: 2
+    )
+
+    entry lov_data-4 (
+        sequence: 22
+        display: "&{HAS_BEEN_CANCELLED}!RAW."
+        return: 3
+    )
+
+    entry lov_data-5 (
+        sequence: 23
+        display: "&{LOV_DISP_VALUE_3}!RAW."
+        return: 4
+    )
+
+)
+
+lov request-status-4 (
+    name: REQUEST_STATUS3
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 1
+        display: "&{LOV_DISP_VALUE}!RAW."
+        return: 0
+    )
+
+    entry lov_data-2 (
+        sequence: 2
+        display: "&{LOV_DISP_VALUE_1}!RAW."
+        return: 1
+    )
+
+    entry lov_data-3 (
+        sequence: 12
+        display: "&{LOV_DISP_VALUE_2}!RAW."
+        return: 2
+    )
+
+    entry lov_data-4 (
+        sequence: 22
+        display: "&{HAS_BEEN_CANCELLED}!RAW."
+        return: 3
+    )
+
+    entry lov_data-5 (
+        sequence: 23
+        display: "&{LOV_DISP_VALUE_3}!RAW."
+        return: 4
+    )
+
+)
+
+lov request-status-5 (
+    name: REQUEST_STATUS4
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 1
+        display: "&{LOV_DISP_VALUE}!RAW."
+        return: 0
+    )
+
+    entry lov_data-2 (
+        sequence: 2
+        display: "&{LOV_DISP_VALUE_1}!RAW."
+        return: 1
+    )
+
+    entry lov_data-3 (
+        sequence: 12
+        display: "&{LOV_DISP_VALUE_2}!RAW."
+        return: 2
+    )
+
+    entry lov_data-4 (
+        sequence: 22
+        display: "&{HAS_BEEN_CANCELLED}!RAW."
+        return: 3
+    )
+
+    entry lov_data-5 (
+        sequence: 23
+        display: "&{LOV_DISP_VALUE_3}!RAW."
+        return: 4
+    )
+
+)
+
+lov requests-headers-emp-no (
+    name: REQUESTS_HEADERS.EMP_NO
+    source {
+        tableName: REQUESTS_HEADERS
+    }
+    columnMapping {
+        return: REQUEST_HEADER_ID
+        display: EMP_NO
+        defaultSort: EMP_NO
+    }
+)
+
+lov s-insured-med (
+    name: S_INSURED_MED
+    source {
+        location: staticValues
+    }
+
+    entry n (
+        sequence: 20
+        display: &APP_TEXT$SOCIALLY_UNINSURED.
+        return: N
+    )
+
+    entry y (
+        sequence: 10
+        display: &APP_TEXT$SOCIALLY_INSURED.
+        return: Y
+    )
+
+)
+
+lov sites (
+    name: SITES
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+             Select NAME_ARABIC,SITE_CODE
+            From central.SITES_NAME
+            order by id asc
+            ```
+    }
+    columnMapping {
+        return: SITE_CODE
+        display: NAME_ARABIC
+        defaultSort: NAME_ARABIC
+        sortDirection: descNullsLast
+    }
+)
+
+lov sites-2 (
+    name: SITES1
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+             Select NAME_ARABIC,SITE_CODE
+            From central.SITES_NAME
+            order by id asc
+            ```
+    }
+    columnMapping {
+        return: SITE_CODE
+        display: NAME_ARABIC
+        defaultSort: NAME_ARABIC
+        sortDirection: descNullsLast
+    }
+)
+
+lov social-ins-status (
+    name: SOCIAL_INS_STATUS
+    source {
+        type: sqlQuery
+        sqlQuery: select NAME_AR || ' - ' || NAME_EN, STATUS_CODE from epromhq.HR_LK_MED_INS_STATUS
+    }
+    columnMapping {
+        return: STATUS_CODE
+        display: NAME_AR||'-'||NAME_EN
+    }
+)
+
+lov subordinates-leave (
+    name: SUBORDINATES_LEAVE
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            SELECT DISTINCT d.emp_name || ' (' || d.emp_number || ')' AS display_name,
+                   d.emp_number
+              FROM central.xxapex_hr_emp_data d
+             WHERE d.emp_number IN (
+                 SELECT TO_NUMBER(f.emp_number)
+                   FROM central.apr_approval_results_cust_f f
+                  WHERE f.request_type_id = 59
+                    AND (f.approver = :APP_USER OR ':' || f.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                 UNION
+                 SELECT TO_NUMBER(r.emp_id)
+                   FROM central.apr_log l
+                   JOIN epromhq.hrf_emp_leave_request r ON r.request_id = l.request_id
+                  WHERE l.request_type_id = 59
+                    AND (l.approver = :APP_USER OR ':' || l.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                 UNION
+                 SELECT TO_NUMBER(r.emp_id)
+                   FROM epromhq.hrf_emp_leave_request r
+                  WHERE ('->' || r.updated_by || '->' LIKE '%->' || :APP_USER || '->%'
+                      OR '->' || r.updated_by || '->' LIKE '%->' || :APP_USER || 'd->%')
+                    AND EXTRACT(YEAR FROM r.from_date) = EXTRACT(YEAR FROM SYSDATE)
+             )
+               AND d.emp_number <> :APP_USER
+             ORDER BY display_name
+            ```
+    }
+    columnMapping {
+        return: EMP_NUMBER
+        display: DISPLAY_NAME
+    }
+)
+
+lov subordinates-missions (
+    name: SUBORDINATES_MISSIONS
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            SELECT DISTINCT d.emp_name || ' (' || d.emp_number || ')' AS display_name,
+                   d.emp_number
+              FROM central.xxapex_hr_emp_data d
+             WHERE d.emp_number IN (
+                 SELECT TO_NUMBER(f.emp_number)
+                   FROM central.apr_approval_results_cust_f f
+                  WHERE f.request_type_id IN (72, 121)
+                    AND (f.approver = :APP_USER OR ':' || f.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                 UNION
+                 SELECT TO_NUMBER(r.emp_id)
+                   FROM central.apr_log l
+                   JOIN epromhq.hrf_emp_mission_request r ON r.request_id = l.request_id
+                  WHERE l.request_type_id IN (72, 121)
+                    AND (l.approver = :APP_USER OR ':' || l.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                 UNION
+                 SELECT TO_NUMBER(r.emp_id)
+                   FROM epromhq.hrf_emp_mission_request r
+                  WHERE ('->' || r.updated_by || '->' LIKE '%->' || :APP_USER || '->%'
+                      OR '->' || r.updated_by || '->' LIKE '%->' || :APP_USER || 'd->%')
+                    AND EXTRACT(YEAR FROM NVL(r.last_approval_date, r.from_date)) = EXTRACT(YEAR FROM SYSDATE)
+             )
+               AND d.emp_number <> :APP_USER
+             ORDER BY display_name
+            ```
+    }
+    columnMapping {
+        return: EMP_NUMBER
+        display: DISPLAY_NAME
+    }
+)
+
+lov subordinates-overtime (
+    name: SUBORDINATES_OVERTIME
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            SELECT DISTINCT d.emp_name || ' (' || d.emp_number || ')' AS display_name,
+                   d.emp_number
+              FROM central.xxapex_hr_emp_data d
+             WHERE d.emp_number IN (
+                 SELECT TO_NUMBER(f.emp_number)
+                   FROM central.apr_approval_results_cust_f f
+                  WHERE f.request_type_id = 76
+                    AND (f.approver = :APP_USER OR ':' || f.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                 UNION
+                 SELECT TO_NUMBER(r.emp_id)
+                   FROM central.apr_log l
+                   JOIN epromhq.hrf_emp_overtime_request r ON r.request_id = l.request_id
+                  WHERE l.request_type_id = 76
+                    AND (l.approver = :APP_USER OR ':' || l.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                 UNION
+                 SELECT TO_NUMBER(r.emp_id)
+                   FROM epromhq.hrf_emp_overtime_request r
+                  WHERE ('->' || r.updated_by || '->' LIKE '%->' || :APP_USER || '->%'
+                      OR '->' || r.updated_by || '->' LIKE '%->' || :APP_USER || 'd->%')
+                    AND EXTRACT(YEAR FROM r.overtime_date) = EXTRACT(YEAR FROM SYSDATE)
+             )
+               AND d.emp_number <> :APP_USER
+             ORDER BY display_name
+            ```
+    }
+    columnMapping {
+        return: EMP_NUMBER
+        display: DISPLAY_NAME
+    }
+)
+
+lov subordinates-permissions (
+    name: SUBORDINATES_PERMISSIONS
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            SELECT DISTINCT d.emp_name || ' (' || d.emp_number || ')' AS display_name,
+                   d.emp_number
+              FROM central.xxapex_hr_emp_data d
+             WHERE d.emp_number IN (
+                 SELECT TO_NUMBER(f.emp_number)
+                   FROM central.apr_approval_results_cust_f f
+                  WHERE f.request_type_id = 61
+                    AND (f.approver = :APP_USER OR ':' || f.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                 UNION
+                 SELECT TO_NUMBER(r.emp_id)
+                   FROM central.apr_log l
+                   JOIN epromhq.hrf_emp_permission_request r ON r.request_id = l.request_id
+                  WHERE l.request_type_id = 61
+                    AND (l.approver = :APP_USER OR ':' || l.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                 UNION
+                 SELECT TO_NUMBER(r.emp_id)
+                   FROM epromhq.hrf_emp_permission_request r
+                  WHERE ('->' || r.updated_by || '->' LIKE '%->' || :APP_USER || '->%'
+                      OR '->' || r.updated_by || '->' LIKE '%->' || :APP_USER || 'd->%')
+                    AND EXTRACT(YEAR FROM r.permission_date) = EXTRACT(YEAR FROM SYSDATE)
+             )
+               AND d.emp_number <> :APP_USER
+             ORDER BY display_name
+            ```
+    }
+    columnMapping {
+        return: EMP_NUMBER
+        display: DISPLAY_NAME
+    }
+)
+
+lov transportaion (
+    name: TRANSPORTAION
+    source {
+        location: staticValues
+    }
+
+    entry باتوبيسات-التي-توفرها-الشركة (
+        sequence: 10
+        display: &APP_TEXT$BUSES_PROVIDED_BY_THE_COMPANY.
+        return: باتوبيسات التي توفرها الشركة
+    )
+
+    entry بمعرفتي (
+        sequence: 20
+        display: &APP_TEXT$WITH_MY_KNOWLEDGE.
+        return: بمعرفتي
+    )
+
+)
+
+lov trip-purpose (
+    name: TRIP_PURPOSE
+    source {
+        location: staticValues
+    }
+
+    entry meeting-attend (
+        sequence: 20
+        display: &APP_TEXT$ATTEND_A_MEETING.
+        return: Meeting_attend
+    )
+
+    entry mission-travel (
+        sequence: 40
+        display: &APP_TEXT$A_WORK_ERRAND.
+        return: MISSION_TRAVEL
+    )
+
+    entry training (
+        sequence: 10
+        display: &APP_TEXT$TRAINING.
+        return: Training
+    )
+
+    entry visit (
+        sequence: 30
+        display: &APP_TEXT$VISIT.
+        return: visit
+    )
+
+)
+
+lov unified-task-list-lov-due (
+    name: UNIFIED_TASK_LIST.LOV.DUE
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 1
+        display: &APP_TEXT$OVERDUE.
+        return: |0
+    )
+
+    entry lov_data-2 (
+        sequence: 2
+        display: &APP_TEXT$NEXT_HOUR.
+        return: 1|0
+    )
+
+    entry lov_data-3 (
+        sequence: 3
+        display: &APP_TEXT$NEXT_24_HOURS.
+        return: 1|24
+    )
+
+    entry lov_data-4 (
+        sequence: 4
+        display: &APP_TEXT$NEXT_7_DAYS.
+        return: 24|168
+    )
+
+    entry lov_data-5 (
+        sequence: 5
+        display: &APP_TEXT$NEXT_30_DAYS.
+        return: 168|720
+    )
+
+    entry lov_data-6 (
+        sequence: 6
+        display: &APP_TEXT$MORE_THAN_30_DAYS.
+        return: 720|0
+    )
+
+)
+
+lov unified-task-list-lov-initiated (
+    name: UNIFIED_TASK_LIST.LOV.INITIATED
+    source {
+        location: staticValues
+    }
+
+    entry lov_data (
+        sequence: 1
+        display: &APP_TEXT$LAST_HOUR.
+        return: 0|1
+    )
+
+    entry lov_data-2 (
+        sequence: 2
+        display: &APP_TEXT$LAST_24_HOURS.
+        return: 1|24
+    )
+
+    entry lov_data-3 (
+        sequence: 3
+        display: &APP_TEXT$LAST_7_DAYS.
+        return: 24|168
+    )
+
+    entry lov_data-4 (
+        sequence: 4
+        display: &APP_TEXT$LAST_30_DAYS.
+        return: 168|720
+    )
+
+    entry lov_data-5 (
+        sequence: 5
+        display: &APP_TEXT$OLDER_THAN_30_DAYS.
+        return: 720|
+    )
+
+)
+
+lov unified-task-list-lov-priority (
+    name: UNIFIED_TASK_LIST.LOV.PRIORITY
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            
+            select disp, 
+                   val 
+              from table ( apex_approval.get_lov_priority )
+             order by insert_order
+            ```
+    }
+    columnMapping {
+        return: VAL
+        display: DISP
+    }
+)
+
+lov unified-task-list-lov-state (
+    name: UNIFIED_TASK_LIST.LOV.STATE
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            
+            select disp, 
+                   val 
+              from table ( apex_approval.get_lov_state )
+             order by insert_order
+            ```
+    }
+    columnMapping {
+        return: VAL
+        display: DISP
+    }
+)
+
+lov unified-task-list-lov-type (
+    name: UNIFIED_TASK_LIST.LOV.TYPE
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select disp,
+                   val
+              from table ( apex_approval.get_lov_type )
+             order by insert_order
+            ```
+    }
+    columnMapping {
+        return: VAL
+        display: DISP
+    }
+)
+
+lov user-theme-preference (
+    name: USER_THEME_PREFERENCE
+    source {
+        location: staticValues
+    }
+
+    entry yes (
+        sequence: 1
+        display: &APP_TEXT$ALLOW_END_USERS_TO_CHOOSE_THEME_STYLE.
+        return: Yes
+    )
+
+)
+
+lov vac-trip-trip-name (
+    name: VAC_TRIP.TRIP_NAME
+    source {
+        tableOwner: EPROMHQ
+        tableName: VAC_TRIPS
+    }
+    columnMapping {
+        return: TRIP_ID
+        display: TRIP_NAME
+    }
+)
+
+lov vac-unit (
+    name: VAC_UNIT
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select distinct l.location_name || ' -- ' || l.unit_name as display_value,
+                   s.block_id
+              from epromhq.v_vac_unit_emp_serials s
+              join epromhq.vac_unit_allocation v
+                on s.allocation_id = v.id
+              join epromhq.vac_trip_blocs_v l
+                on l.unit_id = s.block_id
+               and l.trip_id = v.trip_id
+             where v.trip_id = 16
+             order by display_value
+            ```
+    }
+    columnMapping {
+        return: BLOCK_ID
+        display: DISPLAY_VALUE
+    }
+)
+
+lov workflow-charts-lov-time-unit (
+    name: WORKFLOW_CHARTS.LOV.TIME_UNIT
+    source {
+        location: staticValues
+    }
+
+    entry day (
+        sequence: 4
+        display: Days
+        return: DAY
+    )
+
+    entry hour (
+        sequence: 3
+        display: Hours
+        return: HOUR
+    )
+
+    entry min (
+        sequence: 2
+        display: Minutes
+        return: MIN
+    )
+
+    entry sec (
+        sequence: 1
+        display: Seconds
+        return: SEC
+    )
+
+)
+
+lov workflow-console-lov-initiated (
+    name: WORKFLOW_CONSOLE.LOV.INITIATED
+    source {
+        location: staticValues
+    }
+
+    entry 1 (
+        sequence: 1
+        display: Last hour
+        return: |1
+    )
+
+    entry 1-24 (
+        sequence: 2
+        display: Last 24 hours
+        return: 1|24
+    )
+
+    entry 168-720 (
+        sequence: 4
+        display: Last 30 days
+        return: 168|720
+    )
+
+    entry 24-168 (
+        sequence: 3
+        display: Last 7 days
+        return: 24|168
+    )
+
+    entry 720 (
+        sequence: 5
+        display: Older than 30 days
+        return: 720|
+    )
+
+)
+
+lov workflow-console-lov-workflow-state (
+    name: WORKFLOW_CONSOLE.LOV.WORKFLOW_STATE
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select disp,
+                   val
+              from table ( apex_workflow.get_lov_workflow_state )
+             order by insert_order
+            ```
+    }
+    columnMapping {
+        return: VAL
+        display: DISP
+    }
+)
+
+lov yes-no (
+    name: YES_NO
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            
+            
+            
+            
+            
+            WITH labs_split AS (
+              SELECT 
+                ROWNUM AS rn,
+                COLUMN_VALUE AS labs
+              FROM 
+                TABLE(
+                  apex_string.split(
+                    (SELECT labs FROM CENTRAL.USER_PREFS WHERE PREF_ID = :P20020_PREF_ID), ':'
+                  )
+                )
+            ),
+            
+            vals_split AS (
+              SELECT 
+                ROWNUM AS rn,
+                COLUMN_VALUE AS vals
+              FROM 
+                TABLE(
+                  apex_string.split(
+                    (SELECT vals FROM CENTRAL.USER_PREFS WHERE PREF_ID = :P20020_PREF_ID), ':'
+                  )
+                )
+            )
+            
+            SELECT 
+              CASE
+                WHEN :FSP_LANGUAGE_PREFERENCE = 'ar-ae' THEN
+                  CASE
+                    WHEN l.labs = 'yes' THEN 'YES'
+                    WHEN l.labs = 'no' THEN 'NO'
+                    ELSE l.labs
+                  END
+                ELSE l.labs
+              END AS labs,
+              v.vals AS vals
+            FROM 
+              labs_split l
+            JOIN 
+              vals_split v
+            ON 
+              l.rn = v.rn;
+            
+            ```
+    }
+    columnMapping {
+        return: VALS
+        display: LABS
+        defaultSort: LABS
+    }
+)
+
+lov yes-no-0-1-ar-en (
+    name: YES_NO_0_1_AR_EN
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            SELECT
+                CASE
+                    WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%' THEN 'Yes'
+                    ELSE 'YES'
+                END AS DISPLAY_VALUE,
+                1 AS RETURN_VALUE
+            FROM dual
+            
+            UNION ALL
+            
+            SELECT
+                CASE
+                    WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%' THEN 'No'
+                    ELSE 'NO'
+                END,
+                0
+            FROM dual;
+            ```
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+        defaultSort: DISPLAY_VALUE
+    }
+)
+
+lov yes-or-no (
+    name: YES_OR_NO_1_0
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            SELECT
+                CASE
+                    WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%' THEN 'YES'
+                    ELSE 'نعم'
+                END AS DISPLAY_VALUE,
+                'yes' AS RETURN_VALUE
+            FROM DUAL
+            UNION ALL
+            SELECT
+                CASE
+                    WHEN LOWER(APEX_UTIL.GET_SESSION_LANG) LIKE '%en%' THEN 'NO'
+                    ELSE 'لا'
+                END AS DISPLAY_VALUE,
+                'no' AS RETURN_VALUE
+            FROM DUAL
+            
+            ```
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+    }
+)
+
+lov تقدير (
+    name: تقدير
+    source {
+        location: staticValues
+    }
+
+    entry excellent (
+        sequence: 3
+        display: &APP_TEXT$PRIVILEGE.
+        return: Excellent
+    )
+
+    entry good (
+        sequence: 1
+        display: &APP_TEXT$GOOD.
+        return: Good
+    )
+
+    entry very-good (
+        sequence: 2
+        display: &APP_TEXT$VERY_GOOD.
+        return: Very Good
+    )
+
+)

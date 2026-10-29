@@ -1,0 +1,83 @@
+textMessage BACK_TO_PORTAL (
+    message {
+        text: العوده الي البوابة
+        language: ar-ae
+    }
+)
+
+textMessage BACK_TO_PORTAL (
+    message {
+        text: Back to Portal
+        language: en-us
+    }
+)
+
+textMessage INCORRECT_CODE (
+    message {
+        text: الكود غلط ياباشا
+        language: ar-ae
+    }
+)
+
+textMessage INCORRECT_CODE (
+    message {
+        text: Incorrect Code
+        language: en-us
+    }
+)
+
+textMessage INCORRECT_PHONE_NUMBER_FORMAT (
+    message {
+        text: تم إدخال رقم هاتف خاطئ ، يرجى إعادة إدخاله بشكل صحيح ، مثل (01234567891)
+        language: ar-ae
+    }
+)
+
+textMessage INCORRECT_PHONE_NUMBER_FORMAT (
+    message {
+        text: Incorrect phone number entered. Please enter it correctly, e.g., (01234567891)
+        language: en-us
+    }
+)
+
+textMessage PLEASE_ENTER_AT_LEAST_8_CHARACTERS (
+    message {
+        text: برجاء ادخال 8 حروف او ارقام علي الاقل
+        language: ar-ae
+    }
+)
+
+textMessage PLEASE_ENTER_AT_LEAST_8_CHARACTERS (
+    message {
+        text: Please enter at least 8 characters or numbers
+        language: en-us
+    }
+)
+
+textMessage PLEASE_REPEAT_PASSWORD_CORRECTLY (
+    message {
+        text: برجاء تكرار كلمه السر بشكل صحيح
+        language: ar-ae
+    }
+)
+
+textMessage PLEASE_REPEAT_PASSWORD_CORRECTLY (
+    message {
+        text: Please repeat the password correctly
+        language: en-us
+    }
+)
+
+textMessage SUPPLIER_INFORMATION (
+    message {
+        text: Supplier Informationس
+        language: ar-ae
+    }
+)
+
+textMessage SUPPLIER_INFORMATION (
+    message {
+        text: Supplier Information
+        language: en-us
+    }
+)

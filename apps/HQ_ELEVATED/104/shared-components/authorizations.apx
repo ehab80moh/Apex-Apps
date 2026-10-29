@@ -1,0 +1,627 @@
+authorization 33318982090746440 (
+    name: 33318982090746440
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN TRUE;
+            END;
+            ```
+    }
+)
+
+authorization admin (
+    name: admin
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            return central.XXAPEX_AUTHORIZATION_DUMP.is_user_authorized_items(
+                p_user_id=>:APP_USER,p_app_id=>:APP_ID,p_role_name=>'user_access_items_admin_104'
+              ) =1;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization approval-team (
+    name: approval  team
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('1825','1837','1975','1545','3199');
+            END;
+            ```
+    }
+)
+
+authorization attendance-admin (
+    name: Attendance_admin
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            
+            RETURN :APP_USER in('1825','1837','1907','3199','1168','3775');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization copy-of-admin (
+    name: Copy of admin
+    type: existsSqlQuery
+    settings {
+        sqlQuery:
+            ```sql
+            Select  column_value AS val
+                 FROM TABLE(apex_string.split(:USER_ROLES,':'))
+                where column_value ='admin'
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization eprom-hq-auth (
+    name: eprom_hq_auth
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            IF central.check_privilage(:app_user,:app_id,:app_page_id) THEN
+                RETURN TRUE;
+            ELSIF :app_id = '104' AND :app_page_id = '95' THEN
+                RETURN central.check_privilage(:app_user,104,1)
+                    AND APEX_AUTHORIZATION.IS_AUTHORIZED('Training Management Access');
+            ELSIF :app_id = '104' AND :app_page_id IN ('52','200')
+                  AND med.apr_med_approver_task_api.has_medical_task_access(
+                      :app_user,TO_NUMBER(:app_page_id),
+                      CASE WHEN :app_page_id='52' THEN TO_NUMBER(:P52_TASK_ID) ELSE NULL END
+                  )='Y' THEN
+                RETURN TRUE;
+            ELSIF :app_id = '104' AND :app_page_id='109'
+                  AND med.apr_med_approver_task_api.has_medical_request_task_access(
+                      :app_user,106,TO_NUMBER(:P109_REFERAL_ID))='Y' THEN
+                RETURN TRUE;
+            END IF;
+            RETURN FALSE;
+            ```
+    }
+)
+
+authorization eprom-innovates (
+    name: EPROM_INNOVATES
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('560',
+                '1347',
+                '1396',
+                '1414',
+                '1518',
+                '1622',
+                '2951',
+                '1410',
+                '1825',
+                '1837',
+                '120103');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization eprom-innovates-report (
+    name: EPROM_INNOVATES_REPORT
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            RETURN TRIM(:APP_USER) IN (
+                '560',
+                '1347',
+                '1396',
+                '1414',
+                '1518',
+                '1622',
+                '2951',
+                '1410',
+                '1825',
+                '1837',
+                '120103'
+            );
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization erc-self-services (
+    name: ERC_self_services
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            DECLARE
+              l_count NUMBER;
+            BEGIN
+            
+             SELECT COUNT(*)
+             INTO l_count
+             FROM xxapex_hr_emp_data
+             WHERE emp_number = :APP_USER
+             AND (
+                   site_code NOT IN ('EPROM_ERC','EPROM_MIDOR')
+                   OR :APP_USER = '1198'
+                 );
+            
+             RETURN l_count > 0;
+            
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization for-test (
+    name: for test
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('1971','1825','1837','3199','995','705','1971','3775','117');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization hr (
+    name: HR
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('1837','995','3199','1825','1907','1295','1168','867','2278','3692','1859','3775','2657','863','1545','773','3400','1719','922','2766');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization hr-test (
+    name: hr_test
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('1859','3692','1295','2766','3199','1825','995','1837','3775','773','1463','1168','203');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization hr-test-2 (
+    name: hr_test-3775
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('1825','1837','3199','995','3775');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization iis-and-inventory (
+    name: IIS and inventory
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('1825','1837','995','1955','2345','1943','3273','3232','1986','2398','3740','1463','3455','3570','3199', '1914', '1999', '1182', '705','3853');
+            END;
+            
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization inventory-users (
+    name: inventory users
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            
+            RETURN :APP_USER in('1825','1837','995','3232','1986','2398','3273','1999','3455',
+            '705','1914','3199','1943');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization is-shift (
+    name: is_shift
+    type: existsSqlQuery
+    settings {
+        sqlQuery:
+            ```sql
+            SELECT
+            *
+              FROM epromhq.TMS_EMP_ROTATION_PLANS
+            where  "work_type" = 'Shift'
+            and employeenumber= :app_user
+            and date_ = to_char(to_date(sysdate))
+            ```
+    }
+)
+
+authorization it (
+    name: IT
+    type: existsSqlQuery
+    settings {
+        sqlQuery: select 1 from hq_elevated.itr_team_members tm where upper(trim(tm.username)) = upper(trim(:APP_USER)) or upper(trim(tm.emp_id)) = upper(trim(:APP_USER))
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization it-and-others (
+    name: it and others
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('1825', '1837', '995', '1955', '2345','1943', '3232','1986', '3740','2398', '1463', '3199', '3775','1907');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization it-request-coordinator (
+    name: IT Request Coordinator
+    type: existsSqlQuery
+    settings {
+        sqlQuery: select 1 from hq_elevated.itr_team_members tm where upper(trim(tm.username)) = upper(trim(:APP_USER)) and upper(trim(tm.role)) = 'COORDINATOR'
+    }
+)
+
+authorization it-request-setup-admin (
+    name: IT Request Setup Administration
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return central.XXAPEX_AUTHORIZATION_DUMP.is_user_authorized_items(p_user_id => :APP_USER, p_app_id => :APP_ID, p_role_name => 'user_access_items_admin_104') = 1;
+    }
+)
+
+authorization managers-dashboard-users (
+    name: Managers Dashboard Users
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            return central.check_privilage(:APP_USER,101,1);
+            END;
+            ```
+    }
+)
+
+authorization medical-referral-request-viewer (
+    name: Medical_Referral_Request_Viewer
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            DECLARE
+                l_employee VARCHAR2(128);
+            BEGIN
+                IF :APP_ID <> '104' OR :APP_PAGE_ID <> '109' OR :P109_REFERAL_ID IS NULL THEN
+                    RETURN FALSE;
+                END IF;
+                SELECT emp_id_snapshot INTO l_employee
+                  FROM med.md_referal_flow WHERE referal_id=TO_NUMBER(:P109_REFERAL_ID);
+                RETURN UPPER(TRIM(l_employee))=UPPER(TRIM(:APP_USER))
+                    OR apex_authorization.is_authorized(p_authorization_name=>'Medical_Team')
+                    OR med.apr_med_approver_task_api.has_medical_request_task_access(
+                           :APP_USER,106,TO_NUMBER(:P109_REFERAL_ID))='Y';
+            EXCEPTION
+                WHEN OTHERS THEN RETURN FALSE;
+            END;
+            ```
+    }
+)
+
+authorization medical-referral-task-owner (
+    name: Medical_Referral_Task_Owner
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+                RETURN apex_authorization.is_authorized(
+                           p_authorization_name=>'Medical_Referral_Task_Reviewer')
+                   AND apex_human_task.is_allowed(
+                           p_task_id=>TO_NUMBER(:P109_TASK_ID),
+                           p_operation=>apex_human_task.c_task_op_approve);
+            EXCEPTION
+                WHEN OTHERS THEN RETURN FALSE;
+            END;
+            ```
+    }
+)
+
+authorization medical-referral-task-reviewer (
+    name: Medical_Referral_Task_Reviewer
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            DECLARE
+                l_count PLS_INTEGER;
+            BEGIN
+                IF :APP_ID <> '104' OR :APP_PAGE_ID <> '109'
+                   OR :P109_TASK_ID IS NULL OR :P109_REFERAL_ID IS NULL THEN
+                    RETURN FALSE;
+                END IF;
+                IF med.apr_med_approver_task_api.has_medical_task_access(
+                       :APP_USER,52,TO_NUMBER(:P109_TASK_ID)) <> 'Y' THEN
+                    RETURN FALSE;
+                END IF;
+                SELECT COUNT(*) INTO l_count
+                  FROM apex_tasks t
+                 WHERE t.task_id = TO_NUMBER(:P109_TASK_ID)
+                   AND t.application_id = 104
+                   AND LOWER(t.task_def_static_id) = 'approval-task'
+                   AND EXISTS (SELECT 1 FROM apex_task_parameters p
+                                WHERE p.task_id=t.task_id AND p.param_static_id='T_REQUEST_TYPE_ID'
+                                  AND TRIM(p.param_value)='106')
+                   AND EXISTS (SELECT 1 FROM apex_task_parameters p
+                                WHERE p.task_id=t.task_id AND p.param_static_id='T_REQUEST_ID'
+                                  AND TRIM(p.param_value)=TO_CHAR(TO_NUMBER(:P109_REFERAL_ID)));
+                RETURN l_count = 1;
+            EXCEPTION
+                WHEN OTHERS THEN RETURN FALSE;
+            END;
+            ```
+    }
+)
+
+authorization medical-team (
+    name: Medical_Team
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('1825','1837','3397','3199');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization public-relations (
+    name: Public Relations
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            return central.check_privilage(:APP_USER,105,1);
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization request-view-allowed (
+    name: request_view_allowed
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            return central.XXAPEX_AUTHORIZATION_DUMP.check_privilage(
+                p_user_id=>:APP_USER,p_app_id=>104,p_page_id=>100
+              )=1 or  central.XXAPEX_AUTHORIZATION_DUMP.check_privilage(
+                p_user_id=>:APP_USER,p_app_id=>104,p_page_id=>200
+              )=1;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization self-service-allowed (
+    name: self_service_allowed
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            return central.XXAPEX_AUTHORIZATION_DUMP.check_privilage(
+                p_user_id=>:APP_USER,p_app_id=>104,p_page_id=>4000
+              )=1;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization server-side-condetion-never (
+    name: server side condetion (NEVER)
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            
+            RETURN :APP_USER in('-1');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization sports-day-pilot (
+    name: Sports Day Pilot Employees
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return v('APP_USER') in ('3199','995','1837','3775');
+    }
+    error {
+        errorMessage: هذا النموذج غير متاح للمستخدم الحالي.
+    }
+)
+
+authorization super-duper (
+    name: super_duper
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('1825','1837','3199','995') OR central.is_dev_or_super_n(:app_user) = 1;
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization support-it (
+    name: Support_IT
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('1825','1837','995','3455','3199');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization test-item-open-for-site (
+    name: test_item_open_for_site
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            declare
+            v_return number;
+            begin
+             v_Return := central.XXAPEX_AUTHORIZATION_DUMP.IS_SITE_AUTHORIZED_ITEMS(
+                P_USER_ID => :APP_USER,
+                P_APP_ID => :APP_ID
+              );
+            if v_return =1 then return true;
+            end if;
+            
+            return false;
+            end;
+            
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization training-department (
+    name: Training Department
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            RETURN :APP_USER in('1825','1837','3059','3199','1463');
+            END;
+            ```
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization training-management-access (
+    name: Training Management Access
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            RETURN APEX_AUTHORIZATION.IS_AUTHORIZED('Training Department')
+                OR :App_user in ('1964','3199','1837');
+            ```
+    }
+)
+
+authorization vacations-team (
+    name: vacations team
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            BEGIN
+            
+            RETURN :APP_USER in('1825','1837','1975','1183','1971','705','764','995','3199','287','3775','203');
+            END;
+            ```
+    }
+)

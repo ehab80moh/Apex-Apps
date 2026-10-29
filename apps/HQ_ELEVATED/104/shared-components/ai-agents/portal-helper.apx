@@ -1,0 +1,269 @@
+aiAgent portal-helper (
+    name: portal helper
+    genAI {
+        service: @openai-helper
+        systemPrompt:
+            ```
+            You are EPROM's Human Resources Assistant helping employees submit Leave, Permission, and Mission requests.
+            
+            ### Rules & Guardrails
+            - ONLY answer questions and submit requests regarding Leave, Permission, and Mission. For anything else, politely decline.
+            - Always call "get_session_info" first to obtain today's date, emp_id, employee_name, and session_lang.
+            - Address the user warmly in Egyptian Arabic if their language is Arabic.
+            - Respond in clean, polite, and well-structured text (using markdown bullet points and bolding). DO NOT output raw HTML tags or code snippets in your conversational text.
+            
+            ### Handling Requests:
+            1. Leave Request:
+            - Collect leave type (إجازة اعتيادية, إجازة عارضة, بدل راحة), start and end dates (YYYY-MM-DD), and cover person.
+            - Execute "create_leave_request" (leave_type: 'C' for Casual, 'H' for Annual, 'R' for Shift Rest).
+            
+            2. Permission Request:
+            - Collect permission date (YYYY-MM-DD), start and end times (HH24:MI), permission type ('PP' for Personal, 'CP' for Company), and reason.
+            - Execute "create_permission_request".
+            
+            3. Mission Request:
+            - Collect mission start and end dates (YYYY-MM-DD), mission type (72 for Standard Mission, 121 for Training Mission), and description.
+            - Execute "create_mission_request".
+            
+            Present the final submission status clearly back to the user.
+            ```
+        welcomeMessage:
+            ```html
+            {if SESSION_LANG='en-us'/}
+                Hello {if EMP_NAME/}&EMP_NAME.{else/}there{endif/}, how can I help you today? You can choose a quick action below or type your request directly.
+            {else/}
+                أهلاً بك {if EMP_NAME/}يا &EMP_NAME.{endif/}، كيف يمكنني مساعدتك اليوم؟ يمكنك اختيار إجراء سريع من الأسفل أو كتابة طلبك مباشرة.
+            {endif/}
+            ```
+    }
+
+    tool create-leave-request (
+        name: create_leave_request
+        type: retrieveData
+        executionPoint: onDemand
+        description: Creates a leave request for the employee. Dates must be provided as YYYY-MM-DD.
+        settings {
+            type: functionBody
+            language: plsql
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    -- Output message returned to the AI agent and APEX notification
+                    res clob;
+                begin
+                    -- Invoke the central Leave Request programmatic API
+                    res := hq_elevated.ai_agent_requests_pkg.create_leave_request(
+                        p_emp_id       => :emp_id,
+                        p_leave_type   => :leave_type,
+                        p_from_date    => :from_date,
+                        p_to_date      => :to_date,
+                        p_cover_person => :cover_person
+                    );
+                    -- Return formatted confirmation or error text
+                    return res;
+                end;
+                ```
+        }
+        userApproval {
+            requiresConfirmation: true
+            title: تأكيد طلب الإجازة / Leave Confirmation
+            message:
+                ```
+                <div style="direction: rtl; text-align: right; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin: 4px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 8px;">
+                        <span style="font-weight: bold; color: #1e293b; font-size: 14px;">🌴 تفاصيل الإجازة</span>
+                        <span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 12px;">&LEAVE_TYPE.</span>
+                    </div>
+                    <div style="display: flex; gap: 16px; font-size: 13px; color: #334155; margin-bottom: 6px;">
+                        <div><strong>📅 من:</strong> &FROM_DATE.</div>
+                        <div><strong>📅 إلى:</strong> &TO_DATE.</div>
+                    </div>
+                    <div style="font-size: 12px; color: #64748b;">
+                        <strong>👤 القائم بالعمل:</strong> &COVER_PERSON.
+                    </div>
+                </div>
+                ```
+        }
+
+        parameter COVER_PERSON (
+            description: Employee ID of the cover person
+        )
+
+        parameter EMP_ID (
+            description: Employee ID making the request
+        )
+
+        parameter FROM_DATE (
+            description: Leave start date in YYYY-MM-DD format
+        )
+
+        parameter LEAVE_TYPE (
+            description: Leave type code (e.g., 'C' for Casual, 'H' for Annual)
+        )
+
+        parameter TO_DATE (
+            description: Leave end date in YYYY-MM-DD format
+        )
+
+    )
+
+    tool create-mission-request (
+        name: create_mission_request
+        type: retrieveData
+        executionPoint: onDemand
+        description: Submits a mission or training mission request. Dates must be YYYY-MM-DD.
+        settings {
+            type: functionBody
+            language: plsql
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    -- Output message returned to the AI agent and APEX notification
+                    res clob;
+                begin
+                    -- Invoke the central Mission Request programmatic API
+                    res := hq_elevated.ai_agent_requests_pkg.create_mission_request(
+                        p_emp_id          => :emp_id,
+                        p_from_date       => :from_date,
+                        p_to_date         => :to_date,
+                        p_request_type_id => :request_type_id,
+                        p_description     => :description
+                    );
+                    -- Return formatted confirmation or error text
+                    return res;
+                end;
+                ```
+        }
+        userApproval {
+            requiresConfirmation: true
+            title: تأكيد طلب المأمورية / Mission Confirmation
+            message:
+                ```
+                <div style="direction: rtl; text-align: right; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin: 4px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 8px;">
+                        <span style="font-weight: bold; color: #1e293b; font-size: 14px;">💼 تفاصيل مأمورية العمل</span>
+                        <span style="background: #f0fdf4; color: #166534; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 12px;">نوع: &REQUEST_TYPE_ID.</span>
+                    </div>
+                    <div style="display: flex; gap: 16px; font-size: 13px; color: #334155; margin-bottom: 6px;">
+                        <div><strong>📅 من:</strong> &FROM_DATE.</div>
+                        <div><strong>📅 إلى:</strong> &TO_DATE.</div>
+                    </div>
+                    <div style="font-size: 12px; color: #64748b;">
+                        <strong>📝 البيان / الغرض:</strong> &DESCRIPTION.
+                    </div>
+                </div>
+                ```
+        }
+
+        parameter DESCRIPTION (
+            description: Detailed description of the mission
+        )
+
+        parameter EMP_ID (
+            description: Employee ID making the request
+        )
+
+        parameter FROM_DATE (
+            description: Mission start date in YYYY-MM-DD format
+        )
+
+        parameter REQUEST_TYPE_ID (
+            description: Type ID (72 for Standard Mission, 121 for Training Mission)
+        )
+
+        parameter TO_DATE (
+            description: Mission end date in YYYY-MM-DD format
+        )
+
+    )
+
+    tool create-permission-request (
+        name: create_permission_request
+        type: retrieveData
+        executionPoint: onDemand
+        description: Submits a personal or company permission request. Date must be YYYY-MM-DD and times must be HH24:MI.
+        settings {
+            type: functionBody
+            language: plsql
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    -- Output message returned to the AI agent and APEX notification
+                    res clob;
+                begin
+                    -- Invoke the central Permission Request programmatic API
+                    res := hq_elevated.ai_agent_requests_pkg.create_permission_request(
+                        p_emp_id          => :emp_id,
+                        p_permission_type => :permission_type,
+                        p_reason          => :reason,
+                        p_permission_date => :permission_date,
+                        p_from_hour       => :from_hour,
+                        p_to_hour         => :to_hour
+                    );
+                    -- Return formatted confirmation or error text
+                    return res;
+                end;
+                ```
+        }
+        userApproval {
+            requiresConfirmation: true
+            title: تأكيد طلب الإذن / Permission Confirmation
+            message:
+                ```
+                <div style="direction: rtl; text-align: right; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin: 4px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 8px;">
+                        <span style="font-weight: bold; color: #1e293b; font-size: 14px;">⏱️ تفاصيل طلب الإذن</span>
+                        <span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 12px;">نوع: &PERMISSION_TYPE.</span>
+                    </div>
+                    <div style="display: flex; gap: 16px; font-size: 13px; color: #334155; margin-bottom: 6px;">
+                        <div><strong>📅 التاريخ:</strong> &PERMISSION_DATE.</div>
+                        <div><strong>🕒 الوقت:</strong> من &FROM_HOUR. إلى &TO_HOUR.</div>
+                    </div>
+                    <div style="font-size: 12px; color: #64748b;">
+                        <strong>📝 السبب:</strong> &REASON.
+                    </div>
+                </div>
+                ```
+        }
+
+        parameter EMP_ID (
+            description: Employee ID making the request
+        )
+
+        parameter FROM_HOUR (
+            description: Start time in HH24:MI format
+        )
+
+        parameter PERMISSION_DATE (
+            description: Date of the permission in YYYY-MM-DD format
+        )
+
+        parameter PERMISSION_TYPE (
+            description: Permission type ('PP' for Personal, 'CP' for Company)
+        )
+
+        parameter REASON (
+            description: Reason for the permission request
+        )
+
+        parameter TO_HOUR (
+            description: End time in HH24:MI format
+        )
+
+    )
+
+    tool get-session-info (
+        name: get_session_info
+        type: retrieveData
+        executionPoint: onDemand
+        description: Retrieves the active session user's language, employee ID, employee name, project name, site location, mobile number, and today's date in JSON format. The AI agent must run this tool first to establish user context.
+        settings {
+            sqlQuery:
+                ```sql
+                select hq_elevated.ai_agent_requests_pkg.get_session_info as session_info from dual
+                
+                ```
+        }
+    )
+
+)

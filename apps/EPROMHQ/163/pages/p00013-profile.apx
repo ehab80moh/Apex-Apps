@@ -1,0 +1,1372 @@
+page 13 (
+    name: Profile
+    alias: PROFILE
+    title: Profile
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+             .edit-data-btn {
+                font-size: 20px !important;
+                font-weight: 600; 
+            }
+            
+            .edit-data-btn .t-Button-label {
+                font-size: 20px !important;
+               /* font-weight: bold !important;  */
+               font-weight: 600; 
+            }
+            
+            /* .dashboard-icon{
+                width:60px;
+                height:60px;
+                border-radius:50%;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                margin:8px auto;
+                font-size:30px;
+                color:#fff;
+                box-shadow:0 4px 10px rgba(0,0,0,.20);
+            }
+            
+            .dashboard-icon.blue{
+                background:#1976d2;
+            }
+            
+            .dashboard-icon.green{
+                background:#2e7d32;
+            }
+            
+            .dashboard-icon.orange{
+                background:#f9a825;
+            }
+            
+            .dashboard-icon.red{
+                background:#d32f2f; */
+            }
+            ```
+    }
+    security {
+        authorizationScheme: @access
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 20
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region completion-status (
+        name: Completion Status
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_total_services    number;
+                    l_total_attachments number;
+                    l_html              clob;
+                begin
+                    -- Get counts for this supplier
+                    select 
+                        count(distinct ss.rowid),
+                        count(distinct sa.attach_id)
+                    into
+                        l_total_services,
+                        l_total_attachments
+                    from sup_suppliers s
+                    left join sup_suppliers_attaches sa on s.supplier_id = sa.supplier_id
+                    left join sup_services ss on s.supplier_id = ss.supplier_id
+                    where s.supplier_id = :P13_SUPPLIER_ID;
+                
+                    -- Start region HTML with smaller font
+                    l_html := '<div style="font-size:20px;text-align:center">';
+                
+                    -- Check services
+                    if l_total_services = 0 then
+                        l_html := l_html || '<div class="t-Alert t-Alert--warning">No <span style="color:red;font-weight:bold;">services</span> uploaded for this supplier.</div>';
+                    end if;
+                
+                    -- Check attachments
+                    if l_total_attachments = 0 then
+                        l_html := l_html || '<div class="t-Alert t-Alert--warning">No <span style="color:red;font-weight:bold;">attachments</span> uploaded for this supplier.</div>';
+                    elsif l_total_attachments < 8 then
+                        l_html := l_html || '<div class="t-Alert t-Alert--info"><span style="color:red;font-weight:bold;">' 
+                                  || l_total_attachments || '</span> <span style="color:red;font-weight:bold;">attachments</span> uploaded, 8 required.</div>';
+                    end if;
+                
+                    -- If everything is healthy
+                    if l_total_services > 0 and l_total_attachments >= 8 then
+                        l_html := l_html || '<div class="t-Alert t-Alert--success">Profile is healthy. <span style="color:green;font-weight:bold;">services</span> and <span style="color:green;font-weight:bold;">attachments</span> are complete.</div>';
+                    end if;
+                
+                    -- Close region div
+                    l_html := l_html || '</div>';
+                
+                    return l_html;
+                end;
+                ```
+        }
+        layout {
+            sequence: 11
+            parentRegion: @profile
+            slot: regionBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        accessibility {
+            landmarkType: region
+        }
+    )
+
+    region internal-dashboard (
+        name: Internal_Dashboard
+        title: Internal Dashboard
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 'Total Suppliers' title,
+                       count(*) value,
+                       'fa-users' icon
+                from sup_suppliers
+                
+                union all
+                
+                select 'Approved Suppliers',
+                       count(*),
+                       'fa-check-circle'
+                from sup_suppliers
+                where status = 'APPROVED'
+                
+                union all
+                
+                -- select 'Pending Suppliers',
+                --        count(*),
+                --        'fa-clock'
+                -- from sup_suppliers
+                -- where status like '%PENDING%'
+                
+                select 'Pending Suppliers',
+                       count(*),
+                       'fa-hourglass-half'
+                from sup_suppliers
+                where status like '%PENDING%'
+                   or (
+                        status not like '%APPROV%'
+                    and status not like '%REJECT%'
+                      )
+                
+                union all
+                
+                select 'Rejected Suppliers',
+                       count(*),
+                       'fa-times-circle'
+                from sup_suppliers
+                where status like '%REJECT%'
+                
+                -- select 'Total Suppliers' title,
+                --        count(*) value,
+                --        'fa-building' icon,
+                --        'blue' icon_class
+                -- from sup_suppliers
+                
+                -- union all
+                
+                -- select 'Approved Suppliers',
+                --        count(*) value,
+                --        'fa-check-circle' icon,
+                --        'green' icon_class
+                -- from sup_suppliers
+                -- where status = 'APPROVED'
+                
+                -- union all
+                
+                -- select 'Pending Suppliers',
+                --        count(*) value,
+                --        'fa-clock-o' icon,
+                --        'orange' icon_class
+                -- from sup_suppliers
+                -- where status like '%PENDING%'
+                --    or (
+                --         status not like '%APPROV%'
+                --     and status not like '%REJECT%'
+                --       )
+                
+                -- union all
+                
+                -- select 'Rejected Suppliers',
+                --        count(*) value,
+                --        'fa-ban' icon,
+                --        'red' icon_class
+                -- from sup_suppliers
+                -- where status like '%REJECT%';
+                ```
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                 exists (
+                    select 1
+                    from sup_user_roles
+                    where user_id = :APP_USER  )
+                ```
+        }
+        componentAppearance {
+            gridColumns: 4
+        }
+        card {
+            primaryKeyColumn1: ICON
+        }
+        subtitle {
+            column: TITLE
+        }
+        body {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <div style="font-size:28px;font-weight:bold;text-align:center;">
+                    &VALUE.
+                </div>
+                ```
+        }
+        iconAndBadge {
+            iconSource: iconClassColumn
+            iconColumn: ICON
+        }
+        media {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                
+                {! <span class="fa &ICON. fa-2x"></span>   /}
+                
+                <span class="fa &ICON." style="font-size:42px;color:#1976d2;"></span>
+                
+                
+                
+                ```
+            position: first
+        }
+    )
+
+    region location (
+        name: LOCATION
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <!-- <a href="&P13_LOCATION_LINE." target="_blank" style="font-size:11px;">
+                  Location : &P13_LOCATION_LINE.
+                </a> -->
+                
+                <!-- <a href="&P13_LOCATION_LINE." target="_blank" style="font-size:16px;">
+                  Location : www.google.maps.com
+                </a> -->
+                
+                
+                <a href="&P13_LOCATION_LINE." target="_blank" class="loc-link">
+                  <span class="fa fa-map-marker" aria-hidden="true"></span>
+                  <span>Location : Open on map</span>
+                </a>
+                
+                ```
+        }
+        layout {
+            sequence: 390
+            parentRegion: @profile
+            slot: regionBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                t-Form--stretchInputs
+                t-Form--leftLabels
+                t-Form--labelsAbove
+                margin-bottom-md
+            ]
+        }
+    )
+
+    region profile (
+        name: Profile
+        type: form
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select SUPPLIER_ID,
+                       COMPANY_NAME,
+                       APPLAY_AS,
+                       COMPANY_CAPITAL,
+                       HEADOFF_ADDRESS,
+                       HEADOFF_PHONE,
+                       HEADOFF_MOBILE,
+                       HEADOFF_FAX,
+                       HEADOFF_EMAIL,
+                       WEBSITE,
+                       nvl(EXPERIENCE_EGY, '---') AS EXPERIENCE_EGY,
+                       EXPERIENCE_OUT_EGY,
+                       BRANCHES_EGY,
+                       BRANCHES_OUT_EGY,
+                       SECONDARY_BRANCH_INFO,
+                       CONTACT_PERSON,
+                       CONTACT_POSITION,
+                       CONTACT_MAIN_MOBILE,
+                       CONTACT_SEC_MOBILE,
+                       CONTACT_EMAIL,
+                       CREATIONDATE,
+                       LASTUPDATEDATE,
+                       SUPPLIER_REGISTERED_NO,
+                       STATUS,
+                       CREATED_ON,
+                       ACTIVATED_ON,
+                       LAST_LOGIN_ON,
+                       PASSWORD_HASH,location_line
+                  from SUP_SUPPLIERS
+                  where supplier_id = :P13_SUPPLIER_ID
+                ```
+            pageItemsToSubmit: [
+                SUP_SUPPLIER_ID
+                P13_SUPPLIER_ID
+                P13_COMPANY_NAME
+                P13_APPLAY_AS
+            ]
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: R_profile_id
+        }
+        security {
+            authorizationScheme: @is-suppplier
+        }
+    )
+
+    region profile-attachments (
+        name: Profile Attachments
+        title: Attachments
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 
+                    initcap(sa.static_name) AS document_type,
+                    substr(sa.original_name,instr(sa.original_name,' - ')+3) AS file_name,
+                    sa.upload_date,
+                    sa.attach_id
+                FROM sup_suppliers_attaches sa
+                WHERE   supplier_id = :P13_SUPPLIER_ID
+                
+                
+                ```
+            pageItemsToSubmit: P13_SUPPLIER_ID
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT 
+                    initcap(sa.static_name) AS document_type,
+                    substr(sa.original_name,instr(sa.original_name,' - ')+3) AS file_name,
+                    sa.upload_date,
+                    sa.attach_id
+                FROM sup_suppliers_attaches sa
+                WHERE   supplier_id = :P13_SUPPLIER_ID
+                ```
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column ATTACH_ID (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 50
+            }
+        )
+
+        column DOCUMENT_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Document Type
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+        )
+
+        column FILE_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: File Name
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+        )
+
+        column UPLOAD_DATE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Upload Date
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+        )
+
+    )
+
+    region profile-services (
+        name: Profile Services
+        title: Services
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                SELECT 
+                    category,
+                    product,
+                    tax_card,
+                    general_info,
+                    creationdate,
+                    lastupdatedate,
+                    commercial_register
+                FROM sup_services
+                WHERE supplier_id = :P13_SUPPLIER_ID;
+                
+                ```
+            pageItemsToSubmit: P13_SUPPLIER_ID
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                SELECT 
+                    category,
+                    product,
+                    tax_card,
+                    general_info,
+                    creationdate,
+                    lastupdatedate,
+                    commercial_register
+                FROM sup_services
+                WHERE supplier_id = :P13_SUPPLIER_ID;
+                ```
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+
+        column CATEGORY (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Category
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+        )
+
+        column COMMERCIAL_REGISTER (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Commercial Register
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+        )
+
+        column CREATIONDATE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column GENERAL_INFO (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: General Information
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+        )
+
+        column LASTUPDATEDATE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column PRODUCT (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Product
+                alignment: center
+            }
+            layout {
+                sequence: 20
+                columnAlignment: center
+            }
+        )
+
+        column TAX_CARD (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Tax Card
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+        )
+
+    )
+
+    pageItem P13_ACTIVATED_ON (
+        type: hidden
+        layout {
+            sequence: 360
+            region: @profile
+            slot: regionBody
+        }
+        source {
+            formRegion: @profile
+            column: ACTIVATED_ON
+            dataType: timestamp
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P13_APPLAY_AS (
+        type: displayOnly
+        label {
+            label: Apply As
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @profile
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 5
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: APPLAY_AS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_BRANCHES_EGY (
+        type: hidden
+        layout {
+            sequence: 330
+            region: @profile
+            slot: regionBody
+        }
+        source {
+            formRegion: @profile
+            column: BRANCHES_EGY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_BRANCHES_OUT_EGY (
+        type: displayOnly
+        label {
+            label: Branches Outside Egypt
+            alignment: left
+        }
+        layout {
+            sequence: 190
+            region: @profile
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: BRANCHES_OUT_EGY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_COMPANY_CAPITAL (
+        type: displayOnly
+        label {
+            label: Company Capital
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @profile
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: COMPANY_CAPITAL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_COMPANY_NAME (
+        type: displayOnly
+        label {
+            label: Company Name
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @profile
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: COMPANY_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_CONTACT_EMAIL (
+        type: displayOnly
+        label {
+            label: Contact Email
+            alignment: left
+        }
+        layout {
+            sequence: 260
+            region: @profile
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: CONTACT_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_CONTACT_MAIN_MOBILE (
+        type: displayOnly
+        label {
+            label: Contact Main Mobile
+            alignment: left
+        }
+        layout {
+            sequence: 240
+            region: @profile
+            slot: regionBody
+            alignment: left
+            columnSpan: 4
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: CONTACT_MAIN_MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_CONTACT_PERSON (
+        type: displayOnly
+        label {
+            label: Contact Person
+            alignment: left
+        }
+        layout {
+            sequence: 220
+            region: @profile
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: CONTACT_PERSON
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_CONTACT_POSITION (
+        type: displayOnly
+        label {
+            label: Contact Position
+            alignment: left
+        }
+        layout {
+            sequence: 230
+            region: @profile
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 5
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: CONTACT_POSITION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_CONTACT_SEC_MOBILE (
+        type: displayOnly
+        label {
+            label: Contact Secondary Mobile
+            alignment: left
+        }
+        layout {
+            sequence: 250
+            region: @profile
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: CONTACT_SEC_MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_CREATED_ON (
+        type: datePicker
+        label {
+            label: Created On
+            alignment: left
+        }
+        layout {
+            sequence: 350
+            region: @profile
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @profile
+            column: CREATED_ON
+            dataType: timestamp
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P13_CREATIONDATE (
+        type: hidden
+        layout {
+            sequence: 300
+            region: @profile
+            slot: regionBody
+        }
+        source {
+            formRegion: @profile
+            column: CREATIONDATE
+            dataType: date
+        }
+    )
+
+    pageItem P13_EXPERIENCE_EGY (
+        type: displayOnly
+        label {
+            label: Experience inside Egypt
+            alignment: left
+        }
+        layout {
+            sequence: 170
+            region: @profile
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: EXPERIENCE_EGY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_EXPERIENCE_OUT_EGY (
+        type: displayOnly
+        label {
+            label: Experience Outsie Egypt
+            alignment: left
+        }
+        layout {
+            sequence: 180
+            region: @profile
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: EXPERIENCE_OUT_EGY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_HEADOFF_ADDRESS (
+        type: displayOnly
+        label {
+            label: Headoffice Address
+            alignment: left
+        }
+        layout {
+            sequence: 160
+            region: @profile
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: HEADOFF_ADDRESS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_HEADOFF_EMAIL (
+        type: displayOnly
+        label {
+            label: Headoffice Email
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @profile
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+        }
+        source {
+            formRegion: @profile
+            column: HEADOFF_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_HEADOFF_FAX (
+        type: displayOnly
+        label {
+            label: Headoffice Fax
+            alignment: left
+        }
+        layout {
+            sequence: 150
+            region: @profile
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: HEADOFF_FAX
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_HEADOFF_MOBILE (
+        type: displayOnly
+        label {
+            label: Headoffice Mobile
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @profile
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: HEADOFF_MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_HEADOFF_PHONE (
+        type: displayOnly
+        label {
+            label: Headoffice Phone
+            alignment: left
+        }
+        layout {
+            sequence: 130
+            region: @profile
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: HEADOFF_PHONE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_LASTUPDATEDATE (
+        type: displayOnly
+        label {
+            label: Last Update Date
+            alignment: left
+        }
+        layout {
+            sequence: 280
+            region: @profile
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: LASTUPDATEDATE
+            dataType: date
+        }
+    )
+
+    pageItem P13_LAST_LOGIN_ON (
+        type: datePicker
+        label {
+            label: Last Login On
+            alignment: left
+        }
+        layout {
+            sequence: 370
+            region: @profile
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @profile
+            column: LAST_LOGIN_ON
+            dataType: timestamp
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P13_LOCATION_LINE (
+        type: hidden
+        layout {
+            sequence: 320
+            region: @profile
+            slot: regionBody
+        }
+        source {
+            formRegion: @profile
+            column: LOCATION_LINE
+            dataType: varchar2
+        }
+        default {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                
+                l_locat varchar2(500);
+                
+                begin
+                
+                l_locat :=  substr(:P13_LOCATION_LINE, 1, 20);
+                
+                return 
+                l_locat;
+                end;
+                ```
+        }
+    )
+
+    pageItem P13_PASSWORD_HASH (
+        type: hidden
+        layout {
+            sequence: 380
+            region: @profile
+            slot: regionBody
+        }
+        source {
+            formRegion: @profile
+            column: PASSWORD_HASH
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P13_SECONDARY_BRANCH_INFO (
+        type: hidden
+        layout {
+            sequence: 310
+            region: @profile
+            slot: regionBody
+        }
+        source {
+            formRegion: @profile
+            column: SECONDARY_BRANCH_INFO
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_STATUS (
+        type: hidden
+        layout {
+            sequence: 340
+            region: @profile
+            slot: regionBody
+        }
+        source {
+            formRegion: @profile
+            column: STATUS
+            dataType: varchar2
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+    pageItem P13_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @profile
+            slot: regionBody
+        }
+        source {
+            formRegion: @profile
+            column: SUPPLIER_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P13_SUPPLIER_REGISTERED_NO (
+        type: hidden
+        layout {
+            sequence: 290
+            region: @profile
+            slot: regionBody
+        }
+        source {
+            formRegion: @profile
+            column: SUPPLIER_REGISTERED_NO
+            dataType: varchar2
+        }
+    )
+
+    pageItem P13_WEBSITE (
+        type: displayOnly
+        label {
+            label: Website
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @profile
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @profile
+            column: WEBSITE
+            dataType: varchar2
+        }
+    )
+
+    button edit-data (
+        buttonName: Edit_Data
+        label: Edit Data
+        layout {
+            sequence: 10
+            region: @profile
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+                t-Button--stretch
+            ]
+            cssClasses: edit-data-btn
+            icon: fa-edit
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 17
+                items: {
+                    P17_SUPPLIER_ID: &P13_SUPPLIER_ID.
+                }
+            }
+        }
+    )
+
+    process initialize-form-profile (
+        name: Initialize form Profile
+        type: formInitialization
+        formRegion: @profile
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 170699942155948904
+        }
+    )
+
+    process initialize-to-page-item-p13-sup-id (
+        name: Initialize to page item p13_sup_id
+        type: executeCode
+        source {
+            plsqlCode: :P13_SUPPLIER_ID := :SUP_SUPPLIER_ID;
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 170703552039948940
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                substr(:P13_LOCATION_LINE, 1, 20)
+                ;
+                ```
+        }
+        execution {
+            sequence: 30
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 121423729440226044
+        }
+        serverSideCondition {
+            type: never
+        }
+    )
+
+)

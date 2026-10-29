@@ -1,0 +1,1019 @@
+page 9 (
+    name: Edit_Suppliers
+    alias: SUPPLIERS
+    title: Suppliers
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/drawer
+        templateOptions: [
+            #DEFAULT#
+            js-dialog-class-t-Drawer--pullOutEnd
+        ]
+    }
+    dialog {
+        chained: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region suppliers (
+        name: Suppliers
+        type: form
+        source {
+            location: localDatabase
+            tableName: SUP_SUPPLIERS
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P9_ACTIVATED_ON (
+        type: hidden
+        layout {
+            sequence: 280
+            region: @suppliers
+            slot: regionBody
+        }
+        source {
+            formRegion: @suppliers
+            column: ACTIVATED_ON
+            dataType: timestamp
+        }
+    )
+
+    pageItem P9_APPLAY_AS (
+        type: selectList
+        label {
+            label: Applay As
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:مقاولون;مقاولون,موردون;موردون
+            displayNullValue: false
+        }
+        layout {
+            sequence: 30
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @suppliers
+            column: APPLAY_AS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_BRANCHES_EGY (
+        type: hidden
+        layout {
+            sequence: 160
+            region: @suppliers
+            slot: regionBody
+        }
+        source {
+            formRegion: @suppliers
+            column: BRANCHES_EGY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_BRANCHES_OUT_EGY (
+        type: textField
+        label {
+            label: Address outside Egypt
+            alignment: left
+        }
+        layout {
+            sequence: 180
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @suppliers
+            column: BRANCHES_OUT_EGY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_BUSINESS_CATEGORY (
+        type: selectList
+        label {
+            label: BUSINESS CATEGORY
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select category as display_value,
+                       category as return_value
+                from sup_suppliers_business_categories
+                where language =
+                      case
+                          when substr(upper(:app_language), 1, 2) = 'AR' then 'AR'
+                          else 'EN'
+                      end
+                order by category;
+                
+                ```
+        }
+        layout {
+            sequence: 50
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @suppliers
+            column: BUSINESS_CATEGORY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_COMPANY_CAPITAL (
+        type: textField
+        label {
+            label: Company Capital
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 50
+        }
+        source {
+            formRegion: @suppliers
+            column: COMPANY_CAPITAL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_COMPANY_NAME (
+        type: textField
+        label {
+            label: Company Name
+            alignment: right
+        }
+        layout {
+            sequence: 20
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+        source {
+            formRegion: @suppliers
+            column: COMPANY_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_COMPANY_PROFILE (
+        type: textarea
+        label {
+            label: COMPANY PROFILE
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 2
+        }
+        source {
+            formRegion: @suppliers
+            column: COMPANY_PROFILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_CONTACT_EMAIL (
+        type: textField
+        label {
+            label: Contact Email
+            alignment: left
+        }
+        layout {
+            sequence: 230
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @suppliers
+            column: CONTACT_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_CONTACT_MAIN_MOBILE (
+        type: textField
+        label {
+            label: Contact Main Mobile
+            alignment: left
+        }
+        layout {
+            sequence: 210
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 50
+        }
+        source {
+            formRegion: @suppliers
+            column: CONTACT_MAIN_MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_CONTACT_PERSON (
+        type: textField
+        label {
+            label: Contact Person
+            alignment: left
+        }
+        layout {
+            sequence: 190
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @suppliers
+            column: CONTACT_PERSON
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_CONTACT_POSITION (
+        type: textField
+        label {
+            label: Contact Position
+            alignment: left
+        }
+        layout {
+            sequence: 200
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @suppliers
+            column: CONTACT_POSITION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_CONTACT_SEC_MOBILE (
+        type: textField
+        label {
+            label: Contact Sec Mobile
+            alignment: left
+        }
+        layout {
+            sequence: 220
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 50
+        }
+        source {
+            formRegion: @suppliers
+            column: CONTACT_SEC_MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_CREATED_ON (
+        type: hidden
+        layout {
+            sequence: 270
+            region: @suppliers
+            slot: regionBody
+        }
+        source {
+            formRegion: @suppliers
+            column: CREATED_ON
+            dataType: timestamp
+        }
+    )
+
+    pageItem P9_CREATIONDATE (
+        type: hidden
+        layout {
+            sequence: 240
+            region: @suppliers
+            slot: regionBody
+        }
+        source {
+            formRegion: @suppliers
+            column: CREATIONDATE
+            dataType: date
+        }
+    )
+
+    pageItem P9_EXPERIENCE_EGY (
+        type: textField
+        label {
+            label: EXPERIENCE EGY
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        source {
+            formRegion: @suppliers
+            column: EXPERIENCE_EGY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_EXPERIENCE_OUT_EGY (
+        type: textField
+        label {
+            label: Experience Out Egy
+            alignment: left
+        }
+        layout {
+            sequence: 130
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @suppliers
+            column: EXPERIENCE_OUT_EGY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_HEADOFF_ADDRESS (
+        type: textarea
+        label {
+            label: Headoff Address
+            alignment: left
+        }
+        layout {
+            sequence: 150
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 2
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @suppliers
+            column: HEADOFF_ADDRESS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_HEADOFF_EMAIL (
+        type: textField
+        label {
+            label: Headoff Email
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @suppliers
+            column: HEADOFF_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_HEADOFF_FAX (
+        type: textField
+        label {
+            label: Headoff Fax
+            alignment: left
+        }
+        layout {
+            sequence: 110
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 50
+        }
+        source {
+            formRegion: @suppliers
+            column: HEADOFF_FAX
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_HEADOFF_MOBILE (
+        type: textField
+        label {
+            label: Headoff Mobile
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 50
+        }
+        source {
+            formRegion: @suppliers
+            column: HEADOFF_MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_HEADOFF_PHONE (
+        type: textField
+        label {
+            label: Headoff Phone
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 50
+        }
+        source {
+            formRegion: @suppliers
+            column: HEADOFF_PHONE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_IS_MODIFIED (
+        type: hidden
+        layout {
+            sequence: 330
+            region: @suppliers
+            slot: regionBody
+        }
+        source {
+            formRegion: @suppliers
+            column: IS_MODIFIED
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_IS_NEW (
+        type: hidden
+        layout {
+            sequence: 320
+            region: @suppliers
+            slot: regionBody
+        }
+        source {
+            formRegion: @suppliers
+            column: IS_NEW
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_LASTUPDATEDATE (
+        type: hidden
+        layout {
+            sequence: 250
+            region: @suppliers
+            slot: regionBody
+        }
+        source {
+            formRegion: @suppliers
+            column: LASTUPDATEDATE
+            dataType: date
+        }
+    )
+
+    pageItem P9_LAST_LOGIN_ON (
+        type: hidden
+        layout {
+            sequence: 290
+            region: @suppliers
+            slot: regionBody
+        }
+        source {
+            formRegion: @suppliers
+            column: LAST_LOGIN_ON
+            dataType: timestamp
+        }
+    )
+
+    pageItem P9_LOCATION_LINE (
+        type: textarea
+        label {
+            label: Location Line
+            alignment: left
+        }
+        layout {
+            sequence: 310
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 1
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @suppliers
+            column: LOCATION_LINE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_PASSWORD_HASH (
+        type: hidden
+        layout {
+            sequence: 300
+            region: @suppliers
+            slot: regionBody
+        }
+        source {
+            formRegion: @suppliers
+            column: PASSWORD_HASH
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_SECONDARY_BRANCH_INFO (
+        type: textField
+        label {
+            label: Secondary Location (Branch / Warehouse / Factory)
+            alignment: left
+        }
+        layout {
+            sequence: 170
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @suppliers
+            column: SECONDARY_BRANCH_INFO
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_STATUS (
+        type: displayOnly
+        label {
+            label: Status
+            alignment: left
+        }
+        layout {
+            sequence: 260
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @suppliers
+            column: STATUS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_SUPPLIER_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @suppliers
+            slot: regionBody
+        }
+        source {
+            formRegion: @suppliers
+            column: SUPPLIER_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P9_SUPPLIER_REGISTERED_NO (
+        type: textField
+        label {
+            label: Supplier Registered No
+            alignment: left
+        }
+        layout {
+            sequence: 140
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 20
+        }
+        source {
+            formRegion: @suppliers
+            column: SUPPLIER_REGISTERED_NO
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9_WEBSITE (
+        type: textField
+        label {
+            label: Website
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @suppliers
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @suppliers
+            column: WEBSITE
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Cancel
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: Create
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P9_SUPPLIER_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: Delete
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--simple
+            ]
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P9_SUPPLIER_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: Apply Changes
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P9_SUPPLIER_ID
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 126217483090418900
+        }
+        serverSideCondition {
+            whenButtonPressed: @save
+        }
+    )
+
+    process initialize-form-suppliers (
+        name: Initialize form Suppliers
+        type: formInitialization
+        formRegion: @suppliers
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 126216605269418899
+        }
+    )
+
+    process process-form-suppliers (
+        name: Process form Suppliers
+        type: formAutoRowProcessing
+        formRegion: @suppliers
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 126217051223418899
+        }
+    )
+
+    branch (
+        name: Redirect to new
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 5
+                items: {
+                    P5_SUPPLIER_ID: &P9_SUPPLIER_ID.
+                }
+                action: resetPagination
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @create
+        }
+    )
+
+    branch (
+        name: Redirect to all
+        execution {
+            sequence: 20
+        }
+        behavior {
+            target: {
+                page: 5
+                clearCache: 5
+                action: resetPagination
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @delete
+        }
+    )
+
+)

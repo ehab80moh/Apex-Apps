@@ -1,0 +1,44 @@
+file SUP.jpg (
+    mimeType: image/jpeg
+    charSet: utf-8
+)
+
+file custom.css (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file custom.min.css (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file "icons/app-icon-144-rounded.png" (
+    mimeType: image/png
+    charSet: utf-8
+)
+
+file "icons/app-icon-192.png" (
+    mimeType: image/png
+    charSet: utf-8
+)
+
+file "icons/app-icon-256-rounded.png" (
+    mimeType: image/png
+    charSet: utf-8
+)
+
+file "icons/app-icon-32.png" (
+    mimeType: image/png
+    charSet: utf-8
+)
+
+file "icons/app-icon-512.png" (
+    mimeType: image/png
+    charSet: utf-8
+)
+
+file login_bg.jpg (
+    mimeType: image/jpeg
+    charSet: utf-8
+)

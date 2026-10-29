@@ -1,0 +1,951 @@
+page 75 (
+    name: تعديل بيانات العائلة
+    alias: EDIT-FAMILY-DATA
+    title: &APP_TEXT$EDIT_FAMILY_DATA.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region تعديل-بيانات-العائلة (
+        name: تعديل بيانات العائلة
+        title: &APP_TEXT$EDIT_FAMILY_DATA.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: HR_EMP_DEPENDENTS
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P75_BIRTH_DATE (
+        type: datePicker
+        label {
+            label: &APP_TEXT$DATE_OF_BIRTH.
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: BIRTH_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P75_CREATED_AT (
+        type: hidden
+        layout {
+            sequence: 280
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: CREATED_AT
+            dataType: date
+        }
+    )
+
+    pageItem P75_CREATED_BY (
+        type: hidden
+        layout {
+            sequence: 290
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: CREATED_BY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_DEP_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: DEP_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P75_EDU_LEVEL_CODE (
+        type: selectList
+        label {
+            label: &APP_TEXT$QUALIFICATION.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @edu-level-code
+        }
+        layout {
+            sequence: 130
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: EDU_LEVEL_CODE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_EMP_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: EMP_ID
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_END_COVERAGE_DATE (
+        type: hidden
+        layout {
+            sequence: 220
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: END_COVERAGE_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P75_FULL_NAME_AR (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME.
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: FULL_NAME_AR
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_FULL_NAME_EN (
+        type: textField
+        label {
+            label: &APP_TEXT$FULL_NAME_EN.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: FULL_NAME_EN
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_GENDER_CODE (
+        type: selectList
+        label {
+            label: &APP_TEXT$TYPE.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @gender-code
+        }
+        layout {
+            sequence: 40
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: GENDER_CODE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_HOME_PHONE (
+        type: textField
+        label {
+            label: &APP_TEXT$HOME_PHONE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 30
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: HOME_PHONE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_IS_BENEFICIARY (
+        type: selectList
+        label {
+            label: &APP_TEXT$BENEFICIARY.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @is-beneficiary
+        }
+        layout {
+            sequence: 200
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: IS_BENEFICIARY
+            dataType: number
+        }
+    )
+
+    pageItem P75_JOB_TITLE (
+        type: textField
+        label {
+            label: &APP_TEXT$POSITION_IF_ANY.
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 150
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: JOB_TITLE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_MED_INS_COMPANY (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME_OF_MEDICAL_INSURANCE_COMPANY_OPTIONAL.
+            alignment: left
+        }
+        layout {
+            sequence: 180
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 150
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: MED_INS_COMPANY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_MED_INS_NO (
+        type: textField
+        label {
+            label: &APP_TEXT$INSURANCE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 190
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 50
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: MED_INS_NO
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_MED_INS_STATUS (
+        type: selectList
+        label {
+            label: &APP_TEXT$EPROM_MEDICAL_INSURANCE_STATUS.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @med-ins-status
+        }
+        layout {
+            sequence: 170
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: MED_INS_STATUS
+            dataType: varchar2
+        }
+        config {
+            buildOption: @commented-out
+        }
+    )
+
+    pageItem P75_MOBILE (
+        type: textField
+        label {
+            label: &APP_TEXT$MOBILE_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 30
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: MOBILE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_NATIONAL_ID (
+        type: textField
+        label {
+            label: &APP_TEXT$NATIONAL_NUMBER.
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 20
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: NATIONAL_ID
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_NOTES (
+        type: textarea
+        label {
+            label: &APP_TEXT$NOTES.
+            alignment: left
+        }
+        layout {
+            sequence: 230
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        validation {
+            maxLength: 1000
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: NOTES
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_PHOTO_BLOB (
+        type: displayImage
+        label {
+            label: &APP_TEXT$PHOTO_BLOB.
+            alignment: left
+        }
+        layout {
+            sequence: 240
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: PHOTO_BLOB
+            dataType: blob
+        }
+    )
+
+    pageItem P75_PHOTO_FILENAME (
+        type: hidden
+        layout {
+            sequence: 260
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: PHOTO_FILENAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_PHOTO_MIME (
+        type: hidden
+        layout {
+            sequence: 250
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: PHOTO_MIME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_PHOTO_UPD_AT (
+        type: hidden
+        layout {
+            sequence: 270
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: PHOTO_UPD_AT
+            dataType: date
+        }
+    )
+
+    pageItem P75_RELATION_CODE (
+        type: selectList
+        label {
+            label: &APP_TEXT$KINSHIP.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @relation-code
+        }
+        layout {
+            sequence: 30
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: RELATION_CODE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_RELATIVE_PERSON_ID (
+        type: hidden
+        layout {
+            sequence: 320
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: RELATIVE_PERSON_ID
+            dataType: number
+        }
+    )
+
+    pageItem P75_RESIDENCE_PLACE (
+        type: textField
+        label {
+            label: &APP_TEXT$PLACE_PLACE_OF_RESIDENCE.
+            alignment: left
+        }
+        layout {
+            sequence: 110
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: RESIDENCE_PLACE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_SCHOOL_CLASS (
+        type: textField
+        label {
+            label: &APP_TEXT$CLASS_OR_COMPANY.
+            alignment: left
+        }
+        layout {
+            sequence: 150
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 100
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: SCHOOL_CLASS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_SCHOOL_OR_COMPANY (
+        type: textField
+        label {
+            label: &APP_TEXT$SCHOOL_COLLEGE_REGION.
+            alignment: left
+        }
+        layout {
+            sequence: 140
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 200
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: SCHOOL_OR_COMPANY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_SOCIAL_INS_STATUS (
+        type: selectList
+        label {
+            label: &APP_TEXT$SOCIAL_INSURANCE_STATUS.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @social-ins-status
+        }
+        layout {
+            sequence: 160
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: SOCIAL_INS_STATUS
+            dataType: varchar2
+        }
+    )
+
+    pageItem P75_START_COVERAGE_DATE (
+        type: hidden
+        layout {
+            sequence: 210
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: START_COVERAGE_DATE
+            dataType: date
+        }
+    )
+
+    pageItem P75_UPDATED_AT (
+        type: hidden
+        layout {
+            sequence: 300
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: UPDATED_AT
+            dataType: date
+        }
+    )
+
+    pageItem P75_UPDATED_BY (
+        type: hidden
+        layout {
+            sequence: 310
+            region: @تعديل-بيانات-العائلة
+            slot: regionBody
+        }
+        source {
+            formRegion: @تعديل-بيانات-العائلة
+            column: UPDATED_BY
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$CREATE.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P75_DEP_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--danger
+            ]
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$ARE_YOU_SURE_ABOUT_THE_LIMIT.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P75_DEP_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$SAVE_CHANGES.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P75_DEP_ID
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 138102855477388153
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process initialize-form-تعديل-بيانات-العائلة (
+        name: Initialize form تعديل بيانات العائلة
+        type: formInitialization
+        formRegion: @تعديل-بيانات-العائلة
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 138102038140388152
+        }
+    )
+
+    process process-form-تعديل-بيانات-العائلة (
+        name: Process form تعديل بيانات العائلة
+        type: formAutoRowProcessing
+        formRegion: @تعديل-بيانات-العائلة
+        target {
+            preventLostUpdates: false
+            returnPksAfterInsert: false
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 138102402790388153
+        }
+    )
+
+)

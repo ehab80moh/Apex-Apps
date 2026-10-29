@@ -1,0 +1,93 @@
+automation automatic-seed-publisher (
+    name: automatic seed & publisher
+    execution {
+        scheduleExpression: FREQ=MINUTELY;INTERVAL=5
+    }
+    source {
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+             SELECT *
+               FROM apex_application_trans_map
+              WHERE primary_application_id = :APP_ID
+                AND requires_synchronization = 'Yes'
+            ```
+    }
+    serverSideCondition {
+        type: rowsReturned
+        sqlQuery:
+            ```sql
+            SELECT *
+              FROM apex_application_trans_map
+             WHERE primary_application_id = :APP_ID
+               AND requires_synchronization = 'Yes'
+            
+            ```
+    }
+    config {
+        buildOption: @dev-only
+    }
+
+    action seed-publish (
+        name: Seed & Publish
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                 DECLARE 
+                   l_primary_application_id_c    CONSTANT apex_application_trans_map.primary_application_id%TYPE DEFAULT :PRIMARY_APPLICATION_ID;
+                   l_translated_application_id_c CONSTANT apex_application_trans_map.primary_application_id%TYPE DEFAULT :TRANSLATED_APPLICATION_ID;
+                   l_translated_app_language_c   CONSTANT apex_application_trans_map.translated_app_language%TYPE DEFAULT :TRANSLATED_APP_LANGUAGE;
+                
+                   l_start_time   PLS_INTEGER;
+                   l_seed_time    PLS_INTEGER;
+                   l_publish_time PLS_INTEGER;
+                   l_total_time   PLS_INTEGER;
+                 BEGIN
+                   apex_automation.log_info( p_message => apex_string.format('Seeding & Publishing Translated Application %0 with Language %1 for Primary Application %2',
+                    l_translated_application_id_c,
+                    l_translated_app_language_c,
+                    l_primary_application_id_c
+                    ));
+                
+                   l_start_time := DBMS_UTILITY.GET_TIME;
+                
+                   l_seed_time := DBMS_UTILITY.GET_TIME; -- Start timing for Seeding
+                   apex_lang.seed_translations(
+                       p_application_id => l_primary_application_id_c,
+                       p_language => l_translated_app_language_c);
+                
+                   l_seed_time := DBMS_UTILITY.GET_TIME - l_seed_time; -- Calculate Seeding duration
+                
+                   FOR c1 IN (SELECT COUNT(*) thecount
+                                FROM apex_application_trans_repos
+                               WHERE application_id = l_primary_application_id_c) LOOP
+                       apex_automation.log_info('Potentially translatable strings found: ' || c1.thecount);
+                   END LOOP;
+                
+                   l_publish_time := DBMS_UTILITY.GET_TIME; -- Start timing for Publishing
+                   apex_lang.publish_application(
+                       p_application_id => l_primary_application_id_c,
+                       p_language => l_translated_app_language_c);
+                
+                   l_publish_time := DBMS_UTILITY.GET_TIME - l_publish_time; -- Calculate Publishing duration
+                
+                   l_total_time := DBMS_UTILITY.GET_TIME - l_start_time;
+                
+                   apex_automation.log_info(p_message => 'Seeding took: ' || l_seed_time / 100 || ' seconds');
+                   apex_automation.log_info(p_message => 'Publishing took: ' || l_publish_time / 100 || ' seconds');
+                   apex_automation.log_info(p_message => 'Total process took: ' || l_total_time / 100 || ' seconds');
+                
+                 END;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        error {
+            stopExecutionOnError: false
+        }
+    )
+
+)

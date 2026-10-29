@@ -1,0 +1,61 @@
+popupLovTemplate search-dialog (
+    name: &APP_TEXT$SEARCH_DIALOG.
+    templateClass: standard
+    searchField {
+        beforeField: "&{DIV_CLASSTPOPUPLOVACTIONS_TFORMLARGE}!RAW."
+        afterField: "&{DIV}!RAW."
+        width: 20
+        maxWidth: 100
+        filterTextAttributes: class="apex-item-text" autofocus
+    }
+    findButton {
+        text: &APP_TEXT$SEARCH.
+        attributes: class="t-Button t-Button--hot t-Button--padLeft"
+    }
+    closeButton {
+        text: &APP_TEXT$CLOSE.
+        attributes: class="t-Button u-pullRight"
+    }
+    nextButton {
+        text: &APP_TEXT$NEXT_GT.
+        attributes: class="t-Button t-PopupLOV-button"
+    }
+    previousButton {
+        text: &APP_TEXT$LT_PREVIOUS.
+        attributes: class="t-Button t-PopupLOV-button"
+    }
+    window {
+        scrollBars: 1
+        resizable: 1
+        width: 380
+    }
+    pagination {
+        text: "&{RESULT_ROW_X_OF_Y FIRST_ROW=#FIRST_ROW# LAST_ROW=#LAST_ROW#}!RAW."
+        rowsPerPage: 100
+    }
+    resultSet {
+        before: "&{DIV_CLASSTPOPUPLOVLINKS}!RAW."
+        after: "&{DIV}!RAW."
+    }
+    page {
+        head:
+            ```html
+            <!DOCTYPE html>
+            <html lang="&BROWSER_LANGUAGE.">
+            <head>
+            <title>#TITLE#</title>
+            #APEX_CSS#
+            #THEME_CSS#
+            #THEME_STYLE_CSS#
+            #FAVICONS#
+            #APEX_JAVASCRIPT#
+            #THEME_JAVASCRIPT#
+            <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+            </head>
+            ```
+        bodyAttributes: class="t-Page t-Page--popupLOV"
+    }
+    advanced {
+        identifier: winlov
+    }
+)

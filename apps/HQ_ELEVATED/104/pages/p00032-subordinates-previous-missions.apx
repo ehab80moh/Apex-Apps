@@ -1,0 +1,586 @@
+page 32 (
+    name: طلبات المهمات السابقه للمرؤوسين
+    alias: SUBORDINATES-PREVIOUS-MISSIONS
+    title: &APP_TEXT$REQUESTS_FOR_PREVIOUS_ASSIGNMENTS_FOR_SUBORDINATES.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: [
+            #DEFAULT#
+            ui-dialog--stretch
+        ]
+    }
+    dialog {
+        resizable: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region طلبات-المهمات (
+        name: طلبات المهمات
+        title: &APP_TEXT$TASK_REQUESTS.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH fya AS (
+                    SELECT m.request_id, 'FYA' AS role_type
+                      FROM epromhq.hrf_emp_mission_request m
+                     WHERE m.emp_id <> :APP_USER
+                       AND EXTRACT(YEAR FROM NVL(m.last_approval_date, m.from_date)) = EXTRACT(YEAR FROM SYSDATE)
+                       AND (:P32_EMP_ID IS NULL OR m.emp_id = :P32_EMP_ID)
+                       AND ('->' || m.updated_by || '->' LIKE '%->' || :APP_USER || '->%'
+                         OR '->' || m.updated_by || '->' LIKE '%->' || :APP_USER || 'd->%')
+                ),
+                fyi_log AS (
+                    SELECT l.request_id, 'FYI' AS role_type
+                      FROM central.apr_log l
+                     WHERE l.request_type_id IN (72, 121)
+                       AND l.approver_type = 'FYI'
+                       AND (l.approver = :APP_USER OR ':' || l.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                ),
+                fyi_cust AS (
+                    SELECT m.request_id, 'FYI' AS role_type
+                      FROM central.apr_approval_results_cust_f f
+                      JOIN epromhq.hrf_emp_mission_request m
+                        ON m.emp_id = TO_NUMBER(f.emp_number)
+                     WHERE f.request_type_id IN (72, 121)
+                       AND f.approve_type = 'FYI'
+                       AND (f.approver = :APP_USER OR ':' || f.approver || ':' LIKE '%:' || :APP_USER || ':%')
+                       AND m.emp_id <> :APP_USER
+                       AND EXTRACT(YEAR FROM NVL(m.last_approval_date, m.from_date)) = EXTRACT(YEAR FROM SYSDATE)
+                       AND (:P32_EMP_ID IS NULL OR m.emp_id = :P32_EMP_ID)
+                ),
+                all_reqs AS (
+                    SELECT request_id, MAX(role_type) AS role_type
+                      FROM (
+                        SELECT request_id, role_type FROM fya
+                        UNION ALL
+                        SELECT request_id, role_type FROM fyi_log
+                        UNION ALL
+                        SELECT request_id, role_type FROM fyi_cust
+                      )
+                     GROUP BY request_id
+                )
+                SELECT
+                    m.request_id,
+                    m.emp_id,
+                    m.request_type_id,
+                    a.role_type,
+                    m.from_date,
+                    m.to_date,
+                    m.approved,
+                    m.description,
+                    m.last_approval_date,
+                    m.updated_by,
+                    epromhq.emp_to_ul(p_emp_list => central.replace_arrows_with_colon( replace(m.updated_by, m.emp_id, '') ), p_show_names => 'Y') AS result
+                FROM all_reqs a
+                JOIN epromhq.hrf_emp_mission_request m ON m.request_id = a.request_id
+                WHERE (:P32_EMP_ID IS NULL OR m.emp_id = :P32_EMP_ID)
+                ORDER BY m.request_id DESC;
+                ```
+            pageItemsToSubmit: P32_EMP_ID
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-Form--stretchInputs
+            ]
+        }
+        advanced {
+            regionDisplaySelector: true
+        }
+        pagination {
+            type: rowRangesXToY
+            displayPosition: topAndBottomRight
+        }
+        performance {
+            maxRowsToProcess: 1000000
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            includeActionsMenu: false
+        }
+        componentAdvanced {
+            maxRowsPerPageInSelector: 15
+        }
+        advanced {
+            savedReportMappingIdentifier: 50631527553377152
+        }
+
+        column APPROVED (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ORDER_STATUS.
+                alignment: center
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    {case APPROVED/}
+                    {when 0/}
+                    قيد الاعتماد <span aria-hidden="true" class="fa fa-hourglass-2 fa-anim-vertical-shake fam-pause fam-is-warning"></span>
+                    {when 1/}
+                    تم الموافقة <span aria-hidden="true" class="u-success fa fa-check fa-anim- fam-Blank fam-is-success"></span> <b>
+                    {when 2/}
+                    تم رفض الطلب <span aria-hidden="true" class="fa fa-exclamation-circle-o u-danger-text "></span>
+                    {otherwise/}
+                    #APPROVED#
+                    {endcase/}
+                    ```
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: K
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column DESCRIPTION (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DETAILS.
+                alignment: center
+            }
+            layout {
+                sequence: 520
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: V
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column EMP_ID (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$WORKER_S_NAME_AND_NUMBER.
+                alignment: center
+            }
+            lov {
+                lov: @employee-numbers
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            columnFilter {
+                type: defaultBasedOnColumnType
+            }
+            advanced {
+                endUserAlias: B
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column FROM_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$FROM.
+                alignment: center
+            }
+            singleRowView {
+                useColumnHeading: false
+                label: &APP_TEXT$EXAMPLE_01012023.
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: D
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column LAST_APPROVAL_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVAL_DATE.
+                alignment: center
+            }
+            layout {
+                sequence: 530
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: W
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column REQUEST_ID (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$ORDER_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 10
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+            enableUsersTo {
+                hide: false
+                sort: false
+                filter: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                pivot: false
+            }
+        )
+
+        column REQUEST_TYPE_ID (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$TASK_TYPE.
+                alignment: center
+            }
+            lov {
+                lov: @mission-types
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: U
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                pivot: false
+            }
+        )
+
+        column RESULT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$APPROVERS.
+            }
+            layout {
+                sequence: 540
+            }
+            columnFormatting {
+                htmlExpression: #RESULT!RAW#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: X
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column ROLE_TYPE (
+            type: plainText
+            heading {
+                heading: نوع الاعتماد
+                alignment: center
+            }
+            layout {
+                sequence: 15
+                columnAlignment: center
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    {case ROLE_TYPE/}
+                    {when FYA/}
+                    <span class="t-Badge t-Badge--success t-Badge--subtle">اعتماد (FYA)</span>
+                    {when FYI/}
+                    <span class="t-Badge t-Badge--info t-Badge--subtle">للعلم (FYI)</span>
+                    {otherwise/}
+                    #ROLE_TYPE#
+                    {endcase/}
+                    ```
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: RT
+            }
+            enableUsersTo {
+                hide: false
+            }
+        )
+
+        column TO_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$TO.
+                alignment: center
+            }
+            singleRowView {
+                useColumnHeading: false
+                label: &APP_TEXT$EXAMPLE_01012023.
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: E
+            }
+            enableUsersTo {
+                hide: false
+                highlight: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column UPDATED_BY (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$UPDATED_BY.
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        savedReport 120448 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 15
+            }
+
+            displayColumn APPROVED (
+                sequence: 7
+            )
+
+            displayColumn DESCRIPTION (
+                sequence: 6
+            )
+
+            displayColumn EMP_ID (
+                sequence: 2
+            )
+
+            displayColumn FROM_DATE (
+                sequence: 4
+            )
+
+            displayColumn LAST_APPROVAL_DATE (
+                sequence: 8
+            )
+
+            displayColumn REQUEST_ID (
+                sequence: 1
+            )
+
+            displayColumn REQUEST_TYPE_ID (
+                sequence: 3
+            )
+
+            displayColumn ROLE_TYPE (
+                sequence: 9
+            )
+
+            displayColumn TO_DATE (
+                sequence: 5
+            )
+
+            sort (
+                column: FROM_DATE
+                sort {
+                    direction: desc
+                    sequence: 1
+                }
+            )
+
+        )
+
+    )
+
+    region فلترة-الموظفين (
+        name: فلترة الموظفين
+        title: &APP_TEXT$CHOOSE_AN_EMPLOYEE.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P32_EMP_ID (
+        type: popupLov
+        label {
+            label: &APP_TEXT$CHOOSE_AN_EMPLOYEE.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @subordinates-missions
+            displayExtraValues: false
+            nullDisplayValue: &APP_TEXT$_SELECT_EMPLOYEE_.
+        }
+        layout {
+            sequence: 10
+            region: @فلترة-الموظفين
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P32_REQUEST_TYPE_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+    )
+
+    dynamicAction on-change-emp (
+        name: on_change_emp
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: P32_EMP_ID
+        }
+
+        action refresh-report (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @طلبات-المهمات
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+)

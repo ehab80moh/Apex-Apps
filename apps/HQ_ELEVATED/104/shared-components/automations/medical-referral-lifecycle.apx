@@ -1,0 +1,46 @@
+automation medical-referral-lifecycle (
+    name: Medical Referral Lifecycle
+    execution {
+        scheduleExpression: FREQ=DAILY;BYHOUR=0;BYMINUTE=5;BYSECOND=0
+        actionsInitiatedOn: always
+    }
+
+    action process-medical-referral-lifecycle (
+        name: Process Medical Referral Lifecycle
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    FOR overdue_workflow IN (
+                        SELECT workflow_id
+                          FROM med.md_referal_flow
+                         WHERE status = 'PENDING_APPROVAL'
+                           AND workflow_id IS NOT NULL
+                           AND SYSTIMESTAMP >= CAST(valid_to + 1 AS TIMESTAMP)
+                    ) LOOP
+                        IF apex_workflow.get_workflow_state(
+                               p_instance_id => overdue_workflow.workflow_id
+                           ) IN (
+                               apex_workflow.c_state_active,
+                               apex_workflow.c_state_suspended,
+                               apex_workflow.c_state_faulted
+                           ) THEN
+                            apex_workflow.terminate(
+                                p_instance_id => overdue_workflow.workflow_id
+                            );
+                        END IF;
+                    END LOOP;
+                
+                    -- PROCESS_LIFECYCLE records APPROVAL_DELAY, state changes,
+                    -- access-log aggregation, and detail-log retention idempotently.
+                    med.md_referal_wf_pkg.process_lifecycle;
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+    )
+
+)

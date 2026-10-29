@@ -1,0 +1,1339 @@
+page 450 (
+    name: سجل الحضور والطلبات الموحد
+    alias: ATTENDANCE-REQUESTS-HUB
+    title: سجل الحضور والطلبات الموحد
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+                        /* ==========================================================================
+                           Executive Icon Hub - Page 450 Styling
+                           ========================================================================== */
+            
+                        /* RTL & Layout Foundations */
+                        body {
+                            background-color: #f8fafc;
+                        }
+            
+                        /* 1. Header Profile & Filter Card */
+                        .hub-header-container {
+                            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                            border-radius: 18px;
+                            padding: 1.5rem 2rem;
+                            color: #ffffff;
+                            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+                            margin-bottom: 1.5rem;
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            flex-wrap: wrap;
+                            gap: 1.5rem;
+                        }
+            
+                        .hub-profile-section {
+                            display: flex;
+                            align-items: center;
+                            gap: 1.25rem;
+                        }
+            
+                        .hub-profile-avatar {
+                            width: 68px;
+                            height: 68px;
+                            border-radius: 50%;
+                            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                            border: 3px solid rgba(255, 255, 255, 0.25);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 1.85rem;
+                            color: #ffffff;
+                            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+                            overflow: hidden;
+                            flex-shrink: 0;
+                        }
+            
+                        .hub-avatar-img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                            border-radius: 50%;
+                            display: block;
+                        }
+            
+                        .hub-profile-details {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.35rem;
+                        }
+            
+                        .hub-profile-title {
+                            font-size: 1.35rem;
+                            font-weight: 800;
+                            color: #ffffff;
+                            margin: 0;
+                            letter-spacing: -0.01em;
+                        }
+            
+                        .hub-profile-meta {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.75rem;
+                            flex-wrap: wrap;
+                        }
+            
+                        .hub-badge-code {
+                            background: rgba(255, 255, 255, 0.12);
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                            padding: 0.25rem 0.75rem;
+                            border-radius: 9999px;
+                            font-size: 0.82rem;
+                            font-weight: 600;
+                            color: #cbd5e1;
+                        }
+            
+                        .hub-badge-role {
+                            background: rgba(59, 130, 246, 0.25);
+                            border: 1px solid rgba(59, 130, 246, 0.4);
+                            padding: 0.25rem 0.75rem;
+                            border-radius: 9999px;
+                            font-size: 0.82rem;
+                            font-weight: 600;
+                            color: #93c5fd;
+                        }
+            
+                        .hub-badge-dept {
+                            background: rgba(16, 185, 129, 0.2);
+                            border: 1px solid rgba(16, 185, 129, 0.35);
+                            padding: 0.25rem 0.75rem;
+                            border-radius: 9999px;
+                            font-size: 0.82rem;
+                            font-weight: 600;
+                            color: #a7f3d0;
+                        }
+            
+                        /* 2. Unified Request & Balance Hub (4 Cards Grid) */
+                        .hub-cards-grid {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                            gap: 1.25rem;
+                            margin-bottom: 1.75rem;
+                        }
+            
+                        .hub-kpi-card {
+                            background: #ffffff;
+                            border-radius: 16px;
+                            border: 1px solid #e2e8f0;
+                            padding: 1.25rem 1.35rem;
+                            box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+                            position: relative;
+                            overflow: hidden;
+                        }
+            
+                        .hub-kpi-card:hover {
+                            transform: translateY(-4px);
+                            box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.1);
+                            border-color: #cbd5e1;
+                        }
+            
+                        .hub-card-top {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.9rem;
+                            margin-bottom: 1rem;
+                        }
+            
+                        .hub-card-icon-box {
+                            width: 48px;
+                            height: 48px;
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 1.35rem;
+                            flex-shrink: 0;
+                        }
+            
+                        .hub-icon--blue {
+                            background: #eff6ff;
+                            color: #2563eb;
+                            border: 1px solid #bfdbfe;
+                        }
+            
+                        .hub-icon--teal {
+                            background: #f0fdfa;
+                            color: #0d9488;
+                            border: 1px solid #99f6e4;
+                        }
+            
+                        .hub-icon--emerald {
+                            background: #ecfdf5;
+                            color: #059669;
+                            border: 1px solid #a7f3d0;
+                        }
+            
+                        .hub-icon--amber {
+                            background: #fffbeb;
+                            color: #d97706;
+                            border: 1px solid #fde68a;
+                        }
+            
+                        .hub-card-meta {
+                            display: flex;
+                            flex-direction: column;
+                        }
+            
+                        .hub-card-title {
+                            font-size: 1.05rem;
+                            font-weight: 700;
+                            color: #0f172a;
+                            line-height: 1.2;
+                        }
+            
+                        .hub-card-subtitle {
+                            font-size: 0.78rem;
+                            color: #64748b;
+                            margin-top: 0.2rem;
+                        }
+            
+                        .hub-card-body {
+                            margin-bottom: 1rem;
+                        }
+            
+                        .hub-card-stat {
+                            display: flex;
+                            align-items: baseline;
+                            gap: 0.35rem;
+                            margin-bottom: 0.75rem;
+                        }
+            
+                        .hub-stat-num {
+                            font-size: 2.3rem;
+                            font-weight: 800;
+                            color: #0f172a;
+                            line-height: 1;
+                            letter-spacing: -0.02em;
+                        }
+            
+                        .hub-stat-unit {
+                            font-size: 0.95rem;
+                            font-weight: 600;
+                            color: #64748b;
+                        }
+            
+                        .hub-card-tags {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 0.4rem;
+                        }
+            
+                        .hub-tag {
+                            display: inline-flex;
+                            align-items: center;
+                            padding: 0.22rem 0.6rem;
+                            border-radius: 9999px;
+                            font-size: 0.75rem;
+                            font-weight: 700;
+                        }
+            
+                        .hub-tag--blue { background: #dbeafe; color: #1e40af; }
+                        .hub-tag--blue-subtle { background: #eff6ff; color: #3b82f6; border: 1px solid #dbeafe; }
+                        .hub-tag--teal { background: #ccfbf1; color: #115e59; }
+                        .hub-tag--teal-subtle { background: #f0fdfa; color: #0d9488; border: 1px solid #ccfbf1; }
+                        .hub-tag--emerald { background: #d1fae5; color: #065f46; }
+                        .hub-tag--emerald-subtle { background: #ecfdf5; color: #059669; border: 1px solid #d1fae5; }
+                        .hub-tag--amber { background: #fef3c7; color: #92400e; }
+                        .hub-tag--gray { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+            
+                        .hub-card-footer {
+                            padding-top: 0.75rem;
+                            border-top: 1px solid #f1f5f9;
+                            font-size: 0.8rem;
+                            color: #64748b;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.4rem;
+                        }
+            
+                        /* 3. Statement Table Badges & Layout */
+                        #attendance-statement .t-Region-header {
+                            background: #1e293b;
+                            color: #ffffff;
+                            border-top-left-radius: 14px;
+                            border-top-right-radius: 14px;
+                            padding: 0.9rem 1.5rem;
+                        }
+            
+                        #attendance-statement .t-Region-title {
+                            color: #ffffff !important;
+                            font-weight: 700 !important;
+                            font-size: 1.15rem !important;
+                        }
+            
+                        .hub-time-badge {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 0.4rem;
+                            padding: 0.35rem 0.75rem;
+                            border-radius: 8px;
+                            font-size: 0.88rem;
+                            font-weight: 700;
+                            white-space: nowrap;
+                        }
+            
+                        .hub-time--ontime {
+                            background: #ecfdf5;
+                            color: #065f46;
+                            border: 1px solid #a7f3d0;
+                        }
+            
+                        .hub-time--late {
+                            background: #fef2f2;
+                            color: #991b1b;
+                            border: 1px solid #fecaca;
+                        }
+            
+                        .hub-time--ontime-out {
+                            background: #eff6ff;
+                            color: #1e40af;
+                            border: 1px solid #bfdbfe;
+                        }
+            
+                        .hub-time--early {
+                            background: #fffbeb;
+                            color: #92400e;
+                            border: 1px solid #fde68a;
+                        }
+            
+                        .hub-time--empty {
+                            background: #f8fafc;
+                            color: #94a3b8;
+                            border: 1px dashed #cbd5e1;
+                        }
+            
+                        .hub-duration-badge {
+                            display: inline-block;
+                            padding: 0.35rem 0.75rem;
+                            border-radius: 8px;
+                            font-size: 0.88rem;
+                            font-weight: 700;
+                            background: #f1f5f9;
+                            color: #334155;
+                            border: 1px solid #e2e8f0;
+                        }
+            
+                        .hub-duration--none {
+                            background: transparent;
+                            color: #94a3b8;
+                            border: none;
+                        }
+            
+                        .hub-status-badge {
+                            display: inline-flex;
+                            align-items: center;
+                            padding: 0.35rem 0.85rem;
+                            border-radius: 9999px;
+                            font-size: 0.82rem;
+                            font-weight: 700;
+                            white-space: nowrap;
+                        }
+            
+                        .hub-status--success {
+                            background: #dcfce7;
+                            color: #166534;
+                        }
+            
+                        .hub-status--warning {
+                            background: #fef3c7;
+                            color: #92400e;
+                        }
+            
+                        .hub-status--request {
+                            background: #e0e7ff;
+                            color: #3730a3;
+                            border: 1px solid #c7d2fe;
+                        }
+            
+                        .hub-status--absent {
+                            background: #fee2e2;
+                            color: #b91c1c;
+                        }
+            
+                        .hub-status--rest {
+                            background: #f1f5f9;
+                            color: #475569;
+                        }
+            
+                        .hub-status--pending {
+                            background: #eff6ff;
+                            color: #1e40af;
+                        }
+            
+                        /* Table Row Enhancements */
+                        #attendance-statement .t-Report-report {
+                            border-collapse: separate;
+                            border-spacing: 0;
+                            width: 100%;
+                        }
+            
+                        #attendance-statement .t-Report-report th {
+                            background: #f8fafc;
+                            color: #475569;
+                            font-weight: 700;
+                            font-size: 0.88rem;
+                            padding: 0.85rem 1rem;
+                            border-bottom: 2px solid #e2e8f0;
+                        }
+            
+                        #attendance-statement .t-Report-report td {
+                            padding: 0.85rem 1rem;
+                            border-bottom: 1px solid #edf2f7;
+                            vertical-align: middle;
+                        }
+            
+                        #attendance-statement .t-Report-report tr:hover td {
+                            background-color: #f0f7ff;
+                        }
+            
+                        /* Borderless wrapper for Profile Card and Unified Requests Hub */
+                        #EMP_PROFILE_CARD .t-Report-colHead,
+                        #EMP_PROFILE_CARD thead,
+                        #EMP_PROFILE_CARD .t-Report-tableWrap,
+                        #EMP_PROFILE_CARD .t-Report-wrap,
+                        #UNIFIED_REQUESTS_HUB .t-Report-colHead,
+                        #UNIFIED_REQUESTS_HUB thead,
+                        #UNIFIED_REQUESTS_HUB .t-Report-tableWrap,
+                        #UNIFIED_REQUESTS_HUB .t-Report-wrap {
+                            border: none !important;
+                            box-shadow: none !important;
+                            background: transparent !important;
+                        }
+            
+                        #EMP_PROFILE_CARD thead,
+                        #UNIFIED_REQUESTS_HUB thead {
+                            display: none !important;
+                        }
+            
+                        #EMP_PROFILE_CARD table,
+                        #EMP_PROFILE_CARD td,
+                        #UNIFIED_REQUESTS_HUB table,
+                        #UNIFIED_REQUESTS_HUB td {
+                            border: none !important;
+                            padding: 0 !important;
+                            background: transparent !important;
+                        }
+            ```
+    }
+    security {
+        authorizationScheme: @erc-self-services
+    }
+
+    region attendance-statement (
+        name: بيان الحضور والانصراف وسجل البصمات
+        title: بيان الحضور والانصراف وسجل البصمات اليومية
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                                WITH selected_period AS (
+                                    SELECT
+                                        TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY'))) AS selected_year,
+                                        NVL(:P450_MONTH, 'ALL') AS selected_month
+                                    FROM dual
+                                ), period_bounds AS (
+                                    SELECT
+                                        CASE
+                                            WHEN selected_month = 'ALL' THEN
+                                                TO_DATE(TO_CHAR(selected_year) || '0101', 'YYYYMMDD')
+                                            ELSE
+                                                TO_DATE(TO_CHAR(selected_year) || LPAD(selected_month, 2, '0') || '01', 'YYYYMMDD')
+                                        END AS period_start,
+                                        ADD_MONTHS(
+                                            CASE
+                                                WHEN selected_month = 'ALL' THEN
+                                                    TO_DATE(TO_CHAR(selected_year) || '0101', 'YYYYMMDD')
+                                                ELSE
+                                                    TO_DATE(TO_CHAR(selected_year) || LPAD(selected_month, 2, '0') || '01', 'YYYYMMDD')
+                                            END,
+                                            CASE WHEN selected_month = 'ALL' THEN 12 ELSE 1 END
+                                        ) AS period_end
+                                    FROM selected_period
+                                ), calendar_days AS (
+                                    SELECT period_start + LEVEL - 1 AS log_date
+                                    FROM period_bounds
+                                    CONNECT BY LEVEL <= period_end - period_start
+                                ), daily_summary AS (
+                                    SELECT
+                                        TRUNC(s.start_time) AS log_date,
+                                        MIN(CASE WHEN s.request_category LIKE 'Sign In%' THEN s.start_time END) AS sign_in_time,
+                                        MAX(CASE WHEN s.request_category LIKE 'Sign Out%' THEN s.start_time END) AS sign_out_time,
+                                        MAX(CASE WHEN s.request_category LIKE 'Sign In%' AND s.css_class = 'u-danger' THEN 1 ELSE 0 END) AS is_late,
+                                        MAX(CASE WHEN s.request_category LIKE 'Sign Out%' AND s.css_class = 'u-danger' THEN 1 ELSE 0 END) AS is_early_departure
+                                    FROM CENTRAL.EMP_REQUESTS_SUMMARY s
+                                    CROSS JOIN period_bounds p
+                                    WHERE s.emp_id = NVL(:P450_EMP_ID, :APP_USER)
+                                      AND s.start_time >= p.period_start
+                                      AND s.start_time < p.period_end
+                                    GROUP BY TRUNC(s.start_time)
+                                ), request_rows AS (
+                                    SELECT s.start_time, s.end_time, s.request_category
+                                    FROM CENTRAL.EMP_REQUESTS_SUMMARY s
+                                    CROSS JOIN period_bounds p
+                                    WHERE s.emp_id = NVL(:P450_EMP_ID, :APP_USER)
+                                      AND s.start_time < p.period_end
+                                      AND NVL(s.end_time, s.start_time) >= p.period_start
+                                      AND s.request_category NOT LIKE 'Sign In%'
+                                      AND s.request_category NOT LIKE 'Sign Out%'
+                                ), request_days AS (
+                                    SELECT
+                                        d.log_date,
+                                        LISTAGG(DISTINCT r.request_category, ' | ') WITHIN GROUP (ORDER BY r.request_category) AS request_categories
+                                    FROM calendar_days d
+                                    JOIN request_rows r
+                                      ON r.start_time < d.log_date + 1
+                                     AND NVL(r.end_time, r.start_time) >= d.log_date
+                                    GROUP BY d.log_date
+                                )
+                                SELECT
+                                    d.log_date,
+                                    TO_CHAR(d.log_date, 'FMDay, DD/MM/YYYY', 'NLS_DATE_LANGUAGE=ARABIC') AS formatted_day,
+                                    -- Check In HTML
+                                    CASE
+                                        WHEN sign_in_time IS NOT NULL THEN
+                                            '<span class="hub-time-badge ' || (CASE WHEN is_late = 1 THEN 'hub-time--late' ELSE 'hub-time--ontime' END) || '">' ||
+                                            '<i class="fa fa-sign-in" aria-hidden="true"></i> ' ||
+                                            TO_CHAR(sign_in_time, 'HH12:MI AM', 'NLS_DATE_LANGUAGE=ARABIC') ||
+                                            '</span>'
+                                        ELSE '<span class="hub-time-badge hub-time--empty">-</span>'
+                                    END AS check_in_html,
+                                    -- Check Out HTML
+                                    CASE
+                                        WHEN sign_out_time IS NOT NULL THEN
+                                            '<span class="hub-time-badge ' || (CASE WHEN is_early_departure = 1 THEN 'hub-time--early' ELSE 'hub-time--ontime-out' END) || '">' ||
+                                            '<i class="fa fa-sign-out" aria-hidden="true"></i> ' ||
+                                            TO_CHAR(sign_out_time, 'HH12:MI AM', 'NLS_DATE_LANGUAGE=ARABIC') ||
+                                            '</span>'
+                                        ELSE '<span class="hub-time-badge hub-time--empty">-</span>'
+                                    END AS check_out_html,
+                                    -- Duration HTML
+                                    CASE
+                                        WHEN sign_in_time IS NOT NULL AND sign_out_time IS NOT NULL AND sign_out_time > sign_in_time THEN
+                                            '<span class="hub-duration-badge">' ||
+                                            TRUNC((sign_out_time - sign_in_time) * 24) || ' س و ' || 
+                                            ROUND(MOD((sign_out_time - sign_in_time) * 24 * 60, 60)) || ' د' ||
+                                            '</span>'
+                                        ELSE '<span class="hub-duration-badge hub-duration--none">-</span>'
+                                    END AS duration_html,
+                                    -- Status HTML
+                                    CASE
+                                        WHEN r.request_categories IS NOT NULL THEN
+                                            '<span class="hub-status-badge hub-status--request">' || r.request_categories || '</span>'
+                                        WHEN d.log_date > TRUNC(SYSDATE) THEN
+                                            '<span class="hub-status-badge hub-status--pending">لم يأتِ اليوم بعد</span>'
+                                        WHEN TO_CHAR(d.log_date, 'DY', 'NLS_DATE_LANGUAGE=ENGLISH') IN ('FRI', 'SAT') THEN
+                                            '<span class="hub-status-badge hub-status--rest">عطلة أسبوعية</span>'
+                                        WHEN d.log_date = TRUNC(SYSDATE) AND sign_in_time IS NULL AND sign_out_time IS NULL THEN
+                                            '<span class="hub-status-badge hub-status--pending">اليوم جارٍ</span>'
+                                        WHEN sign_in_time IS NULL AND sign_out_time IS NULL THEN
+                                            '<span class="hub-status-badge hub-status--absent">غياب</span>'
+                                        WHEN sign_in_time IS NULL THEN
+                                            '<span class="hub-status-badge hub-status--warning">بصمة حضور ناقصة</span>'
+                                        WHEN sign_out_time IS NULL AND d.log_date < TRUNC(SYSDATE) THEN
+                                            '<span class="hub-status-badge hub-status--warning">بصمة انصراف ناقصة</span>'
+                                        WHEN sign_in_time IS NOT NULL AND is_late = 1 THEN
+                                            '<span class="hub-status-badge hub-status--warning">حضور متأخر</span>'
+                                        WHEN sign_in_time IS NOT NULL THEN
+                                            '<span class="hub-status-badge hub-status--success">حضور نظامي</span>'
+                                    END AS status_html
+                                FROM calendar_days d
+                                LEFT JOIN daily_summary s ON s.log_date = d.log_date
+                                LEFT JOIN request_days r ON r.log_date = d.log_date
+                                ORDER BY d.log_date ASC;
+                ```
+            pageItemsToSubmit: [
+                P450_EMP_ID
+                P450_YEAR
+                P450_MONTH
+            ]
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+            icon: fa-table
+        }
+        advanced {
+            htmlDomId: ATTENDANCE_STATEMENT
+        }
+        reportLayout {
+            numberOfRows: 400
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+
+        column CHECK_IN_HTML (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: بصمة الحضور
+                alignment: center
+            }
+            layout {
+                sequence: 30
+                columnAlignment: center
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column CHECK_OUT_HTML (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: بصمة الانصراف
+                alignment: center
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column DURATION_HTML (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: ساعات التواجد الفعلية
+                alignment: center
+            }
+            layout {
+                sequence: 50
+                columnAlignment: center
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column FORMATTED_DAY (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: اليوم والتاريخ
+            }
+            layout {
+                sequence: 20
+            }
+        )
+
+        column LOG_DATE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column STATUS_HTML (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: الحالة ونوع الحركة
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+    )
+
+    region breadcrumb (
+        name: مسار التنقل
+        title: سجل الحضور والطلبات الموحد
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region emp-filters-toolbar (
+        name: أدوات البحث والفلترة
+        title: أدوات البحث والفلترة
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region emp-profile-card (
+        name: بطاقة بيانات الموظف
+        title: بطاقة بيانات الموظف
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH emp_info AS (
+                    SELECT 
+                        d.emp_number,
+                        NVL(d.emp_name, central.get_emp_name(NVL(:P450_EMP_ID, :APP_USER))) AS emp_name,
+                        NVL(d.emp_position_name, 'موظف') AS emp_position_name,
+                        NVL(d.organization_name, 'EPROM HQ') AS organization_name
+                    FROM DUAL
+                    LEFT JOIN central.xxapex_hr_emp_data d
+                      ON d.emp_number = NVL(:P450_EMP_ID, :APP_USER)
+                )
+                SELECT 
+                    '<div class="hub-header-container">' ||
+                    '  <div class="hub-profile-section">' ||
+                    '    <div class="hub-profile-avatar">' ||
+                    '      <img src="f?p=' || :APP_ID || ':0:' || :APP_SESSION || ':APPLICATION_PROCESS=GET_EMP_AVATAR:::IMAGE_ID:' || NVL(:P450_EMP_ID, :APP_USER) || '" alt="صورة الموظف" class="hub-avatar-img" onerror="this.style.display=''none'';this.nextElementSibling.style.display=''flex'';" />' ||
+                    '      <div class="hub-avatar-fallback" style="display:none;"><i class="fa fa-user"></i></div>' ||
+                    '    </div>' ||
+                    '    <div class="hub-profile-details">' ||
+                    '      <h2 class="hub-profile-title">' || apex_escape.html(emp_name) || '</h2>' ||
+                    '      <div class="hub-profile-meta">' ||
+                    '        <span class="hub-badge-code"><i class="fa fa-id-card-o"></i> كود الموظف: ' || apex_escape.html(NVL(:P450_EMP_ID, :APP_USER)) || '</span>' ||
+                    '        <span class="hub-badge-role"><i class="fa fa-briefcase"></i> ' || apex_escape.html(emp_position_name) || '</span>' ||
+                    '        <span class="hub-badge-dept"><i class="fa fa-building-o"></i> ' || apex_escape.html(organization_name) || '</span>' ||
+                    '      </div>' ||
+                    '    </div>' ||
+                    '  </div>' ||
+                    '</div>' AS profile_card_html
+                FROM emp_info;
+                ```
+            pageItemsToSubmit: P450_EMP_ID
+        }
+        layout {
+            sequence: 25
+            slot: body
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: EMP_PROFILE_CARD
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+
+        column PROFILE_CARD_HTML (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NBSP.
+            }
+            layout {
+                sequence: 10
+            }
+            sorting {
+                sortable: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+    )
+
+    region unified-requests-hub (
+        name: سجل الأرصدة والطلبات الموحدة
+        title: سجل الأرصدة والطلبات الموحدة
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                WITH emp_summary AS (
+                    SELECT 
+                        -- Leaves
+                        (SELECT NVL(SUM(CASE WHEN LEAVE_TYPE IN ('H','C','RH') THEN (TRUNC(TO_DATE) - TRUNC(FROM_DATE) + 1) ELSE 0 END), 0)
+                         FROM EPROMHQ.HRF_EMP_LEAVE_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND EXTRACT(YEAR FROM FROM_DATE) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS total_leave_days,
+                        (SELECT NVL(SUM(TRUNC(TO_DATE) - TRUNC(FROM_DATE) + 1), 0)
+                         FROM EPROMHQ.HRF_EMP_LEAVE_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND LEAVE_TYPE = 'H' AND EXTRACT(YEAR FROM FROM_DATE) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS annual_days,
+                        (SELECT NVL(SUM(TRUNC(TO_DATE) - TRUNC(FROM_DATE) + 1), 0)
+                         FROM EPROMHQ.HRF_EMP_LEAVE_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND LEAVE_TYPE = 'C' AND EXTRACT(YEAR FROM FROM_DATE) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS casual_days,
+                        (SELECT NVL(SUM(TRUNC(TO_DATE) - TRUNC(FROM_DATE) + 1), 0)
+                         FROM EPROMHQ.HRF_EMP_LEAVE_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND LEAVE_TYPE = 'RH' AND EXTRACT(YEAR FROM FROM_DATE) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS rest_leave_days,
+                        (SELECT COUNT(*)
+                         FROM EPROMHQ.HRF_EMP_LEAVE_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND EXTRACT(YEAR FROM FROM_DATE) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS total_leave_reqs,
+                           
+                        -- Missions
+                        (SELECT COUNT(*)
+                         FROM EPROMHQ.HRF_EMP_MISSION_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND EXTRACT(YEAR FROM FROM_DATE) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS mission_count,
+                        (SELECT NVL(SUM(TRUNC(TO_DATE) - TRUNC(FROM_DATE) + 1), 0)
+                         FROM EPROMHQ.HRF_EMP_MISSION_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND EXTRACT(YEAR FROM FROM_DATE) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS mission_days,
+                        (SELECT COUNT(*)
+                         FROM EPROMHQ.HRF_EMP_MISSION_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND REQUEST_TYPE_ID = 72 AND EXTRACT(YEAR FROM FROM_DATE) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS work_mission_count,
+                        (SELECT COUNT(*)
+                         FROM EPROMHQ.HRF_EMP_MISSION_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND REQUEST_TYPE_ID = 121 AND EXTRACT(YEAR FROM FROM_DATE) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS training_mission_count,
+                           
+                        -- Permissions
+                        (SELECT COUNT(*)
+                         FROM EPROMHQ.HRF_EMP_PERMISSION_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND EXTRACT(YEAR FROM FROM_HOUR) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS perm_count,
+                        (SELECT NVL(ROUND(SUM((TO_HOUR - FROM_HOUR) * 24), 1), 0)
+                         FROM EPROMHQ.HRF_EMP_PERMISSION_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND EXTRACT(YEAR FROM FROM_HOUR) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS perm_hours,
+                        (SELECT COUNT(*)
+                         FROM EPROMHQ.HRF_EMP_PERMISSION_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND PERMISSION_TYPE = 'PP' AND EXTRACT(YEAR FROM FROM_HOUR) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS personal_perm_count,
+                        (SELECT COUNT(*)
+                         FROM EPROMHQ.HRF_EMP_PERMISSION_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND PERMISSION_TYPE = 'CP' AND EXTRACT(YEAR FROM FROM_HOUR) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS work_perm_count,
+                           
+                        -- Overtime / Rest Hours
+                        (SELECT COUNT(*)
+                         FROM EPROMHQ.HRF_EMP_OVERTIME_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND EXTRACT(YEAR FROM FROM_HOUR) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS overtime_count,
+                        (SELECT NVL(ROUND(SUM(ABS((TO_HOUR - FROM_HOUR) * 24)), 1), 0)
+                         FROM EPROMHQ.HRF_EMP_OVERTIME_REQUEST 
+                         WHERE EMP_ID = NVL(:P450_EMP_ID, :APP_USER) AND APPROVED = 1 AND NVL(DELETE_TMS, 0) != 1 
+                           AND EXTRACT(YEAR FROM FROM_HOUR) = TO_NUMBER(NVL(:P450_YEAR, TO_CHAR(SYSDATE, 'YYYY')))) AS overtime_hours
+                    FROM DUAL
+                )
+                SELECT 
+                    '<div class="hub-cards-grid">' ||
+                    -- Card 1: Vacations
+                    '  <div class="hub-kpi-card hub-card--vacations">' ||
+                    '    <div class="hub-card-top">' ||
+                    '      <div class="hub-card-icon-box hub-icon--blue"><i class="fa fa-calendar-check-o" aria-hidden="true"></i></div>' ||
+                    '      <div class="hub-card-meta">' ||
+                    '        <div class="hub-card-title">سجل الإجازات</div>' ||
+                    '        <div class="hub-card-subtitle">الاعتيادية والعارضة والراحة</div>' ||
+                    '      </div>' ||
+                    '    </div>' ||
+                    '    <div class="hub-card-body">' ||
+                    '      <div class="hub-card-stat"><span class="hub-stat-num">' || total_leave_days || '</span><span class="hub-stat-unit">يوم</span></div>' ||
+                    '      <div class="hub-card-tags">' ||
+                    '        <span class="hub-tag hub-tag--blue">سنوي: ' || annual_days || '</span>' ||
+                    '        <span class="hub-tag hub-tag--blue-subtle">عارضة: ' || casual_days || '</span>' ||
+                    '        <span class="hub-tag hub-tag--gray">راحة: ' || rest_leave_days || '</span>' ||
+                    '      </div>' ||
+                    '    </div>' ||
+                    '    <div class="hub-card-footer"><i class="fa fa-file-text-o"></i> إجمالي الطلبات: ' || total_leave_reqs || ' طلب معتمد</div>' ||
+                    '  </div>' ||
+                
+                    -- Card 2: Missions
+                    '  <div class="hub-kpi-card hub-card--missions">' ||
+                    '    <div class="hub-card-top">' ||
+                    '      <div class="hub-card-icon-box hub-icon--teal"><i class="fa fa-briefcase" aria-hidden="true"></i></div>' ||
+                    '      <div class="hub-card-meta">' ||
+                    '        <div class="hub-card-title">المأموريات والمهام</div>' ||
+                    '        <div class="hub-card-subtitle">مهام العمل والتدريب الخارجي</div>' ||
+                    '      </div>' ||
+                    '    </div>' ||
+                    '    <div class="hub-card-body">' ||
+                    '      <div class="hub-card-stat"><span class="hub-stat-num">' || mission_count || '</span><span class="hub-stat-unit">مأمورية</span></div>' ||
+                    '      <div class="hub-card-tags">' ||
+                    '        <span class="hub-tag hub-tag--teal">عمل: ' || work_mission_count || '</span>' ||
+                    '        <span class="hub-tag hub-tag--teal-subtle">تدريب: ' || training_mission_count || '</span>' ||
+                    '        <span class="hub-tag hub-tag--gray">إجمالي: ' || mission_days || ' يوم</span>' ||
+                    '      </div>' ||
+                    '    </div>' ||
+                    '    <div class="hub-card-footer"><i class="fa fa-check-circle-o"></i> إجمالي الأيام: ' || mission_days || ' يوم عمل</div>' ||
+                    '  </div>' ||
+                
+                    -- Card 3: Permissions
+                    '  <div class="hub-kpi-card hub-card--permissions">' ||
+                    '    <div class="hub-card-top">' ||
+                    '      <div class="hub-card-icon-box hub-icon--emerald"><i class="fa fa-clock-o" aria-hidden="true"></i></div>' ||
+                    '      <div class="hub-card-meta">' ||
+                    '        <div class="hub-card-title">الأذونات الرسمية</div>' ||
+                    '        <div class="hub-card-subtitle">أذونات العمل والشخصية</div>' ||
+                    '      </div>' ||
+                    '    </div>' ||
+                    '    <div class="hub-card-body">' ||
+                    '      <div class="hub-card-stat"><span class="hub-stat-num">' || perm_count || '</span><span class="hub-stat-unit">إذن معتمد</span></div>' ||
+                    '      <div class="hub-card-tags">' ||
+                    '        <span class="hub-tag hub-tag--emerald">شخصي: ' || personal_perm_count || '</span>' ||
+                    '        <span class="hub-tag hub-tag--emerald-subtle">عمل: ' || work_perm_count || '</span>' ||
+                    '        <span class="hub-tag hub-tag--gray">إجمالي: ' || perm_hours || ' ساعة</span>' ||
+                    '      </div>' ||
+                    '    </div>' ||
+                    '    <div class="hub-card-footer"><i class="fa fa-clock-o"></i> إجمالي الساعات: ' || perm_hours || ' س مستهلكة</div>' ||
+                    '  </div>' ||
+                
+                    -- Card 4: Rest Hours / Overtime
+                    '  <div class="hub-kpi-card hub-card--overtime">' ||
+                    '    <div class="hub-card-top">' ||
+                    '      <div class="hub-card-icon-box hub-icon--amber"><i class="fa fa-hourglass-half" aria-hidden="true"></i></div>' ||
+                    '      <div class="hub-card-meta">' ||
+                    '        <div class="hub-card-title">بدل الساعات والراحة</div>' ||
+                    '        <div class="hub-card-subtitle">ساعات العمل الإضافي وبدل الراحة</div>' ||
+                    '      </div>' ||
+                    '    </div>' ||
+                    '    <div class="hub-card-body">' ||
+                    '      <div class="hub-card-stat"><span class="hub-stat-num">' || overtime_hours || '</span><span class="hub-stat-unit">ساعة</span></div>' ||
+                    '      <div class="hub-card-tags">' ||
+                    '        <span class="hub-tag hub-tag--amber">طلبات: ' || overtime_count || '</span>' ||
+                    '        <span class="hub-tag hub-tag--gray">رصيد إضافي معتمد</span>' ||
+                    '      </div>' ||
+                    '    </div>' ||
+                    '    <div class="hub-card-footer"><i class="fa fa-hourglass-end"></i> إجمالي الطلبات: ' || overtime_count || ' طلب معتمد</div>' ||
+                    '  </div>' ||
+                    '</div>' AS hub_html
+                FROM emp_summary;
+                ```
+            pageItemsToSubmit: [
+                P450_EMP_ID
+                P450_YEAR
+            ]
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: UNIFIED_REQUESTS_HUB
+        }
+        componentAppearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+
+        column HUB_HTML (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NBSP.
+            }
+            layout {
+                sequence: 10
+            }
+            sorting {
+                sortable: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+    )
+
+    pageItem P450_EMP_ID (
+        type: selectList
+        label {
+            label: اختيار الموظف
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @approvals
+            displayExtraValues: false
+            nullDisplayValue: &APP_TEXT$_SELECT_EMPLOYEE_.
+        }
+        layout {
+            sequence: 10
+            region: @emp-filters-toolbar
+            slot: regionBody
+            alignment: left
+            column: 1
+            columnSpan: 5
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P450_MONTH (
+        type: selectList
+        label {
+            label: الشهر
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:عرض كل شهور السنة;ALL,يناير (01);01,فبراير (02);02,مارس (03);03,أبريل (04);04,مايو (05);05,يونيو (06);06,يوليو (07);07,أغسطس (08);08,سبتمبر (09);09,أكتوبر (10);10,نوفمبر (11);11,ديسمبر (12);12
+        }
+        layout {
+            sequence: 30
+            region: @emp-filters-toolbar
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            column: 9
+            columnSpan: 3
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: static
+            staticValue: ALL
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P450_YEAR (
+        type: selectList
+        label {
+            label: السنة
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:2026;2026,2025;2025,2024;2024,2023;2023
+        }
+        layout {
+            sequence: 20
+            region: @emp-filters-toolbar
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            column: 6
+            columnSpan: 3
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: expression
+            plsqlExpression: TO_CHAR(SYSDATE, 'YYYY')
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    button refresh-data (
+        buttonName: REFRESH_DATA
+        label: تحديث
+        layout {
+            sequence: 40
+            region: @emp-filters-toolbar
+            slot: next
+            startNewRow: false
+        }
+        appearance {
+            buttonTemplate: @text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--padLeft
+                t-Button--padRight
+            ]
+            icon: fa-refresh
+        }
+        behavior {
+            action: definedByDynamicAction
+            executeValidations: false
+        }
+    )
+
+    dynamicAction refresh-on-button-click (
+        name: Refresh_On_Button_Click
+        execution {
+            sequence: 40
+        }
+        when {
+            selectionType: button
+            button: @refresh-data
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                        central.REFRESH_EMP_REQUESTS_SUMMARY2(NVL(:P450_EMP_ID, :APP_USER));
+                    END;
+                    ```
+                itemsToSubmit: P450_EMP_ID
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-card (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @emp-profile-card
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-hub (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @unified-requests-hub
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-statement (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @attendance-statement
+            }
+            execution {
+                sequence: 40
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-on-emp-change (
+        name: Refresh_On_Emp_Change
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: P450_EMP_ID
+        }
+
+        action native-execute-plsql-code (
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    BEGIN
+                        central.REFRESH_EMP_REQUESTS_SUMMARY2(NVL(:P450_EMP_ID, :APP_USER));
+                    END;
+                    ```
+                itemsToSubmit: P450_EMP_ID
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-card (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @emp-profile-card
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-hub (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @unified-requests-hub
+            }
+            execution {
+                sequence: 30
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-statement (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @attendance-statement
+            }
+            execution {
+                sequence: 40
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-on-month-change (
+        name: Refresh_On_Month_Change
+        execution {
+            sequence: 30
+        }
+        when {
+            selectionType: items
+            items: P450_MONTH
+        }
+
+        action native-refresh-statement (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @attendance-statement
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-on-year-change (
+        name: Refresh_On_Year_Change
+        execution {
+            sequence: 20
+        }
+        when {
+            selectionType: items
+            items: P450_YEAR
+        }
+
+        action native-refresh-hub (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @unified-requests-hub
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-statement (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @attendance-statement
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process sync-summary (
+        name: SYNC_SUMMARY
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                BEGIN
+                    central.REFRESH_EMP_REQUESTS_SUMMARY2(NVL(:P450_EMP_ID, :APP_USER));
+                END;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 69672901897391569
+        }
+    )
+
+)

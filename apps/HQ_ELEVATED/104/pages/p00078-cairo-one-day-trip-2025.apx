@@ -1,0 +1,1916 @@
+page 78 (
+    name: رحلة اليوم الواحد لمدينة القاهرة لعام 2025
+    alias: CAIRO-ONE-DAY-TRIP-2025
+    title: &APP_TEXT$ONE_DAY_TRIP_TO_CAIRO_IN_2025.
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        title: &APP_TEXT$BUTTONS.
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @buttons-container
+            templateOptions: #DEFAULT#
+        }
+        settings {
+            outputAs: text
+        }
+    )
+
+    region new (
+        name: New
+        title: &APP_TEXT$NEW.
+        type: staticContent
+        source {
+            htmlCode: &APP_TEXT$PLUG_SOURCE_17!RAW.
+        }
+        layout {
+            sequence: 11
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام (
+        name: رحلة اليوم الواحد لمدينة القاهرة لعام 2025
+        title: &APP_TEXT$ONE_DAY_TRIP_TO_CAIRO_IN_2025.
+        type: form
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: PRF_ONE_DAY_TRIP_REQUEST
+        }
+        layout {
+            sequence: 21
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    region طلبي-السابق (
+        name: طلبي السابق
+        title: &APP_TEXT$MY_PREVIOUS_ORDER.
+        type: classicReport
+        source {
+            location: localDatabase
+            tableOwner: EPROMHQ
+            tableName: PRF_ONE_DAY_TRIP_REQUEST
+            whereClause: (EMPLOYEE_NUMBER = :APP_USER)
+        }
+        layout {
+            sequence: 61
+            slot: contentBody
+        }
+        appearance {
+            template: @collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+                t-Region--accent14
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                where EMPLOYEE_NUMBER = :APP_USER;
+                ```
+        }
+        componentAppearance {
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
+        }
+
+        column AGREE_DEDUCTION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column COMP1_DOB (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FIRST_DATE_OF_BIRTH.
+                alignment: center
+            }
+            layout {
+                sequence: 90
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP1_DOB is not null;
+                    ```
+            }
+        )
+
+        column COMP1_MEAL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$BREAKFAST_FOR_THE_FIRST.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @one-day-trip-meal
+            }
+            layout {
+                sequence: 80
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP1_MEAL is not null;
+                    ```
+            }
+        )
+
+        column COMP1_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THE_NAME_OF_THE_FIRST_COMPANION.
+                alignment: center
+            }
+            layout {
+                sequence: 60
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP1_NAME is not null;
+                    ```
+            }
+        )
+
+        column COMP1_RELATION (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$FIRST_KINSHIP.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @relation
+            }
+            layout {
+                sequence: 70
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP1_RELATION is not null;
+                    ```
+            }
+        )
+
+        column COMP2_DOB (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$DATE_OF_BIRTH_FOR_THE_SECOND.
+                alignment: center
+            }
+            layout {
+                sequence: 130
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP2_DOB is not null;
+                    ```
+            }
+        )
+
+        column COMP2_MEAL (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$SECOND_BREAKFAST.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @one-day-trip-meal
+            }
+            layout {
+                sequence: 120
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP2_MEAL is not null;
+                    ```
+            }
+        )
+
+        column COMP2_NAME (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME_OF_THE_SECOND_COMPANION.
+                alignment: center
+            }
+            layout {
+                sequence: 100
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP2_NAME is not null;
+                    ```
+            }
+        )
+
+        column COMP2_RELATION (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$SECOND_KINSHIP.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @relation
+            }
+            layout {
+                sequence: 110
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP2_RELATION is not null ;
+                    ```
+            }
+        )
+
+        column COMP3_DOB (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$THIRD_DATE_OF_BIRTH.
+                alignment: center
+            }
+            layout {
+                sequence: 170
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP3_DOB is not null;
+                    ```
+            }
+        )
+
+        column COMP3_MEAL (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THIRD_BREAKFAST.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @one-day-trip-meal
+            }
+            layout {
+                sequence: 160
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP3_MEAL is not null;
+                    ```
+            }
+        )
+
+        column COMP3_NAME (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME_OF_THE_THIRD_COMPANION.
+                alignment: center
+            }
+            layout {
+                sequence: 140
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP3_NAME is not null;
+                    ```
+            }
+        )
+
+        column COMP3_RELATION (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THIRD_KINSHIP.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @relation
+            }
+            layout {
+                sequence: 150
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP3_RELATION is not null;
+                    ```
+            }
+        )
+
+        column COMP4_DOB (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FOURTH_DATE_OF_BIRTH.
+                alignment: center
+            }
+            layout {
+                sequence: 210
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP4_DOB is not null;
+                    ```
+            }
+        )
+
+        column COMP4_MEAL (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$FOURTH_BREAKFAST.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @one-day-trip-meal
+            }
+            layout {
+                sequence: 200
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP4_MEAL is not null;
+                    ```
+            }
+        )
+
+        column COMP4_NAME (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME_OF_THE_FOURTH_COMPANION.
+                alignment: center
+            }
+            layout {
+                sequence: 180
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP4_NAME is not null;
+                    ```
+            }
+        )
+
+        column COMP4_RELATION (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$FOURTH_KINSHIP.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @relation
+            }
+            layout {
+                sequence: 190
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP4_RELATION is not null;
+                    ```
+            }
+        )
+
+        column COMP5_DOB (
+            reportColumnQueryId: 24
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$FIFTH_DATE_OF_BIRTH.
+                alignment: center
+            }
+            layout {
+                sequence: 250
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP5_DOB is not null
+                    ```
+            }
+        )
+
+        column COMP5_MEAL (
+            reportColumnQueryId: 23
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$FIFTH_BREAKFAST.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @one-day-trip-meal
+            }
+            layout {
+                sequence: 240
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP5_MEAL is not null;
+                    ```
+            }
+        )
+
+        column COMP5_NAME (
+            reportColumnQueryId: 21
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$NAME_OF_THE_FIFTH_COMPANION.
+                alignment: center
+            }
+            layout {
+                sequence: 220
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP5_NAME is not null;
+                    ```
+            }
+        )
+
+        column COMP5_RELATION (
+            reportColumnQueryId: 22
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$FIFTH_KINSHIP.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @relation
+            }
+            layout {
+                sequence: 230
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select 1
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and COMP5_RELATION is not null;
+                    ```
+            }
+        )
+
+        column CREATED_BY (
+            reportColumnQueryId: 26
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 270
+            }
+        )
+
+        column CREATED_DATE (
+            reportColumnQueryId: 25
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 260
+            }
+        )
+
+        column EMPLOYEE_NUMBER (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column PERSONAL_MEAL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$EMPLOYEE_BREAKFAST.
+                alignment: center
+            }
+            lov {
+                type: sharedComponent
+                lov: @one-day-trip-meal
+            }
+            layout {
+                sequence: 40
+                columnAlignment: center
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select EMPLOYEE_NUMBER
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and PERSONAL_MEAL is not null;
+                    ```
+            }
+        )
+
+        column TRANS (
+            reportColumnQueryId: 27
+            derivedColumn: N
+            heading {
+                heading: &APP_TEXT$TRANSFERS.
+            }
+            layout {
+                sequence: 50
+            }
+            serverSideCondition {
+                type: rowsReturned
+                sqlQuery:
+                    ```sql
+                    select Trans
+                    from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                    where EMPLOYEE_NUMBER = :APP_USER and TRANS is not null;
+                    ```
+            }
+        )
+
+    )
+
+    pageItem P78_AGREE_DEDUCTION (
+        type: checkbox
+        label {
+            label: &APP_TEXT$PROMPT_1!RAW.
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+        }
+        layout {
+            sequence: 40
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: AGREE_DEDUCTION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP1_DOB (
+        type: datePicker
+        label {
+            label: &APP_TEXT$DATE_OF_BIRTH_FOR_THE_FIRST.
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            formatMask: YYYY-MM-DD
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP1_DOB
+            dataType: date
+        }
+    )
+
+    pageItem P78_COMP1_MEAL (
+        type: selectList
+        label {
+            label: &APP_TEXT$BREAKFAST_FOR_THE_FIRST.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @one-day-trip-meal
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 110
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP1_MEAL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP1_NAME (
+        type: textField
+        label {
+            label: &APP_TEXT$THE_NAME_OF_THE_FIRST_COMPANION.
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 100
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP1_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP1_RELATION (
+        type: selectList
+        label {
+            label: &APP_TEXT$FIRST_KINSHIP.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @relation
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 100
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP1_RELATION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP2_DOB (
+        type: datePicker
+        label {
+            label: &APP_TEXT$DATE_OF_BIRTH_FOR_THE_SECOND.
+            alignment: left
+        }
+        layout {
+            sequence: 160
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            formatMask: YYYY-MM-DD
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP2_DOB
+            dataType: date
+        }
+    )
+
+    pageItem P78_COMP2_MEAL (
+        type: selectList
+        label {
+            label: &APP_TEXT$SECOND_BREAKFAST.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @one-day-trip-meal
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 150
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP2_MEAL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP2_NAME (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME_OF_THE_SECOND_COMPANION.
+            alignment: left
+        }
+        layout {
+            sequence: 130
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 100
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP2_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP2_RELATION (
+        type: selectList
+        label {
+            label: &APP_TEXT$SECOND_KINSHIP.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @relation
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 140
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP2_RELATION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP3_DOB (
+        type: datePicker
+        label {
+            label: &APP_TEXT$DATE_OF_BIRTH_FOR_THE_THIRD.
+            alignment: left
+        }
+        layout {
+            sequence: 200
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            formatMask: YYYY-MM-DD
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP3_DOB
+            dataType: date
+        }
+    )
+
+    pageItem P78_COMP3_MEAL (
+        type: selectList
+        label {
+            label: &APP_TEXT$THIRD_BREAKFAST.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @one-day-trip-meal
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 190
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP3_MEAL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP3_NAME (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME_OF_THE_THIRD_COMPANION.
+            alignment: left
+        }
+        layout {
+            sequence: 170
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 100
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP3_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP3_RELATION (
+        type: selectList
+        label {
+            label: &APP_TEXT$THIRD_KINSHIP.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @relation
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 180
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP3_RELATION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP4_DOB (
+        type: datePicker
+        label {
+            label: &APP_TEXT$DATE_OF_BIRTH_OF_THE_FOURTH.
+            alignment: left
+        }
+        layout {
+            sequence: 240
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            formatMask: YYYY-MM-DD
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP4_DOB
+            dataType: date
+        }
+    )
+
+    pageItem P78_COMP4_MEAL (
+        type: selectList
+        label {
+            label: &APP_TEXT$FOURTH_BREAKFAST.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @one-day-trip-meal
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 230
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP4_MEAL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP4_NAME (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME_OF_THE_FOURTH_COMPANION.
+            alignment: left
+        }
+        layout {
+            sequence: 210
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 100
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP4_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP4_RELATION (
+        type: selectList
+        label {
+            label: &APP_TEXT$FOURTH_KINSHIP.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @relation
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 220
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP4_RELATION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP5_DOB (
+        type: datePicker
+        label {
+            label: &APP_TEXT$DATE_OF_BIRTH_OF_THE_FIFTH.
+            alignment: left
+        }
+        layout {
+            sequence: 280
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            formatMask: YYYY-MM-DD
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP5_DOB
+            dataType: date
+        }
+    )
+
+    pageItem P78_COMP5_MEAL (
+        type: selectList
+        label {
+            label: &APP_TEXT$FIFTH_BREAKFAST.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @one-day-trip-meal
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 270
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP5_MEAL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP5_NAME (
+        type: textField
+        label {
+            label: &APP_TEXT$NAME_OF_THE_FIFTH_COMPANION.
+            alignment: left
+        }
+        layout {
+            sequence: 250
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 100
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP5_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_COMP5_RELATION (
+        type: selectList
+        label {
+            label: &APP_TEXT$FIFTH_KINSHIP.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @relation
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 260
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: COMP5_RELATION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_CREATED_BY (
+        type: hidden
+        layout {
+            sequence: 300
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: CREATED_BY
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :app_user
+        }
+    )
+
+    pageItem P78_CREATED_DATE (
+        type: hidden
+        layout {
+            sequence: 290
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: CREATED_DATE
+            dataType: date
+        }
+        default {
+            type: expression
+            plsqlExpression: Sysdate
+        }
+    )
+
+    pageItem P78_EMPLOYEE_NUMBER (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: EMPLOYEE_NUMBER
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :app_user
+        }
+    )
+
+    pageItem P78_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P78_PERSONAL_MEAL (
+        type: selectList
+        label {
+            label: &APP_TEXT$EMPLOYEE_BREAKFAST.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @one-day-trip-meal
+        }
+        layout {
+            sequence: 60
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: PERSONAL_MEAL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P78_TRANS (
+        type: selectList
+        label {
+            label: &APP_TEXT$CHOOSE_TRANSFERS.
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @transportaion
+        }
+        layout {
+            sequence: 70
+            region: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+            column: TRANS
+            dataType: varchar2
+        }
+    )
+
+    button alert (
+        buttonName: ALERT
+        label: &APP_TEXT$DOWNLOAD_NOTICE.
+        layout {
+            sequence: 41
+            slot: contentBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--success
+                t-Button--stretch
+                t-Button--padLeft
+                t-Button--padRight
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: #APP_FILES#WhatsApp Image 2025-10-01 at 4.25.58 PM.jpeg
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$PRESENTATION.
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P78_ID
+        }
+    )
+
+    button delete (
+        buttonName: Delete
+        label: &APP_TEXT$DELETE_THE_REQUEST_FOR_MODIFICATION.
+        layout {
+            sequence: 71
+            slot: contentBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--stretch
+                t-Button--padLeft
+                t-Button--padRight
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1
+                from Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                where EMPLOYEE_NUMBER = :APP_USER;
+                ```
+        }
+    )
+
+    button download-word (
+        buttonName: Download_word
+        label: &APP_TEXT$DOWNLOAD_THE_ADVERTISEMENT_IN_WORD.
+        layout {
+            sequence: 31
+            slot: contentBody
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--success
+                t-Button--stretch
+                t-Button--padLeft
+                t-Button--padRight
+                t-Button--gapTop
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: /apex/hq_elevated/g/attach/c9f0f895fb98ab9159f51fd0297e236d
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$APPLY_CHANGES.
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P78_ID
+        }
+    )
+
+    dynamicAction comp (
+        name: Comp1
+        execution {
+            sequence: 20
+        }
+        when {
+            selectionType: items
+            items: P78_COMP1_RELATION
+        }
+        clientSideCondition {
+            type: item>=value
+            item: P78_COMP1_RELATION
+            value: 1
+        }
+
+        action native-hide (
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: P78_COMP1_DOB
+            }
+            execution {
+                sequence: 10
+                fireWhenEventResultIs: false
+            }
+        )
+
+        action native-show (
+            action: show
+            affectedElements {
+                selectionType: items
+                items: P78_COMP1_DOB
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction comp-2 (
+        name: ComP3
+        execution {
+            sequence: 40
+        }
+        when {
+            selectionType: items
+            items: P78_COMP3_RELATION
+        }
+        clientSideCondition {
+            type: item>=value
+            item: P78_COMP3_RELATION
+            value: 1
+        }
+
+        action native-hide (
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: P78_COMP3_DOB
+            }
+            execution {
+                sequence: 10
+                fireWhenEventResultIs: false
+            }
+        )
+
+        action native-show (
+            action: show
+            affectedElements {
+                selectionType: items
+                items: P78_COMP3_DOB
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction comp-3 (
+        name: COMP4
+        execution {
+            sequence: 50
+        }
+        when {
+            selectionType: items
+            items: P78_COMP4_RELATION
+        }
+        clientSideCondition {
+            type: item>=value
+            item: P78_COMP4_RELATION
+            value: 1
+        }
+
+        action native-hide (
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: P78_COMP4_DOB
+            }
+            execution {
+                sequence: 10
+                fireWhenEventResultIs: false
+            }
+        )
+
+        action native-show (
+            action: show
+            affectedElements {
+                selectionType: items
+                items: P78_COMP4_DOB
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction comp-4 (
+        name: COMP5
+        execution {
+            sequence: 60
+        }
+        when {
+            selectionType: items
+            items: P78_COMP5_RELATION
+        }
+        clientSideCondition {
+            type: item>=value
+            item: P78_COMP5_RELATION
+            value: 1
+        }
+
+        action native-hide (
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: P78_COMP5_DOB
+            }
+            execution {
+                sequence: 10
+                fireWhenEventResultIs: false
+            }
+        )
+
+        action native-show (
+            action: show
+            affectedElements {
+                selectionType: items
+                items: P78_COMP5_DOB
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction copm (
+        name: Copm2
+        execution {
+            sequence: 30
+        }
+        when {
+            selectionType: items
+            items: P78_COMP2_RELATION
+        }
+        clientSideCondition {
+            type: item>=value
+            item: P78_COMP2_RELATION
+            value: 1
+        }
+
+        action native-hide (
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: P78_COMP2_DOB
+            }
+            execution {
+                sequence: 10
+                fireWhenEventResultIs: false
+            }
+        )
+
+        action native-show (
+            action: show
+            affectedElements {
+                selectionType: items
+                items: P78_COMP2_DOB
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    validation validation (
+        name: Validation
+        execution {
+            sequence: 10
+        }
+        validation {
+            language: sql
+            sqlExpression:
+                ```sql
+                NOT EXISTS (
+                  SELECT 1 
+                  FROM Epromhq.PRF_ONE_DAY_TRIP_REQUEST
+                  WHERE EMPLOYEE_NUMBER = :P78_EMPLOYEE_NUMBER
+                )
+                ```
+        }
+        error {
+            errorMessage: &APP_TEXT$THE_APPLICATION_HAS_ALREADY_BEEN_SUBMITTED_AND_CANNOT_BE_APPLIED_AGAIN.
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 30
+        }
+        advanced {
+            executionMappingIdentifier: 142669779780613530
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process delete-to-edit (
+        name: delete to edit
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin 
+                delete from epromhq.PRF_ONE_DAY_TRIP_REQUEST 
+                where EMPLOYEE_NUMBER = :APP_USER;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 104956926330377722
+        }
+        serverSideCondition {
+            whenButtonPressed: @delete
+        }
+    )
+
+    process initialize-form-رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام (
+        name: Initialize form رحلة اليوم الواحد لمدينة القاهرة لعام 2025
+        type: formInitialization
+        formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 142668916746613530
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode: :P78_EMPLOYEE_NUMBER := :APP_USER;
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 145815156217290003
+        }
+    )
+
+    process process-form-رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام (
+        name: Process form رحلة اليوم الواحد لمدينة القاهرة لعام 2025
+        type: formAutoRowProcessing
+        formRegion: @رحلة-اليوم-الواحد-لمدينة-القاهرة-لعام
+        execution {
+            sequence: 20
+        }
+        successMessage {
+            successMessage: &APP_TEXT$YOUR_FLIGHT_REQUEST_HAS_BEEN_SUBMITTED.
+        }
+        advanced {
+            executionMappingIdentifier: 142669385803613530
+        }
+        serverSideCondition {
+            whenButtonPressed: @create
+        }
+    )
+
+)

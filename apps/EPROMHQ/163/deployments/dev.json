@@ -1,0 +1,12 @@
+{
+  "workspace": {
+    "name": "EPROMHQ"
+  },
+  "app": {
+    "id": 163,
+    "databaseSession": {
+      "parsingSchema": "EPROMHQ"
+    }
+  }
+}
+

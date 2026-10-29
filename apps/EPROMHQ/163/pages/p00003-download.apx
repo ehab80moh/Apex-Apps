@@ -1,0 +1,96 @@
+page 3 (
+    name: "Download Attachments "
+    alias: DOWNLOAD
+    title: Download Attachments
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    pageItem P3_COMPANY_NAME (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: body
+        }
+    )
+
+    pageItem P3_SUPPLIER_ID (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+    )
+
+    process download (
+        name: Download
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_zip blob;
+                    l_company_name varchar2(999);
+                begin
+                    -- allocate a temporary BLOB for the zip
+                    dbms_lob.createtemporary(l_zip, true);
+                select s.company_name 
+                into l_company_name from sup_suppliers s
+                        where s.supplier_id = :P3_SUPPLIER_ID
+                        ;  
+                        
+                    -- add all attachments for the supplier
+                    for rec in (
+                        select  nvl(s.company_name||' - '||file_name, a.supplier_id||'-'||a.static_name) as zip_name,
+                               file_content
+                        from sup_suppliers_attaches a, sup_suppliers s
+                        where a.supplier_id = :P3_SUPPLIER_ID
+                        and   a.supplier_id = s.supplier_id
+                
+                    ) loop
+                        if rec.file_content is not null
+                           and dbms_lob.getlength(rec.file_content) > 0 then
+                            apex_zip.add_file(
+                                p_zipped_blob => l_zip,
+                                p_file_name   => rec.zip_name,
+                                p_content     => rec.file_content
+                            );
+                        end if;
+                    end loop;
+                
+                    -- finalize the zip
+                    apex_zip.finish(l_zip);
+                
+                    -- stream it to the browser
+                    sys.htp.init;
+                    owa_util.mime_header('application/zip', false);
+                    htp.p('Content-Disposition: attachment; filename="'||l_company_name ||'_attachments.zip"');
+                    owa_util.http_header_close;
+                    wpg_docload.download_file(l_zip);
+                
+                    -- stop APEX from rendering the page
+                    apex_application.g_unrecoverable_error := true;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 135400725585219648
+        }
+    )
+
+)

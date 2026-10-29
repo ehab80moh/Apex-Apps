@@ -1,0 +1,568 @@
+page 402 (
+    name: complaint_admin
+    alias: COMPLAINT-ADMIN
+    title: &APP_TEXT$COMPLAINTADMIN.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region complaint-admin (
+        name: complaint_admin
+        title: &APP_TEXT$COMPLAINTADMIN.
+        type: interactiveReport
+        source {
+            location: localDatabase
+            tableName: CMPL_COMPLAINTS
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 403
+                items: {
+                    P403_COMPLAINT_ID: \#COMPLAINT_ID#\
+                }
+                action: resetPagination
+            }
+            linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: &APP_TEXT$NO_DATA_FOUND_1.
+            whenMoreDataFound: "&{MAX_ROW_COUNT_MESSAGE MAX_ROW_COUNT=#MAX_ROW_COUNT#}."
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        actionsMenu {
+            rowsPerPage: false
+            savePublicReport: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 240256752259530487
+        }
+
+        column ACCEPT_CONTACT (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$AGREE_TO_COMMUNICATE.
+                alignment: center
+            }
+            lov {
+                lov: @yes-no-0-1-ar-en
+            }
+            layout {
+                sequence: 55
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: O
+            }
+        )
+
+        column ACTION_TAKEN_OR_RESP_DEPT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$WHAT_WAS_DONE_RESPONSIBLE_MANAGEMENT.
+                alignment: center
+            }
+            layout {
+                sequence: 165
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: T
+            }
+        )
+
+        column CATEGORY_ID (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$CATEGORY.
+                alignment: center
+            }
+            lov {
+                lov: @cmpl-categories-name-ar-en
+            }
+            layout {
+                sequence: 4
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            columnFilter {
+                type: defaultBasedOnColumnType
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column COMPLAINT_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DATE_OF_COMPLAINT.
+                alignment: center
+            }
+            layout {
+                sequence: 75
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column COMPLAINT_ID (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$COMPLAINT_ID.
+            }
+            layout {
+                sequence: 0
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column CREATED_AT (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$CONSTRUCTION_TIME.
+            }
+            layout {
+                sequence: 95
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column CREATED_BY (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$CREATED_BY.
+            }
+            layout {
+                sequence: 85
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        column DESCRIPTION_AR (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$COMPLAINT.
+                alignment: center
+            }
+            layout {
+                sequence: 25
+                columnAlignment: center
+            }
+            source {
+                dataType: CLOB
+            }
+            columnFilter {
+                type: none
+            }
+            advanced {
+                endUserAlias: F
+            }
+            enableUsersTo {
+                sort: false
+                controlBreak: false
+                aggregate: false
+                compute: false
+                chart: false
+                groupBy: false
+                pivot: false
+            }
+        )
+
+        column DESCRIPTION_EN (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$DESCRIPTION_EN.
+            }
+            layout {
+                sequence: 35
+            }
+            source {
+                dataType: CLOB
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column EMAIL (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$EMAIL.
+            }
+            layout {
+                sequence: 3
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column EVIDENCE_CHECK (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SUPPORTING_EVIDENCE.
+                alignment: center
+            }
+            layout {
+                sequence: 125
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: P
+            }
+        )
+
+        column HIDE_IDENTITY_FLAG (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$HIDE_YOUR_IDENTITY.
+                alignment: center
+            }
+            lov {
+                lov: @yes-no-0-1-ar-en
+            }
+            layout {
+                sequence: 45
+                columnAlignment: center
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column PHONE (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$PHONE.
+            }
+            layout {
+                sequence: 2
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column RECEIVED_BY (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$RECEIVED_BY.
+                alignment: center
+            }
+            layout {
+                sequence: 135
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: Q
+            }
+        )
+
+        column RECEIVED_DATE (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$DATE_OF_RECEIPT.
+                alignment: center
+            }
+            layout {
+                sequence: 145
+                columnAlignment: center
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: R
+            }
+        )
+
+        column REFERENCE_NO (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$REFERENCE_NUMBER.
+                alignment: center
+            }
+            layout {
+                sequence: 155
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: S
+            }
+        )
+
+        column STATUS_CODE (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$THE_CONDITION.
+                alignment: center
+            }
+            lov {
+                lov: @cmpl-status-lov-name-ar
+            }
+            layout {
+                sequence: 65
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            columnFilter {
+                type: defaultBasedOnColumnType
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column SUBCATEGORY_ID (
+            type: plainTextBasedOnLov
+            heading {
+                heading: &APP_TEXT$SUBCATEGORY.
+                alignment: center
+            }
+            lov {
+                lov: @cmpl-subcategories-name-ar-en-full
+            }
+            layout {
+                sequence: 5
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            columnFilter {
+                type: defaultBasedOnColumnType
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column SUBCATEGORY_TEXT (
+            type: plainText
+            heading {
+                heading: &APP_TEXT$SUBCATEGORY.
+                alignment: center
+            }
+            layout {
+                sequence: 15
+                columnAlignment: center
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: N
+            }
+        )
+
+        column UPDATED_AT (
+            type: hidden
+            heading {
+                heading: &APP_TEXT$UPDATE_TIME.
+            }
+            layout {
+                sequence: 105
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: &APP_TEXT$COMPLAINTADMIN.
+        }
+
+        savedReport 2402730 (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn ACCEPT_CONTACT (
+                sequence: 10
+            )
+
+            displayColumn ACTION_TAKEN_OR_RESP_DEPT (
+                sequence: 20
+            )
+
+            displayColumn CATEGORY_ID (
+                sequence: 4
+            )
+
+            displayColumn COMPLAINT_DATE (
+                sequence: 12
+            )
+
+            displayColumn COMPLAINT_ID (
+                sequence: 1
+            )
+
+            displayColumn CREATED_AT (
+                sequence: 14
+            )
+
+            displayColumn CREATED_BY (
+                sequence: 13
+            )
+
+            displayColumn DESCRIPTION_AR (
+                sequence: 7
+            )
+
+            displayColumn DESCRIPTION_EN (
+                sequence: 8
+            )
+
+            displayColumn EMAIL (
+                sequence: 3
+            )
+
+            displayColumn EVIDENCE_CHECK (
+                sequence: 16
+            )
+
+            displayColumn HIDE_IDENTITY_FLAG (
+                sequence: 9
+            )
+
+            displayColumn PHONE (
+                sequence: 2
+            )
+
+            displayColumn RECEIVED_BY (
+                sequence: 17
+            )
+
+            displayColumn RECEIVED_DATE (
+                sequence: 18
+            )
+
+            displayColumn REFERENCE_NO (
+                sequence: 19
+            )
+
+            displayColumn STATUS_CODE (
+                sequence: 11
+            )
+
+            displayColumn SUBCATEGORY_ID (
+                sequence: 5
+            )
+
+            displayColumn SUBCATEGORY_TEXT (
+                sequence: 6
+            )
+
+            displayColumn UPDATED_AT (
+                sequence: 15
+            )
+
+        )
+
+    )
+
+    dynamicAction edit-report-dialog-closed (
+        name: Edit Report - Dialog Closed
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @complaint-admin
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @complaint-admin
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

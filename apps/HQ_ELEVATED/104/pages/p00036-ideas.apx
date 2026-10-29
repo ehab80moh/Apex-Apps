@@ -1,0 +1,429 @@
+page 36 (
+    name: لديك فكرة ؟
+    alias: IDEAS
+    title: &APP_TEXT$DO_YOU_HAVE_AN_IDEA.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        fileUrls: #APP_FILES#1000_F_388555580_QHMvCVulvHQuMHEi0OSl4OQD4whtqH67.jpg
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region لديك-فكرة (
+        name: "لديك فكرة ؟ "
+        title: &APP_TEXT$DO_YOU_HAVE_AN_IDEA.
+        type: form
+        source {
+            location: localDatabase
+            tableName: EMP_IDEAS
+        }
+        layout {
+            sequence: 21
+            slot: body
+        }
+        appearance {
+            template: @standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--noBorder
+                t-Region--scrollBody
+                t-Form--large
+                t-Form--stretchInputs
+            ]
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P36_CREATED_AT (
+        type: hidden
+        layout {
+            sequence: 120
+            region: @لديك-فكرة
+            slot: regionBody
+        }
+        source {
+            formRegion: @لديك-فكرة
+            column: CREATED_AT
+            dataType: date
+        }
+        default {
+            type: expression
+            plsqlExpression: sysdate
+        }
+    )
+
+    pageItem P36_CREATED_BY (
+        type: hidden
+        layout {
+            sequence: 130
+            region: @لديك-فكرة
+            slot: regionBody
+        }
+        source {
+            formRegion: @لديك-فكرة
+            column: CREATED_BY
+            dataType: varchar2
+        }
+        default {
+            type: expression
+            plsqlExpression: :APP_USER
+        }
+    )
+
+    pageItem P36_HIDE_EMP (
+        type: switch
+        label {
+            label: &APP_TEXT$REQUEST_TO_HIDE_MY_DATA.
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            onValue: 1
+            onLabel: &APP_TEXT$HIDE_MY_DATA.
+            offValue: 0
+            offLabel: &APP_TEXT$SHOW_MY_DATA.
+        }
+        layout {
+            sequence: 70
+            region: @لديك-فكرة
+            slot: regionBody
+            alignment: left
+            column: 4
+            columnSpan: 6
+            labelColumnSpan: 1
+        }
+        appearance {
+            template: @optional
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--xlarge
+            ]
+        }
+        source {
+            formRegion: @لديك-فكرة
+            column: HIDE_EMP
+            dataType: number
+        }
+    )
+
+    pageItem P36_IDEA_BODY (
+        type: textarea
+        label {
+            label: &APP_TEXT$DESCRIPTION_OF_THE_IDEA.
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @لديك-فكرة
+            slot: regionBody
+            alignment: left
+            column: 4
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+            width: 99
+            height: 4
+        }
+        validation {
+            valueRequired: true
+            maxLength: 4000
+        }
+        source {
+            formRegion: @لديك-فكرة
+            column: IDEA_BODY
+            dataType: varchar2
+        }
+    )
+
+    pageItem P36_IDEA_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @لديك-فكرة
+            slot: regionBody
+        }
+        source {
+            formRegion: @لديك-فكرة
+            column: IDEA_ID
+            dataType: number
+            queryOnly: true
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P36_IDEA_STATUS (
+        type: hidden
+        layout {
+            sequence: 110
+            region: @لديك-فكرة
+            slot: regionBody
+        }
+        source {
+            formRegion: @لديك-فكرة
+            column: IDEA_STATUS
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: pending
+        }
+    )
+
+    pageItem P36_IDEA_TITLE (
+        type: textField
+        label {
+            label: &APP_TEXT$IDEA_TITLE.
+            alignment: left
+        }
+        settings {
+            trimSpaces: none
+        }
+        layout {
+            sequence: 40
+            region: @لديك-فكرة
+            slot: regionBody
+            alignment: left
+            column: 4
+            columnSpan: 6
+        }
+        appearance {
+            template: @required-floating
+            templateOptions: [
+                #DEFAULT#
+                t-Form-fieldContainer--stretchInputs
+            ]
+            cssClasses: u-pullRight
+            width: 99
+        }
+        validation {
+            valueRequired: true
+            maxLength: 99
+        }
+        source {
+            formRegion: @لديك-فكرة
+            column: IDEA_TITLE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P36_NEW (
+        type: displayOnly
+        label {
+            alignment: left
+        }
+        settings {
+            format: htmlUnsafe
+            sendOnPageSubmit: false
+        }
+        layout {
+            sequence: 30
+            region: @لديك-فكرة
+            slot: regionBody
+            alignment: left
+            column: 4
+            columnSpan: 6
+        }
+        advanced {
+            preText: "&{PRE_ELEMENT_TEXT_1 APP_FILES=#APP_FILES#}!RAW."
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: &APP_TEXT$CANCEL.
+        layout {
+            sequence: 90
+            region: @لديك-فكرة
+            slot: regionBody
+            startNewRow: false
+            columnSpan: 2
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--danger
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 1
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button create (
+        buttonName: CREATE
+        label: &APP_TEXT$SUBMIT_THE_IDEA.
+        layout {
+            sequence: 80
+            region: @لديك-فكرة
+            slot: regionBody
+            column: 4
+            columnSpan: 4
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--success
+                t-Button--stretch
+                t-Button--gapBottom
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P36_IDEA_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: &APP_TEXT$DELETE.
+        layout {
+            sequence: 20
+            region: @لديك-فكرة
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P36_IDEA_ID
+        }
+    )
+
+    button go-to-report (
+        buttonName: go_to_report
+        label: &APP_TEXT$SHOW_ALL_IDEAS.
+        layout {
+            sequence: 11
+            slot: body
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--large
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 136
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        security {
+            authorizationScheme: @super-duper
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: &APP_TEXT$APPLY_CHANGES.
+        layout {
+            sequence: 10
+            region: @لديك-فكرة
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P36_IDEA_ID
+        }
+    )
+
+    process initialize-form-ideas (
+        name: Initialize form ideas
+        type: formInitialization
+        formRegion: @لديك-فكرة
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 26838356777997606
+        }
+    )
+
+    process process-form-ideas (
+        name: Process form ideas
+        type: formAutoRowProcessing
+        formRegion: @لديك-فكرة
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 26838734444997606
+        }
+    )
+
+    branch (
+        execution {
+            sequence: 1
+        }
+        behavior {
+            target: {
+                page: 1
+            }
+        }
+    )
+
+)

@@ -1,0 +1,529 @@
+page 703 (
+    name: coordinator-dashboard
+    alias: COORDINATOR-DASHBOARD
+    title: &APP_TEXT$PORTAL_PAGE_703_TITLE.
+    appearance {
+        pageTemplate: @standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @it-request-coordinator
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region all-requests (
+        name: All IT Requests
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select r.REQUEST_ID,
+                       r.REQUEST_NO,
+                       r.EMP_ID,
+                       r.EMP_INTERNAL_NUMBER,
+                       central.get_emp_name(r.EMP_ID) as REQUESTER_NAME,
+                       r.DESCRIPTION,
+                       r.REQUEST_DATE,
+                       t.name as CATEGORY,
+                       d.title as SUBCATEGORY,
+                       r.CRITICALITY,
+                       case
+                           when r.STATUS = 10 then 'Pending Approval'
+                           when r.STATUS = 20 then 'Approved - Pending Assignment'
+                           when r.STATUS = 100 then 'Assigned to Team'
+                           when r.STATUS = 110 then 'In Progress'
+                           when r.STATUS = 120 then 'On-Hold (Pending Re-assignment)'
+                           when r.STATUS = 130 then 'Awaiting User Verification'
+                           when r.STATUS = 140 then 'Rejected'
+                           when r.STATUS = 150 then 'Completed'
+                           when r.STATUS = 160 then 'Cancelled'
+                           else 'Unknown'
+                       end as STATUS_LABEL,
+                       r.STATUS,
+                       st.name as SUGGESTED_TEAM,
+                       at.name as ASSIGNED_TEAM,
+                       r.ASSIGNED_TO,
+                       r.SUB_STATUS
+                  from ITR_REQUESTS r
+                  left join ITR_REQUEST_TYPES t on r.REQUEST_TYPE = t.id
+                  left join ITR_REQUEST_TYPE_DETAILS d on r.REQUEST_TYPE_DETAIL_ID = d.id
+                  left join ITR_TEAMS st on r.SUGGESTED_TEAM_ID = st.id
+                  left join ITR_TEAMS at on r.ASSIGNED_TEAM_ID = at.id
+                 where :P703_STATUS_FILTER is null
+                    or (:P703_STATUS_FILTER = 'ACTIVE' and r.STATUS not in (140, 150, 160))
+                    or (:P703_STATUS_FILTER = 'URGENT' and r.CRITICALITY = 'urgent' and r.STATUS not in (140, 150, 160))
+                    or (:P703_STATUS_FILTER = 'PENDING' and r.STATUS in (20, 120))
+                    or (:P703_STATUS_FILTER = 'IN_PROGRESS' and r.STATUS = 110)
+                 order by r.REQUEST_DATE desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @interactive-report
+            templateOptions: #DEFAULT#
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 705
+                items: {
+                    P705_REQUEST_ID: \#REQUEST_ID#\
+                }
+                clearCache: 705
+            }
+            linkIcon: <span class="fa fa-edit" aria-hidden="true" title="Manage Request"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        performance {
+            maxRowsToProcess: 1000
+        }
+        searchBar {
+            rowsPerPageSelector: true
+        }
+        advanced {
+            savedReportMappingIdentifier: 34419848267321343
+        }
+
+        column ASSIGNED_TEAM (
+            type: plainText
+            heading {
+                heading: Assigned Team
+            }
+            layout {
+                sequence: 120
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column ASSIGNED_TO (
+            type: plainText
+            heading {
+                heading: Assigned To
+            }
+            layout {
+                sequence: 130
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        column CATEGORY (
+            type: plainText
+            heading {
+                heading: Category
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column CRITICALITY (
+            type: plainText
+            heading {
+                heading: Criticality
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column DESCRIPTION (
+            type: plainText
+            heading {
+                heading: Description
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column EMP_ID (
+            type: plainText
+            heading {
+                heading: Employee No
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column EMP_INTERNAL_NUMBER (
+            type: plainText
+            heading {
+                heading: Internal Extension
+            }
+            layout {
+                sequence: 35
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: N
+            }
+        )
+
+        column REQUESTER_NAME (
+            type: plainText
+            heading {
+                heading: Requester Name
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column REQUEST_DATE (
+            type: plainText
+            heading {
+                heading: Request Date
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column REQUEST_ID (
+            type: hidden
+            heading {
+                heading: Request ID
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column REQUEST_NO (
+            type: plainText
+            heading {
+                heading: Request No
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column STATUS_LABEL (
+            type: plainText
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 100
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column SUBCATEGORY (
+            type: plainText
+            heading {
+                heading: Subcategory
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column SUGGESTED_TEAM (
+            type: plainText
+            heading {
+                heading: Suggested Team
+            }
+            layout {
+                sequence: 110
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn ASSIGNED_TEAM (
+                sequence: 12
+            )
+
+            displayColumn ASSIGNED_TO (
+                sequence: 13
+            )
+
+            displayColumn CATEGORY (
+                sequence: 7
+            )
+
+            displayColumn CRITICALITY (
+                sequence: 9
+            )
+
+            displayColumn DESCRIPTION (
+                sequence: 5
+            )
+
+            displayColumn EMP_ID (
+                sequence: 3
+            )
+
+            displayColumn EMP_INTERNAL_NUMBER (
+                sequence: 14
+            )
+
+            displayColumn REQUESTER_NAME (
+                sequence: 4
+            )
+
+            displayColumn REQUEST_DATE (
+                sequence: 6
+            )
+
+            displayColumn REQUEST_ID (
+                sequence: 1
+            )
+
+            displayColumn REQUEST_NO (
+                sequence: 2
+            )
+
+            displayColumn STATUS_LABEL (
+                sequence: 10
+            )
+
+            displayColumn SUBCATEGORY (
+                sequence: 8
+            )
+
+            displayColumn SUGGESTED_TEAM (
+                sequence: 11
+            )
+
+        )
+
+    )
+
+    region metrics (
+        name: Overview
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 'Active Requests' as title,
+                       count(*) as value,
+                       'fa-tasks' as icon,
+                       'u-color-1' as color,
+                       'ACTIVE' as filter_key
+                  from ITR_REQUESTS
+                 where status not in (140, 150, 160)
+                union all
+                select 'Urgent Requests' as title,
+                       count(*) as value,
+                       'fa-exclamation-triangle' as icon,
+                       'u-color-2' as color,
+                       'URGENT' as filter_key
+                  from ITR_REQUESTS
+                 where criticality = 'urgent'
+                   and status not in (140, 150, 160)
+                union all
+                select 'Pending Assignment' as title,
+                       count(*) as value,
+                       'fa-user-clock' as icon,
+                       'u-color-3' as color,
+                       'PENDING' as filter_key
+                  from ITR_REQUESTS
+                 where status in (20, 120)
+                union all
+                select 'In Progress' as title,
+                       count(*) as value,
+                       'fa-spinner fa-spin' as icon,
+                       'u-color-4' as color,
+                       'IN_PROGRESS' as filter_key
+                  from ITR_REQUESTS
+                 where status = 110
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @cards-container
+            templateOptions: [
+                #DEFAULT#
+                t-CardsRegion--styleB
+            ]
+        }
+        componentAppearance {
+            gridColumns: 4
+        }
+        card {
+            primaryKeyColumn1: TITLE
+        }
+        title {
+            column: TITLE
+        }
+        body {
+            column: VALUE
+        }
+        iconAndBadge {
+            iconSource: iconClassColumn
+            iconColumn: ICON
+        }
+
+        action filter-action (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 703
+                    items: {
+                        P703_STATUS_FILTER: &FILTER_KEY.
+                    }
+                }
+            }
+        )
+
+    )
+
+    pageItem P703_STATUS_FILTER (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @all-requests
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    dynamicAction refresh-on-close (
+        name: Refresh on Modal Close
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @all-requests
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @all-requests
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action native-refresh-metrics (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @metrics
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)

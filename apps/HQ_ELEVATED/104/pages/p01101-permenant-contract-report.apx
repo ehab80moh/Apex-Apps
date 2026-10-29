@@ -10,7 +10,6 @@ page 1101 (
         cursorFocus: doNotFocusCursor
     }
     security {
-        authorizationScheme: @admin
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
@@ -24,7 +23,7 @@ page 1101 (
             type: sqlQuery
             sqlQuery:
                 ```sql
-                SELECT q.emp_num AS employee_number, q.full_name, q.job AS pos, q.project, q.emp_num AS emp_no
+                SELECT q.emp_num AS employee_number, q.full_name, q.job AS job, q.project, q.emp_num AS emp_num,q.start_date,q.contract_start_date,q.qual
                 FROM (
                 /*CONTRACT_DATA_BEGIN*/
                 SELECT
@@ -105,7 +104,7 @@ page 1101 (
                 ```
         }
         layout {
-            sequence: 51
+            sequence: 100
             slot: body
         }
         appearance {
@@ -128,6 +127,20 @@ page 1101 (
             type: nextAndPreviousLinks
         }
 
+        column CONTRACT_START_DATE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Contract Start Date
+            }
+            layout {
+                sequence: 80
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
         column EMPLOYEE_NUMBER (
             reportColumnQueryId: 1
             derivedColumn: N
@@ -144,7 +157,7 @@ page 1101 (
             }
         )
 
-        column EMP_NO (
+        column EMP_NUM (
             reportColumnQueryId: 5
             derivedColumn: N
             heading {
@@ -152,11 +165,10 @@ page 1101 (
                 alignment: center
             }
             layout {
-                sequence: 50
-                columnAlignment: center
+                sequence: 110
             }
             columnFormatting {
-                htmlExpression: <button type='button' class='t-Button t-Button--small sh-rp' data-id='#EMPLOYEE_NUMBER#' title='تحميل العقد'>عقد</button> <button type='button' class='t-Button t-Button--small t-Button--success sh-notice' data-id='#EMPLOYEE_NUMBER#' title='تحميل الإخطار'>إخطار</button>
+                htmlExpression: <button type='button' class='t-Button t-Button--small sh-rp' data-id='#EMPLOYEE_NUMBER#'>Word</button>
             }
             sorting {
                 sortable: false
@@ -179,16 +191,14 @@ page 1101 (
             }
         )
 
-        column POS (
+        column JOB (
             reportColumnQueryId: 3
             derivedColumn: N
             heading {
-                heading: &APP_TEXT$POS.
-                alignment: center
+                heading: Job
             }
             layout {
-                sequence: 30
-                columnAlignment: center
+                sequence: 60
             }
             sorting {
                 sortable: false
@@ -211,6 +221,34 @@ page 1101 (
             }
         )
 
+        column QUAL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Qual
+            }
+            layout {
+                sequence: 100
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column START_DATE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Start Date
+            }
+            layout {
+                sequence: 70
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
     )
 
     pageItem P1101_EFFECTIVE_DATE (
@@ -222,6 +260,9 @@ page 1101 (
         layout {
             sequence: 10
             slot: body
+            alignment: left
+            column: 1
+            columnSpan: 1
         }
         appearance {
             template: @optional-floating
@@ -241,12 +282,14 @@ page 1101 (
     pageItem P1101_EMPLOYEE_SET (
         type: textField
         label {
-            label: مجموعة الموظفين 1 (فاصلة إنجليزية دون مسافات)
+            label: عرض مجموعة الموظفين 1 (فاصلة إنجليزية دون مسافات)
             alignment: left
         }
         layout {
-            sequence: 20
+            sequence: 50
             slot: body
+            alignment: left
+            columnSpan: 5
         }
         appearance {
             template: @optional-floating
@@ -258,12 +301,15 @@ page 1101 (
     pageItem P1101_EMPLOYEE_SET_1 (
         type: textField
         label {
-            label: مجموعة الموظفين 2
+            label: عرض مجموعة الموظفين 2
             alignment: left
         }
         layout {
-            sequence: 30
+            sequence: 60
             slot: body
+            alignment: left
+            startNewRow: false
+            columnSpan: 5
         }
         appearance {
             template: @optional-floating
@@ -275,12 +321,14 @@ page 1101 (
     pageItem P1101_EMPLOYEE_SET_2 (
         type: textField
         label {
-            label: مجموعة الموظفين 3
+            label: عرض مجموعة الموظفين 3
             alignment: left
         }
         layout {
-            sequence: 40
+            sequence: 70
             slot: body
+            alignment: left
+            columnSpan: 5
         }
         appearance {
             template: @optional-floating
@@ -292,12 +340,15 @@ page 1101 (
     pageItem P1101_EMPLOYEE_SET_3 (
         type: textField
         label {
-            label: مجموعة الموظفين 4
+            label: عرض مجموعة الموظفين 4
             alignment: left
         }
         layout {
-            sequence: 50
+            sequence: 80
             slot: body
+            alignment: left
+            startNewRow: false
+            columnSpan: 5
         }
         appearance {
             template: @optional-floating
@@ -309,59 +360,20 @@ page 1101 (
     pageItem P1101_EMP_NUMBER (
         type: textField
         label {
-            label: رقم الموظف المراد طباعة عقده / إخطاره
+            label: رقم الموظف المراد طباعة عقده
             alignment: left
         }
         layout {
-            sequence: 60
+            sequence: 20
             slot: body
+            alignment: left
+            startNewRow: false
+            columnSpan: 2
         }
         appearance {
             template: @optional-floating
             templateOptions: #DEFAULT#
             width: 50
-        }
-    )
-
-    pageItem P1101_SESSION_DATE (
-        type: textField
-        label {
-            label: تاريخ جلسة لجنة شئون العاملين (dd/mm/yyyy)
-            alignment: left
-        }
-        layout {
-            sequence: 62
-            slot: body
-        }
-        appearance {
-            template: @optional-floating
-            templateOptions: #DEFAULT#
-            width: 50
-        }
-        default {
-            type: static
-            staticValue: 22/07/2025
-        }
-    )
-
-    pageItem P1101_SESSION_NO (
-        type: textField
-        label {
-            label: رقم جلسة لجنة شئون العاملين
-            alignment: left
-        }
-        layout {
-            sequence: 61
-            slot: body
-        }
-        appearance {
-            template: @optional-floating
-            templateOptions: #DEFAULT#
-            width: 50
-        }
-        default {
-            type: static
-            staticValue: 7/ 2025
         }
     )
 
@@ -369,182 +381,34 @@ page 1101 (
         buttonName: APPLY_FILTERS
         label: عرض الموظفين
         layout {
-            sequence: 70
-            slot: body
-        }
-        appearance {
-            buttonTemplate: @text
-            templateOptions: #DEFAULT#
-        }
-    )
-
-    button show-notice (
-        buttonName: show_notice
-        label: تحميل إخطار Word
-        layout {
             sequence: 90
             slot: body
         }
         appearance {
-            buttonTemplate: @text
+            buttonTemplate: @awesome-text-with-icon
             hot: true
-            templateOptions: #DEFAULT#
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
         }
-        behavior {
-            action: triggerAction
-        }
-        advanced {
-            htmlDomId: sh-notice-btn
-        }
-
-        triggerAction print-notice (
-            action: plugin/ucApexOfficePrintAopDa
-            settings {
-                templateType: staticApplicationFiles
-                templateSource3: permanent_contract_notice.docx
-                dataType: plSqlFunctionReturningSql
-                dataSource2:
-                    ```plsql
-                    DECLARE
-                     l_source CLOB;
-                     l_first PLS_INTEGER;
-                     l_last PLS_INTEGER;
-                    BEGIN
-                     SELECT region_source INTO l_source FROM apex_application_page_regions
-                     WHERE application_id = TO_NUMBER(V('APP_ID')) AND page_id = 1101
-                       AND region_static_id = 'employees-list';
-                     l_first := DBMS_LOB.INSTR(l_source, '/*CONTRACT_DATA_BEGIN*/');
-                     l_last := DBMS_LOB.INSTR(l_source, '/*CONTRACT_DATA_END*/');
-                     IF l_first = 0 OR l_last <= l_first THEN
-                       RAISE_APPLICATION_ERROR(-20006, 'Contract report SQL markers are missing.');
-                     END IF;
-                     l_first := l_first + LENGTH('/*CONTRACT_DATA_BEGIN*/');
-                     RETURN 'WITH eligible AS (' || DBMS_LOB.SUBSTR(l_source, l_last-l_first, l_first)
-                            || ')' || CHR(10) || q'~SELECT 'notice_' || q.emp_num || '_' || TO_CHAR(q.effdate, 'YYYYMMDD') AS "filename",
-                    CURSOR(
-                    SELECT q.emp_num AS "emp_num", q.full_name AS "full_name",
-                    q.national_identifier AS "national_identifier", q.nationality AS "nationality",
-                    q.insu_no AS "insu_no", q.project AS "project", q.birthda AS "birthda",
-                    q.qual AS "qual", q.job AS "job", q.gdept AS "gdept", q.address AS "address",
-                    TO_CHAR(q.effdate, 'DD/MM/YYYY') AS "effdate",
-                    NVL(:P1101_SESSION_NO, '7/ 2025') AS "session_no",
-                    NVL(:P1101_SESSION_DATE, '22/07/2025') AS "session_date",
-                    CASE q.grade
-                    WHEN '01' THEN 'الأول' WHEN '02' THEN 'الثاني' WHEN '03' THEN 'الثالث'
-                    WHEN '04' THEN 'الرابع' WHEN '05' THEN 'الخامس' WHEN '06' THEN 'السادس'
-                    WHEN '07' THEN 'السابع' WHEN '08' THEN 'الثامن' WHEN '09' THEN 'التاسع'
-                    WHEN '10' THEN 'العاشر' ELSE q.grade END AS "grade_text",
-                    TO_CHAR(q.contract_start_date, 'DD/MM/YYYY') AS "contract_date"
-                    FROM dual
-                    ) AS "data"
-                    FROM eligible q
-                    WHERE q.emp_num = TRIM(:P1101_EMP_NUMBER)~';
-                    END;
-                    ```
-                initPlSqlCode: aop_api_pkg.g_output_filename := 'notice_' || V('P1101_EMP_NUMBER');
-                outputType: wordDocx
-            }
-            execution {
-                sequence: 20
-            }
-        )
-
-        triggerAction validate-notice-selection (
-            action: executeServerSideCode
-            settings {
-                plsqlCode:
-                    ```plsql
-                    DECLARE
-                    l_date DATE;
-                    l_count PLS_INTEGER;
-                    BEGIN
-                    BEGIN
-                    l_date := TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY');
-                    IF l_date IS NULL THEN
-                    RAISE VALUE_ERROR;
-                    END IF;
-                    EXCEPTION WHEN OTHERS THEN
-                    RAISE_APPLICATION_ERROR(-20001, 'أدخل تاريخ السريان بالصيغة dd-mm-yyyy.');
-                    END;
-                    IF TRIM(:P1101_EMP_NUMBER) IS NULL OR NOT REGEXP_LIKE(TRIM(:P1101_EMP_NUMBER), '^[0-9]+$') THEN
-                    RAISE_APPLICATION_ERROR(-20002, 'اختر رقم الموظف المراد طباعة إخطاره.');
-                    END IF;
-                    SELECT COUNT(*) INTO l_count
-                    FROM (
-                    SELECT pap.employee_number AS emp_num
-                    FROM
-                    apps.per_all_people_f@prod pap,
-                    apps.per_all_assignments_f@prod pas,
-                    apps.per_contracts_f@prod con,
-                    apps.per_grades@prod grd,
-                    apps.hr_locations_all@prod loc,
-                    apps.fnd_lookup_values@prod n,
-                    apps.per_qualifications_v@prod pql,
-                    apps.per_qualification_types_v@prod pqt
-                    WHERE
-                    pap.person_id = pas.person_id(+)
-                    AND pas.grade_id = grd.grade_id(+)
-                    AND pas.location_id = loc.location_id(+)
-                    AND pap.person_id = con.person_id(+)
-                    AND pap.person_id = pql.person_id(+)
-                    AND pql.qualification_type_id = pqt.qualification_type_id(+)
-                    AND (pap.nationality = n.lookup_code AND n.lookup_type LIKE 'NATION%' AND n.source_lang LIKE 'AR')
-                    AND pql.attribute1(+) LIKE 'Yes'
-                    AND pap.current_employee_flag LIKE 'Y'
-                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') BETWEEN pap.effective_start_date AND pap.effective_end_date
-                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') BETWEEN pas.effective_start_date AND pas.effective_end_date
-                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') BETWEEN con.effective_start_date AND con.effective_end_date
-                    AND con.status LIKE 'A-ACTIVE'
-                    AND apps.xxeprom_person.get_emp_contract_type_us@prod(pap.person_id, SYSDATE) LIKE 'Permanent'
-                    AND apps.xxeprom_person.get_emp_contract_type@prod(pap.person_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')) IS NOT NULL
-                    AND apps.xxeprom_person.get_emp_contract_start_date@prod(pap.person_id, TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY')) >= SYSDATE - 90
-                    AND grd.name NOT LIKE '%ERC%'
-                    AND TO_DATE(:P1101_EFFECTIVE_DATE, 'FXDD-MM-YYYY') - 1 >= ADD_MONTHS(pap.start_date, 12)
-                    AND (
-                    (:P1101_EMPLOYEE_SET IS NULL AND :P1101_EMPLOYEE_SET_1 IS NULL AND :P1101_EMPLOYEE_SET_2 IS NULL AND :P1101_EMPLOYEE_SET_3 IS NULL)
-                    OR (:P1101_EMPLOYEE_SET IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET || ',' LIKE '%,' || pap.employee_number || ',%')
-                    OR (:P1101_EMPLOYEE_SET_1 IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET_1 || ',' LIKE '%,' || pap.employee_number || ',%')
-                    OR (:P1101_EMPLOYEE_SET_2 IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET_2 || ',' LIKE '%,' || pap.employee_number || ',%')
-                    OR (:P1101_EMPLOYEE_SET_3 IS NOT NULL AND ',' || :P1101_EMPLOYEE_SET_3 || ',' LIKE '%,' || pap.employee_number || ',%')
-                    )
-                    ) q
-                    WHERE q.emp_num = TRIM(:P1101_EMP_NUMBER);
-                    IF l_count = 0 THEN
-                    RAISE_APPLICATION_ERROR(-20003, 'الموظف لا يستوفي شروط الاستعلام في تاريخ السريان ومجموعات الاختيار المحددة.');
-                    ELSIF l_count > 1 THEN
-                    RAISE_APPLICATION_ERROR(-20004, 'الاستعلام أعاد أكثر من سجل للموظف؛ راجع بيانات العقود والمؤهلات قبل الطباعة.');
-                    END IF;
-                    END;
-                    ```
-                itemsToSubmit: [
-                    P1101_EFFECTIVE_DATE
-                    P1101_EMPLOYEE_SET
-                    P1101_EMPLOYEE_SET_1
-                    P1101_EMPLOYEE_SET_2
-                    P1101_EMPLOYEE_SET_3
-                    P1101_EMP_NUMBER
-                    P1101_SESSION_NO
-                    P1101_SESSION_DATE
-                ]
-            }
-            execution {
-                sequence: 10
-            }
-        )
-
     )
 
     button show-report (
         buttonName: show_report
         label: تحميل عقد Word
         layout {
-            sequence: 80
+            sequence: 30
             slot: body
+            columnSpan: 4
         }
         appearance {
-            buttonTemplate: @text
+            buttonTemplate: @awesome-text-with-icon
             hot: true
-            templateOptions: #DEFAULT#
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
         }
         behavior {
             action: triggerAction
@@ -556,8 +420,8 @@ page 1101 (
         triggerAction print-contract (
             action: plugin/ucApexOfficePrintAopDa
             settings {
-                templateType: staticApplicationFiles
-                templateSource3: permanent_contract.docx
+                templateType: filenameWithPathRelativeToAopServer
+                templateSource3: C:\aop_24_2\reports\permanent_contract.docx
                 dataType: plSqlFunctionReturningSql
                 dataSource2:
                     ```plsql
@@ -714,10 +578,6 @@ page 1101 (
                         $s('P1101_EMP_NUMBER', String($(this).attr('data-id')));
                         $('#sh-rp-btn').trigger('click');
                     });
-                    $(document).on('click.notice1101', '.sh-notice', function () {
-                        $s('P1101_EMP_NUMBER', String($(this).attr('data-id')));
-                        $('#sh-notice-btn').trigger('click');
-                    });
                     ```
             }
             execution {
@@ -728,3 +588,4 @@ page 1101 (
     )
 
 )
+

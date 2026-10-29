@@ -1,7 +1,7 @@
 page 715 (
     name: IT Request Types
     alias: IT-REQUEST-TYPES
-    title: IT Request Types
+    title: &APP_TEXT$ITR_UI_IT_REQUEST_TYPES.
     appearance {
         pageTemplate: @standard
         templateOptions: #DEFAULT#
@@ -13,7 +13,7 @@ page 715 (
     }
 
     region breadcrumb (
-        name: Breadcrumb
+        name: &APP_TEXT$ITR_UI_BREADCRUMB.
         type: breadcrumb
         source {
             breadcrumb: @breadcrumb
@@ -49,10 +49,7 @@ page 715 (
         }
         appearance {
             template: @standard
-            templateOptions: [
-                #DEFAULT#
-                t-Region--scrollBody
-            ]
+            templateOptions: #DEFAULT#
         }
         componentAppearance {
             template: @standard
@@ -67,14 +64,14 @@ page 715 (
             type: rowRangesXToYNoPagination
         }
         messages {
-            whenNoDataFound: No data found
+            whenNoDataFound: &APP_TEXT$ITR_UI_NO_DATA_FOUND.
         }
 
         column DESCR (
             reportColumnQueryId: 3
             derivedColumn: N
             heading {
-                heading: Description
+                heading: &APP_TEXT$ITR_UI_DESCRIPTION.
                 alignment: center
             }
             layout {
@@ -86,7 +83,7 @@ page 715 (
             reportColumnQueryId: 4
             derivedColumn: N
             heading {
-                heading: Detail Count
+                heading: &APP_TEXT$ITR_UI_DETAIL_COUNT.
                 alignment: center
             }
             layout {
@@ -100,7 +97,7 @@ page 715 (
             derivedColumn: N
             type: link
             heading {
-                heading: Id
+                heading: &APP_TEXT$ITR_UI_ID.
                 alignment: center
             }
             layout {
@@ -123,7 +120,7 @@ page 715 (
             derivedColumn: N
             type: link
             heading {
-                heading: Name
+                heading: &APP_TEXT$ITR_UI_NAME.
                 alignment: center
             }
             layout {
@@ -145,7 +142,7 @@ page 715 (
 
     button new-request-type (
         buttonName: NEW-REQUEST-TYPE
-        label: New Request Type
+        label: &APP_TEXT$ITR_UI_NEW_REQUEST_TYPE.
         layout {
             sequence: 10
             region: @request-types-report

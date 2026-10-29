@@ -16,7 +16,7 @@ page 704 (
     }
 
     region team-requests (
-        name: Requests Assigned to Your Team(s)
+        name: &APP_TEXT$ITR_UI_REQUESTS_ASSIGNED_TO_YOUR_TEAM_S.
         type: interactiveReport
         source {
             location: localDatabase
@@ -34,9 +34,9 @@ page 704 (
                        d.title as SUBCATEGORY,
                        r.CRITICALITY,
                        case 
-                           when r.STATUS = 100 then 'Assigned - Unclaimed'
-                           when r.STATUS = 110 then 'In Progress'
-                           else 'Other'
+                           when r.STATUS = 100 then apex_lang.message('ITR_PAGE705_STATUS_ASSIGNED')
+                           when r.STATUS = 110 then apex_lang.message('ITR_PAGE705_STATUS_IN_PROGRESS')
+                           else apex_lang.message('ITR_PAGE705_STATUS_UNKNOWN')
                        end as STATUS_LABEL,
                        r.STATUS,
                        at.name as ASSIGNED_TEAM,
@@ -48,7 +48,12 @@ page 704 (
                   left join ITR_TEAMS at on r.ASSIGNED_TEAM_ID = at.id
                  where qi.QUEUE_STATUS in ('TEAM_PENDING', 'MEMBER_ASSIGNED', 'IN_PROGRESS')
                    and r.STATUS in (100, 110)
-                   and (r.ASSIGNED_TO = :APP_USER or r.ASSIGNED_TO is null)
+                   and qi.TEAM_ID = r.ASSIGNED_TEAM_ID
+                   and (r.ASSIGNED_TO = :APP_USER or r.ASSIGNED_TO is null
+                        or exists (select 1 from ITR_TEAM_MEMBERS leader
+                                    where leader.team_id = r.ASSIGNED_TEAM_ID
+                                      and leader.username = :APP_USER
+                                      and upper(trim(leader.role)) in ('LEADER', 'COORDINATOR')))
                    and r.ASSIGNED_TEAM_ID in (
                        select team_id 
                          from ITR_TEAM_MEMBERS 
@@ -91,7 +96,7 @@ page 704 (
         column ASSIGNED_TEAM (
             type: plainText
             heading {
-                heading: Assigned Team
+                heading: &APP_TEXT$ITR_UI_ASSIGNED_TEAM.
             }
             layout {
                 sequence: 110
@@ -105,9 +110,12 @@ page 704 (
         )
 
         column ASSIGNED_TO (
-            type: plainText
+            type: plainTextBasedOnLov
             heading {
-                heading: Assigned To
+                heading: &APP_TEXT$ITR_UI_ASSIGNED_TO.
+            }
+            lov {
+                lov: @itr-review-member-names
             }
             layout {
                 sequence: 120
@@ -123,7 +131,7 @@ page 704 (
         column CATEGORY (
             type: plainText
             heading {
-                heading: Category
+                heading: &APP_TEXT$ITR_UI_CATEGORY.
             }
             layout {
                 sequence: 70
@@ -137,9 +145,12 @@ page 704 (
         )
 
         column CRITICALITY (
-            type: plainText
+            type: plainTextBasedOnLov
             heading {
-                heading: Criticality
+                heading: &APP_TEXT$ITR_UI_CRITICALITY.
+            }
+            lov {
+                lov: @itr-review-priorities
             }
             layout {
                 sequence: 90
@@ -155,7 +166,7 @@ page 704 (
         column DESCRIPTION (
             type: plainText
             heading {
-                heading: Description
+                heading: &APP_TEXT$ITR_UI_DESCRIPTION.
             }
             layout {
                 sequence: 50
@@ -171,7 +182,7 @@ page 704 (
         column EMP_ID (
             type: plainText
             heading {
-                heading: Employee No
+                heading: &APP_TEXT$ITR_UI_EMPLOYEE_NO.
             }
             layout {
                 sequence: 30
@@ -187,7 +198,7 @@ page 704 (
         column EMP_INTERNAL_NUMBER (
             type: plainText
             heading {
-                heading: Internal Extension
+                heading: &APP_TEXT$ITR_UI_INTERNAL_EXTENSION.
             }
             layout {
                 sequence: 35
@@ -203,7 +214,7 @@ page 704 (
         column REQUESTER_NAME (
             type: plainText
             heading {
-                heading: Requester Name
+                heading: &APP_TEXT$ITR_UI_REQUESTER_NAME.
             }
             layout {
                 sequence: 40
@@ -219,7 +230,7 @@ page 704 (
         column REQUEST_DATE (
             type: plainText
             heading {
-                heading: Request Date
+                heading: &APP_TEXT$ITR_UI_REQUEST_DATE.
             }
             layout {
                 sequence: 60
@@ -235,7 +246,7 @@ page 704 (
         column REQUEST_ID (
             type: hidden
             heading {
-                heading: Request ID
+                heading: &APP_TEXT$ITR_UI_REQUEST_ID.
             }
             layout {
                 sequence: 10
@@ -251,7 +262,7 @@ page 704 (
         column REQUEST_NO (
             type: plainText
             heading {
-                heading: Request No
+                heading: &APP_TEXT$ITR_UI_REQUEST_NO.
             }
             layout {
                 sequence: 20
@@ -267,7 +278,7 @@ page 704 (
         column STATUS_LABEL (
             type: plainText
             heading {
-                heading: Status
+                heading: &APP_TEXT$ITR_UI_STATUS.
             }
             layout {
                 sequence: 100
@@ -283,7 +294,7 @@ page 704 (
         column SUBCATEGORY (
             type: plainText
             heading {
-                heading: Subcategory
+                heading: &APP_TEXT$ITR_UI_SUBCATEGORY.
             }
             layout {
                 sequence: 80
@@ -308,55 +319,43 @@ page 704 (
             }
 
             displayColumn ASSIGNED_TEAM (
-                sequence: 11
+                sequence: 8
             )
 
             displayColumn ASSIGNED_TO (
-                sequence: 12
-            )
-
-            displayColumn CATEGORY (
-                sequence: 7
-            )
-
-            displayColumn CRITICALITY (
                 sequence: 9
             )
 
-            displayColumn DESCRIPTION (
-                sequence: 5
+            displayColumn CRITICALITY (
+                sequence: 6
             )
 
-            displayColumn EMP_ID (
+            displayColumn DESCRIPTION (
                 sequence: 3
             )
 
             displayColumn EMP_INTERNAL_NUMBER (
-                sequence: 13
+                sequence: 10
             )
 
             displayColumn REQUESTER_NAME (
-                sequence: 4
+                sequence: 2
             )
 
             displayColumn REQUEST_DATE (
-                sequence: 6
+                sequence: 4
             )
 
             displayColumn REQUEST_ID (
                 sequence: 1
             )
 
-            displayColumn REQUEST_NO (
-                sequence: 2
-            )
-
             displayColumn STATUS_LABEL (
-                sequence: 10
+                sequence: 7
             )
 
             displayColumn SUBCATEGORY (
-                sequence: 8
+                sequence: 5
             )
 
         )

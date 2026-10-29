@@ -511,8 +511,11 @@ page 72 (
             htmlDomId: details
         }
         componentAppearance {
-            templateType: predefined
-            template: verticalReport
+            template: @value-attribute-pairs-column
+            templateOptions: [
+                #DEFAULT#
+                t-AVPList--leftAligned
+            ]
             showNullValuesAs: N/A
         }
 
@@ -520,10 +523,12 @@ page 72 (
             reportColumnQueryId: 2
             derivedColumn: N
             heading {
-                heading: Claim Number:
+                heading: Claim Number
+                alignment: center
             }
             layout {
                 sequence: 20
+                columnAlignment: center
             }
         )
 
@@ -531,10 +536,12 @@ page 72 (
             reportColumnQueryId: 6
             derivedColumn: N
             heading {
-                heading: From:
+                heading: From
+                alignment: center
             }
             layout {
                 sequence: 60
+                columnAlignment: center
             }
         )
 
@@ -543,11 +550,11 @@ page 72 (
             derivedColumn: N
             heading {
                 heading: Id
-                alignment: end
+                alignment: center
             }
             layout {
                 sequence: 10
-                columnAlignment: end
+                columnAlignment: center
             }
         )
 
@@ -555,10 +562,12 @@ page 72 (
             reportColumnQueryId: 3
             derivedColumn: N
             heading {
-                heading: Invoice Number:
+                heading: Invoice Number
+                alignment: center
             }
             layout {
                 sequence: 30
+                columnAlignment: center
             }
         )
 
@@ -566,12 +575,12 @@ page 72 (
             reportColumnQueryId: 4
             derivedColumn: N
             heading {
-                heading: Supplier:
-                alignment: end
+                heading: Supplier
+                alignment: center
             }
             layout {
                 sequence: 40
-                columnAlignment: end
+                columnAlignment: center
             }
         )
 
@@ -579,12 +588,12 @@ page 72 (
             reportColumnQueryId: 5
             derivedColumn: N
             heading {
-                heading: Total Amount:
-                alignment: end
+                heading: Total Amount
+                alignment: center
             }
             layout {
                 sequence: 50
-                columnAlignment: end
+                columnAlignment: center
             }
         )
 
@@ -592,10 +601,12 @@ page 72 (
             reportColumnQueryId: 7
             derivedColumn: N
             heading {
-                heading: To:
+                heading: To
+                alignment: center
             }
             layout {
                 sequence: 70
+                columnAlignment: center
             }
         )
 
@@ -732,7 +743,11 @@ page 72 (
                             'No Name'
                         )
                     END AS employee_name,
-                
+                CASE
+                    WHEN cps.PERSON_ID = 0 THEN 'Employee'
+                    WHEN cps.PERSON_ID <> 0 THEN 'Relative'
+                    ELSE 'Unknown'
+                END AS relative_type,
                     /* Clinic project if Clinic ID exists,
                        otherwise use the employee's project based on invoice date */
                     CASE
@@ -961,6 +976,22 @@ page 72 (
             }
             advanced {
                 endUserAlias: F
+            }
+        )
+
+        column RELATIVE_TYPE (
+            type: plainText
+            heading {
+                heading: Relative Type
+            }
+            layout {
+                sequence: 130
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
             }
         )
 

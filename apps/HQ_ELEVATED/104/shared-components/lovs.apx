@@ -577,6 +577,34 @@ lov is-beneficiary (
 
 )
 
+lov itr-review-member-names (
+    name: ITR REVIEW MEMBER NAMES
+    source {
+        type: legacySqlQuery
+        sqlQuery: select distinct coalesce(hr.emp_name, tm.member_name, tm.username) d, tm.username r from HQ_ELEVATED.ITR_TEAM_MEMBERS tm left join CENTRAL.XXAPEX_HR_EMP_DATA hr on cast(hr.emp_number as varchar2(100)) = tm.username
+    }
+)
+
+lov itr-review-priorities (
+    name: ITR REVIEW PRIORITIES
+    source {
+        location: staticValues
+    }
+
+    entry app-textitr-page705-priority-normal (
+        sequence: 10
+        display: &APP_TEXT$ITR_PAGE705_PRIORITY_NORMAL.
+        return: normal
+    )
+
+    entry app-textitr-page705-priority-urgent (
+        sequence: 20
+        display: &APP_TEXT$ITR_PAGE705_PRIORITY_URGENT.
+        return: urgent
+    )
+
+)
+
 lov mar-status (
     name: MAR_STATUS
     source {

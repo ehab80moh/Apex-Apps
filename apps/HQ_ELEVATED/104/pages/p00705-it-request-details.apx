@@ -36,15 +36,15 @@ page 705 (
         inline:
             ```css
             .t-Region.p705-shell {
-                border: 1px solid rgba(15, 118, 110, .12);
+                border: 1px solid var(--ut-component-border-color);
                 border-radius: 16px;
-                box-shadow: 0 10px 30px rgba(15, 23, 42, .08);
+                box-shadow: none;
                 overflow: hidden;
-                background: #fff;
+                background: var(--ut-region-background-color);
             }
             .p705-shell .t-Region-header {
-                background: linear-gradient(135deg, #0f766e, #155e75);
-                color: #fff;
+                background: var(--ut-region-header-background-color);
+                color: var(--ut-region-header-text-color);
                 border: 0;
             }
             .p705-shell .t-Region-title {
@@ -53,11 +53,11 @@ page 705 (
             }
             .p705-shell .t-Form-label {
                 font-weight: 700;
-                color: #334155;
+                color: var(--ut-body-text-color);
             }
             .p705-shell .t-Form-inputContainer,
             .p705-shell .display_only {
-                color: #0f172a;
+                color: var(--ut-body-text-color);
             }
             .p705-summary-item {
                 padding-block: .25rem;
@@ -70,23 +70,23 @@ page 705 (
                 padding: .4rem .85rem;
                 border-radius: 999px;
                 font-weight: 800;
-                background: #ecfdf5;
-                color: #0f766e;
-                border: 1px solid #a7f3d0;
+                background: var(--ut-component-background-color);
+                color: var(--ut-palette-primary);
+                border: 1px solid var(--ut-component-border-color);
             }
             .p705-request-card .t-Region-body {
                 padding: .8rem 1rem;
-                background: linear-gradient(180deg, #fff 0%, #f8fafc 160%);
+                background: linear-gradient(180deg, var(--ut-region-background-color) 0%, var(--ut-component-background-color) 160%);
             }
             .p705-request-card .p705-meta-item {
                 margin-block: .2rem;
                 padding: .45rem .65rem;
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--ut-component-border-color);
                 border-radius: 12px;
-                background: #f8fafc;
+                background: var(--ut-component-background-color);
             }
             .p705-request-card .p705-meta-item .t-Form-label {
-                color: #64748b;
+                color: var(--ut-body-text-color);
                 font-size: .78rem;
             }
             .p705-request-card .p705-meta-item .display_only {
@@ -97,9 +97,9 @@ page 705 (
                 display: block;
                 min-height: 3.25rem;
                 padding: .7rem .85rem;
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--ut-component-border-color);
                 border-radius: 12px;
-                background: #fff;
+                background: var(--ut-region-background-color);
                 line-height: 1.6;
                 white-space: pre-wrap;
             }
@@ -109,32 +109,32 @@ page 705 (
                 gap: .6rem;
                 justify-content: flex-end;
                 padding: .75rem;
-                background: #f8fafc;
-                border-top: 1px solid #e2e8f0;
+                background: var(--ut-component-background-color);
+                border-top: 1px solid var(--ut-component-border-color);
             }
             .p705-action-bar .t-Button {
                 border-radius: 999px;
                 font-weight: 700;
             }
             .p705-coordinator-card {
-                border-inline-start: 4px solid #0f766e !important;
+                border-inline-start: 4px solid var(--ut-palette-primary) !important;
             }
             .p705-team-suggestion .display_only {
                 display: flex;
                 align-items: center;
                 min-height: 3rem;
                 padding: .75rem 1rem;
-                border: 1px solid #99f6e4;
+                border: 1px solid var(--ut-component-border-color);
                 border-radius: 12px;
-                background: linear-gradient(135deg, #f0fdfa, #ecfeff);
-                color: #115e59;
+                background: linear-gradient(135deg, var(--ut-component-background-color), var(--ut-region-background-color));
+                color: var(--ut-body-text-color);
                 font-size: 1.05rem;
                 font-weight: 800;
             }
             .p705-notes-field textarea {
                 width: 100%;
                 min-height: 4.5rem;
-                overflow-y: hidden;
+                overflow-y: auto;
                 resize: vertical !important;
                 border-radius: 12px;
                 line-height: 1.5;
@@ -146,7 +146,7 @@ page 705 (
                 margin-block-end: .35rem;
             }
             .p705-shell :focus-visible {
-                outline: 3px solid rgba(14, 165, 233, .35);
+                outline: 3px solid var(--ut-component-border-color);
                 outline-offset: 2px;
             }
             [dir="rtl"] .p705-action-bar {
@@ -163,8 +163,12 @@ page 705 (
             ```
     }
     security {
+        authorizationScheme: @it-request-viewer
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
+    }
+    advanced {
+        enableDuplicatePageSubmissions: false
     }
 
     region buttons (
@@ -233,7 +237,6 @@ page 705 (
             template: @standard
             templateOptions: [
                 #DEFAULT#
-                t-Region--scrollBody
                 t-Form--stretchInputs
             ]
             cssClasses: p705-shell
@@ -296,10 +299,7 @@ page 705 (
         }
         appearance {
             template: @standard
-            templateOptions: [
-                #DEFAULT#
-                t-Region--scrollBody
-            ]
+            templateOptions: #DEFAULT#
             cssClasses: [
                 p705-shell
                 p705-request-card
@@ -571,13 +571,11 @@ page 705 (
         type: textarea
         label {
             label: &APP_TEXT$ITR_PAGE705_INTERNAL_NOTE.
-            alignment: left
         }
         layout {
             sequence: 30
             region: @comments-region
             slot: regionBody
-            alignment: left
             columnSpan: 12
             columnCssClasses: p705-notes-field
         }
@@ -764,13 +762,11 @@ page 705 (
         type: textarea
         label {
             label: &APP_TEXT$ITR_PAGE705_TECH_COMMENT.
-            alignment: left
         }
         layout {
             sequence: 20
             region: @comments-region
             slot: regionBody
-            alignment: left
             columnSpan: 12
             columnCssClasses: p705-notes-field
         }
@@ -1179,7 +1175,7 @@ page 705 (
             item: P705_ASSIGNED_TO
         }
         error {
-            errorMessage: Select a team member before assigning this request.
+            errorMessage: &APP_TEXT$ITR_REVIEW_SELECT_MEMBER.
             displayLocation: inlineWithField
             associatedItem: @P705_ASSIGNED_TO
         }
@@ -1198,7 +1194,7 @@ page 705 (
             item: P705_ASSIGNED_TEAM_ID
         }
         error {
-            errorMessage: Select a team before assigning this request.
+            errorMessage: &APP_TEXT$ITR_REVIEW_SELECT_TEAM.
             displayLocation: inlineWithField
             associatedItem: @P705_ASSIGNED_TEAM_ID
         }
@@ -1213,10 +1209,10 @@ page 705 (
             sequence: 20
         }
         validation {
-            plsqlExpression: LENGTH(:P705_CANCEL_REASON) <= 500
+            plsqlExpression: NVL(LENGTHB(:P705_CANCEL_REASON), 0) <= 500
         }
         error {
-            errorMessage: Cancellation reason cannot exceed 500 characters.
+            errorMessage: &APP_TEXT$ITR_REVIEW_TEXT_TOO_LONG.
             associatedItem: @P705_CANCEL_REASON
         }
         serverSideCondition {
@@ -1233,7 +1229,7 @@ page 705 (
             plsqlExpression: TRIM(:P705_CANCEL_REASON) IS NOT NULL
         }
         error {
-            errorMessage: Cancellation reason is required.
+            errorMessage: &APP_TEXT$ITR_REVIEW_CANCEL_REQUIRED.
             associatedItem: @P705_CANCEL_REASON
         }
         serverSideCondition {
@@ -1247,10 +1243,10 @@ page 705 (
             sequence: 50
         }
         validation {
-            plsqlExpression: LENGTH(:P705_IT_NOTE) <= 500
+            plsqlExpression: NVL(LENGTHB(:P705_IT_NOTE), 0) <= 500
         }
         error {
-            errorMessage: IT note cannot exceed 500 characters.
+            errorMessage: &APP_TEXT$ITR_REVIEW_TEXT_TOO_LONG.
             displayLocation: inlineWithField
             associatedItem: @P705_IT_NOTE
         }
@@ -1266,10 +1262,10 @@ page 705 (
             sequence: 70
         }
         validation {
-            plsqlExpression: LENGTH(:P705_USER_COMMENT) <= 500
+            plsqlExpression: NVL(LENGTHB(:P705_USER_COMMENT), 0) <= 500
         }
         error {
-            errorMessage: Requester comment cannot exceed 500 characters.
+            errorMessage: &APP_TEXT$ITR_REVIEW_TEXT_TOO_LONG.
             displayLocation: inlineWithField
             associatedItem: @P705_USER_COMMENT
         }
@@ -1285,10 +1281,10 @@ page 705 (
             sequence: 60
         }
         validation {
-            plsqlExpression: LENGTH(:P705_TECH_COMMENT) <= 500
+            plsqlExpression: NVL(LENGTHB(:P705_TECH_COMMENT), 0) <= 500
         }
         error {
-            errorMessage: Technician comment cannot exceed 500 characters.
+            errorMessage: &APP_TEXT$ITR_REVIEW_TEXT_TOO_LONG.
             displayLocation: inlineWithField
             associatedItem: @P705_TECH_COMMENT
         }
@@ -1366,7 +1362,7 @@ page 705 (
                   select count(*) into v_count
                     from ITR_TEAM_MEMBERS tm
                    where tm.username = :APP_USER
-                     and tm.role = 'COORDINATOR';
+                     and upper(trim(tm.role)) = 'COORDINATOR';
                 
                   if v_count > 0 then
                     :P705_IS_COORDINATOR := 'Y';
@@ -1436,7 +1432,7 @@ page 705 (
                 
                       :P705_PREV_WORKER_USERNAME := v_prev_username;
                       :P705_PREV_WORKER_NAME := v_prev_name;
-                      :P705_PREV_WORKER_DISPLAY := v_prev_name || ' (' || v_prev_username || ') - Previously worked on this request.';
+                      :P705_PREV_WORKER_DISPLAY := v_prev_name || ' (' || v_prev_username || ') - ' || apex_lang.message('ITR_REVIEW_PREVIOUS_WORKER');
                     exception
                       when no_data_found then
                         :P705_PREV_WORKER_USERNAME := null;
@@ -1672,13 +1668,20 @@ page 705 (
                 ```plsql
                 DECLARE
                     l_task_id NUMBER;
+                    l_requested_id NUMBER := TO_NUMBER(:P705_REQUEST_ID);
+                    l_task_request_id NUMBER;
                 BEGIN
-                    IF :P705_REQUEST_ID IS NULL AND :P705_TASK_ID IS NOT NULL THEN
-                        :P705_REQUEST_ID := apex_human_task.get_task_parameter_value(
-                            p_task_id          => TO_NUMBER(:P705_TASK_ID),
-                            p_param_static_id  => 'T_REQUEST_ID',
-                            p_ignore_not_found => TRUE
-                        );
+                    IF :P705_TASK_ID IS NOT NULL THEN
+                        SELECT TO_NUMBER(p.param_value) INTO l_task_request_id
+                          FROM TABLE(apex_human_task.get_tasks(
+                               p_context => 'SINGLE_TASK', p_task_id => TO_NUMBER(:P705_TASK_ID))) vt
+                          JOIN apex_tasks a ON a.task_id = vt.task_id AND a.application_id = 104
+                          JOIN apex_task_parameters p ON p.task_id = a.task_id
+                           AND p.application_id = a.application_id AND p.param_static_id = 'T_REQUEST_ID';
+                        IF l_requested_id IS NOT NULL AND l_requested_id <> l_task_request_id THEN
+                            RAISE_APPLICATION_ERROR(-20204, apex_lang.message('ITR_REVIEW_UNAVAILABLE'));
+                        END IF;
+                        :P705_REQUEST_ID := l_task_request_id;
                     END IF;
                 
                     :P705_TASK_ID := NULL;

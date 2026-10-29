@@ -1,7 +1,7 @@
 page 717 (
     name: IT Request Type Details
     alias: IT-REQUEST-TYPE-DETAILS
-    title: IT Request Type Details
+    title: &APP_TEXT$ITR_UI_IT_REQUEST_TYPE_DETAILS.
     appearance {
         pageTemplate: @standard
         templateOptions: #DEFAULT#
@@ -13,7 +13,7 @@ page 717 (
     }
 
     region breadcrumb (
-        name: Breadcrumb
+        name: &APP_TEXT$ITR_UI_BREADCRUMB.
         type: breadcrumb
         source {
             breadcrumb: @breadcrumb
@@ -59,14 +59,14 @@ page 717 (
             type: rowRangesXToYNoPagination
         }
         messages {
-            whenNoDataFound: No data found
+            whenNoDataFound: &APP_TEXT$ITR_UI_NO_DATA_FOUND.
         }
 
         column DESCR (
             reportColumnQueryId: 3
             derivedColumn: N
             heading {
-                heading: Descr
+                heading: &APP_TEXT$ITR_UI_DESCR.
             }
             layout {
                 sequence: 30
@@ -78,7 +78,7 @@ page 717 (
             derivedColumn: N
             type: link
             heading {
-                heading: Id
+                heading: &APP_TEXT$ITR_UI_ID.
                 alignment: end
             }
             layout {
@@ -100,7 +100,7 @@ page 717 (
             reportColumnQueryId: 4
             derivedColumn: N
             heading {
-                heading: Suggested Team
+                heading: &APP_TEXT$ITR_UI_SUGGESTED_TEAM.
             }
             layout {
                 sequence: 40
@@ -111,7 +111,7 @@ page 717 (
             reportColumnQueryId: 2
             derivedColumn: N
             heading {
-                heading: Title
+                heading: &APP_TEXT$ITR_UI_TITLE.
             }
             layout {
                 sequence: 20
@@ -134,7 +134,7 @@ page 717 (
 
     button new-detail (
         buttonName: NEW-DETAIL
-        label: New Detail
+        label: &APP_TEXT$ITR_UI_NEW_DETAIL.
         layout {
             sequence: 10
             region: @request-type-details-report

@@ -1,7 +1,7 @@
 page 711 (
     name: IT Teams
     alias: IT-TEAMS
-    title: IT Teams
+    title: &APP_TEXT$ITR_UI_IT_TEAMS.
     appearance {
         pageTemplate: @standard
         templateOptions: #DEFAULT#
@@ -13,7 +13,7 @@ page 711 (
     }
 
     region breadcrumb (
-        name: Breadcrumb
+        name: &APP_TEXT$ITR_UI_BREADCRUMB.
         type: breadcrumb
         source {
             breadcrumb: @breadcrumb
@@ -36,7 +36,7 @@ page 711 (
     )
 
     region teams-report (
-        name: Teams
+        name: &APP_TEXT$ITR_UI_TEAMS.
         type: classicReport
         source {
             location: localDatabase
@@ -51,7 +51,6 @@ page 711 (
             template: @standard
             templateOptions: [
                 #DEFAULT#
-                t-Region--scrollBody
                 t-Form--stretchInputs
             ]
         }
@@ -68,14 +67,14 @@ page 711 (
             type: rowRangesXToYNoPagination
         }
         messages {
-            whenNoDataFound: No data found
+            whenNoDataFound: &APP_TEXT$ITR_UI_NO_DATA_FOUND.
         }
 
         column DESCRIPTION (
             reportColumnQueryId: 3
             derivedColumn: N
             heading {
-                heading: Description
+                heading: &APP_TEXT$ITR_UI_DESCRIPTION.
                 alignment: center
             }
             layout {
@@ -88,7 +87,7 @@ page 711 (
             derivedColumn: N
             type: link
             heading {
-                heading: Id
+                heading: &APP_TEXT$ITR_UI_ID.
                 alignment: center
             }
             layout {
@@ -110,7 +109,7 @@ page 711 (
             reportColumnQueryId: 5
             derivedColumn: N
             heading {
-                heading: Leader Capable Count
+                heading: &APP_TEXT$ITR_UI_LEADER_CAPABLE_COUNT.
                 alignment: center
             }
             layout {
@@ -123,7 +122,7 @@ page 711 (
             reportColumnQueryId: 4
             derivedColumn: N
             heading {
-                heading: Member Count
+                heading: &APP_TEXT$ITR_UI_MEMBER_COUNT.
                 alignment: center
             }
             layout {
@@ -137,7 +136,7 @@ page 711 (
             derivedColumn: N
             type: link
             heading {
-                heading: Name
+                heading: &APP_TEXT$ITR_UI_NAME.
                 alignment: center
             }
             layout {
@@ -159,7 +158,7 @@ page 711 (
 
     button new-team (
         buttonName: NEW-TEAM
-        label: New Team
+        label: &APP_TEXT$ITR_UI_NEW_TEAM.
         layout {
             sequence: 10
             region: @teams-report

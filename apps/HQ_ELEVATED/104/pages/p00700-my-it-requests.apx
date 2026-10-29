@@ -15,7 +15,7 @@ page 700 (
     }
 
     region user-it-requests (
-        name: My IT Requests
+        name: &APP_TEXT$ITR_UI_MY_IT_REQUESTS.
         type: interactiveReport
         source {
             location: localDatabase
@@ -30,39 +30,45 @@ page 700 (
                        d.title as SUBCATEGORY_NAME,
                        r.CRITICALITY,
                        case
-                           when r.STATUS = 10 then 'Pending Approval'
-                           when r.STATUS = 20 then 'Approved - Pending Assignment'
-                           when r.STATUS = 100 then 'Assigned to Team'
-                           when r.STATUS = 110 then 'In Progress'
-                           when r.STATUS = 120 then 'On-Hold (Pending Re-assignment)'
-                           when r.STATUS = 130 then 'Awaiting Your Verification'
-                           when r.STATUS = 140 then 'Rejected'
-                           when r.STATUS = 150 then 'Completed'
-                           when r.STATUS = 160 then 'Cancelled'
-                           else 'Unknown'
+                           when r.STATUS = 10 then apex_lang.message('ITR_PAGE705_STATUS_PENDING_APPROVAL')
+                           when r.STATUS = 20 then apex_lang.message('ITR_PAGE705_STATUS_APPROVED_PENDING_ASSIGNMENT')
+                           when r.STATUS = 100 then apex_lang.message('ITR_PAGE705_STATUS_ASSIGNED')
+                           when r.STATUS = 110 then apex_lang.message('ITR_PAGE705_STATUS_IN_PROGRESS')
+                           when r.STATUS = 120 then apex_lang.message('ITR_PAGE705_STATUS_ON_HOLD')
+                           when r.STATUS = 130 then apex_lang.message('ITR_PAGE705_STATUS_AWAITING_VERIFICATION')
+                           when r.STATUS = 140 then apex_lang.message('ITR_PAGE705_STATUS_REJECTED')
+                           when r.STATUS = 150 then apex_lang.message('ITR_PAGE705_STATUS_COMPLETED')
+                           when r.STATUS = 160 then apex_lang.message('CANCELLED')
+                           else apex_lang.message('ITR_PAGE705_STATUS_UNKNOWN')
                        end as STATUS_LABEL,
                        r.STATUS,
                        r.ASSIGNED_TO,
                        r.COMPLETE_DATE,
                        case
-                           when r.STATUS = 150 then
-                               case when r.SUB_STATUS = 'COMPLETED_BY_COORDINATOR' then 'Completed by Coordinator'
-                                    else 'Completed'
-                               end
-                           when r.STATUS = 10 then 'Awaiting Manager'
-                           when r.STATUS = 20 then 'Awaiting Coordinator'
-                           when r.STATUS = 160 then 'Cancelled'
-                           when r.STATUS in (100, 110, 120, 130) then
-                               (select 'Pos ' ||
-                                       (select count(*) from ITR_REQUESTS r2 where r2.APPROVED = 1 and r2.COMPLETE_DATE is null and r2.ASSIGNED_TEAM_ID = r.ASSIGNED_TEAM_ID and r2.REQUEST_ID <= r.REQUEST_ID) ||
-                                       ' of ' ||
-                                       (select count(*) from ITR_REQUESTS r3 where r3.APPROVED = 1 and r3.COMPLETE_DATE is null and r3.ASSIGNED_TEAM_ID = r.ASSIGNED_TEAM_ID)
-                                from dual)
-                           else null
+                           when r.STATUS = 130 then apex_lang.message('ITR_NEXT_VERIFY')
+                           when r.STATUS = 10 then apex_lang.message('ITR_NEXT_APPROVAL')
+                           when r.STATUS = 20 then apex_lang.message('ITR_NEXT_COORDINATOR')
+                           when r.STATUS = 110 then apex_lang.message('ITR_NEXT_TECHNICIAN')
+                           when r.STATUS = 120 then apex_lang.message('ITR_NEXT_REASSIGN')
+                           when r.STATUS = 100 and q.POSITION_NO is not null then
+                               apex_lang.message('ITR_NEXT_QUEUE', TO_CHAR(q.POSITION_NO), TO_CHAR(q.QUEUE_TOTAL))
+                           when r.STATUS = 100 then apex_lang.message('ITR_NEXT_TEAM')
+                           else apex_lang.message('ITR_NEXT_NONE')
                        end as QUEUE_STATUS
                   from ITR_REQUESTS r
                   left join ITR_REQUEST_TYPES t on r.REQUEST_TYPE = t.id
                   left join ITR_REQUEST_TYPE_DETAILS d on r.REQUEST_TYPE_DETAIL_ID = d.id
+                  left join (
+                      SELECT qi.REQUEST_ID,
+                             ROW_NUMBER() OVER (PARTITION BY qi.QUEUE_ID
+                                 ORDER BY qi.QUEUE_POSITION, qi.ENQUEUED_DATE, qi.QUEUE_ITEM_ID) AS POSITION_NO,
+                             COUNT(*) OVER (PARTITION BY qi.QUEUE_ID) AS QUEUE_TOTAL
+                        FROM ITR_TEAM_QUEUE_ITEMS qi
+                        JOIN ITR_REQUESTS qr ON qr.REQUEST_ID = qi.REQUEST_ID
+                       WHERE qi.QUEUE_STATUS IN ('TEAM_PENDING', 'MEMBER_ASSIGNED', 'IN_PROGRESS')
+                         AND qr.STATUS IN (100, 110)
+                         AND qr.ASSIGNED_TEAM_ID = qi.TEAM_ID
+                  ) q ON q.REQUEST_ID = r.REQUEST_ID
                  where r.EMP_ID = :APP_USER
                  order by r.REQUEST_DATE desc
                 ```
@@ -97,9 +103,12 @@ page 700 (
         }
 
         column ASSIGNED_TO (
-            type: plainText
+            type: plainTextBasedOnLov
             heading {
-                heading: Assigned To
+                heading: &APP_TEXT$ITR_UI_ASSIGNED_TO.
+            }
+            lov {
+                lov: @itr-review-member-names
             }
             layout {
                 sequence: 90
@@ -115,7 +124,7 @@ page 700 (
         column CATEGORY_NAME (
             type: plainText
             heading {
-                heading: Category
+                heading: &APP_TEXT$ITR_UI_CATEGORY.
             }
             layout {
                 sequence: 50
@@ -129,9 +138,12 @@ page 700 (
         )
 
         column CRITICALITY (
-            type: plainText
+            type: plainTextBasedOnLov
             heading {
-                heading: Criticality
+                heading: &APP_TEXT$ITR_UI_CRITICALITY.
+            }
+            lov {
+                lov: @itr-review-priorities
             }
             layout {
                 sequence: 70
@@ -147,7 +159,7 @@ page 700 (
         column DESCRIPTION (
             type: plainText
             heading {
-                heading: Description
+                heading: &APP_TEXT$ITR_UI_DESCRIPTION.
             }
             layout {
                 sequence: 30
@@ -163,7 +175,7 @@ page 700 (
         column QUEUE_STATUS (
             type: plainText
             heading {
-                heading: Queue Position
+                heading: &APP_TEXT$ITR_UI_QUEUE_POSITION.
             }
             layout {
                 sequence: 100
@@ -179,7 +191,7 @@ page 700 (
         column REQUEST_DATE (
             type: plainText
             heading {
-                heading: Request Date
+                heading: &APP_TEXT$ITR_UI_REQUEST_DATE.
             }
             layout {
                 sequence: 40
@@ -195,7 +207,7 @@ page 700 (
         column REQUEST_ID (
             type: hidden
             heading {
-                heading: Request ID
+                heading: &APP_TEXT$ITR_UI_REQUEST_ID.
             }
             layout {
                 sequence: 10
@@ -211,7 +223,7 @@ page 700 (
         column REQUEST_NO (
             type: plainText
             heading {
-                heading: Request No
+                heading: &APP_TEXT$ITR_UI_REQUEST_NO.
             }
             layout {
                 sequence: 20
@@ -227,7 +239,7 @@ page 700 (
         column STATUS_LABEL (
             type: plainText
             heading {
-                heading: Status
+                heading: &APP_TEXT$ITR_UI_STATUS.
             }
             layout {
                 sequence: 80
@@ -243,7 +255,7 @@ page 700 (
         column SUBCATEGORY_NAME (
             type: plainText
             heading {
-                heading: Subcategory
+                heading: &APP_TEXT$ITR_UI_SUBCATEGORY.
             }
             layout {
                 sequence: 60
@@ -313,7 +325,7 @@ page 700 (
 
     button create (
         buttonName: CREATE
-        label: Submit New IT Request
+        label: &APP_TEXT$ITR_UI_SUBMIT_NEW_IT_REQUEST.
         layout {
             sequence: 10
             region: @user-it-requests

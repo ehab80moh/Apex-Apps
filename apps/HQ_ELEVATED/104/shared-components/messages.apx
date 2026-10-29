@@ -21886,6 +21886,118 @@ textMessage IS_VISIBLE (
     }
 )
 
+textMessage ITR_NEXT_APPROVAL (
+    message {
+        text: في انتظار الموافقة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_NEXT_APPROVAL (
+    message {
+        text: Waiting for approval
+        language: en-us
+    }
+)
+
+textMessage ITR_NEXT_COORDINATOR (
+    message {
+        text: في انتظار منسّق الدعم الفني
+        language: ar-ae
+    }
+)
+
+textMessage ITR_NEXT_COORDINATOR (
+    message {
+        text: Waiting for the IT coordinator
+        language: en-us
+    }
+)
+
+textMessage ITR_NEXT_NONE (
+    message {
+        text: لا يوجد إجراء مطلوب
+        language: ar-ae
+    }
+)
+
+textMessage ITR_NEXT_NONE (
+    message {
+        text: No action required
+        language: en-us
+    }
+)
+
+textMessage ITR_NEXT_QUEUE (
+    message {
+        text: ترتيبك %0 من %1 في قائمة نفس الأولوية
+        language: ar-ae
+    }
+)
+
+textMessage ITR_NEXT_QUEUE (
+    message {
+        text: Position %0 of %1 in this priority queue
+        language: en-us
+    }
+)
+
+textMessage ITR_NEXT_REASSIGN (
+    message {
+        text: في انتظار إعادة الإسناد
+        language: ar-ae
+    }
+)
+
+textMessage ITR_NEXT_REASSIGN (
+    message {
+        text: Waiting for reassignment
+        language: en-us
+    }
+)
+
+textMessage ITR_NEXT_TEAM (
+    message {
+        text: في انتظار الفريق المسؤول
+        language: ar-ae
+    }
+)
+
+textMessage ITR_NEXT_TEAM (
+    message {
+        text: Waiting for the assigned team
+        language: en-us
+    }
+)
+
+textMessage ITR_NEXT_TECHNICIAN (
+    message {
+        text: الفني يعمل على طلبك
+        language: ar-ae
+    }
+)
+
+textMessage ITR_NEXT_TECHNICIAN (
+    message {
+        text: The technician is working on your request
+        language: en-us
+    }
+)
+
+textMessage ITR_NEXT_VERIFY (
+    message {
+        text: أكّد حل المشكلة أو أعد الطلب
+        language: ar-ae
+    }
+)
+
+textMessage ITR_NEXT_VERIFY (
+    message {
+        text: Confirm the solution or return the request
+        language: en-us
+    }
+)
+
 textMessage ITR_PAGE52_ADD_COMMENT (
     message {
         text: إضافة تعليق
@@ -22754,6 +22866,104 @@ textMessage ITR_PAGE705_USER_COMMENT (
     }
 )
 
+textMessage ITR_REVIEW_CANCEL_REQUIRED (
+    message {
+        text: اكتب سبب إلغاء الطلب.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_REVIEW_CANCEL_REQUIRED (
+    message {
+        text: Cancellation reason is required.
+        language: en-us
+    }
+)
+
+textMessage ITR_REVIEW_PREVIOUS_WORKER (
+    message {
+        text: سبق له العمل على هذا الطلب
+        language: ar-ae
+    }
+)
+
+textMessage ITR_REVIEW_PREVIOUS_WORKER (
+    message {
+        text: Previously worked on this request
+        language: en-us
+    }
+)
+
+textMessage ITR_REVIEW_SELECT_MEMBER (
+    message {
+        text: اختَر عضو الفريق المسؤول قبل الإسناد.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_REVIEW_SELECT_MEMBER (
+    message {
+        text: Select a team member before assigning this request.
+        language: en-us
+    }
+)
+
+textMessage ITR_REVIEW_SELECT_TEAM (
+    message {
+        text: اختَر الفريق المسؤول قبل الإسناد.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_REVIEW_SELECT_TEAM (
+    message {
+        text: Select a team before assigning this request.
+        language: en-us
+    }
+)
+
+textMessage ITR_REVIEW_SUBMIT_HINT (
+    message {
+        text: اختَر الخدمة، واكتب المشكلة ومكان التواصل. بعد الإرسال تقدر تتابع الخطوات من طلباتي للدعم الفني.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_REVIEW_SUBMIT_HINT (
+    message {
+        text: Choose a service, describe the issue and add your location. After sending, follow its progress in My IT Requests.
+        language: en-us
+    }
+)
+
+textMessage ITR_REVIEW_TEXT_TOO_LONG (
+    message {
+        text: النص أطول من المساحة المتاحة للحفظ. اختصره وحاول مرة أخرى.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_REVIEW_TEXT_TOO_LONG (
+    message {
+        text: This text is too long to save. Shorten it and try again.
+        language: en-us
+    }
+)
+
+textMessage ITR_REVIEW_UNAVAILABLE (
+    message {
+        text: الطلب غير متاح أو ليست لديك صلاحية للاطلاع عليه.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_REVIEW_UNAVAILABLE (
+    message {
+        text: This request is unavailable or you do not have access.
+        language: en-us
+    }
+)
+
 textMessage ITR_SERVICE_APEX_ACCESS_PERMISSION (
     message {
         text: صلاحية دخول إلى تطبيق أو مساحة عمل APEX
@@ -23100,6 +23310,1294 @@ textMessage ITR_SERVICE_UPGRADE (
 textMessage ITR_SERVICE_UPGRADE (
     message {
         text: Hardware Upgrade
+        language: en-us
+    }
+)
+
+textMessage ITR_SETUP_DUPLICATE_MEMBER (
+    message {
+        text: الموظف مكرر في عضوية هذا الفريق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_SETUP_DUPLICATE_MEMBER (
+    message {
+        text: Employee has duplicate membership records in this team
+        language: en-us
+    }
+)
+
+textMessage ITR_SETUP_GUIDANCE (
+    message {
+        text: إدارة الفرق والخدمات ومراجعة جاهزية الإعدادات.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_SETUP_GUIDANCE (
+    message {
+        text: Manage teams, services and configuration checks.
+        language: en-us
+    }
+)
+
+textMessage ITR_SETUP_HEALTH_REQUEST_TYPES (
+    message {
+        text: أنواع الخدمات
+        language: ar-ae
+    }
+)
+
+textMessage ITR_SETUP_HEALTH_REQUEST_TYPES (
+    message {
+        text: Request types
+        language: en-us
+    }
+)
+
+textMessage ITR_SETUP_HEALTH_TEAMS (
+    message {
+        text: الفرق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_SETUP_HEALTH_TEAMS (
+    message {
+        text: Teams
+        language: en-us
+    }
+)
+
+textMessage ITR_SETUP_HEALTH_TEAMS_MISSING_LEADER_COORDINATOR (
+    message {
+        text: فرق بدون قائد أو منسّق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_SETUP_HEALTH_TEAMS_MISSING_LEADER_COORDINATOR (
+    message {
+        text: Teams missing leader/coordinator
+        language: en-us
+    }
+)
+
+textMessage ITR_SETUP_HEALTH_TEAM_MEMBERS (
+    message {
+        text: أعضاء الفرق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_SETUP_HEALTH_TEAM_MEMBERS (
+    message {
+        text: Team members
+        language: en-us
+    }
+)
+
+textMessage ITR_SETUP_NO_DETAILS (
+    message {
+        text: نوع الطلب بدون خدمات فرعية
+        language: ar-ae
+    }
+)
+
+textMessage ITR_SETUP_NO_DETAILS (
+    message {
+        text: Request category has no services
+        language: en-us
+    }
+)
+
+textMessage ITR_SETUP_NO_LEADER (
+    message {
+        text: الفريق بدون قائد أو منسّق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_SETUP_NO_LEADER (
+    message {
+        text: Team has no leader or coordinator
+        language: en-us
+    }
+)
+
+textMessage ITR_SETUP_NO_SUGGESTED_TEAM (
+    message {
+        text: الخدمة بدون فريق مقترح؛ سيختار المنسّق الفريق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_SETUP_NO_SUGGESTED_TEAM (
+    message {
+        text: Service has no suggested team; the coordinator must choose a team
+        language: en-us
+    }
+)
+
+textMessage ITR_SETUP_TEAM_NOT_READY (
+    message {
+        text: الفريق المقترح بدون قائد أو منسّق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_SETUP_TEAM_NOT_READY (
+    message {
+        text: Suggested team has no leader or coordinator
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ACTIVE_REQUESTS (
+    message {
+        text: الطلبات المفتوحة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ACTIVE_REQUESTS (
+    message {
+        text: Active Requests
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ALL_IT_REQUESTS (
+    message {
+        text: طلبات الدعم الفني
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ALL_IT_REQUESTS (
+    message {
+        text: All IT Requests
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_APPLY_CHANGES (
+    message {
+        text: حفظ التعديلات
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_APPLY_CHANGES (
+    message {
+        text: Apply Changes
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_AREA (
+    message {
+        text: البند
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_AREA (
+    message {
+        text: Area
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ASSIGNED_TEAM (
+    message {
+        text: الفريق المسؤول
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ASSIGNED_TEAM (
+    message {
+        text: Assigned Team
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ASSIGNED_TO (
+    message {
+        text: المسؤول الحالي
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ASSIGNED_TO (
+    message {
+        text: Assigned To
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_A_REQUEST_TYPE_WITH_THIS_NAME_ALREADY_EXISTS (
+    message {
+        text: يوجد نوع خدمة بنفس الاسم بالفعل.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_A_REQUEST_TYPE_WITH_THIS_NAME_ALREADY_EXISTS (
+    message {
+        text: A request type with this name already exists.
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_A_TEAM_WITH_THIS_NAME_ALREADY_EXISTS (
+    message {
+        text: يوجد فريق بنفس الاسم بالفعل.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_A_TEAM_WITH_THIS_NAME_ALREADY_EXISTS (
+    message {
+        text: A team with this name already exists.
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_BREADCRUMB (
+    message {
+        text: مسار التنقل
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_BREADCRUMB (
+    message {
+        text: Breadcrumb
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_CANCEL (
+    message {
+        text: إلغاء
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_CANCEL (
+    message {
+        text: Cancel
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_CATEGORY (
+    message {
+        text: نوع الخدمة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_CATEGORY (
+    message {
+        text: Category
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_CONFIGURATION_ISSUES (
+    message {
+        text: ملاحظات الإعدادات
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_CONFIGURATION_ISSUES (
+    message {
+        text: Configuration Issues
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_CREATE (
+    message {
+        text: إضافة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_CREATE (
+    message {
+        text: Create
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_CRITICALITY (
+    message {
+        text: الأولوية
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_CRITICALITY (
+    message {
+        text: Criticality
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_DELETE (
+    message {
+        text: حذف
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_DELETE (
+    message {
+        text: Delete
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_DESCR (
+    message {
+        text: الوصف
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_DESCR (
+    message {
+        text: Descr
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_DESCRIPTION (
+    message {
+        text: الوصف
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_DESCRIPTION (
+    message {
+        text: Description
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_DETAIL_COUNT (
+    message {
+        text: عدد الخدمات الفرعية
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_DETAIL_COUNT (
+    message {
+        text: Detail Count
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_EACH_TEAM_CAN_HAVE_ONLY_ONE_EXPLICIT_LEADER_EXISTING_COORDINATOR_MEMBERS_REMAIN_LEADER_CAPABLE (
+    message {
+        text: لكل فريق قائد واحد. ويستطيع المنسّقون الحاليون أداء مهام قائد الفريق.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_EACH_TEAM_CAN_HAVE_ONLY_ONE_EXPLICIT_LEADER_EXISTING_COORDINATOR_MEMBERS_REMAIN_LEADER_CAPABLE (
+    message {
+        text: Each team can have only one explicit LEADER. Existing COORDINATOR members remain leader-capable.
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_EMPLOYEE_NO (
+    message {
+        text: رقم الموظف
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_EMPLOYEE_NO (
+    message {
+        text: Employee No
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_EMP_ID (
+    message {
+        text: رقم الموظف
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_EMP_ID (
+    message {
+        text: Emp Id
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ENTITY_NAME (
+    message {
+        text: الاسم
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ENTITY_NAME (
+    message {
+        text: Entity Name
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ID (
+    message {
+        text: المعرّف
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ID (
+    message {
+        text: Id
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_INTERNAL_EXTENSION (
+    message {
+        text: الرقم الداخلي
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_INTERNAL_EXTENSION (
+    message {
+        text: Internal Extension
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IN_PROGRESS (
+    message {
+        text: قيد التنفيذ
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IN_PROGRESS (
+    message {
+        text: In Progress
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ISSUE_DESCRIPTION (
+    message {
+        text: الملاحظة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ISSUE_DESCRIPTION (
+    message {
+        text: Issue Description
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ISSUE_TYPE (
+    message {
+        text: نوع الملاحظة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ISSUE_TYPE (
+    message {
+        text: Issue Type
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_SETUP (
+    message {
+        text: إعدادات الدعم الفني
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_SETUP (
+    message {
+        text: IT Request Setup
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_SETUP_AREAS (
+    message {
+        text: إدارة إعدادات الدعم الفني
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_SETUP_AREAS (
+    message {
+        text: IT Request Setup Areas
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_SETUP_VALIDATION (
+    message {
+        text: مراجعة إعدادات الدعم الفني
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_SETUP_VALIDATION (
+    message {
+        text: IT Request Setup Validation
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_TYPES (
+    message {
+        text: أنواع خدمات الدعم الفني
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_TYPES (
+    message {
+        text: IT Request Types
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_TYPE_DETAILS (
+    message {
+        text: الخدمات الفرعية
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_TYPE_DETAILS (
+    message {
+        text: IT Request Type Details
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_TYPE_DETAIL_FORM (
+    message {
+        text: بيانات الخدمة الفرعية
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_TYPE_DETAIL_FORM (
+    message {
+        text: IT Request Type Detail Form
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_TYPE_FORM (
+    message {
+        text: بيانات نوع الخدمة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IT_REQUEST_TYPE_FORM (
+    message {
+        text: IT Request Type Form
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IT_TEAMS (
+    message {
+        text: فرق الدعم الفني
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IT_TEAMS (
+    message {
+        text: IT Teams
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IT_TEAM_FORM (
+    message {
+        text: بيانات الفريق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IT_TEAM_FORM (
+    message {
+        text: IT Team Form
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IT_TEAM_MEMBERS (
+    message {
+        text: أعضاء فرق الدعم الفني
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IT_TEAM_MEMBERS (
+    message {
+        text: IT Team Members
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_IT_TEAM_MEMBER_FORM (
+    message {
+        text: بيانات عضو الفريق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_IT_TEAM_MEMBER_FORM (
+    message {
+        text: IT Team Member Form
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_LEADER_CAPABLE_COUNT (
+    message {
+        text: عدد القادة والمنسّقين
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_LEADER_CAPABLE_COUNT (
+    message {
+        text: Leader Capable Count
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_MANAGE_REQUEST_TYPES (
+    message {
+        text: إدارة أنواع الخدمات
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_MANAGE_REQUEST_TYPES (
+    message {
+        text: Manage Request Types
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_MANAGE_TEAMS (
+    message {
+        text: إدارة الفرق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_MANAGE_TEAMS (
+    message {
+        text: Manage Teams
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_MEMBER_COUNT (
+    message {
+        text: عدد الأعضاء
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_MEMBER_COUNT (
+    message {
+        text: Member Count
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_MEMBER_NAME (
+    message {
+        text: اسم الموظف
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_MEMBER_NAME (
+    message {
+        text: Member Name
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_MY_IT_REQUESTS (
+    message {
+        text: طلباتي للدعم الفني
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_MY_IT_REQUESTS (
+    message {
+        text: My IT Requests
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_NAME (
+    message {
+        text: الاسم
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_NAME (
+    message {
+        text: Name
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_NEW_DETAIL (
+    message {
+        text: إضافة خدمة فرعية
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_NEW_DETAIL (
+    message {
+        text: New Detail
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_NEW_MEMBER (
+    message {
+        text: إضافة عضو
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_NEW_MEMBER (
+    message {
+        text: New Member
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_NEW_REQUEST_TYPE (
+    message {
+        text: إضافة نوع خدمة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_NEW_REQUEST_TYPE (
+    message {
+        text: New Request Type
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_NEW_TEAM (
+    message {
+        text: إضافة فريق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_NEW_TEAM (
+    message {
+        text: New Team
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_NO_DATA_FOUND (
+    message {
+        text: لا توجد نتائج
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_NO_DATA_FOUND (
+    message {
+        text: No data found
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_OVERVIEW (
+    message {
+        text: نظرة عامة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_OVERVIEW (
+    message {
+        text: Overview
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_PENDING_ASSIGNMENT (
+    message {
+        text: بانتظار الإسناد
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_PENDING_ASSIGNMENT (
+    message {
+        text: Pending Assignment
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_QUEUE_POSITION (
+    message {
+        text: الخطوة التالية
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_QUEUE_POSITION (
+    message {
+        text: Queue Position
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_RECORD_ID (
+    message {
+        text: معرّف السجل
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_RECORD_ID (
+    message {
+        text: Record Id
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_REMOVE_THE_REQUEST_TYPE_DETAILS_BEFORE_DELETING_THIS_REQUEST_TYPE (
+    message {
+        text: لا يمكن حذف نوع الخدمة قبل إزالة الخدمات الفرعية التابعة له.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_REMOVE_THE_REQUEST_TYPE_DETAILS_BEFORE_DELETING_THIS_REQUEST_TYPE (
+    message {
+        text: Remove the request type details before deleting this request type.
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_REMOVE_THE_TEAM_MEMBERS_BEFORE_DELETING_THIS_TEAM (
+    message {
+        text: لا يمكن حذف الفريق قبل إزالة أعضائه.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_REMOVE_THE_TEAM_MEMBERS_BEFORE_DELETING_THIS_TEAM (
+    message {
+        text: Remove the team members before deleting this team.
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_REQUESTER_NAME (
+    message {
+        text: اسم مقدم الطلب
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_REQUESTER_NAME (
+    message {
+        text: Requester Name
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_REQUESTS_ASSIGNED_TO_YOUR_TEAM_S (
+    message {
+        text: طلبات الفريق وطلباتي المسندة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_REQUESTS_ASSIGNED_TO_YOUR_TEAM_S (
+    message {
+        text: Requests Assigned to Your Team(s)
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_REQUEST_DATE (
+    message {
+        text: تاريخ التقديم
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_REQUEST_DATE (
+    message {
+        text: Request Date
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_REQUEST_ID (
+    message {
+        text: معرّف الطلب
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_REQUEST_ID (
+    message {
+        text: Request ID
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_REQUEST_NO (
+    message {
+        text: رقم الطلب
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_REQUEST_NO (
+    message {
+        text: Request No
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_REQUEST_TYPE_ID (
+    message {
+        text: معرّف نوع الخدمة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_REQUEST_TYPE_ID (
+    message {
+        text: Request Type Id
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ROLE (
+    message {
+        text: الدور
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ROLE (
+    message {
+        text: Role
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ROLE_COORDINATOR (
+    message {
+        text: منسّق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ROLE_COORDINATOR (
+    message {
+        text: Coordinator
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ROLE_LEADER (
+    message {
+        text: قائد الفريق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ROLE_LEADER (
+    message {
+        text: Leader
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_ROLE_MEMBER (
+    message {
+        text: عضو
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_ROLE_MEMBER (
+    message {
+        text: Member
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_SETUP_HEALTH (
+    message {
+        text: حالة الإعدادات
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_SETUP_HEALTH (
+    message {
+        text: Setup Health
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_SETUP_VALIDATION (
+    message {
+        text: مراجعة الإعدادات
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_SETUP_VALIDATION (
+    message {
+        text: Setup Validation
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_STATUS (
+    message {
+        text: الحالة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_STATUS (
+    message {
+        text: Status
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_SUBCATEGORY (
+    message {
+        text: الخدمة الفرعية
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_SUBCATEGORY (
+    message {
+        text: Subcategory
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_SUBMIT_NEW_IT_REQUEST (
+    message {
+        text: تقديم طلب دعم فني
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_SUBMIT_NEW_IT_REQUEST (
+    message {
+        text: Submit New IT Request
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_SUGGESTED_TEAM (
+    message {
+        text: الفريق المقترح
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_SUGGESTED_TEAM (
+    message {
+        text: Suggested Team
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_SUGGESTED_TEAM_ID (
+    message {
+        text: الفريق المقترح
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_SUGGESTED_TEAM_ID (
+    message {
+        text: Suggested Team Id
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_TEAMS (
+    message {
+        text: الفرق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_TEAMS (
+    message {
+        text: Teams
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_TEAM_ID (
+    message {
+        text: معرّف الفريق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_TEAM_ID (
+    message {
+        text: Team Id
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_TEAM_MEMBERS (
+    message {
+        text: أعضاء الفريق
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_TEAM_MEMBERS (
+    message {
+        text: Team Members
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_THIS_REQUEST_DETAIL_ALREADY_EXISTS_FOR_THE_SELECTED_REQUEST_TYPE (
+    message {
+        text: هذه الخدمة الفرعية موجودة بالفعل ضمن نوع الخدمة المحدد.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_THIS_REQUEST_DETAIL_ALREADY_EXISTS_FOR_THE_SELECTED_REQUEST_TYPE (
+    message {
+        text: This request detail already exists for the selected request type.
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_THIS_USERNAME_IS_ALREADY_ASSIGNED_TO_THE_SELECTED_TEAM (
+    message {
+        text: هذا الموظف عضو في الفريق المحدد بالفعل.
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_THIS_USERNAME_IS_ALREADY_ASSIGNED_TO_THE_SELECTED_TEAM (
+    message {
+        text: This username is already assigned to the selected team.
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_TITLE (
+    message {
+        text: الاسم
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_TITLE (
+    message {
+        text: Title
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_TOTAL (
+    message {
+        text: الإجمالي
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_TOTAL (
+    message {
+        text: Total
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_URGENT (
+    message {
+        text: العاجلة
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_URGENT (
+    message {
+        text: Urgent
+        language: en-us
+    }
+)
+
+textMessage ITR_UI_USERNAME (
+    message {
+        text: رقم المستخدم
+        language: ar-ae
+    }
+)
+
+textMessage ITR_UI_USERNAME (
+    message {
+        text: Username
         language: en-us
     }
 )

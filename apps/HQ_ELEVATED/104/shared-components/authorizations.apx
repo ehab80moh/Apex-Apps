@@ -339,6 +339,64 @@ authorization it-request-setup-admin (
     }
 )
 
+authorization it-request-viewer (
+    name: IT Request Viewer
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            DECLARE
+                l_request_id NUMBER := TO_NUMBER(:P705_REQUEST_ID);
+                l_task_request_id NUMBER;
+                l_count NUMBER;
+            BEGIN
+                IF :APP_ID <> '104' OR :APP_USER IS NULL THEN
+                    RETURN FALSE;
+                END IF;
+                IF :P705_TASK_ID IS NOT NULL THEN
+                    SELECT TO_NUMBER(p.param_value)
+                      INTO l_task_request_id
+                      FROM TABLE(apex_human_task.get_tasks(
+                                   p_context => 'SINGLE_TASK',
+                                   p_task_id => TO_NUMBER(:P705_TASK_ID))) visible_task
+                      JOIN apex_tasks a ON a.task_id = visible_task.task_id
+                      JOIN apex_task_parameters p
+                        ON p.task_id = a.task_id AND p.application_id = a.application_id
+                       AND p.param_static_id = 'T_REQUEST_ID'
+                      JOIN apex_task_parameters rt
+                        ON rt.task_id = a.task_id AND rt.application_id = a.application_id
+                       AND rt.param_static_id = 'T_REQUEST_TYPE_ID' AND rt.param_value = '104'
+                     WHERE a.application_id = 104
+                       AND a.task_def_static_id IN ('gen-wf-action', 'approval-task');
+                    IF l_request_id IS NOT NULL AND l_request_id <> l_task_request_id THEN
+                        RETURN FALSE;
+                    END IF;
+                    SELECT COUNT(*) INTO l_count FROM hq_elevated.itr_requests
+                     WHERE request_id = l_task_request_id;
+                    RETURN l_count = 1;
+                END IF;
+                SELECT COUNT(*) INTO l_count
+                  FROM hq_elevated.itr_requests r
+                 WHERE r.request_id = l_request_id
+                   AND (r.emp_id = :APP_USER
+                        OR EXISTS (SELECT 1 FROM hq_elevated.itr_team_members tm
+                                    WHERE tm.username = :APP_USER
+                                      AND (UPPER(TRIM(tm.role)) = 'COORDINATOR'
+                                           OR tm.team_id = r.assigned_team_id)));
+                RETURN l_count = 1;
+            EXCEPTION
+                WHEN OTHERS THEN RETURN FALSE;
+            END;
+            ```
+    }
+    error {
+        errorMessage: &APP_TEXT$ITR_REVIEW_UNAVAILABLE.
+    }
+    advanced {
+        evaluationType: always
+    }
+)
+
 authorization managers-dashboard-users (
     name: Managers Dashboard Users
     type: plSqlFunctionBody

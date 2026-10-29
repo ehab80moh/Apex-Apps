@@ -766,6 +766,16 @@ list navigation-menu (
                 page: 72
             }
         }
+        serverSideCondition {
+            type: functionBody
+            plsqlFunctionBody:
+                ```plsql
+                BEGIN
+                
+                RETURN :APP_USER in('1486', '1843', '1904', '1869','3586','951') OR central.is_dev_or_super_n(:app_user) = 1;
+                END;
+                ```
+        }
     )
 
     entry it-request-administration (

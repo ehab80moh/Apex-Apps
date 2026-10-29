@@ -16,21 +16,22 @@ page 701 (
     css {
         inline:
             ```css
-            html, body {
-                overflow: hidden !important;
-            }
-            .t-Dialog-body {
-                overflow-x: hidden !important;
-                overflow-y: auto !important;
-            }
-            .t-Region--accent1>.t-Region-header{
-                --ut-region-header-background-color: #415b72;
-            }
+            .t-Dialog-body { overflow-x: hidden; overflow-y: auto; padding-block: 1rem; }
+            .t-Region { border-radius: .75rem; }
+            .t-Region--accent1 > .t-Region-header { --ut-region-header-background-color: var(--ut-palette-primary); }
+            .t-Form-fieldContainer { margin-block-end: .65rem; }
+            textarea { min-height: 7rem; resize: vertical; line-height: 1.7; }
+            .itr-guidance { color: var(--ut-body-text-color); line-height: 1.7; margin: 0; }
+            :focus-visible { outline-offset: 3px; }
+            @media (max-width: 640px) { .t-Dialog-body { padding-inline: .75rem; } }
             ```
     }
     security {
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
+    }
+    advanced {
+        enableDuplicatePageSubmissions: false
     }
 
     region buttons (
@@ -122,11 +123,26 @@ page 701 (
         }
     )
 
+    region submission-guidance (
+        name: Submission guidance
+        type: staticContent
+        source {
+            htmlCode: <p class="itr-guidance">&APP_TEXT$ITR_REVIEW_SUBMIT_HINT.</p>
+        }
+        layout {
+            sequence: 15
+            slot: contentBody
+        }
+        appearance {
+            template: @blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
     pageItem P701_CRITICALITY (
         type: radioGroup
         label {
             label: &APP_TEXT$IT_REQUEST_CRITICALITY.
-            alignment: left
         }
         settings {
             noOfCols: 2
@@ -141,9 +157,8 @@ page 701 (
             sequence: 50
             region: @request-form
             slot: regionBody
-            alignment: left
-            startNewRow: false
-            newColumn: false
+            column: 1
+            columnSpan: 12
         }
         appearance {
             template: @optional
@@ -159,13 +174,13 @@ page 701 (
         type: textarea
         label {
             label: &APP_TEXT$IT_REQUEST_DESCRIPTION.
-            alignment: left
         }
         layout {
             sequence: 40
             region: @request-form
             slot: regionBody
-            alignment: left
+            column: 1
+            columnSpan: 12
         }
         appearance {
             template: @required-floating
@@ -182,13 +197,13 @@ page 701 (
         type: textField
         label {
             label: &APP_TEXT$IT_REQUEST_BUILDING.
-            alignment: left
         }
         layout {
-            sequence: 60
+            sequence: 70
             region: @request-form
             slot: regionBody
-            alignment: left
+            column: 1
+            columnSpan: 6
         }
         appearance {
             template: @optional-floating
@@ -212,13 +227,13 @@ page 701 (
         type: textField
         label {
             label: &APP_TEXT$IT_REQUEST_INTERNAL_NUMBER.
-            alignment: left
         }
         layout {
-            sequence: 50
+            sequence: 60
             region: @request-form
             slot: regionBody
-            alignment: left
+            column: 1
+            columnSpan: 6
         }
         appearance {
             template: @optional-floating
@@ -237,13 +252,11 @@ page 701 (
         type: displayOnly
         label {
             label: &APP_TEXT$IT_REQUEST_REQUESTER_NAME.
-            alignment: left
         }
         layout {
             sequence: 10
             region: @emp-details
             slot: regionBody
-            alignment: left
             columnSpan: 7
         }
         appearance {
@@ -266,13 +279,11 @@ page 701 (
         type: displayOnly
         label {
             label: &APP_TEXT$IT_REQUEST_EMPLOYEE_NUMBER.
-            alignment: left
         }
         layout {
             sequence: 20
             region: @emp-details
             slot: regionBody
-            alignment: left
             startNewRow: false
             columnSpan: 5
         }
@@ -301,14 +312,14 @@ page 701 (
         type: textField
         label {
             label: &APP_TEXT$IT_REQUEST_ROOM.
-            alignment: left
         }
         layout {
-            sequence: 70
+            sequence: 80
             region: @request-form
             slot: regionBody
-            alignment: left
             startNewRow: false
+            column: 7
+            columnSpan: 6
         }
         appearance {
             template: @optional-floating
@@ -332,13 +343,11 @@ page 701 (
         type: displayOnly
         label {
             label: &APP_TEXT$IT_REQUEST_DEPARTMENT.
-            alignment: left
         }
         layout {
             sequence: 40
             region: @emp-details
             slot: regionBody
-            alignment: left
             columnSpan: 12
         }
         appearance {
@@ -370,7 +379,6 @@ page 701 (
         type: selectList
         label {
             label: &APP_TEXT$IT_REQUEST_CATEGORY.
-            alignment: left
         }
         lov {
             type: sqlQuery
@@ -380,7 +388,8 @@ page 701 (
             sequence: 10
             region: @request-form
             slot: regionBody
-            alignment: left
+            column: 1
+            columnSpan: 6
         }
         appearance {
             template: @required-floating
@@ -395,7 +404,6 @@ page 701 (
         type: selectList
         label {
             label: &APP_TEXT$IT_REQUEST_SUBCATEGORY.
-            alignment: left
         }
         lov {
             type: sqlQuery
@@ -415,8 +423,9 @@ page 701 (
             sequence: 20
             region: @request-form
             slot: regionBody
-            alignment: left
             startNewRow: false
+            column: 7
+            columnSpan: 6
         }
         appearance {
             template: @required-floating
@@ -553,6 +562,60 @@ page 701 (
         }
     )
 
+    validation storage-limit-p701_description (
+        name: Validate text storage length
+        execution {
+            sequence: 60
+        }
+        validation {
+            plsqlExpression: NVL(LENGTHB(:P701_DESCRIPTION), 0) <= 500
+        }
+        error {
+            errorMessage: &APP_TEXT$ITR_REVIEW_TEXT_TOO_LONG.
+            associatedItem: @P701_DESCRIPTION
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
+    validation storage-limit-p701_emp_building (
+        name: Validate text storage length
+        execution {
+            sequence: 70
+        }
+        validation {
+            plsqlExpression: NVL(LENGTHB(:P701_EMP_BUILDING), 0) <= 99
+        }
+        error {
+            errorMessage: &APP_TEXT$ITR_REVIEW_TEXT_TOO_LONG.
+            associatedItem: @P701_EMP_BUILDING
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
+    validation storage-limit-p701_emp_room (
+        name: Validate text storage length
+        execution {
+            sequence: 80
+        }
+        validation {
+            plsqlExpression: NVL(LENGTHB(:P701_EMP_ROOM), 0) <= 99
+        }
+        error {
+            errorMessage: &APP_TEXT$ITR_REVIEW_TEXT_TOO_LONG.
+            associatedItem: @P701_EMP_ROOM
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT
+        }
+    )
+
     validation valid-criticality (
         name: Validate criticality
         execution {
@@ -627,8 +690,8 @@ page 701 (
             plsqlCode:
                 ```plsql
                 BEGIN
-                    :P701_EMP_ID := NVL(:P701_EMP_ID, :APP_USER);
-                    :P701_EMP_NUMBER := NVL(:P701_EMP_NUMBER, :APP_USER);
+                    :P701_EMP_ID := :APP_USER;
+                    :P701_EMP_NUMBER := :APP_USER;
                 END;
                 ```
         }
@@ -666,70 +729,6 @@ page 701 (
         }
     )
 
-    process start-it-request-workflow (
-        name: Start IT Request Workflow
-        type: executeCode
-        source {
-            plsqlCode:
-                ```plsql
-                DECLARE
-                    l_workflow_id NUMBER;
-                    l_title       VARCHAR2(100);
-                BEGIN
-                    SELECT title
-                      INTO l_title
-                      FROM HQ_ELEVATED.ITR_REQUEST_TYPE_DETAILS
-                     WHERE id = :P701_REQUEST_TYPE_DETAIL_ID;
-                
-                    l_workflow_id := APEX_WORKFLOW.START_WORKFLOW(
-                        p_application_id => 104,
-                        p_static_id      => 'IT_REQUEST_WF',
-                        p_parameters     => APEX_WORKFLOW.T_WORKFLOW_PARAMETERS(
-                            1 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
-                                static_id => 'P_EMP_ID',
-                                string_value => :P701_EMP_ID
-                            ),
-                            2 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
-                                static_id => 'P_EMP_NAME',
-                                string_value => :P701_EMP_NAME
-                            ),
-                            3 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
-                                static_id => 'P_REQUEST_ID',
-                                string_value => TO_CHAR(:P701_REQUEST_ID)
-                            ),
-                            4 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
-                                static_id => 'P_REQUEST_TYPE_ID',
-                                string_value => '104'
-                            ),
-                            5 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
-                                static_id => 'P_TITLE',
-                                string_value => l_title
-                            )
-                        ),
-                        p_initiator => :P701_EMP_ID,
-                        p_detail_pk => TO_CHAR(:P701_REQUEST_ID)
-                    );
-                
-                    :P701_WORKFLOW_ID := l_workflow_id;
-                    :P701_MSG := APEX_LANG.MESSAGE('IT_REQUEST_SUBMITTED');
-                END;
-                ```
-        }
-        execution {
-            sequence: 20
-        }
-        error {
-            errorMessage: &APP_TEXT$IT_REQUEST_SUBMIT_ERROR.
-        }
-        advanced {
-            executionMappingIdentifier: 842908697773505923
-        }
-        serverSideCondition {
-            type: requestIsContainedInValue
-            value: SUBMIT
-        }
-    )
-
     process submit-request (
         name: Submit Request
         type: executeCode
@@ -738,7 +737,15 @@ page 701 (
                 ```plsql
                 declare
                   v_suggested_team_id number;
+                  l_title HQ_ELEVATED.ITR_REQUEST_TYPE_DETAILS.TITLE%TYPE;
+                  l_employee_name CENTRAL.XXAPEX_HR_EMP_DATA.EMP_NAME%TYPE;
+                  l_workflow_id number;
                 begin
+                  SAVEPOINT itr_submit;
+                  :P701_REQUEST_ID := NULL;
+                  :P701_WORKFLOW_ID := NULL;
+                  SELECT EMP_NAME INTO l_employee_name FROM central.XXAPEX_HR_EMP_DATA
+                   WHERE EMP_NUMBER = :APP_USER;
                   select suggested_team_id into v_suggested_team_id
                     from HQ_ELEVATED.ITR_REQUEST_TYPE_DETAILS
                    where id = :P701_REQUEST_TYPE_DETAIL_ID;
@@ -769,6 +776,50 @@ page 701 (
                     v_suggested_team_id
                   )
                   RETURNING request_id INTO :P701_REQUEST_ID;
+                    SELECT title
+                      INTO l_title
+                      FROM HQ_ELEVATED.ITR_REQUEST_TYPE_DETAILS
+                     WHERE id = :P701_REQUEST_TYPE_DETAIL_ID;
+                
+                    l_workflow_id := APEX_WORKFLOW.START_WORKFLOW(
+                        p_application_id => 104,
+                        p_static_id      => 'IT_REQUEST_WF',
+                        p_parameters     => APEX_WORKFLOW.T_WORKFLOW_PARAMETERS(
+                            1 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                static_id => 'P_EMP_ID',
+                                string_value => :APP_USER
+                            ),
+                            2 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                static_id => 'P_EMP_NAME',
+                                string_value => l_employee_name
+                            ),
+                            3 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                static_id => 'P_REQUEST_ID',
+                                string_value => TO_CHAR(:P701_REQUEST_ID)
+                            ),
+                            4 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                static_id => 'P_REQUEST_TYPE_ID',
+                                string_value => '104'
+                            ),
+                            5 => APEX_WORKFLOW.T_WORKFLOW_PARAMETER(
+                                static_id => 'P_TITLE',
+                                string_value => l_title
+                            )
+                        ),
+                        p_initiator => :APP_USER,
+                        p_detail_pk => TO_CHAR(:P701_REQUEST_ID)
+                    );
+                
+                    :P701_WORKFLOW_ID := l_workflow_id;
+                    :P701_MSG := APEX_LANG.MESSAGE('IT_REQUEST_SUBMITTED');
+                
+                EXCEPTION
+                  WHEN OTHERS THEN
+                    ROLLBACK TO itr_submit;
+                    :P701_REQUEST_ID := NULL;
+                    :P701_WORKFLOW_ID := NULL;
+                    :P701_MSG := NULL;
+                    RAISE;
                 end;
                 ```
         }

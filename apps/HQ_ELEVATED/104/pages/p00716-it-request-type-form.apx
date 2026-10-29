@@ -1,7 +1,7 @@
 page 716 (
     name: IT Request Type Form
     alias: IT-REQUEST-TYPE-FORM
-    title: IT Request Type Form
+    title: &APP_TEXT$ITR_UI_IT_REQUEST_TYPE_FORM.
     appearance {
         pageMode: modalDialog
         dialogTemplate: @modal-dialog
@@ -57,7 +57,7 @@ page 716 (
     pageItem P716_DESCR (
         type: textField
         label {
-            label: Descr
+            label: &APP_TEXT$ITR_UI_DESCR.
         }
         settings {
             trimSpaces: none
@@ -104,7 +104,7 @@ page 716 (
     pageItem P716_NAME (
         type: textField
         label {
-            label: Name
+            label: &APP_TEXT$ITR_UI_NAME.
         }
         settings {
             trimSpaces: none
@@ -132,7 +132,7 @@ page 716 (
 
     button cancel (
         buttonName: CANCEL
-        label: Cancel
+        label: &APP_TEXT$ITR_UI_CANCEL.
         layout {
             sequence: 10
             region: @buttons
@@ -149,7 +149,7 @@ page 716 (
 
     button create (
         buttonName: CREATE
-        label: Create
+        label: &APP_TEXT$ITR_UI_CREATE.
         layout {
             sequence: 40
             region: @buttons
@@ -172,7 +172,7 @@ page 716 (
 
     button delete (
         buttonName: DELETE
-        label: Delete
+        label: &APP_TEXT$ITR_UI_DELETE.
         layout {
             sequence: 20
             region: @buttons
@@ -199,7 +199,7 @@ page 716 (
 
     button save (
         buttonName: SAVE
-        label: Apply Changes
+        label: &APP_TEXT$ITR_UI_APPLY_CHANGES.
         layout {
             sequence: 30
             region: @buttons
@@ -251,7 +251,7 @@ page 716 (
             sqlQuery: select 1 from ITR_REQUEST_TYPE_DETAILS where REQUEST_TYPE_ID = :P716_ID
         }
         error {
-            errorMessage: Remove the request type details before deleting this request type.
+            errorMessage: &APP_TEXT$ITR_UI_REMOVE_THE_REQUEST_TYPE_DETAILS_BEFORE_DELETING_THIS_REQUEST_TYPE.
         }
         serverSideCondition {
             whenButtonPressed: @delete
@@ -268,7 +268,7 @@ page 716 (
             sqlQuery: select 1 from ITR_REQUEST_TYPES where upper(NAME) = upper(:P716_NAME) and ID <> nvl(:P716_ID, -1)
         }
         error {
-            errorMessage: A request type with this name already exists.
+            errorMessage: &APP_TEXT$ITR_UI_A_REQUEST_TYPE_WITH_THIS_NAME_ALREADY_EXISTS.
             associatedItem: @P716_NAME
         }
     )

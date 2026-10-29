@@ -1,7 +1,7 @@
 page 712 (
     name: IT Team Form
     alias: IT-TEAM-FORM
-    title: IT Team Form
+    title: &APP_TEXT$ITR_UI_IT_TEAM_FORM.
     appearance {
         pageMode: modalDialog
         dialogTemplate: @modal-dialog
@@ -57,7 +57,7 @@ page 712 (
     pageItem P712_DESCRIPTION (
         type: textField
         label {
-            label: Description
+            label: &APP_TEXT$ITR_UI_DESCRIPTION.
         }
         settings {
             trimSpaces: none
@@ -104,7 +104,7 @@ page 712 (
     pageItem P712_NAME (
         type: textField
         label {
-            label: Name
+            label: &APP_TEXT$ITR_UI_NAME.
         }
         settings {
             trimSpaces: none
@@ -132,7 +132,7 @@ page 712 (
 
     button cancel (
         buttonName: CANCEL
-        label: Cancel
+        label: &APP_TEXT$ITR_UI_CANCEL.
         layout {
             sequence: 10
             region: @buttons
@@ -149,7 +149,7 @@ page 712 (
 
     button create (
         buttonName: CREATE
-        label: Create
+        label: &APP_TEXT$ITR_UI_CREATE.
         layout {
             sequence: 40
             region: @buttons
@@ -172,7 +172,7 @@ page 712 (
 
     button delete (
         buttonName: DELETE
-        label: Delete
+        label: &APP_TEXT$ITR_UI_DELETE.
         layout {
             sequence: 20
             region: @buttons
@@ -199,7 +199,7 @@ page 712 (
 
     button save (
         buttonName: SAVE
-        label: Apply Changes
+        label: &APP_TEXT$ITR_UI_APPLY_CHANGES.
         layout {
             sequence: 30
             region: @buttons
@@ -251,7 +251,7 @@ page 712 (
             sqlQuery: select 1 from ITR_TEAM_MEMBERS where TEAM_ID = :P712_ID
         }
         error {
-            errorMessage: Remove the team members before deleting this team.
+            errorMessage: &APP_TEXT$ITR_UI_REMOVE_THE_TEAM_MEMBERS_BEFORE_DELETING_THIS_TEAM.
         }
         serverSideCondition {
             whenButtonPressed: @delete
@@ -268,7 +268,7 @@ page 712 (
             sqlQuery: select 1 from ITR_TEAMS where upper(NAME) = upper(:P712_NAME) and ID <> nvl(:P712_ID, -1)
         }
         error {
-            errorMessage: A team with this name already exists.
+            errorMessage: &APP_TEXT$ITR_UI_A_TEAM_WITH_THIS_NAME_ALREADY_EXISTS.
             associatedItem: @P712_NAME
         }
     )

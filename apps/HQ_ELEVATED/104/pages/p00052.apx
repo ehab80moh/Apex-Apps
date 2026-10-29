@@ -67,14 +67,14 @@ page 52 (
         inline:
             ```css
             .p52-it-approval .t-Dialog-body {
-                background: #f4f7fb;
+                background: var(--ut-component-background-color);
             }
             .p52-summary-card,
             .p52-request-card {
-                border: 1px solid #dbe5ef;
+                border: 1px solid var(--ut-component-border-color);
                 border-radius: 16px;
-                background: #fff;
-                box-shadow: 0 10px 28px rgba(15, 23, 42, .07);
+                background: var(--ut-region-background-color);
+                box-shadow: none;
                 overflow: hidden;
             }
             .p52-summary-card .t-Region-body,
@@ -83,7 +83,7 @@ page 52 (
             }
             .p52-summary-card .a-ContentRow-title,
             .p52-request-card .a-ContentRow-title {
-                color: #0f172a;
+                color: var(--ut-body-text-color);
                 font-weight: 800;
                 line-height: 1.45;
             }
@@ -100,38 +100,38 @@ page 52 (
             .p52-meta-tile,
             .p52-detail-block {
                 padding: .7rem .8rem;
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--ut-component-border-color);
                 border-radius: 12px;
-                background: #f8fafc;
+                background: var(--ut-component-background-color);
             }
             .p52-meta-label {
                 display: block;
                 margin-bottom: .2rem;
-                color: #64748b;
+                color: var(--ut-body-text-color);
                 font-size: .78rem;
                 font-weight: 700;
             }
             .p52-meta-value {
-                color: #0f172a;
+                color: var(--ut-body-text-color);
                 font-size: .98rem;
                 font-weight: 800;
                 overflow-wrap: anywhere;
             }
             .p52-section-title {
                 margin: 1rem 0 .55rem;
-                color: #0f766e;
+                color: var(--ut-palette-primary);
                 font-size: .9rem;
                 font-weight: 800;
             }
             .p52-detail-block {
                 margin-top: .75rem;
-                background: #fff;
+                background: var(--ut-region-background-color);
                 line-height: 1.65;
                 white-space: pre-wrap;
             }
             .p52-action-bar {
-                border-top: 1px solid #dbe5ef;
-                background: rgba(255, 255, 255, .96);
+                border-top: 1px solid var(--ut-component-border-color);
+                background: var(--ut-component-background-color);
                 backdrop-filter: blur(8px);
             }
             .p52-action-bar .t-Button {
@@ -139,7 +139,7 @@ page 52 (
                 font-weight: 800;
             }
             .p52-it-approval :focus-visible {
-                outline: 3px solid rgba(14, 165, 233, .35);
+                outline: 3px solid var(--ut-component-border-color);
                 outline-offset: 2px;
             }
             [dir="rtl"] .p52-it-approval .a-ContentRow,

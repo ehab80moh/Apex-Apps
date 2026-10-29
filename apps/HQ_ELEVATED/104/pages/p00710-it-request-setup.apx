@@ -1,7 +1,7 @@
 page 710 (
     name: IT Request Setup
     alias: IT-REQUEST-SETUP
-    title: IT Request Setup
+    title: &APP_TEXT$ITR_UI_IT_REQUEST_SETUP.
     appearance {
         pageTemplate: @standard
         templateOptions: #DEFAULT#
@@ -13,7 +13,7 @@ page 710 (
     }
 
     region breadcrumb (
-        name: Breadcrumb
+        name: &APP_TEXT$ITR_UI_BREADCRUMB.
         type: breadcrumb
         source {
             breadcrumb: @breadcrumb
@@ -36,10 +36,10 @@ page 710 (
     )
 
     region setup-actions (
-        name: IT Request Setup Areas
+        name: &APP_TEXT$ITR_UI_IT_REQUEST_SETUP_AREAS.
         type: staticContent
         source {
-            htmlCode: <p>Manage teams, request types, and configuration health.</p>
+            htmlCode: <p>&APP_TEXT$ITR_SETUP_GUIDANCE.</p>
         }
         layout {
             sequence: 20
@@ -52,12 +52,12 @@ page 710 (
     )
 
     region setup-health (
-        name: Setup Health
+        name: &APP_TEXT$ITR_UI_SETUP_HEALTH.
         type: classicReport
         source {
             location: localDatabase
             type: sqlQuery
-            sqlQuery: select 'Teams' as area, to_char(count(*)) as total from ITR_TEAMS union all select 'Team members', to_char(count(*)) from ITR_TEAM_MEMBERS union all select 'Request types', to_char(count(*)) from ITR_REQUEST_TYPES union all select 'Teams missing leader/coordinator', to_char(count(*)) from (select t.id from ITR_TEAMS t left join ITR_TEAM_MEMBERS tm on tm.team_id = t.id and upper(tm.role) in ('LEADER','COORDINATOR') group by t.id having count(tm.id) = 0) order by 1
+            sqlQuery: select apex_lang.message('ITR_SETUP_HEALTH_TEAMS') as area, to_char(count(*)) as total from ITR_TEAMS union all select apex_lang.message('ITR_SETUP_HEALTH_TEAM_MEMBERS'), to_char(count(*)) from ITR_TEAM_MEMBERS union all select apex_lang.message('ITR_SETUP_HEALTH_REQUEST_TYPES'), to_char(count(*)) from ITR_REQUEST_TYPES union all select apex_lang.message('ITR_SETUP_HEALTH_TEAMS_MISSING_LEADER_COORDINATOR'), to_char(count(*)) from (select t.id from ITR_TEAMS t left join ITR_TEAM_MEMBERS tm on tm.team_id = t.id and upper(tm.role) in ('LEADER','COORDINATOR') group by t.id having count(tm.id) = 0) order by 1
         }
         layout {
             sequence: 30
@@ -65,10 +65,7 @@ page 710 (
         }
         appearance {
             template: @standard
-            templateOptions: [
-                #DEFAULT#
-                t-Region--scrollBody
-            ]
+            templateOptions: #DEFAULT#
         }
         componentAppearance {
             template: @standard
@@ -83,14 +80,14 @@ page 710 (
             type: rowRangesXToYNoPagination
         }
         messages {
-            whenNoDataFound: No data found
+            whenNoDataFound: &APP_TEXT$ITR_UI_NO_DATA_FOUND.
         }
 
         column AREA (
             reportColumnQueryId: 1
             derivedColumn: N
             heading {
-                heading: Area
+                heading: &APP_TEXT$ITR_UI_AREA.
                 alignment: center
             }
             layout {
@@ -102,7 +99,7 @@ page 710 (
             reportColumnQueryId: 2
             derivedColumn: N
             heading {
-                heading: Total
+                heading: &APP_TEXT$ITR_UI_TOTAL.
                 alignment: center
             }
             layout {
@@ -115,7 +112,7 @@ page 710 (
 
     button manage-request-types (
         buttonName: MANAGE-REQUEST-TYPES
-        label: Manage Request Types
+        label: &APP_TEXT$ITR_UI_MANAGE_REQUEST_TYPES.
         layout {
             sequence: 20
             region: @setup-actions
@@ -137,7 +134,7 @@ page 710 (
 
     button manage-teams (
         buttonName: MANAGE-TEAMS
-        label: Manage Teams
+        label: &APP_TEXT$ITR_UI_MANAGE_TEAMS.
         layout {
             sequence: 10
             region: @setup-actions
@@ -160,7 +157,7 @@ page 710 (
 
     button setup-validation (
         buttonName: SETUP-VALIDATION
-        label: Setup Validation
+        label: &APP_TEXT$ITR_UI_SETUP_VALIDATION.
         layout {
             sequence: 30
             region: @setup-actions

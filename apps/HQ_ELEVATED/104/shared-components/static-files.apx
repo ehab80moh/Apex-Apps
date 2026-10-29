@@ -167,6 +167,10 @@ file permanent_contract.docx (
     mimeType: application/vnd.openxmlformats-officedocument.wordprocessingml.document
 )
 
+file permanent_contract_notice.docx (
+    mimeType: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+)
+
 file prescription-card.png (
     mimeType: image/png
     charSet: utf-8

@@ -1,7 +1,7 @@
 page 719 (
     name: IT Request Setup Validation
     alias: IT-REQUEST-SETUP-VALIDATION
-    title: IT Request Setup Validation
+    title: &APP_TEXT$ITR_UI_IT_REQUEST_SETUP_VALIDATION.
     appearance {
         pageTemplate: @standard
         templateOptions: #DEFAULT#
@@ -13,7 +13,7 @@ page 719 (
     }
 
     region breadcrumb (
-        name: Breadcrumb
+        name: &APP_TEXT$ITR_UI_BREADCRUMB.
         type: breadcrumb
         source {
             breadcrumb: @breadcrumb
@@ -36,12 +36,36 @@ page 719 (
     )
 
     region setup-validation-report (
-        name: Configuration Issues
+        name: &APP_TEXT$ITR_UI_CONFIGURATION_ISSUES.
         type: classicReport
         source {
             location: localDatabase
             type: sqlQuery
-            sqlQuery: select 'TEAM' as issue_type, t.id as record_id, t.name as entity_name, 'Team has no LEADER or COORDINATOR member' as issue_description from ITR_TEAMS t left join ITR_TEAM_MEMBERS tm on tm.team_id = t.id and upper(tm.role) in ('LEADER','COORDINATOR') group by t.id, t.name having count(tm.id) = 0 union all select 'REQUEST_TYPE' as issue_type, t.id as record_id, t.name as entity_name, 'Request type has no request details' as issue_description from ITR_REQUEST_TYPES t left join ITR_REQUEST_TYPE_DETAILS d on d.request_type_id = t.id group by t.id, t.name having count(d.id) = 0 order by issue_type, entity_name
+            sqlQuery:
+                ```sql
+                select apex_lang.message('ITR_UI_TEAMS') as issue_type, t.id as record_id, t.name as entity_name,
+                       apex_lang.message('ITR_SETUP_NO_LEADER') as issue_description
+                  from ITR_TEAMS t
+                 where not exists (select 1 from ITR_TEAM_MEMBERS tm where tm.team_id=t.id and upper(trim(tm.role)) in ('LEADER','COORDINATOR'))
+                union all
+                select apex_lang.message('ITR_UI_IT_REQUEST_TYPES'), t.id, t.name, apex_lang.message('ITR_SETUP_NO_DETAILS')
+                  from ITR_REQUEST_TYPES t
+                 where not exists (select 1 from ITR_REQUEST_TYPE_DETAILS d where d.request_type_id=t.id)
+                union all
+                select apex_lang.message('ITR_UI_SUBCATEGORY'), d.id, d.title, apex_lang.message('ITR_SETUP_NO_SUGGESTED_TEAM')
+                  from ITR_REQUEST_TYPE_DETAILS d
+                 where d.SUGGESTED_TEAM_ID is null
+                union all
+                select apex_lang.message('ITR_UI_SUBCATEGORY'), d.id, d.title, apex_lang.message('ITR_SETUP_TEAM_NOT_READY')
+                  from ITR_REQUEST_TYPE_DETAILS d
+                 where d.SUGGESTED_TEAM_ID is not null
+                   and not exists (select 1 from ITR_TEAM_MEMBERS tm where tm.team_id=d.SUGGESTED_TEAM_ID and upper(trim(tm.role)) in ('LEADER','COORDINATOR'))
+                union all
+                select apex_lang.message('ITR_UI_ROLE_MEMBER'), min(tm.id), t.name, apex_lang.message('ITR_SETUP_DUPLICATE_MEMBER')
+                  from ITR_TEAM_MEMBERS tm join ITR_TEAMS t on t.id=tm.team_id
+                 group by tm.team_id, t.name, tm.username having count(*)>1
+                order by issue_type, entity_name
+                ```
         }
         layout {
             sequence: 20
@@ -51,7 +75,6 @@ page 719 (
             template: @standard
             templateOptions: [
                 #DEFAULT#
-                t-Region--scrollBody
                 t-Form--stretchInputs
             ]
         }
@@ -63,14 +86,14 @@ page 719 (
             type: rowRangesXToYNoPagination
         }
         messages {
-            whenNoDataFound: No data found
+            whenNoDataFound: &APP_TEXT$ITR_UI_NO_DATA_FOUND.
         }
 
         column ENTITY_NAME (
             reportColumnQueryId: 3
             derivedColumn: N
             heading {
-                heading: Entity Name
+                heading: &APP_TEXT$ITR_UI_ENTITY_NAME.
             }
             layout {
                 sequence: 30
@@ -81,7 +104,7 @@ page 719 (
             reportColumnQueryId: 4
             derivedColumn: N
             heading {
-                heading: Issue Description
+                heading: &APP_TEXT$ITR_UI_ISSUE_DESCRIPTION.
             }
             layout {
                 sequence: 40
@@ -92,7 +115,7 @@ page 719 (
             reportColumnQueryId: 1
             derivedColumn: N
             heading {
-                heading: Issue Type
+                heading: &APP_TEXT$ITR_UI_ISSUE_TYPE.
             }
             layout {
                 sequence: 10
@@ -103,7 +126,7 @@ page 719 (
             reportColumnQueryId: 2
             derivedColumn: N
             heading {
-                heading: Record Id
+                heading: &APP_TEXT$ITR_UI_RECORD_ID.
                 alignment: end
             }
             layout {

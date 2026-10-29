@@ -1,13 +1,14 @@
 page 72 (
     name: Claims Payables
     alias: CLAIMS-PAYABLES
-    title: Claims Payables
+    title: "Claims "
     appearance {
         pageTemplate: @standard
         templateOptions: #DEFAULT#
     }
     navigation {
         cursorFocus: doNotFocusCursor
+        warnOnUnsavedChanges: false
     }
     javaScript {
         functionAndGlobalVariableDeclaration:
@@ -370,12 +371,15 @@ page 72 (
             sequence: 60
             slot: body
             startNewRow: false
+            newColumn: false
         }
         appearance {
             template: @standard
             templateOptions: [
                 t-Region--removeHeader js-removeLandmark
                 t-Region--scrollBody
+                t-Form--stretchInputs
+                t-Form--leftLabels
             ]
             cssClasses: big-font
         }
@@ -386,6 +390,8 @@ page 72 (
             template: @value-attribute-pairs-column
             templateOptions: [
                 #DEFAULT#
+                t-AVPList--hideNulls
+                t-AVPList--fixedLabelMedium
                 t-AVPList--leftAligned
             ]
         }
@@ -501,8 +507,8 @@ page 72 (
                 #DEFAULT#
                 t-Region--showIcon
                 t-Region--removeHeader js-removeLandmark
-                t-Region--accent1
                 t-Region--scrollBody
+                t-Region-orderBy--end
             ]
             cssClasses: big-font
             icon: fa-clipboard-search
@@ -514,6 +520,8 @@ page 72 (
             template: @value-attribute-pairs-column
             templateOptions: [
                 #DEFAULT#
+                t-AVPList--hideNulls
+                t-AVPList--fixedLabelSmall
                 t-AVPList--leftAligned
             ]
             showNullValuesAs: N/A
@@ -524,11 +532,11 @@ page 72 (
             derivedColumn: N
             heading {
                 heading: Claim Number
-                alignment: center
+                alignment: end
             }
             layout {
                 sequence: 20
-                columnAlignment: center
+                columnAlignment: end
             }
         )
 
@@ -537,11 +545,11 @@ page 72 (
             derivedColumn: N
             heading {
                 heading: From
-                alignment: center
+                alignment: end
             }
             layout {
                 sequence: 60
-                columnAlignment: center
+                columnAlignment: end
             }
         )
 
@@ -550,11 +558,11 @@ page 72 (
             derivedColumn: N
             heading {
                 heading: Id
-                alignment: center
+                alignment: end
             }
             layout {
                 sequence: 10
-                columnAlignment: center
+                columnAlignment: end
             }
         )
 
@@ -563,11 +571,11 @@ page 72 (
             derivedColumn: N
             heading {
                 heading: Invoice Number
-                alignment: center
+                alignment: end
             }
             layout {
                 sequence: 30
-                columnAlignment: center
+                columnAlignment: end
             }
         )
 
@@ -576,11 +584,11 @@ page 72 (
             derivedColumn: N
             heading {
                 heading: Supplier
-                alignment: center
+                alignment: end
             }
             layout {
                 sequence: 40
-                columnAlignment: center
+                columnAlignment: end
             }
         )
 
@@ -589,11 +597,11 @@ page 72 (
             derivedColumn: N
             heading {
                 heading: Total Amount
-                alignment: center
+                alignment: end
             }
             layout {
                 sequence: 50
-                columnAlignment: center
+                columnAlignment: end
             }
         )
 
@@ -602,11 +610,11 @@ page 72 (
             derivedColumn: N
             heading {
                 heading: To
-                alignment: center
+                alignment: end
             }
             layout {
                 sequence: 70
-                columnAlignment: center
+                columnAlignment: end
             }
         )
 
@@ -833,11 +841,11 @@ page 72 (
             type: plainText
             heading {
                 heading: Covered
-                alignment: end
+                alignment: center
             }
             layout {
                 sequence: 70
-                columnAlignment: end
+                columnAlignment: center
             }
             source {
                 dataType: NUMBER
@@ -850,10 +858,12 @@ page 72 (
         column EMPLOYEE_NAME (
             type: plainText
             heading {
-                heading: Employee Name
+                heading: Emp Name
+                alignment: center
             }
             layout {
                 sequence: 50
+                columnAlignment: center
             }
             source {
                 dataType: STRING
@@ -866,10 +876,12 @@ page 72 (
         column EMPLOYEE_NUMBER (
             type: plainText
             heading {
-                heading: Employee Number
+                heading: Emp No
+                alignment: center
             }
             layout {
                 sequence: 40
+                columnAlignment: center
             }
             source {
                 dataType: STRING
@@ -883,11 +895,11 @@ page 72 (
             type: plainText
             heading {
                 heading: Id
-                alignment: end
+                alignment: center
             }
             layout {
                 sequence: 30
-                columnAlignment: end
+                columnAlignment: center
             }
             source {
                 dataType: NUMBER
@@ -901,9 +913,11 @@ page 72 (
             type: plainText
             heading {
                 heading: Invoice Date
+                alignment: center
             }
             layout {
                 sequence: 100
+                columnAlignment: center
             }
             source {
                 dataType: DATE
@@ -917,9 +931,11 @@ page 72 (
             type: plainText
             heading {
                 heading: Notes
+                alignment: center
             }
             layout {
                 sequence: 120
+                columnAlignment: center
             }
             source {
                 dataType: STRING
@@ -933,11 +949,11 @@ page 72 (
             type: plainText
             heading {
                 heading: Not Covered
-                alignment: end
+                alignment: center
             }
             layout {
                 sequence: 80
-                columnAlignment: end
+                columnAlignment: center
             }
             source {
                 dataType: NUMBER
@@ -950,10 +966,12 @@ page 72 (
         column PATIENT_TYPE_NAME (
             type: plainText
             heading {
-                heading: Patient Type Name
+                heading: Patient Type
+                alignment: center
             }
             layout {
                 sequence: 110
+                columnAlignment: center
             }
             source {
                 dataType: STRING
@@ -967,9 +985,11 @@ page 72 (
             type: plainText
             heading {
                 heading: Project
+                alignment: center
             }
             layout {
                 sequence: 60
+                columnAlignment: center
             }
             source {
                 dataType: STRING
@@ -983,9 +1003,11 @@ page 72 (
             type: plainText
             heading {
                 heading: Relative Type
+                alignment: center
             }
             layout {
                 sequence: 130
+                columnAlignment: center
             }
             source {
                 dataType: STRING
@@ -999,11 +1021,11 @@ page 72 (
             type: plainText
             heading {
                 heading: Row No
-                alignment: end
+                alignment: center
             }
             layout {
                 sequence: 10
-                columnAlignment: end
+                columnAlignment: center
             }
             source {
                 dataType: NUMBER
@@ -1017,11 +1039,11 @@ page 72 (
             type: plainText
             heading {
                 heading: Support
-                alignment: end
+                alignment: center
             }
             layout {
                 sequence: 90
-                columnAlignment: end
+                columnAlignment: center
             }
             source {
                 dataType: NUMBER
@@ -1100,6 +1122,7 @@ page 72 (
         layout {
             sequence: 80
             slot: body
+            startNewRow: false
         }
         appearance {
             template: @collapsible
@@ -1138,6 +1161,9 @@ page 72 (
         label {
             label: Claim Number
             alignment: left
+        }
+        settings {
+            fetchOnSearch: true
         }
         lov {
             type: sqlQuery
@@ -1327,12 +1353,12 @@ page 72 (
             startNewRow: false
         }
         appearance {
-            buttonTemplate: @awesome-text-with-icon
+            buttonTemplate: @text
             hot: true
             templateOptions: [
                 #DEFAULT#
-                t-Button--iconLeft
-                t-Button--warning
+                t-Button--large
+                t-Button--danger
                 t-Button--stretch
                 t-Button--gapTop
             ]

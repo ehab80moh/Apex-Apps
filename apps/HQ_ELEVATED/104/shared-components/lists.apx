@@ -770,10 +770,13 @@ list navigation-menu (
             type: functionBody
             plsqlFunctionBody:
                 ```plsql
-                BEGIN
-                
-                RETURN :APP_USER in('1486', '1843', '1904', '1869','3586','951') OR central.is_dev_or_super_n(:app_user) = 1;
-                END;
+                RETURN
+                    central.is_dev_or_super_n(:APP_USER) = 1
+                    OR central.XXAPEX_AUTHORIZATION_DUMP.is_user_authorized_items(
+                        p_user_id   => :APP_USER,
+                        p_app_id    => :APP_ID,
+                        p_role_name => 'user_access_Claims_Payables_104'
+                    ) = 1;
                 ```
         }
     )

@@ -1563,8 +1563,17 @@ textMessage APEX.ERROR.PAGE_NOT_AVAILABLE (
 
 textMessage APEX.ERROR_MESSAGE_HEADING (
     message {
-        text: Error Message
+        text: راجع البيانات المطلوبة
+        language: ar-ae
+        usedInJavaScript: true
+    }
+)
+
+textMessage APEX.ERROR_MESSAGE_HEADING (
+    message {
+        text: Check the required information
         language: en-us
+        usedInJavaScript: true
     }
 )
 
@@ -4881,15 +4890,17 @@ textMessage APEX.NUMBER_FIELD.VALUE_NOT_BETWEEN_MIN_MAX (
 
 textMessage APEX.PAGE_ITEM_IS_REQUIRED (
     message {
-        text: يجب أن يكون لها  القيمة #LABEL#.
+        text: يرجى إدخال #LABEL#.
         language: ar-ae
+        usedInJavaScript: true
     }
 )
 
 textMessage APEX.PAGE_ITEM_IS_REQUIRED (
     message {
-        text: #LABEL# must have some value.
+        text: Please enter #LABEL#.
         language: en-us
+        usedInJavaScript: true
     }
 )
 
@@ -18233,6 +18244,38 @@ textMessage FIX_TASK_ISSUE (
     message {
         text: fix  task issue
         language: en-us
+    }
+)
+
+textMessage FLOW.SINGLE_VALIDATION_ERROR (
+    message {
+        text: يرجى تصحيح الملاحظة التالية قبل الإرسال.
+        language: ar-ae
+        usedInJavaScript: true
+    }
+)
+
+textMessage FLOW.SINGLE_VALIDATION_ERROR (
+    message {
+        text: Please correct the following error before submitting.
+        language: en-us
+        usedInJavaScript: true
+    }
+)
+
+textMessage FLOW.VALIDATION_ERROR (
+    message {
+        text: يرجى تصحيح %0 ملاحظات قبل الإرسال.
+        language: ar-ae
+        usedInJavaScript: true
+    }
+)
+
+textMessage FLOW.VALIDATION_ERROR (
+    message {
+        text: Please correct %0 errors before submitting.
+        language: en-us
+        usedInJavaScript: true
     }
 )
 

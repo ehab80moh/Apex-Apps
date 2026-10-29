@@ -483,16 +483,11 @@ page 705 (
     )
 
     pageItem P705_EMP_ID (
-        type: displayOnly
-        label {
-            label: &APP_TEXT$ITR_PAGE705_REQUESTER.
-        }
+        type: hidden
         layout {
             sequence: 30
-            region: @request-info
+            region: @hidden-items
             slot: regionBody
-            columnSpan: 6
-            columnCssClasses: p705-meta-item
         }
         source {
             formRegion: @request-info
@@ -628,6 +623,21 @@ page 705 (
             sequence: 50
             region: @hidden-items
             slot: regionBody
+        }
+    )
+
+    pageItem P705_REQUESTER_NAME (
+        type: displayOnly
+        label {
+            label: &APP_TEXT$ITR_PAGE705_REQUESTER.
+        }
+        layout {
+            sequence: 30
+            region: @request-info
+            slot: regionBody
+            column: 1
+            columnSpan: 6
+            columnCssClasses: p705-meta-item
         }
     )
 
@@ -1359,6 +1369,7 @@ page 705 (
                   v_prev_username varchar2(100);
                   v_prev_name varchar2(200);
                 begin
+                  :P705_REQUESTER_NAME := COALESCE(CENTRAL.GET_EMP_NAME(:P705_EMP_ID), :P705_EMP_ID);
                   select count(*) into v_count
                     from ITR_TEAM_MEMBERS tm
                    where tm.username = :APP_USER
